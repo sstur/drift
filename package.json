@@ -1,0 +1,16 @@
+{
+  "author": "Simon <sstur@me.com> (sstur.com)",
+  "name": "platformjs",
+  "description": "Cross-platform Sync JS Framework",
+  "version": "0.1.0",
+  "homepage": "http://platformjs.com/",
+  "repository": {
+    "url": "http://github.com/sstur/platformjs"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
