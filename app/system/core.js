@@ -1,6 +1,8 @@
+//for environments that don't have global defined
 var global = (function() {
   return this.global = this;
 })();
+
 var app, define;
 (function() {
   "use strict";
@@ -8,5 +10,5 @@ var app, define;
   app = global.app = function() {};
   define = global.define = function() {};
 
-  console.log('globals loaded');
+  console.log('core loaded');
 })();
