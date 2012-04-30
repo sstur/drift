@@ -75,7 +75,7 @@ define('router', function(require, exports) {
       }
       return !stop;
     });
-    res.die('No Route');
+    res.die('404', 'No Route');
     if (!stop) {
       //todo: req.emit('no-route', data);
     }

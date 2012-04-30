@@ -35,17 +35,17 @@ define('response', function(require, exports, module) {
     },
     die: function() {
       var args = toArray(arguments), status = '200', ctype = 'text/plain';
-      if (args.length > 1 && /^\d{3}$/.test(args[0])) {
+      if (args.length > 1 && /^\d{3}\b/.test(args[0])) {
         status = args.shift();
       }
       if (args.length > 1 && /^[\w-]+\/[\w-]+$/.test(args[0])) {
         ctype = args.shift();
       }
-      this.res.clear(ctype, status);
+      this.clear(ctype, status);
       for (var i = 0; i < args.length; i++) {
-        this.res.write(args[i]);
+        this.write(args[i]);
       }
-      this.res.end();
+      this.end();
     },
     redirect: function(url, type) {
       if (type == 'html') {
