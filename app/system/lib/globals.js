@@ -3,6 +3,7 @@
  *   platforms not suporting ECMAScript 5 need ES5 shim loaded before this
  *
  * todo: htmlEnc/htmlDec; Date library; deprecate isSet
+ * todo: make list of removed functions for importing libraries
  */
 
 var forEach, vartype, isPrimitive, isSet, toArray;

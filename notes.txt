@@ -1,0 +1,3 @@
+Backwards-incompatible changes:
+  removed param-collection
+
