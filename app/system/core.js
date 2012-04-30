@@ -156,7 +156,7 @@ var app, define, setGlobal;
   function resolveDependencies(module, definition) {
     var deps = definition.deps, resolved = [];
     if (!deps || !deps.length) {
-      deps = ['require', 'module', 'exports'];
+      deps = ['require', 'exports', 'module'];
     }
     var special = {module: module, require: module.require, exports: module.exports, app: app};
     for (var i = 0; i < deps.length; i++) {

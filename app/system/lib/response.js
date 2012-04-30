@@ -1,5 +1,5 @@
 /*global app, define */
-define('response', function(require, module) {
+define('response', function(require, exports, module) {
   "use strict";
 
   var Response = function(res) {

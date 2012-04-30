@@ -1,5 +1,5 @@
 /*global app, define */
-define('router', function(require, module, exports) {
+define('router', function(require, exports) {
   "use strict";
 
   var qs = require('qs')

@@ -1,2 +1,5 @@
-qs module
-static file serving
+qs.stringify
+app.run()
+res.sendFile
+app and req event model
+post data
