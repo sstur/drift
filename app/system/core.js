@@ -206,8 +206,10 @@ var app, define, setGlobal;
   };
 
   //explicit globals for commonjs platforms
-  if (!global.app) global.app = app;
-  if (!global.define) global.define = define;
-  if (!global.setGlobal) global.setGlobal = setGlobal;
+  if (!global.app) {
+    global.app = app;
+    global.define = define;
+    global.setGlobal = setGlobal;
+  }
 
 })();

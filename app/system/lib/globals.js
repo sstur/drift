@@ -2,7 +2,7 @@
  * Global Functions and Variables
  *   platforms not suporting ECMAScript 5 need ES5 shim loaded before this
  *
- * todo: htmlEnc/htmlDec; Date library
+ * todo: htmlEnc/htmlDec; Date library; deprecate isSet
  */
 
 var forEach, vartype, isPrimitive, isSet, toArray;
@@ -62,7 +62,11 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   };
 
   Object.isPrimitive = function(obj) {
-    return Object.vartype(obj, 'boolean null number string undefined');
+    if (obj == null) {
+      return true;
+    }
+    var type = typeof obj;
+    return (type == 'boolean' || type == 'number' || type == 'string') ? true : false;
   };
 
   Object.isSet = function(obj) {
@@ -250,5 +254,13 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   isPrimitive = Object.isPrimitive;
   isSet = Object.isSet;
   toArray = Array.toArray;
+
+  //explicit globals for commonjs platforms
+  if (!global.vartype) {
+    global.vartype = vartype;
+    global.isPrimitive = isPrimitive;
+    global.isSet = isSet;
+    global.toArray = toArray;
+  }
 
 })();
