@@ -7,11 +7,25 @@ var app, define;
 (function() {
   "use strict";
 
-  app = global.app = function() {};
+  app = global.app = function() {
+    //allow to be used as a function
+    if (typeof app.fn == 'function') {
+      return app.fn.apply(app, arguments);
+    }
+  };
+  //todo: app.setGlobal('app', app);
 
   var require, definitions = {}, loading = {}, cache = {};
 
-  define = global.define = function(name, definition) {
+  define = global.define = function(name, deps, definition) {
+    if (typeof name != 'string') {
+      throw new Error('Invalid parameters for module definition')
+    }
+    if (arguments.length == 2) {
+      definition = arguments[1];
+      deps = [];
+    }
+    definition.deps = deps;
     definitions[name] = (typeof definition == 'function') ? definition : function() {};
   };
 
@@ -60,9 +74,62 @@ var app, define;
   require.cache = cache;
 
 
+
+  //app.run(function(one, two) { this === app }, 1, 2)
+  //app.run(['request', 'response'], function(req, res) { ... })
+  app.run = function(fn) {
+    var deps, args = Array.prototype.slice.call(arguments);
+    if (typeof args[0] != 'function') {
+      deps = args.shift();
+    }
+    fn = args.shift();
+    if (deps) {
+      //todo: add to deferred functions
+    } else {
+      //if no args specified, pass in require
+      fn.apply(app, args.length ? args : [require]);
+    }
+  };
+
+
+
+  /*!
+   * Basic app-level event emitter
+   */
+  var events = {};
+
+  app.on = function(name, fn) {
+    var list = events[name] || (events[name] = []);
+    list.push(fn);
+  };
+
+  app.emit = function(name) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    var list = events[name] || [];
+    for (var i = 0; i < list.length; i++) {
+      //allows a custom context by app.emit.call(ctx, 'event')
+      list[i].apply(this, args);
+    }
+  };
+
+
+  /*!
+   * Routing provided by seperate module, but routes
+   * can be added before that module is ready.
+   */
+  var routes = [];
+
+  app.route = function(route, fn) {
+    if (arguments.length == 0) {
+      return require('router').route(routes);
+    }
+    routes.push({route: route, handler: fn});
+  };
+
+
   //helper functions
 
-  function loadModule(name, args) {
+  function loadModule(name) {
     var module, fn = definitions[name];
     if (typeof fn == 'function') {
       //modules are cached during function call to handle cyclic recursion
@@ -72,16 +139,38 @@ var app, define;
       } else {
         var path = getPath(name);
         module = loading[name] = {
+          name: name,
           exports: {},
-          require: require.bind(module, path),
-          filename: name,
-          dirname: path
+          require: require.bind(module, path)
         };
-        fn.apply(module, args || [module.require, module.exports, module]);
+        var args = resolveDependencies(module, fn);
+        fn.apply(module, args);
         delete loading[name];
       }
     }
     return module && module.exports;
+  }
+
+  function resolveDependencies(module, definition) {
+    var deps = definition.deps, resolved = [];
+    if (!deps || !deps.length) {
+      deps = ['require', 'exports', 'module'];
+    }
+    var special = {module: module, require: module.require, exports: module.exports, app: app};
+    for (var i = 0; i < deps.length; i++) {
+      var dep = deps[i];
+      if (special[dep]) {
+        resolved.push(special[dep]);
+      } else {
+        //todo: try/catch and throw missing dep?
+        try {
+          resolved.push(module.require(dep));
+        } catch(e) {
+          throw new Error('Error loading dependency `' + dep + '` for module `' + module.name + '`');
+        }
+      }
+    }
+    return resolved;
   }
 
   function getPath(name) {
