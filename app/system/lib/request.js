@@ -1,5 +1,8 @@
-define('request', ['require', 'qs'], function(require, qs) {
+/*global app, define */
+define('request', function(require, module) {
   "use strict";
+
+  var qs = require('qs');
 
   var Request = function(req) {
     this.req = req;

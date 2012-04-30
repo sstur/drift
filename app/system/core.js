@@ -114,15 +114,18 @@ var app, define, setGlobal;
 
   /*!
    * Routing provided by seperate module, but routes
-   * can be added before that module is ready.
+   * can be added before that module is loaded.
    */
   var routes = [];
 
-  app.route = function(route, fn) {
-    if (arguments.length == 0) {
-      return require('router').route(routes);
+  app.route = function(a, b) {
+    if (typeof a == 'string' || a instanceof RegExp) {
+      var route = a, fn = b;
+      routes.push({route: route, handler: fn});
+    } else {
+      var req = a, res = b;
+      return require('router').route(req, res, routes);
     }
-    routes.push({route: route, handler: fn});
   };
 
 
