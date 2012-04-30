@@ -1,20 +1,18 @@
-app.route('/test', function(req, res) {
+/*global app, define */
+app.route('/test/:id', function(req, res, id) {
+  res.die('id: ' + id);
 
-  res.die('Routed successfully');
+  var qs = require('qs');
+  res.debug(qs.parse('a=1&&b=2&c&=3&c=4', {flatten: false}));
 
-//  if (pathname.match(/^\/test$/i)) {
-//    var qs = require('./lib/qs');
-//    res.debug(qs.parse('a=1&&b=2&c&=3&c=4', {flatten: false}));
-//  } else
-//  if (pathname.match(/^\/liquid/i)) {
-//    var liquid = app.require('liquid');
-//    res.write(util.inspect(liquid));
-//    res.end();
-//  } else
-//  if (pathname.match(/^\/throw$/i)) {
-//    throw new Error(pathname + ' threw');
-//  }
-//  console.log(pathname);
-//  console.log(req.getHeaders());
+});
 
+app.route('/liquid', function(req, res) {
+  var util = require('util');
+  var liquid = app.require('liquid');
+  res.die(util.inspect(liquid));
+});
+
+app.route('/throw', function(req, res) {
+  throw new Error(req.url('path') + ' threw');
 });

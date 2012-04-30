@@ -2,7 +2,9 @@
 define('router', function(require, module, exports) {
   "use strict";
 
-  var qs = require('qs');
+  var qs = require('qs')
+    , Request = require('request')
+    , Response = require('response');
 
   var RE_METHOD = /^([A-Z]+)(:)/;
   var RE_PLAIN_ROUTE = /^[^:*]+$/;
@@ -26,11 +28,15 @@ define('router', function(require, module, exports) {
     str = str.replace(/([\/.-])/g, '\\$1').replace(/\*/g, '(.+)');
     var rex = new RegExp('^' + str + '$', 'i');
     return [verb, rex, function(req, res, matches) {
-      var params = {};
+      var params = {}, list = [];
       for (var i = 0; i < keys.length; i++) {
-        params[keys[i]] = qs.unescape(matches[i]);
+        var val = qs.unescape(matches[i]);
+        params[keys[i]] = val;
+        list.push(val);
       }
-      return fn.apply(this, [req, res].concat(params));
+      //todo: change to req.params
+      req.routeParams = params;
+      return fn.apply(this, [req, res].concat(list));
     }];
   };
 
@@ -38,14 +44,16 @@ define('router', function(require, module, exports) {
     //todo: this should be done at app.on('ready')
     if (!routes.parsed) {
       for (var i = 0; i < routes.length; i++) {
-        routes[i] = parseRoute(routes[i]);
+        var definition = routes[i];
+        routes[i] = parseRoute(definition.route, definition.handler);
       }
       routes.parsed = true;
     }
-
+    req = new Request(req);
+    res = new Response(res);
     var url = req.url('path').toLowerCase()
       , verb = req.method()
-      , data = this.data
+      , data = {}
       , stop = false;
     data.stop = function() {
       stop = true;

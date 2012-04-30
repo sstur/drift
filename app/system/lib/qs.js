@@ -60,4 +60,4 @@ define('qs', ['module'], function(module) {
   qs.encode = qs.escape;
   qs.decode = qs.unescape;
 
-})();
+});

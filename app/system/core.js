@@ -123,8 +123,8 @@ var app, define, setGlobal;
       var route = a, fn = b;
       routes.push({route: route, handler: fn});
     } else {
-      var req = a, res = b;
-      return require('router').route(req, res, routes);
+      var router = require('router'), req = a, res = b;
+      return router.route(req, res, routes);
     }
   };
 
@@ -156,7 +156,7 @@ var app, define, setGlobal;
   function resolveDependencies(module, definition) {
     var deps = definition.deps, resolved = [];
     if (!deps || !deps.length) {
-      deps = ['require', 'exports', 'module'];
+      deps = ['require', 'module', 'exports'];
     }
     var special = {module: module, require: module.require, exports: module.exports, app: app};
     for (var i = 0; i < deps.length; i++) {
