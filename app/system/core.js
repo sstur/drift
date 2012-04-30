@@ -1,23 +1,22 @@
-//for environments that don't have global
+//for environments that don't define `global`
 var global = (function() {
-  return this.global = this;
+  return this;
 })();
 
-var app, define;
+var app, define, setGlobal;
 (function() {
   "use strict";
 
-  app = global.app = function() {
+  app = function() {
     //allow to be used as a function
     if (typeof app.fn == 'function') {
       return app.fn.apply(app, arguments);
     }
   };
-  //todo: app.setGlobal('app', app);
 
   var require, definitions = {}, loading = {}, cache = {};
 
-  define = global.define = function(name, deps, definition) {
+  define = function(name, deps, definition) {
     if (typeof name != 'string') {
       throw new Error('Invalid parameters for module definition')
     }
@@ -162,7 +161,6 @@ var app, define;
       if (special[dep]) {
         resolved.push(special[dep]);
       } else {
-        //todo: try/catch and throw missing dep?
         try {
           resolved.push(module.require(dep));
         } catch(e) {
@@ -188,5 +186,28 @@ var app, define;
     }
     return resolved.replace(/^\/|\/$/g, '');
   }
+
+
+  //some platforms do not allow iteration/manipulation of global object
+  var globalIsMutable = (function() {
+    try {
+      for (var n in global) return true;
+    } catch(e) {
+      return false;
+    }
+  })();
+
+  setGlobal = function(name, val) {
+    if (globalIsMutable) {
+      return global[name] = val;
+    } else {
+      return new Function('val', 'return ' + name + ' = val;')(val);
+    }
+  };
+
+  //explicit globals for commonjs platforms
+  if (!global.app) global.app = app;
+  if (!global.define) global.define = define;
+  if (!global.setGlobal) global.setGlobal = setGlobal;
 
 })();
