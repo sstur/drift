@@ -7,6 +7,15 @@ app.route('/test/:id', function(req, res, id) {
 
 });
 
+app.route('/cookie/:name/:value', function(req, res, name, value) {
+  res.cookies(name, value);
+  res.end('set cookie: ' + name);
+});
+
+app.route('/cookies', function(req, res) {
+  res.die(req.cookies());
+});
+
 app.route('/liquid', function(req, res) {
   var Liquid = app.require('liquid');
   var render = function(src, ctx) {

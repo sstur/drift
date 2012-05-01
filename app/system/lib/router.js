@@ -51,7 +51,7 @@ define('router', function(require, exports) {
     }
     req = new Request(req);
     res = new Response(res);
-    var url = req.url('path').toLowerCase()
+    var url = req.url().split('?')[0] //get raw url
       , verb = req.method()
       , data = {}
       , stop = false;

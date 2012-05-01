@@ -21,15 +21,25 @@ define('response', function(require, exports, module) {
         this.res.status(status);
       }
     },
+    headers: function() {
+      this.res.headers.apply(this.res, arguments);
+    },
+    cookies: function() {
+      this.res.cookies.apply(this.res, arguments);
+    },
     write: function(data) {
       //todo: binary
       if (isPrimitive(data)) {
         this.res.write(String(data));
       } else {
-        this.res.write(JSON.stringify(data));
+        //stringify might return undefined in some cases
+        this.res.write(JSON.stringify(data) || '');
       }
     },
-    end: function() {
+    end: function(data) {
+      if (arguments.length) {
+        this.write(data);
+      }
       //todo: req.trigger('destroy')
       this.res.end();
     },

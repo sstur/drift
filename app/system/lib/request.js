@@ -14,24 +14,28 @@ define('request', function(require, exports, module) {
         if (!this.url_parts) this.url_parts = this.req.getURLParts();
         return this.url_parts[part];
       } else {
-        if (!this.url) this.url = this.req.getURL();
-        return this.url;
+        if (!this._url) this._url = this.req.getURL();
+        return this._url;
       }
     },
     headers: function(n) {
-      if (!this.headers) this.headers = this.req.getHeaders();
+      if (!this._headers) {
+        this._headers = this.req.getHeaders();
+      }
       if (n) {
-        return this.headers[n.toLowerCase()] || '';
+        return this._headers[n.toLowerCase()] || '';
       } else {
-        return this.headers;
+        return this._headers;
       }
     },
     cookies: function(n) {
-      if (!this.cookies) this.cookies = this.req.getCookies();
+      if (!this._cookies) {
+        this._cookies = this.req.getCookies();
+      }
       if (n) {
-        return this.cookies[n] || '';
+        return this._cookies[n] || '';
       } else {
-        return this.cookies;
+        return this._cookies;
       }
     },
     method: function(s) {
@@ -39,30 +43,34 @@ define('request', function(require, exports, module) {
       return (typeof s == 'string') ? (s.toUpperCase() == r) : r;
     },
     params: function(n) {
-      if (!this.params) {
-        this.params = qs.parse(this.req.url('qs'));
+      if (!this._params) {
+        this._params = qs.parse(this.req.url('qs'));
       }
       if (n) {
-        return this.params[n] || '';
+        return this._params[n] || '';
       } else {
-        return this.params;
+        return this._params;
       }
     },
     post: function(n) {
-      if (!this.postdata) this.postdata = this.req.getPostData();
+      if (!this._postdata) {
+        this._postdata = this.req.getPostData();
+      }
       if (n) {
-        return this.postdata.fields[n.toLowerCase()] || '';
+        return this._postdata.fields[n.toLowerCase()] || '';
       } else {
-        return this.postdata.fields;
+        return this._postdata.fields;
       }
     },
     uploads: function(n) {
-      if (!this.postdata) this.postdata = this.req.getPostData();
-      if (!this.postdata.files) return null;
+      if (!this._postdata) {
+        this._postdata = this.req.getPostData();
+      }
+      if (!this._postdata.files) return null;
       if (n) {
-        return this.postdata.files[n] || null;
+        return this._postdata.files[n] || null;
       } else {
-        return this.postdata.files;
+        return this._postdata.files;
       }
     }
   };
