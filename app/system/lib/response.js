@@ -12,9 +12,9 @@ define('response', function(require, exports, module) {
       if (type) {
         //hack to override application/json -> text/plain when not an xhr request
         if (type.match(/\/json$/) && !(/XMLHttpRequest/i).test(this.req.headers('x-requested-with'))) {
-          this.res.headers('content-type', 'text/plain');
+          this.res.headers('Content-Type', 'text/plain');
         } else {
-          this.res.headers('content-type', type);
+          this.res.headers('Content-Type', type);
         }
       }
       if (status) {

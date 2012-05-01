@@ -12,8 +12,8 @@ app.route('/liquid', function(req, res) {
   var render = function(src, ctx) {
     return Liquid.parse(src).renderWithErrors(ctx);
   };
-  var markup = render("<p>{{user|capitalize}}</p>", {user: 'bob'});
-  res.die(markup);
+  var markup = render("<p>{{user | capitalize}}</p>", {user: 'bob'});
+  res.die('text/plain', markup);
 });
 
 app.route('/throw', function(req, res) {
