@@ -7,6 +7,10 @@ app.route('/test/:id', function(req, res, id) {
 
 });
 
+app.route('/sendfile', function(req, res) {
+  res.sendFile('../assets/test.txt');
+});
+
 app.route('/cookie/:name/:value', function(req, res, name, value) {
   res.cookies(name, value);
   res.end('set cookie: ' + name);

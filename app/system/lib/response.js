@@ -7,6 +7,18 @@ define('response', function(require, exports, module) {
   };
 
   Response.prototype = {
+    headers: function() {
+      this.res.headers.apply(this.res, arguments);
+    },
+    cookies: function() {
+      this.res.cookies.apply(this.res, arguments);
+    },
+    debug: function() {
+      this.res.debug.apply(this.res, arguments);
+    },
+    sendFile: function() {
+      this.res.sendFile.apply(this.res, arguments);
+    },
     clear: function(type, status) {
       this.res.clear();
       if (type) {
@@ -20,12 +32,6 @@ define('response', function(require, exports, module) {
       if (status) {
         this.res.status(status);
       }
-    },
-    headers: function() {
-      this.res.headers.apply(this.res, arguments);
-    },
-    cookies: function() {
-      this.res.cookies.apply(this.res, arguments);
     },
     write: function(data) {
       //todo: binary
