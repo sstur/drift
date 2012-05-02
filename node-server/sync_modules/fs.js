@@ -2,17 +2,17 @@ var join = require('path').join;
 
 var _super = (function() {
   var fs = require('fs')
-    , sync = require('../lib/sync');
+    , sync = global.Fiber.sync;
   return {
-    stat: sync(fs.stat),
-    open: sync(fs.open),
-    write: sync(fs.write),
-    close: sync(fs.close),
-    readFile: sync(fs.readFile),
-    writeFile: sync(fs.writeFile),
-    unlink: sync(fs.unlink),
-    mkdir: sync(fs.mkdir),
-    rmdir: sync(fs.rmdir)
+    stat: sync(fs.stat, fs),
+    open: sync(fs.open, fs),
+    write: sync(fs.write, fs),
+    close: sync(fs.close, fs),
+    readFile: sync(fs.readFile, fs),
+    writeFile: sync(fs.writeFile, fs),
+    unlink: sync(fs.unlink, fs),
+    mkdir: sync(fs.mkdir, fs),
+    rmdir: sync(fs.rmdir, fs)
   };
 })();
 
@@ -26,9 +26,7 @@ define('fs', function(require, exports) {
   /*
    * Private Variables
    */
-  var fs = exports
-    , fso
-    , fspath = join(__dirname, '../../../') + '/';
+  var fs = exports;
 
   var toArray = Array.prototype.slice;
 
@@ -40,9 +38,7 @@ define('fs', function(require, exports) {
   /*
    * This function translates an app-relative path into a file-system path
    */
-  var mappath = fs.mappath = function(s) {
-    return fspath + String(s).replace(/^\//, '');
-  };
+  var mappath = fs.mappath = global.mappath;
 
   /*
    * Join one or more paths

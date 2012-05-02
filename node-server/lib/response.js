@@ -139,12 +139,7 @@
         this._super.write(res.body[i]);
       }
       this._super.end();
-      //todo: is this the best way to end the fiber?
-      var fiber = Fiber.current;
-      process.nextTick(function() {
-        fiber.reset();
-      });
-      Fiber.yield();
+      Fiber.current.abort();
     },
     sendFile: function(opts) {
       var res = this.response, httpRes = this._super;
@@ -158,20 +153,16 @@
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
-      //todo: app.require('fs').mappath(opts.file);
-      opts.fullpath = join(__dirname, '../../../app', opts.file);
+      opts.fullpath = global.mappath(join('app', opts.file));
       console.log('sendfile: ' + opts.fullpath);
-      var fiber = Fiber.current;
-      process.nextTick(function() {
+      Fiber.current.abort(function() {
         httpRes.sendFile({
           path: opts.fullpath,
           contentType: opts.ctype,
           attachment: !!opts.attachment,
           filename: opts.name
         });
-        fiber.reset();
       });
-      Fiber.yield();
     },
     debug: function(data) {
       this.clear();

@@ -7,49 +7,45 @@
 
   var fs = require('fs')
     , join = require('path').join
-    , Fiber = require('fibers');
+    , Fiber = require('sync-fiber');
 
-  //patch fiber.run() to better handle exceptions
-  //todo: move to wrapper library and add fiber.abort()
-  var _run = Fiber.prototype.run;
-  Fiber.prototype.run = function() {
-    try {
-      return _run.apply(this, arguments);
-    } catch(e) {
-      if (this.onError) {
-        this.onError(e);
-      } else {
-        throw e;
-      }
-    }
-  };
-
-  var Request = require('./lib/request');
-  var Response = require('./lib/response');
+  var Request = require('./lib/request.js');
+  var Response = require('./lib/response.js');
 
   //set paths as global variables
-  var basePath = global.basePath = join(__dirname, '../..');
-  var appPath = global.appPath = join(basePath, 'app');
+  var basePath = global.basePath = join(__dirname, '..');
+  console.log('basePath', basePath);
+  var mappath = global.mappath = function(path) {
+    return join(basePath, path);
+  };
 
   //helpers for app and framework
   var loadPath = function(dir) {
-    var path = join(appPath, dir);
+    var path = join(basePath, dir);
     var files = fs.readdirSync(path);
     files.forEach(function(file) {
-      if (file.match(/\.js$/i) && file.charAt(0) != '_') {
+      if (file.charAt(0) == '_') return;
+      var fullpath = join(path, file)
+        , stat = fs.statSync(fullpath);
+      if (stat.isDirectory()) {
+        loadPath(fullpath);
+      } else
+      if (stat.isFile() && file.match(/\.js$/i)) {
         console.log('load module', file);
-        require(join(path, file));
+        require(fullpath);
       }
     });
   };
 
-  //load framework core
-  require(join(appPath, 'system/core'));
-  //we now have `app` and `define`
+  //load framework core (instantiates `app` and `define`)
+  require(join(basePath, 'app/system/core'));
+
+  //load sync modules
+  loadPath('node-server/sync_modules');
 
   //load framework modules
-  loadPath('system/lib');
-  loadPath('routes');
+  loadPath('app/system/lib');
+  loadPath('app/routes');
 
   //this function only runs within a fiber
   var syncHandler = function(http) {

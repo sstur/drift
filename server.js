@@ -1,5 +1,5 @@
 var http = require('http');
-var SyncServer = require('sync-server');
+var SyncServer = require('./node-server');
 
 var server = http.createServer(SyncServer.requestHandler);
 server.listen(8080, function() {

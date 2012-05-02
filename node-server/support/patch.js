@@ -1,9 +1,10 @@
 "use strict";
+"use strict";
 var http = require('http')
   , req = http.IncomingMessage.prototype
   , res = http.ServerResponse.prototype
   , fs = require('fs')
-  , qs = require('../lib/qs')
+  , qs = require('../lib/qs.js')
   , path = require('path')
   , join = path.join
   , basename = path.basename
@@ -27,7 +28,7 @@ req._addHeaderLine = function(field, value) {
 };
 
 //Provide a public "header sent" flag until node does.
-res.__defineGetter__('headerSent', function(){
+res.__defineGetter__('headerSent', function() {
   return this._header;
 });
 
@@ -185,11 +186,7 @@ res.sendFile = function(opts, fallback) {
 
     // we have a Range request
     var ranges = req.headers.range;
-    if (opts.enableRanges && ranges) {
-      ranges = utils.parseRange(len, ranges);
-
-      // valid
-      if (ranges) {
+    if (opts.enableRanges && ranges && (ranges = utils.parseRange(len, ranges))) {
         streamOpts.start = ranges[0].start;
         streamOpts.end = ranges[0].end;
 
@@ -206,7 +203,6 @@ res.sendFile = function(opts, fallback) {
         len = streamOpts.end - streamOpts.start + 1;
         res.statusCode = 206;
         res.setHeader('Content-Range', 'bytes ' + streamOpts.start + '-' + streamOpts.end + '/' + stat.size);
-      }
     }
 
     res.setHeader('Content-Length', len);
