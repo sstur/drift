@@ -2,7 +2,6 @@
   "use strict";
 
   var util = require('util');
-  var join = require('path').join;
   var Fiber = global.Fiber;
   var Buffer = global.Buffer;
 
@@ -153,7 +152,7 @@
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
-      opts.fullpath = global.mappath(join('app', opts.file));
+      opts.fullpath = global.mappath('app/' + opts.file);
       console.log('sendfile: ' + opts.fullpath);
       Fiber.current.abort(function() {
         httpRes.sendFile({

@@ -1,5 +1,5 @@
 "use strict";
-"use strict";
+
 var http = require('http')
   , req = http.IncomingMessage.prototype
   , res = http.ServerResponse.prototype
@@ -61,7 +61,6 @@ res.tryStaticPath = function(path, fallback) {
   var assetPrefix = join('/', path, '/').toLowerCase();
   if (url.toLowerCase().indexOf(assetPrefix) == 0) {
     var opts = {root: join(global.basePath, path), path: url.slice(assetPrefix.length)};
-    console.log('static path opts', opts);
     res.serveAsset(opts, fallback);
   } else {
     fallback();
@@ -74,7 +73,6 @@ res.serveAsset = function(opts, fallback) {
   if (!opts.path) throw new Error('path required');
   opts.enableCaching = true;
   opts.enableRanges = true;
-  console.log('attempt to serve file', opts.path, 'from', opts.root);
 
   var get = ('GET' == req.method)
     , head = ('HEAD' == req.method);

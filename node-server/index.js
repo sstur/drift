@@ -7,14 +7,13 @@
 
   var fs = require('fs')
     , join = require('path').join
-    , Fiber = require('sync-fiber');
+    , Fiber = require('./lib/sync-fiber');
 
   var Request = require('./lib/request.js');
   var Response = require('./lib/response.js');
 
   //set paths as global variables
   var basePath = global.basePath = join(__dirname, '..');
-  console.log('basePath', basePath);
   var mappath = global.mappath = function(path) {
     return join(basePath, path);
   };
