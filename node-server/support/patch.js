@@ -112,7 +112,7 @@ res.serveAsset = function(opts, fallback) {
   }
 
   opts.path = path;
-  res.sendFile(opts);
+  res.sendFile(opts, fallback);
 };
 
 res.sendFile = function(opts, fallback) {
