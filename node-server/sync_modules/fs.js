@@ -2,7 +2,8 @@ var join = require('path').join;
 
 var _super = (function() {
   var fs = require('fs')
-    , sync = global.Fiber.sync;
+    , Fiber = global.Fiber
+    , sync = Fiber.sync;
   return {
     stat: sync(fs.stat, fs),
     open: sync(fs.open, fs),
@@ -38,7 +39,9 @@ define('fs', function(require, exports) {
   /*
    * This function translates an app-relative path into a file-system path
    */
-  var mappath = fs.mappath = global.mappath;
+  var mappath = fs.mappath = function(path) {
+    return global.mappath('app/' + path);
+  };
 
   /*
    * Join one or more paths

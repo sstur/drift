@@ -1,8 +1,4 @@
-fix static asset serving
-wrap node-fibers
-qs.stringify
-recursive load
 app.run()
-res.sendFile
 app and req event model
 post data
+fiber-safe fs read/write/append

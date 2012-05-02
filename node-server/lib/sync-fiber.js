@@ -68,7 +68,6 @@
       args.push(syncCallback);
 
       // call async function
-      console.log(obj, args);
       fn.apply(obj, args);
 
       // wait for result
