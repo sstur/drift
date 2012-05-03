@@ -2,15 +2,71 @@ var join = require('path').join;
 
 var _super = (function() {
   var fs = require('fs')
+    , util = require('util')
     , Fiber = global.Fiber
     , sync = Fiber.sync;
+
+//  //Not Working
+//  var writeFile = function(path, data, opts, callback) {
+//    console.log(arguments);
+//    var stream = fs.createWriteStream(path, opts);
+//    stream.on('error', callback);
+//    stream.on('open', function(err) {
+//      err ? callback(err) : stream.end(data);
+//    });
+//    stream.on('close', function() {
+//      callback();
+//    });
+//  };
+
+  var writeAll = function(fd, buffer, offset, length, callback) {
+    // write(fd, buffer, offset, length, position, callback)
+    fs.write(fd, buffer, offset, length, offset, function(err, written) {
+      if (err) {
+        fs.close(fd, function() {
+          if (callback) callback(err);
+        });
+      } else {
+        if (written === length) {
+          fs.close(fd, callback);
+        } else {
+          writeAll(fd, buffer, offset + written, length - written, callback);
+        }
+      }
+    });
+  };
+
+  var writeFile = function(path, data, opts, callback) {
+    callback = (typeof(callback) == 'function' ? callback : null);
+    fs.open(path, opts.mode, 438 /*=0666*/, function(err, fd) {
+      if (err) {
+        if (callback) callback(err);
+      } else {
+        var buffer = Buffer.isBuffer(data) ? data : new Buffer('' + data, opts.encoding);
+        writeAll(fd, buffer, 0, buffer.length, callback);
+      }
+    });
+  };
+
+  var copyFile = function(sourcePath, destPath, callback) {
+    var source = fs.createReadStream(sourcePath);
+    var dest = fs.createWriteStream(destPath);
+    source.on('error', callback);
+    source.on('close', function() {
+      callback();
+    });
+    source.pipe(dest);
+  };
+
   return {
     stat: sync(fs.stat, fs),
     open: sync(fs.open, fs),
     write: sync(fs.write, fs),
     close: sync(fs.close, fs),
     readFile: sync(fs.readFile, fs),
-    writeFile: sync(fs.writeFile, fs),
+    writeFile: sync(writeFile, fs),
+    copyFile: sync(copyFile, fs),
+    rename: sync(fs.rename, fs),
     unlink: sync(fs.unlink, fs),
     mkdir: sync(fs.mkdir, fs),
     rmdir: sync(fs.rmdir, fs)
@@ -83,76 +139,74 @@ define('fs', function(require, exports) {
     });
   };
 
-  fs.isFile = function(f) {
+  fs.isFile = function(path) {
     var stats, result = true;
     try {
-      stats = _super.stat(mappath(f));
+      stats = _super.stat(mappath(path));
     } catch(e) {
       return false;
     }
     return stats.isFile();
   };
 
-  fs.isDir = function(f) {
+  fs.isDir = function(path) {
     var stats, result = true;
     try {
-      stats = _super.stat(mappath(f));
+      stats = _super.stat(mappath(path));
     } catch(e) {
       return false;
     }
     return stats.isDirectory();
   };
 
-  fs.readTextFile = function(f, enc) {
-    return _super.readFile(mappath(f), enc || 'utf8');
+  fs.readTextFile = function(file, enc) {
+    return _super.readFile(mappath(file), enc || 'utf8');
   };
 
-  fs.writeTextToFile = function(f, text, opts) {
+  fs.writeTextToFile = function(file, text, opts) {
     if (!opts) opts = {};
-    //todo: write-streams / open files?
-    if (opts.overwrite) {
-      _super.writeFile(mappath(f), text, opts.enc || 'utf8');
-    } else {
-      var fd = _super.open(mappath(f), 'a');
-      _super.write(fd, text);
-      _super.close(fd);
-    }
+    _super.writeFile(mappath(file), String(text), {
+      mode: opts.overwrite ? 'w' : 'a',
+      encoding: (typeof opts.enc == 'string') ? opts.enc : 'utf8'
+    });
   };
 
-  fs.moveFile = function(f, d) {
-    //todo
+  fs.moveFile = function(file, dest) {
+    //todo: if dest is directory?
+    _super.rename(mappath(file), mappath(dest));
   };
 
-  fs.copyFile = function(f, d) {
-    //todo
+  fs.copyFile = function(file, dest) {
+    //todo: if dest is directory?
+    _super.copyFile(mappath(file), mappath(dest));
   };
 
-  fs.deleteFile = function(f) {
-    _super.unlink(mappath(f));
+  fs.deleteFile = function(file) {
+    _super.unlink(mappath(file));
   };
 
-  fs.createDir = function(f, n) {
-    var path = path.join(f, n);
+  fs.createDir = function(path, name) {
+    var path = fs.path.join(path, name);
     _super.mkdir(mappath(path));
   };
 
-  fs.removeDir = function(f, r) {
-    //todo: r = recursive
-    _super.rmdir(mappath(f));
+  fs.removeDir = function(file, recurse) {
+    //todo: recursive
+    _super.rmdir(mappath(file));
   };
 
   //todo: change to details or readdir
-  fs.stat = function(f, deep) {
+  fs.stat = function(path, deep) {
     var fso, stats, result = {}, getChildren;
-    if (typeof f == 'string') {
+    if (typeof path == 'string') {
       try {
-        stats = fso.getFolder(mappath(f));
+        stats = fso.getFolder(mappath(path));
         getChildren = true;
       } catch(e) {
-        stats = fso.getFile(mappath(f));
+        stats = fso.getFile(mappath(path));
       }
     } else {
-      stats = f;
+      stats = path;
     }
     result.name = stats.name;
     result.size = stats.size;
@@ -204,18 +258,20 @@ define('fs', function(require, exports) {
       logfile = args.pop();
     }
     if (!logfile) logfile = 'default';
-    var date = Date.now().toUTCString()
+    var date = new Date().toUTCString()
       , data = args
-      , p = path.join('logs', logfile.replace(/\.log$/, '') + '.log');
+      , path = fs.path.join('logs', logfile.replace(/\.log$/i, '') + '.log');
     data.forEach(function(line, i) {
       data[i] = (line instanceof Object) ? JSON.stringify(line) : String(line);
     });
     data.push('');
-    try {
-      fs.writeTextToFile(p, (date + '\n' + data.join('\n')).replace(/(\r\n|[\r\n])+/g, '\r\n') + '\r\n');
-    } catch(e) {
-      throw new Error('Error writing to logfile: ' + p);
-    }
+    fs.writeTextToFile(path, (date + '\n' + data.join('\n')).replace(/(\r\n|[\r\n])+/g, '\r\n') + '\r\n');
+
+//    try {
+//      fs.writeTextToFile(path, (date + '\n' + data.join('\n')).replace(/(\r\n|[\r\n])+/g, '\r\n') + '\r\n');
+//    } catch(e) {
+//      throw new Error('Error writing to logfile: ' + path);
+//    }
   };
 
 });

@@ -17,6 +17,12 @@ app.route('/readfile', function(req, res) {
   res.end(text);
 });
 
+app.route('/log', function(req, res) {
+  var fs = app.require('fs');
+  fs.log('test');
+  res.end('done');
+});
+
 app.route('/cookie/:name/:value', function(req, res, name, value) {
   res.cookies(name, value);
   res.end('set cookie: ' + name);

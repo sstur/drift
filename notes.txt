@@ -1,3 +1,4 @@
 Backwards-incompatible changes:
   removed param-collection
+  Date.now()
 
