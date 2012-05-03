@@ -44,7 +44,10 @@
 
   //load framework modules
   loadPath('app/system/lib');
-  loadPath('app/routes');
+  loadPath('app/controllers');
+
+  //all modules loaded
+  app.emit('ready', app.require);
 
   //this function only runs within a fiber
   var syncHandler = function(http) {
