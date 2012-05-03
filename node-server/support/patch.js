@@ -71,8 +71,6 @@ res.serveAsset = function(opts, fallback) {
   var req = this.req, res = this;
 
   if (!opts.path) throw new Error('path required');
-  opts.enableCaching = true;
-  opts.enableRanges = true;
 
   var get = ('GET' == req.method)
     , head = ('HEAD' == req.method);
@@ -112,6 +110,9 @@ res.serveAsset = function(opts, fallback) {
   }
 
   opts.path = path;
+  opts.charset = false; //don't assume any charset for asset
+  opts.enableRanges = true;
+  opts.enableCaching = true;
   res.sendFile(opts, fallback);
 };
 
@@ -140,9 +141,11 @@ res.sendFile = function(opts, fallback) {
 
     //caching
     if (opts.enableCaching) {
-      var maxAge = opts.maxAge || 0;
-      if (!res.getHeader('Cache-Control')) {
-        res.setHeader('Cache-Control', 'public, max-age=' + (maxAge / 1000));
+      var maxAge = opts.maxAge || 0
+        , cacheControl = opts.cacheControl || 'public, max-age=' + (maxAge / 1000);
+      //opts.cacheControl === false disables this header completely
+      if (!res.getHeader('Cache-Control') && opts.cacheControl !== false) {
+        res.setHeader('Cache-Control', cacheControl);
       }
       if (!res.getHeader('Last-Modified')) {
         res.setHeader('Last-Modified', stat.mtime.toUTCString());
@@ -155,22 +158,26 @@ res.sendFile = function(opts, fallback) {
     }
 
     // mime/content-type
-    var type = opts.contentType || mime.lookup(opts.path);
+    var contentType = opts.contentType || mime.lookup(opts.path);
     if (!res.getHeader('Content-Type')) {
-      var charset = mime.charsets.lookup(type);
-      res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
+      //opts.charset === false disables charset completely
+      if (opts.charset !== false) {
+        var charset = opts.charset || mime.charsets.lookup(contentType);
+        contentType += '; charset=' + charset;
+      }
+      res.setHeader('Content-Type', contentType);
     }
 
-    var contentDisposition;
+    var contentDisposition = [];
     if (opts.attachment) {
-      contentDisposition += 'attachment; ';
+      contentDisposition.push('attachment');
     }
     if (opts.filename) {
       //todo: normalize extended characters
-      contentDisposition += 'filename="' + opts.filename.replace(/"/g, "'") + '"';
+      contentDisposition.push('filename="' + opts.filename.replace(/"/g, "'") + '"');
     }
-    if (contentDisposition) {
-      res.setHeader('Content-Disposition', contentDisposition);
+    if (contentDisposition.length) {
+      res.setHeader('Content-Disposition', contentDisposition.join('; '));
     }
 
     // conditional GET support

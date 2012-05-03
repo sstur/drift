@@ -4,7 +4,6 @@ var _super = (function() {
     , sync = Fiber.sync;
 
   var writeAll = function(fd, buffer, offset, length, callback) {
-    // write(fd, buffer, offset, length, position, callback)
     fs.write(fd, buffer, offset, length, offset, function(err, written) {
       if (err) {
         fs.close(fd, function() {
