@@ -6,15 +6,15 @@ define('router', function(require, exports) {
     , Request = require('request')
     , Response = require('response');
 
-  var RE_METHOD = /^([A-Z]+)(:)/;
+  var RE_METHOD = /^([A-Z]+):(.*)/;
   var RE_PLAIN_ROUTE = /^[^:*]+$/;
 
   //Parse the given route, returning a verb (method), regular expression and handler
   var parseRoute = function(route, fn) {
     var verb, m;
     if (typeof route == 'string' && (m = RE_METHOD.exec(route))) {
-      verb = m[0];
-      route = m[1];
+      verb = m[1];
+      route = m[2];
     }
     if (route instanceof RegExp || route.match(RE_PLAIN_ROUTE)) {
       return [verb, route, fn];
