@@ -1,23 +1,7 @@
-var join = require('path').join;
-
 var _super = (function() {
   var fs = require('fs')
-    , util = require('util')
     , Fiber = global.Fiber
     , sync = Fiber.sync;
-
-//  //Not Working
-//  var writeFile = function(path, data, opts, callback) {
-//    console.log(arguments);
-//    var stream = fs.createWriteStream(path, opts);
-//    stream.on('error', callback);
-//    stream.on('open', function(err) {
-//      err ? callback(err) : stream.end(data);
-//    });
-//    stream.on('close', function() {
-//      callback();
-//    });
-//  };
 
   var writeAll = function(fd, buffer, offset, length, callback) {
     // write(fd, buffer, offset, length, position, callback)
@@ -88,11 +72,6 @@ define('fs', function(require, exports) {
   var toArray = Array.prototype.slice;
 
   /*
-   * Path Resolution Functions
-   */
-  var path = fs.path = {};
-
-  /*
    * This function translates an app-relative path into a file-system path
    */
   var mappath = fs.mappath = function(path) {
@@ -100,10 +79,15 @@ define('fs', function(require, exports) {
   };
 
   /*
+   * Path Resolution Functions
+   */
+  fs.path = {};
+
+  /*
    * Join one or more paths
    * path.join('assets/', 'scripts', 'file.js')
    */
-  path.join = function() {
+  fs.path.join = function() {
     var a = [], args = toArray.call(arguments);
     args.forEach(function(s, i) {
       if (s) a.push(s);
@@ -120,7 +104,7 @@ define('fs', function(require, exports) {
    * This function returns the "folder" part of a path
    * /data/file.txt -> /data/
    */
-  path.parent = function(p) {
+  fs.path.parent = function(p) {
     return p.replace(/\/([^\/]*)$/, '');
   };
 
@@ -128,7 +112,7 @@ define('fs', function(require, exports) {
    * This function returns the "file" part of a path
    * /data/file.txt -> file.txt
    */
-  path.member = function(p) {
+  fs.path.member = function(p) {
     return p.replace(/^(.*)\//, '');
   };
 
@@ -266,12 +250,6 @@ define('fs', function(require, exports) {
     });
     data.push('');
     fs.writeTextToFile(path, (date + '\n' + data.join('\n')).replace(/(\r\n|[\r\n])+/g, '\r\n') + '\r\n');
-
-//    try {
-//      fs.writeTextToFile(path, (date + '\n' + data.join('\n')).replace(/(\r\n|[\r\n])+/g, '\r\n') + '\r\n');
-//    } catch(e) {
-//      throw new Error('Error writing to logfile: ' + path);
-//    }
   };
 
 });
