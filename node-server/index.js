@@ -1,4 +1,4 @@
-/*global app, define */
+/*global app */
 (function() {
   "use strict";
 
@@ -14,6 +14,7 @@
 
   //set paths as global variables
   var basePath = global.basePath = join(__dirname, '..');
+  //should mappath be global?
   var mappath = global.mappath = function(path) {
     return join(basePath, path);
   };

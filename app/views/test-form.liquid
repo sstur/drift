@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Test Form</title>
+</head>
+<body>
+<form method="post" action="/form-test" style="max-width: 300px">
+  <h1>Enter Your Details</h1>
+  <dl>
+    <dt>Name:</dt>
+    <dd><input type="text" name="name" value="{{name | capitalize}}"/></dd>
+    <dt>Email:</dt>
+    <dd><input type="text" name="email" value="{{email}}"/></dd>
+  </dl>
+  <p><input type="submit" value="Submit"/></p>
+</form>
+</body>
+</html>
