@@ -161,7 +161,11 @@
   };
 
   function generateName() {
-    return 'upload-' + Math.random().toString().replace('.', '');
+    var name = '';
+    for (var i = 0; i < 32; i++) {
+      name += Math.floor(Math.random() * 16).toString(16);
+    }
+    return name;
   }
 
   module.exports = RequestBody;
