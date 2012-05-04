@@ -36,50 +36,11 @@
       return this._cookies;
     },
     getPostData: function() {
-      if (this._super.method != 'POST') {
-        return {fields: {}, files: {}};
-      }
-      var type = this._super.headers['content-type'];
-      type = type && type.toLowerCase();
-      switch(type) {
-        case 'application/x-www-form-urlencoded':
-          return this.processFormBody();
-        case 'application/json':
-          return this.processJSONBody();
-        case 'multipart/form-data':
-          return this.processMultiPartBody();
-        case 'application/octet-stream':
-          return this.processBinaryBody();
-      }
-      this.httpError(415);
-    },
-    getBody: function(opts) {
       var req = this._super;
-      opts = opts || {};
-      return Fiber.sync(req.getBody, req)(opts);
-    },
-    processFormBody: function() {
-      var body = this.getBody()
-        , fields = qs.parse(body);
-      return {fields: fields, files: {}};
-    },
-    processJSONBody: function() {
-      var body = this.getBody(), fields = {};
-      try {
-        fields = JSON.parse(body);
-      } catch(e) {
-        this.httpError(400);
+      if (!req.body || !req.body.getParsed) {
+        throw new Error('Request body parser not loaded');
       }
-      if (typeof fields != 'object') {
-        fields = {data: fields};
-      }
-      return {fields: fields, files: {}};
-    },
-    processMultiPartBody: function() {
-      //todo
-    },
-    processBinaryBody: function() {
-      //todo
+      return Fiber.sync(req.body.getParsed, req.body)();
     },
     httpError: function(code) {
       var res = this._super.res;

@@ -1,4 +1,7 @@
+/*global app */
 app.on('ready', function(require) {
+  "use strict";
+
   var fs = require('fs');
   var Liquid = require('liquid');
   Liquid.render = function(tmpl, data) {
@@ -6,12 +9,13 @@ app.on('ready', function(require) {
   };
 
   app.route('GET:/form-test', function(req, res) {
-    var markup = Liquid.render(fs.readTextFile('views/test-form.liquid'), {name: 'test'});
+    var tmpl = fs.readTextFile('views/test-form.liquid');
+    var markup = Liquid.render(tmpl, {name: 'test'});
     res.die('text/html', markup);
   });
 
   app.route('POST:/form-test', function(req, res) {
-    res.die(req.post());
+    res.die({fields: req.post(), files: req.uploads()});
   });
 
 });

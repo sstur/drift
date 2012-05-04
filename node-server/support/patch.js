@@ -27,26 +27,6 @@ req._addHeaderLine = function(field, value) {
   _addHeaderLine.call(this, field, value);
 };
 
-//Read entire request body as string
-req.getBody = function(opts, callback) {
-  opts = opts || {};
-  var body = [], size = 0, maxSize = opts.maxSize || 1048576; //1MB
-  var req = this;
-  //todo: request may have already ended by now
-  req.on('data', function(data) {
-    if (size < maxSize) {
-      body.push(data.toString(opts.encoding || 'utf8'));
-      size += data.length;
-    }
-  });
-  req.on('error', function(err) {
-    callback(err);
-  });
-  req.on('end', function() {
-    callback(null, body.join(''));
-  });
-};
-
 //Provide a public "header sent" flag until node does.
 res.__defineGetter__('headerSent', function() {
   return this._header;

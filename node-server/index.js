@@ -7,7 +7,8 @@
 
   var fs = require('fs')
     , join = require('path').join
-    , Fiber = require('./lib/sync-fiber');
+    , Fiber = require('./lib/sync-fiber')
+    , RequestBody = require('./support/request_body');
 
   var Request = require('./lib/request.js');
   var Response = require('./lib/response.js');
@@ -54,12 +55,6 @@
   var syncHandler = function(http) {
     var req = new Request(http.req)
       , res = new Response(http.res);
-    var pathname = req.getURLParts().path;
-    //debugging: ignore favicon request
-    if (pathname.match(/\/favicon\.ico$/i)) {
-      res.status('404 Favicon Disabled');
-      res.end();
-    }
     sleep(100); //for debugging
     app.route(req, res);
     throw new Error('Router returned without handling request.');
@@ -78,6 +73,13 @@
     //cross-reference request and response
     req.res = res;
     res.req = req;
+    //debugging: ignore favicon request
+    if (req.url.match(/\/favicon\.ico$/i)) {
+      res.writeHead(404);
+      res.end();
+    }
+    //cross-reference request and response
+    req.body = new RequestBody(req, res);
     //attempt to serve static file
     res.tryStaticPath('assets/', function() {
       console.log('fibers created: ' + Fiber.fibersCreated);

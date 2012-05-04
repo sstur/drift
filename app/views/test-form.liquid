@@ -3,15 +3,18 @@
 <head>
   <meta charset="utf-8"/>
   <title>Test Form</title>
+  <script type="text/javascript" src="/assets/scripts/upload.js"></script>
 </head>
-<body>
-<form method="post" action="/form-test" style="max-width: 300px">
+<body onload="init()">
+<form id="form" method="post" action="/form-test" enctype="multipart/form-data" style="max-width: 300px">
   <h1>Enter Your Details</h1>
   <dl>
     <dt>Name:</dt>
     <dd><input type="text" name="name" value="{{name | capitalize}}"/></dd>
     <dt>Email:</dt>
     <dd><input type="text" name="email" value="{{email}}"/></dd>
+    <dt>File:</dt>
+    <dd><input id="upload" type="file" name="asdf"/></dd>
   </dl>
   <p><input type="submit" value="Submit"/></p>
 </form>
