@@ -6,9 +6,34 @@ define('request', function(require, exports, module) {
 
   var Request = function(req) {
     this.req = req;
+    this._data = {};
+    this._events = {};
   };
 
   Request.prototype = {
+    data: function(n, val) {
+      var data = this._data;
+      if (arguments.length == 2) {
+        (val == null) ? delete data[n] : data[n] = val;
+        return val;
+      } else {
+        val = data[n];
+        return (val == null) ? '' : val;
+      }
+    },
+    on: function(name, fn) {
+      var events = this._events;
+      var list = events[name] || (events[name] = []);
+      list.push(fn);
+    },
+    emit: function(name) {
+      var events = this._events;
+      var args = Array.prototype.slice.call(arguments, 1);
+      var list = events[name] || [];
+      for (var i = 0; i < list.length; i++) {
+        list[i].apply(this, args);
+      }
+    },
     url: function(part) {
       if (part) {
         if (!this.url_parts) this.url_parts = this.req.getURLParts();

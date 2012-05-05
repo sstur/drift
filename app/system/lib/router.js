@@ -51,6 +51,11 @@ define('router', function(require, exports) {
     }
     req = new Request(req);
     res = new Response(res);
+    //cross-reference request and response
+    req.res = res;
+    res.req = req;
+    //request is ready to be routed
+    req.emit('ready');
     var url = req.url().split('?')[0] //get raw url
       , verb = req.method()
       , data = {}
@@ -58,7 +63,7 @@ define('router', function(require, exports) {
     data.stop = function() {
       stop = true;
     };
-    //todo: req.emit('pre-route', data);
+    req.emit('pre-route', data);
     routes.each(function(i, arr) {
       if (arr[0] && arr[0] != verb) {
         return true; //Continue
@@ -75,14 +80,18 @@ define('router', function(require, exports) {
       }
       return !stop;
     });
-    res.die('404', 'No Route');
     if (!stop) {
-      //todo: req.emit('no-route', data);
+      req.emit('no-route', data);
     }
-    //todo: req.emit('404', data);
+    req.emit('404', data);
     var response = data.response || app.cfg('res_404');
-    res.clear(response.type, response.status || '404');
-    res.write(response.body);
+    if (response) {
+      res.clear(response.type, response.status || '404');
+      res.write(response.body);
+    } else {
+      res.status(404);
+      res.write('No Route');
+    }
     res.end();
   };
 

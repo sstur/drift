@@ -125,7 +125,7 @@
     },
     end: function() {
       var res = this.response, headers = res.headers;
-      var statusParts = res.status.match(STATUS_PARTS);
+      var statusParts = STATUS_PARTS.exec(res.status);
       var statusCode = statusParts[1] || '200', reasonPhrase = statusParts[2] || null;
       headers['Content-Type'] = buildContentType(res.charset, headers['Content-Type']);
       headers['Content-Length'] = this.response.length;

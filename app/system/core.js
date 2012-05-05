@@ -129,6 +129,40 @@ var app, define, setGlobal;
   };
 
 
+  /*!
+   * Global configuration
+   * todo: recursive combine, xpath
+   */
+  var config = {};
+
+  app.cfg = function(data) {
+    if (typeof data == 'string') {
+      var val = config[data]
+      return (val == null) ? '' : val;
+    } else {
+      data = data || {};
+      for (var n in data) {
+        config[n] = data[n];
+      }
+    }
+  };
+
+
+  /*!
+   * Application data (in-memory)
+   */
+  var data = {};
+  app.data = function(n, val) {
+    if (arguments.length == 2) {
+      (val == null) ? delete data[n] : data[n] = val;
+      return val;
+    } else {
+      val = data[n];
+      return (val == null) ? '' : val;
+    }
+  };
+
+
   //helper functions
 
   function loadModule(name) {

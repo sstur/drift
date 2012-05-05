@@ -12,9 +12,11 @@ define('session', function(require, exports, module) {
   }
 
   function generateSessionToken() {
-    return String.repeat('.', 32).replace(/./g, function() {
-      return Number.random(0, 15).toString(16);
-    });
+    var token = '';
+    for (var i = 0; i < 32; i++) {
+      token += Math.floor(Math.random() * 16).toString(16);
+    }
+    return token;
   }
 
   function getSessionObject(inst) {

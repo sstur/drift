@@ -16,6 +16,12 @@ define('response', function(require, exports, module) {
     debug: function() {
       this.res.debug.apply(this.res, arguments);
     },
+    charset: function() {
+      this.res.charset.apply(this.res, arguments);
+    },
+    status: function() {
+      this.res.status.apply(this.res, arguments);
+    },
     sendFile: function() {
       this.res.sendFile.apply(this.res, arguments);
     },
@@ -46,7 +52,7 @@ define('response', function(require, exports, module) {
       if (arguments.length) {
         this.write(data);
       }
-      //todo: req.trigger('destroy')
+      this.req.emit('end');
       this.res.end();
     },
     die: function() {

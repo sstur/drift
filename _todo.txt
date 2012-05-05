@@ -1,3 +1,6 @@
-req -> event emitter
-app.data / req.data
-fiber-safe fs write/append
+req.data('ipaddr')
+fix app.cfg
+Buffer/Binary abstraction
+
+possibly:
+  fiber-safe fs write/append
