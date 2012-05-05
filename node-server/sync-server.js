@@ -29,10 +29,10 @@
       var fullpath = join(path, file)
         , stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
-        loadPath(fullpath);
+        loadPath(join(dir, file));
       } else
       if (stat.isFile() && file.match(/\.js$/i)) {
-        console.log('load module', file);
+        console.log('load file', join(dir, file));
         require(fullpath);
       }
     });
