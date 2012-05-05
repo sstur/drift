@@ -2,3 +2,4 @@ Backwards-incompatible changes:
   removed param-collection
   Date.now()
 
+server.vars('ipaddr') -> req.vars('ipaddr')
