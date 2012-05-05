@@ -1,8 +1,9 @@
-/* Simple JavaScript Inheritance
+/*global app, define */
+/**
+ * Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
  */
-
 define('class', function(require, exports, module) {
 
   var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;

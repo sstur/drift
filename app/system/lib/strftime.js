@@ -1,3 +1,4 @@
+/*global app, define */
 /**
  * strftime for Javascript
  * version: 1.3

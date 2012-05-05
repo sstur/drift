@@ -1,4 +1,4 @@
-/*global app */
+/*global app, define */
 define('session', function(require, exports, module) {
   "use strict";
 

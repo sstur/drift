@@ -33,6 +33,8 @@
    *
    */
   Fiber.sync = function(fn, obj /* arguments */) {
+    var dynamicBinding = (arguments.length == 1);
+
     var bindArgs = Array.prototype.slice.call(arguments, 2);
     return function() {
       var args = Array.prototype.slice.call(arguments)
@@ -68,7 +70,7 @@
       args.push(syncCallback);
 
       // call async function
-      fn.apply(obj, args);
+      fn.apply(dynamicBinding ? this : obj, args);
 
       // wait for result
       if (!syncCallback.called) {

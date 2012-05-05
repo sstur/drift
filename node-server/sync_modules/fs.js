@@ -70,16 +70,10 @@ define('fs', function(require, exports) {
 
   var toArray = Array.prototype.slice;
 
-  /*
-   * This function translates an app-relative path into a file-system path
-   */
-  var mappath = fs.mappath = function(path) {
-    return global.mappath('app/' + path);
-  };
+  //Quick access to map paths
+  var mappath = app.mappath;
 
-  /*
-   * Path Resolution Functions
-   */
+  //Path Resolution Functions
   fs.path = {};
 
   /*
@@ -95,7 +89,7 @@ define('fs', function(require, exports) {
     p = p.replace(/\/\//g, '/');
     p = p.replace(/\/.\//g, '/');
     p = p.replace(/[^\/]+\/\.\.\//g, '');
-    p = p.replace(/\/$/,'');
+    p = p.replace(/\/$/, '');
     return p;
   };
 
@@ -169,8 +163,8 @@ define('fs', function(require, exports) {
   };
 
   fs.createDir = function(path, name) {
-    var path = fs.path.join(path, name);
-    _super.mkdir(mappath(path));
+    var fullpath = fs.path.join(path, name);
+    _super.mkdir(mappath(fullpath));
   };
 
   fs.removeDir = function(file, recurse) {

@@ -1,9 +1,9 @@
-//for environments that don't define `global`
-var global = (function() {
-  return this;
-})();
+/*global app, define */
 
-var app, define, setGlobal;
+//for environments that don't define `global`
+var global = (function() { return this; })();
+
+var app, define;
 (function() {
   "use strict";
 
@@ -163,6 +163,14 @@ var app, define, setGlobal;
   };
 
 
+  /*!
+   * Misc app-related functions
+   */
+  app.mappath = function(path) {
+    return global.mappath('app/' + path);
+  };
+
+
   //helper functions
 
   function loadModule(name) {
@@ -234,7 +242,7 @@ var app, define, setGlobal;
     }
   })();
 
-  setGlobal = function(name, val) {
+  app.setGlobal = function(name, val) {
     if (globalIsMutable) {
       return global[name] = val;
     } else {
@@ -246,7 +254,6 @@ var app, define, setGlobal;
   if (!global.app) {
     global.app = app;
     global.define = define;
-    global.setGlobal = setGlobal;
   }
 
 })();

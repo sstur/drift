@@ -13,6 +13,8 @@ var http = require('http')
   , utils = require('./http_utils')
   , inspect = require('util').inspect;
 
+var INVALID_CHARS = /[^\w\d!@#$()_\-+={}[],;']/g;
+
 //Patch ServerRequest to save unmodified copy of headers
 var _addHeaderLine = req._addHeaderLine;
 req._addHeaderLine = function(field, value) {
@@ -173,8 +175,8 @@ res.sendFile = function(opts, fallback) {
       contentDisposition.push('attachment');
     }
     if (opts.filename) {
-      //todo: normalize extended characters
-      contentDisposition.push('filename="' + opts.filename.replace(/"/g, "'") + '"');
+      var filename = opts.filename.replace(/"/g, "'");
+      contentDisposition.push('filename="' + fsEscape(filename) + '"');
     }
     if (contentDisposition.length) {
       res.setHeader('Content-Disposition', contentDisposition.join('; '));
@@ -230,5 +232,18 @@ res.sendFile = function(opts, fallback) {
         res.sendError(err);
       }
     });
+  });
+};
+
+
+/*!
+ * Helpers
+ *
+ */
+
+function fsEscape(filename) {
+  filename = filename || '';
+  return filename.replace(INVALID_CHARS, function(c) {
+    return encodeURIComponent(c);
   });
 };
