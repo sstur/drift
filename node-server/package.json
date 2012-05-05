@@ -1,0 +1,13 @@
+{
+  "author": "sstur",
+  "name": "sync-server",
+  "description": "Syncronous Server using Node Fibers",
+  "version": "0.1.0",
+  "main": "./sync-server.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

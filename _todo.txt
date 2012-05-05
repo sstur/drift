@@ -1,4 +1,3 @@
-app.run()
-app and req event model
-post data
-fiber-safe fs read/write/append
+req -> event emitter
+app.data / req.data
+fiber-safe fs write/append

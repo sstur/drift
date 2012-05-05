@@ -44,10 +44,10 @@ define('session', function(require, exports, module) {
     memory: {
       'load': function(session, inst) {
         var token = session.token;
-        var data = app.vars('session:' + token + ':' + inst.namespace);
-        session.lastAccess = app.vars('session:last-access:' + token);
+        var data = app.data('session:' + token + ':' + inst.namespace);
+        session.lastAccess = app.data('session:last-access:' + token);
         if (session.lastAccess) {
-          app.vars('session:last-access:' + token, Date.now());
+          app.data('session:last-access:' + token, Date.now());
         }
         if (session.lastAccess && (!inst.oldest || inst.oldest < session.lastAccess)) {
           data = data || {};
@@ -68,12 +68,12 @@ define('session', function(require, exports, module) {
         var stringified = (data == null) ? '' : JSON.stringify(data);
         //is dirty?
         if (stringified !== (session._old || '')) {
-          app.vars('session:' + session.token + ':' + namespace, data);
+          app.data('session:' + session.token + ':' + namespace, data);
           session._old = stringified;
         }
         if (!session.lastAccess) {
           session.lastAccess = Date.now();
-          app.vars('session:last-access:' + session.token, session.lastAccess);
+          app.data('session:last-access:' + session.token, session.lastAccess);
         }
       }
     },
@@ -127,7 +127,7 @@ define('session', function(require, exports, module) {
           var num = db.exec(sql, [session.token], true);
           if (!num) {
             sql = "INSERT INTO [session] ([guid], [ip_addr], [http_ua], [created], [last_accessed]) VALUES (CAST_GUID($1), $2, $3, NOW(), NOW())";
-            db.exec(sql, [session.token, req.vars('ipaddr'), req.headers('user-agent')]);
+            db.exec(sql, [session.token, req.data('ipaddr'), req.headers('user-agent')]);
           }
           session.lastAccess = Date.now();
           session.lastAccessUpdated = true;
@@ -173,9 +173,15 @@ define('session', function(require, exports, module) {
         session.namespaces[this.namespace] = null;
       }
     },
-    access: function() {
+    access: function(n, val) {
       var data = this.getData();
-      return data.access.apply(data, arguments);
+      if (arguments.length == 2) {
+        (val == null) ? delete data[n] : data[n] = val;
+        return val;
+      } else {
+        val = data[n];
+        return (val == null) ? '' : val;
+      }
     },
     clear: function() {
       var data = this.getData(), keys = Object.keys(data);
