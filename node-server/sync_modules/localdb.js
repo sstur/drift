@@ -1,32 +1,5 @@
 /*global app, define */
 
-//var _super = (function() {
-//  var Fiber = global.Fiber
-//    , sync = Fiber.sync;
-//
-//  var dbi = require('node-dbi')
-//    , dbWrapper = dbi.DBWrapper
-//    , dbExpr = dbi.DBExpr;
-//
-//  //dbConnectionConfig = { host: 'localhost', user: 'test', password: 'test', database: 'test' }
-//  //dbWrapper.query
-//  return {
-//    dbWrapper: {
-//      query: sync(dbWrapper.query, dbWrapper),
-//      fetchAll: sync(dbWrapper.fetchAll, dbWrapper),
-//      fetchRow: sync(dbWrapper.fetchRow , dbWrapper),
-//      fetchCol: sync(dbWrapper.fetchCol , dbWrapper),
-//      fetchOne: sync(dbWrapper.fetchOne , dbWrapper),
-//      insert: sync(dbWrapper.insert , dbWrapper),
-//      update: sync(dbWrapper.update , dbWrapper),
-//      remove: sync(dbWrapper.remove , dbWrapper),
-//      getSelect: sync(dbWrapper.getSelect , dbWrapper),
-//      close: sync(dbWrapper.close , dbWrapper)
-//    },
-//    dbExpr: dbExpr
-//  };
-//})();
-
 var Fiber = global.Fiber
   , sync = Fiber.sync;
 
@@ -98,6 +71,8 @@ define('localdb', function(require, exports, module) {
 
   var connections = {};
   exports.open = function(dbfile) {
+    if (dbfile.indexOf('.') < 0) dbfile += '.db';
+    if (dbfile.indexOf('/') < 0) dbfile = 'data/db/' + dbfile;
     var fullpath = app.mappath(dbfile), opts = {path: fullpath};
     var dbWrapper = connections[fullpath] || (connections[fullpath] = new DBWrapper('sqlite3', opts));
     if (!dbWrapper.isConnected()) {

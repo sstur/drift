@@ -5,7 +5,7 @@ app.on('ready', function(require) {
   var localdb = require('localdb');
 
   app.route('/db-test', function(req, res) {
-    var db = localdb.open('data/db/test.db');
+    var db = localdb.open('test');
     try {
       db.createTable('test', {name: ['TEXT', 'NOT NULL']});
     } catch(e) {
