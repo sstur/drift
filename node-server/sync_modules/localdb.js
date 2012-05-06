@@ -34,9 +34,13 @@ var dbi = require('node-dbi')
   , DBWrapper = dbi.DBWrapper
   , DBExpr = dbi.DBExpr;
 
+var asyncMethodList = 'connect close query fetchAll fetchRow fetchCol fetchOne insert update remove'.split(' ');
+//var syncMethodList = 'escape isConnected getSelect'.split(' ');
 var syncMethods = {}, proto = DBWrapper.prototype;
 for (var n in proto) {
-  syncMethods[n] = sync(proto[n]);
+  if (n.charAt(0) != '_') {
+    syncMethods[n] = (~asyncMethodList.indexOf(n)) ? sync(proto[n]) : proto[n];
+  }
 }
 
 /**
@@ -67,7 +71,7 @@ define('localdb', function(require, exports, module) {
       defs.push(parts.join(' '));
     }
     var sql = 'CREATE TABLE ' + tableName + ' (' + defs.join(', ') + ');';
-    console.log(sql);
+    return sql;
   };
 
   function DBWrapper(type, opts) {
@@ -76,7 +80,7 @@ define('localdb', function(require, exports, module) {
     this._super = new dbi.DBWrapper(type, opts);
   }
 
-  var methods = 'query fetchAll fetchRow fetchCol fetchOne insert update remove getSelect close'.split(' ');
+  var methods = Object.keys(syncMethods);
   methods.forEach(function(method) {
     DBWrapper.prototype[method] = function() {
       return syncMethods[method].apply(this._super, arguments);
@@ -86,7 +90,6 @@ define('localdb', function(require, exports, module) {
   DBWrapper.prototype.createTable = function(tableName, fields) {
     var sql = getTableCreationSql(tableName, fields);
     var result = this.query(sql, null);
-    console.log('result from createTable', result);
   };
 
 
@@ -97,6 +100,9 @@ define('localdb', function(require, exports, module) {
   exports.open = function(dbfile) {
     var fullpath = app.mappath(dbfile), opts = {path: fullpath};
     var dbWrapper = connections[fullpath] || (connections[fullpath] = new DBWrapper('sqlite3', opts));
+    if (!dbWrapper.isConnected()) {
+      dbWrapper.connect();
+    }
     return dbWrapper;
   };
 
