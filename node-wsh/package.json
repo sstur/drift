@@ -1,0 +1,13 @@
+{
+  "author": "sstur",
+  "name": "wsh-server",
+  "description": "Syncronous Server using Windows Scripting Host",
+  "version": "0.1.0",
+  "main": "./wsh-server.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
