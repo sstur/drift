@@ -8,7 +8,7 @@
   var build = require('./build').build;
   var Messenger = require('./lib/json_message');
 
-  build('app.wsf');
+  var sourceFiles = build('app.wsf');
 
   exports.requestHandler = function(req, res) {
     var data = serializeRequest(req, res);
@@ -58,8 +58,19 @@
   }
 
   function err500(output) {
+    var match = output.match(/^(.*?)\((\d+), (\d+)\)([\s\S]*)$/);
+    var file = match[1], line = +match[2], pos = +match[3], message = (match[4] || '').trim();
+    var chosen = {};
+    for (var i = 0; i < sourceFiles.length; i++) {
+      var source = sourceFiles[i];
+      if (line < source.lineOffset + source.lineCount) {
+        chosen.file = source.path.replace(/\\/g, '/');
+        chosen.line = line - source.lineOffset;
+        break;
+      }
+    }
     console.log('Child process exited with error:');
-    console.log(output);
+    console.log({file: chosen.file, line: chosen.line, character: pos, message: message});
   }
 
   function spawnWorker(callback) {

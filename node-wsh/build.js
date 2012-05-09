@@ -17,7 +17,7 @@
       path: path,
       fullpath: fullpath,
       lineOffset: offset + sourceLines.length,
-      lineCount: lines.count
+      lineCount: lines.length
     });
     sourceLines = sourceLines.concat(lines);
   };
@@ -45,6 +45,10 @@
     //load framework core (instantiates `app` and `define`)
     loadFile('app/system', 'core.js');
 
+    //load framework modules
+    loadPath('app/system/lib');
+    loadPath('app/controllers');
+
     //load adapter specific modules
     loadPath('node-wsh/wsh_modules');
 
@@ -53,9 +57,9 @@
         '<?xml version="1.0" encoding="utf-8"?>',
         '<package>',
         '<job>',
-        '<script language="javascript">');
+        '<script language="javascript">//<![CDATA[');
 
-    sourceLines.push('<\/script>');
+    sourceLines.push('//]]><\/script>');
     sourceLines.push('</job>');
     sourceLines.push('</package>');
 

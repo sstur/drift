@@ -23,7 +23,6 @@ for (var n in proto) {
 define('localdb', function(require, exports, module) {
   "use strict";
 
-  //sql = [
   //  'CREATE TABLE {tableName} ( ',
   //  '"id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ',
   //  '"first_name" TEXT NOT NULL, ',
@@ -31,7 +30,7 @@ define('localdb', function(require, exports, module) {
   //  '"nickname" TEXT, ',
   //  '"birth_date" TEXT NOT NULL, ',
   //  '"num_children" INTEGER NOT NULL DEFAULT (0), ',
-  //  '"enabled" INTEGER NOT NULL );'];
+  //  '"enabled" INTEGER NOT NULL );'
 
   var getTableCreationSql = function(tableName, fields) {
     var defs = [];
@@ -43,8 +42,7 @@ define('localdb', function(require, exports, module) {
       }
       defs.push(parts.join(' '));
     }
-    var sql = 'CREATE TABLE ' + tableName + ' (' + defs.join(', ') + ');';
-    return sql;
+    return 'CREATE TABLE ' + tableName + ' (' + defs.join(', ') + ');';
   };
 
   function DBWrapper(type, opts) {
@@ -62,7 +60,7 @@ define('localdb', function(require, exports, module) {
 
   DBWrapper.prototype.createTable = function(tableName, fields) {
     var sql = getTableCreationSql(tableName, fields);
-    var result = this.query(sql, null);
+    return this.query(sql, null);
   };
 
 

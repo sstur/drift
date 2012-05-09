@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package>
 <job>
-<script language="javascript">
+<script language="javascript">//<![CDATA[
 /*global app, define */
 
 //for environments that don't define `global`
@@ -261,6 +261,2554 @@ var app, define;
   }
 
 })();
+/*global app, define */
+/**
+ * Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ */
+define('class', function(require, exports, module) {
+
+  var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+
+  // The base Class implementation (does nothing)
+  var Class =  module.exports = function(){};
+
+  // Create a new Class that inherits from this class
+  Class.extend = function(prop) {
+    var _super = this.prototype;
+
+    // Instantiate a base class (but only create the instance,
+    // don't run the init constructor)
+    initializing = true;
+    var prototype = new this();
+    initializing = false;
+
+    // Copy the properties over onto the new prototype
+    for (var name in prop) {
+      // Check if we're overwriting an existing function
+      prototype[name] = typeof prop[name] == "function" &&
+        typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+        (function(name, fn){
+          return function() {
+            var tmp = this._super;
+
+            // Add a new ._super() method that is the same method
+            // but on the super-class
+            this._super = _super[name];
+
+            // The method only need to be bound temporarily, so we
+            // remove it when we're done executing
+            var ret = fn.apply(this, arguments);
+            this._super = tmp;
+
+            return ret;
+          };
+        })(name, prop[name]) :
+        prop[name];
+    }
+
+    // The dummy class constructor
+    function Class() {
+      // All construction is actually done in the init method
+      if ( !initializing && this.init )
+        this.init.apply(this, arguments);
+    }
+
+    // Populate our constructed prototype object
+    Class.prototype = prototype;
+
+    // Enforce the constructor to be what we expect
+    Class.prototype.constructor = Class;
+
+    // And make this class extendable
+    Class.extend = arguments.callee;
+
+    return Class;
+  };
+
+});
+/*global app, define, forEach, vartype, isPrimitive, isSet, toArray */
+
+/*!
+ * Global Functions and Variables
+ *   platforms not suporting ECMAScript 5 need ES5 shim loaded before this
+ *
+ * todo: htmlEnc/htmlDec; Date library; deprecate isSet
+ * todo: make list of removed functions for importing libraries
+ */
+
+var forEach, vartype, isPrimitive, isSet, toArray;
+
+(function() {
+  "use strict";
+
+  /**
+   * Shorthand to iterate an array or object
+   *   similar to jQuery.each()
+   */
+  forEach = function(obj, fn, context) {
+    if (arguments.length == 3) {
+      fn = fn.bind(context);
+    }
+    if (Array.isArray(obj)) {
+      return Array.prototype.each.call(obj, fn);
+    } else {
+      return Object.each(obj, fn);
+    }
+  };
+
+  //Append properties from one or more objects into the first (overwriting)
+  Object.append = function() {
+    var args = Array.toArray(arguments), ret = args.shift();
+    for (var i = 0; i < args.length; i++) {
+      var obj = args[i];
+      for (var n in obj) {
+        ret[n] = obj[n];
+      }
+    }
+    return ret;
+  };
+
+  //Extend an object so it "inherits" from parent but contains the given properties as its own
+  //todo: deprecate and make alias of Object.append
+  Object.extend = function(parent, ext) {
+    var obj = Object.create(parent);
+    if (typeof ext == 'function') {
+      Object.append(obj, ext.call(parent, parent));
+    } else {
+      Object.append(obj, ext)
+    }
+    return obj;
+  };
+
+  Object.each = function(obj, fn) {
+    var i = 0;
+    for (var n in obj) {
+      if (fn.call(obj, n, obj[n], (i++)) === false) break;
+    }
+    return obj;
+  };
+
+  Object.exists = function(obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+  };
+
+  Object.isPrimitive = function(obj) {
+    if (obj == null) {
+      return true;
+    }
+    var type = typeof obj;
+    return (type == 'boolean' || type == 'number' || type == 'string') ? true : false;
+  };
+
+  Object.isSet = function(obj) {
+    return !(obj === null || typeof obj == 'undefined');
+  };
+
+  Object.remove = function(obj, key) {
+    var type = Object.vartype(key);
+    if (type == 'array') {
+      for (var i = 0; i < key.length; i++)
+        Object.remove(obj, key[i]);
+    } else
+    if (type == 'string' && Object.exists(obj, key)) {
+      delete obj[key];
+    }
+    return obj;
+  };
+
+  Object.values = function(obj) {
+    var arr = [];
+    for (var n in obj) {
+      arr.push(obj[n]);
+    }
+    return arr;
+  };
+
+  Object.vartype = function(obj, /**String|Array=*/ list) {
+    if (list) {
+      list = (Array.isArray(list)) ? list : String(list).w();
+      return list.exists(Object.vartype(obj));
+    }
+    var type = (obj === null) ? 'null' : typeof obj;
+    if (obj && obj.hasOwnProperty) {
+      return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+    }
+    return (type == 'object') ? 'unknown' : type;
+  };
+
+  Array.prototype.each = function(fn) {
+    var arr = this, len = arr.length;
+    for (var i = 0; i < len; i++) {
+      if (fn.call(arr, i, arr[i]) === false) break;
+    }
+    return arr;
+  };
+
+  Array.prototype.exists = function(el) {
+    return (this.indexOf(el) >= 0);
+  };
+
+  Array.toArray = function(obj) {
+    var len = obj.length, arr = new Array(len);
+    for (var i = 0; i < len; i++) {
+      arr[i] = obj[i];
+    }
+    return arr;
+  };
+
+  Function.noop = function() {};
+
+  Number.parse = function(str, /**Number=0*/ def) {
+    var i = parseFloat(str);
+    def = (arguments.length > 1) ? def : 0;
+    return isFinite(i) ? i : def;
+  };
+
+  Number.parseInt = function(str, /**Number=0*/ def) {
+    var i = parseInt(str, 10);
+    def = (arguments.length > 1) ? def : 0;
+    return isFinite(i) ? i : def;
+  };
+
+  Number.random = function(lower, upper) {
+    return Math.floor(Math.random() * (upper - lower + 1)) + lower;
+  };
+
+  String.prototype.replaceAll = function(a, b) {
+    if (arguments.length == 1) {
+      var self = this;
+      Object.each(a, function() {
+        self = String.prototype.replaceAll.apply(self, arguments);
+      });
+      return self;
+    }
+    return String.prototype.replace.call(this, new RegExp(RegExp.escape(a), 'ig'), b);
+  };
+
+  String.prototype.trimLeft = function() {
+    return String.prototype.replace.call(this, /^\s*/, '');
+  };
+
+  String.prototype.trimRight = function() {
+    return String.prototype.replace.call(this, /\s*$/, '');
+  };
+
+  String.prototype.padLeft = function(num, str) {
+    var r = String(this), len = r.length;
+    return (len < num) ? new Array(num - len + 1).join(str) + r : r;
+  };
+
+  String.prototype.padRight = function(num, str) {
+    var r = String(this), len = r.length;
+    return (len < num) ? r + new Array(num - len + 1).join(str) : r;
+  };
+
+  String.prototype.startsWith = function(str) {
+    var self = this, re = new RegExp('^' + RegExp.escape(str), 'i');
+    return !!String(self).match(re);
+  };
+
+  String.prototype.endsWith = function(str) {
+    var self = this, re = new RegExp(RegExp.escape(str) + '$', 'i');
+    return !!String(self).match(re);
+  };
+
+  String.prototype.replaceHead = function(a, b) {
+    var self = this, re = new RegExp('^' + RegExp.escape(a), 'i');
+    return String(self).replace(re, b);
+  };
+
+  String.prototype.replaceTail = function(a, b) {
+    var self = this, re = new RegExp(RegExp.escape(a) + '$', 'i');
+    return String(self).replace(re, b);
+  };
+
+  String.prototype.words = function() {
+    return String.prototype.split.call(this, /[,\s]+/);
+  };
+  String.prototype.w = String.prototype.words;
+
+  String.parse = function(str, /**String=''*/ def) {
+    def = (arguments.length > 1) ? def : '';
+    return (str == null) ? def : String(str);
+  };
+
+  String.repeat = function(str, count) {
+    return new Array(count + 1).join(str);
+  };
+
+  Date.prototype.toGMTString = function() {
+    var a = Date.prototype.toUTCString.call(this).split(' ');
+    if (a[1].length == 1) a[1] = '0' + a[1];
+    return a.join(' ').replace(/UTC$/i, 'GMT');
+  };
+
+  Date.prototype.add = function(parts) {
+    var date = this;
+    if (parts.years) {
+      date.setYear(date.getFullYear() + Number.parseInt(parts.years));
+    }
+    if (parts.months) {
+      date.setMonth(date.getMonth() + Number.parseInt(parts.months));
+    }
+    if (parts.days) {
+      date.setDate(date.getDate() + Number.parseInt(parts.days));
+    }
+    if (parts.hours) {
+      date.setHours(date.getHours() + Number.parseInt(parts.hours));
+    }
+    if (parts.minutes) {
+      date.setMinutes(date.getMinutes() + Number.parseInt(parts.minutes));
+    }
+    if (parts.seconds) {
+      date.setSeconds(date.getSeconds() + Number.parseInt(parts.seconds));
+    }
+    return date;
+  };
+
+  Date.today = function() {
+    var date = new Date();
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
+  RegExp.escape = function(str) {
+    return String(str).replace(/([.?*+^$[\]\\(){}-])/g, '\\$1');
+  };
+
+  RegExp.copyAsGlobal = function(reg) {
+    var m = 'g' + ((reg.ignoreCase) ? 'i' : '') + ((reg.multiline) ? 'm' : '');
+    return new RegExp(reg.source, m);
+  };
+
+  //Shorthand Globals
+  vartype = Object.vartype;
+  isPrimitive = Object.isPrimitive;
+  isSet = Object.isSet;
+  toArray = Array.toArray;
+
+  //explicit globals for commonjs platforms
+  if (!global.vartype) {
+    global.vartype = vartype;
+    global.isPrimitive = isPrimitive;
+    global.isSet = isSet;
+    global.toArray = toArray;
+  }
+
+})();
+define('qs', ['module'], function(module) {
+  "use strict";
+
+  var SEP = /[&\?]/;
+  var CHARS = /[^\w!$'()*,-.\/:;@[\\\]^{|}~]+/g;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+  var qs = module.exports = {
+    escape: function(s) {
+      return String(s).replace(CHARS, function(s) {
+        return encodeURIComponent(s);
+      });
+    },
+    unescape: function(s) {
+      s = String(s).replace(/\+/g, ' ');
+      try {
+        return decodeURIComponent(s);
+      } catch(e) {
+        return unescape(s);
+      }
+    },
+    stringify: function(obj) {
+      var arr = [];
+      for (var n in obj) {
+        var key = qs.escape(n), val = obj[n];
+        if (Array.isArray(val)) {
+          for (var i = 0; i < val.length; i++) {
+            arr.push(key + '=' + qs.escape(val[i]));
+          }
+        } else {
+          arr.push(key + '=' + qs.escape(val));
+        }
+      }
+      return arr.join('&');
+    },
+    parse: function(str, opts) {
+      opts = opts || {};
+      var obj = {};
+      if (str) {
+        var split = str.split(SEP);
+        for (var i = 0, len = split.length; i < len; i++) {
+          var part = split[i], pos = part.indexOf('=');
+          if (pos < 0) {
+            pos = part.length;
+          }
+          var key = part.slice(0, pos), val = part.slice(pos + 1);
+          if (!key) continue;
+          key = qs.unescape(key);
+          if (opts.lcase) {
+            //lowercase keys
+            key = key.toLowerCase();
+          }
+          if (obj[key]) {
+            obj[key].push(qs.unescape(val));
+          } else {
+            obj[key] = [qs.unescape(val)];
+          }
+        }
+      }
+      //flatten defaults to true (duplicates have their values concatenated with ,)
+      if (opts.flatten !== false) {
+        for (key in obj) {
+          obj[key] = obj[key].join();
+        }
+      }
+      return obj;
+    }
+  };
+
+  //aliases
+  qs.encode = qs.escape;
+  qs.decode = qs.unescape;
+
+});
+/*global app, define */
+define('router', function(require, exports) {
+  "use strict";
+
+  var qs = require('qs')
+    , Request = require('request')
+    , Response = require('response');
+
+  var RE_METHOD = /^([A-Z]+):(.*)/;
+  var RE_PLAIN_ROUTE = /^[^:*]+$/;
+
+  //Parse the given route, returning a verb (method), regular expression and handler
+  var parseRoute = function(route, fn) {
+    var verb, m;
+    if (typeof route == 'string' && (m = RE_METHOD.exec(route))) {
+      verb = m[1];
+      route = m[2];
+    }
+    if (route instanceof RegExp || route.match(RE_PLAIN_ROUTE)) {
+      return [verb, route, fn];
+    }
+    var keys = [], str = route.concat('/?').replace(/\/\(/g, '(?:/');
+    str = str.replace(/(\/)?(\.)?:([\w]+)(\?)?/g, function(_, slash, format, key, optional) {
+      keys.push(key);
+      slash = slash || '';
+      return '' + (optional ? '' : slash) + '(?:' + (optional ? slash : '') + (format || '') + '([^/]+))' + (optional || '');
+    });
+    str = str.replace(/([\/.-])/g, '\\$1').replace(/\*/g, '(.+)');
+    var rex = new RegExp('^' + str + '$', 'i');
+    return [verb, rex, function(req, res, matches) {
+      var params = {}, list = [];
+      for (var i = 0; i < keys.length; i++) {
+        var val = qs.unescape(matches[i]);
+        params[keys[i]] = val;
+        list.push(val);
+      }
+      //todo: change to req.params
+      req.routeParams = params;
+      return fn.apply(this, [req, res].concat(list));
+    }];
+  };
+
+  exports.route = function(req, res, routes) {
+    //todo: this should be done at app.on('ready')
+    if (!routes.parsed) {
+      for (var i = 0; i < routes.length; i++) {
+        var definition = routes[i];
+        routes[i] = parseRoute(definition.route, definition.handler);
+      }
+      routes.parsed = true;
+    }
+    req = new Request(req);
+    res = new Response(res);
+    //cross-reference request and response
+    req.res = res;
+    res.req = req;
+    //request is ready to be routed
+    req.emit('ready');
+    var url = req.url().split('?')[0] //get raw url
+      , verb = req.method()
+      , data = {}
+      , stop = false;
+    data.stop = function() {
+      stop = true;
+    };
+    req.emit('pre-route', data);
+    routes.each(function(i, arr) {
+      if (arr[0] && arr[0] != verb) {
+        return true; //Continue
+      }
+      if (typeof arr[1] == 'string') {
+        if (url == arr[1]) {
+          arr[2].call(data, req, res);
+        }
+      } else {
+        var matches = arr[1].exec(url);
+        if (matches) {
+          arr[2].call(data, req, res, matches.slice(1));
+        }
+      }
+      return !stop;
+    });
+    if (!stop) {
+      req.emit('no-route', data);
+    }
+    req.emit('404', data);
+    var response = data.response || app.cfg('res_404');
+    if (response) {
+      res.clear(response.type, response.status || '404');
+      res.write(response.body);
+    } else {
+      res.status(404);
+      res.write('No Route');
+    }
+    res.end();
+  };
+
+});
+/*global app, define */
+/**
+ * strftime for Javascript
+ * version: 1.3
+ * date: 2008/06
+ *
+ * Copyright (c) 2008, Philip S Tellis <philip@bluesmoon.info>
+ * All rights reserved.
+ *
+ * This code is distributed under the terms of the BSD licence
+ *
+ * Implements strftime for the Date object in javascript based on the PHP implementation described at
+ * http://www.php.net/strftime  This is in turn based on the Open Group specification defined
+ * at http://www.opengroup.org/onlinepubs/007908799/xsh/strftime.html This implementation does not
+ * include modified conversion specifiers (i.e., Ex and Ox)
+ *
+ * %a - abbreviated weekday name according to the current locale
+ * %A - full weekday name according to the current locale
+ * %b - abbreviated month name according to the current locale
+ * %B - full month name according to the current locale
+ * %c - preferred date and time representation for the current locale
+ * %C - century number (the year divided by 100 and truncated to an integer, range 00 to 99)
+ * %d - day of the month as a decimal number (range 01 to 31)
+ * %D - same as %m/%d/%y
+ * %e - day of the month as a decimal number, a single digit is preceded by a space (range ' 1' to '31')
+ * %g - like %G, but without the century
+ * %G - The 4-digit year corresponding to the ISO week number
+ * %h - same as %b
+ * %H - hour as a decimal number using a 24-hour clock (range 00 to 23)
+ * %I - hour as a decimal number using a 12-hour clock (range 01 to 12)
+ * %j - day of the year as a decimal number (range 001 to 366)
+ * %m - month as a decimal number (range 01 to 12)
+ * %M - minute as a decimal number
+ * %n - newline character
+ * %p - either `AM' or `PM' according to the given time value, or the corresponding strings for the current locale
+ * %P - like %p, but lower case
+ * %r - time in a.m. and p.m. notation equal to %I:%M:%S %p
+ * %R - time in 24 hour notation equal to %H:%M
+ * %S - second as a decimal number
+ * %t - tab character
+ * %T - current time, equal to %H:%M:%S
+ * %u - weekday as a decimal number [1,7], with 1 representing Monday
+ * %U - week number of the current year as a decimal number, starting with
+ *            the first Sunday as the first day of the first week
+ * %V - The ISO 8601:1988 week number of the current year as a decimal number,
+ *            range 01 to 53, where week 1 is the first week that has at least 4 days
+ *            in the current year, and with Monday as the first day of the week.
+ * %w - day of the week as a decimal, Sunday being 0
+ * %W - week number of the current year as a decimal number, starting with the
+ *            first Monday as the first day of the first week
+ * %x - preferred date representation for the current locale without the time
+ * %X - preferred time representation for the current locale without the date
+ * %y - year as a decimal number without a century (range 00 to 99)
+ * %Y - year as a decimal number including the century
+ * %z - numerical time zone representation
+ * %Z - time zone name or abbreviation
+ * %% - a literal `%' character
+ *
+ * See the PHP implementation which is the basis for this
+ * http://www.php.net/strftime
+ * http://tech.bluesmoon.info/2008/04/strftime-in-javascript.html
+ */
+define('strftime', function(require, exports) {
+
+  //! All supporting objects go in exports
+  var ext = exports;
+
+  //! Global config
+  var config = ext.config = {};
+
+  //! Utility methods
+  var util = ext.util = {};
+
+  /**
+   * Left pad a number
+   *
+   * @param x - The number to pad
+   * @param pad - The string to pad with
+   * @param [r=10] - Upper limit: A value of 10 pads to 2 digits, a value of 100 pads to 3 digits.
+   */
+  util.xPad = function(x, pad, r) {
+    if (typeof(r) == 'undefined') {
+      r = 10;
+    }
+    for (; parseInt(x, 10) < r && r > 1; r /= 10)
+      x = pad.toString() + x;
+    return x.toString();
+  };
+
+  /**
+   * Extend an object with the properties and values of another
+   */
+  util.extend = function(target) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0, len = args.length; i < len; i++) {
+      for (var n in args[i]) {
+        if (args[i].hasOwnProperty(n))
+          target[n] = args[i][n];
+      }
+    }
+    return target;
+  };
+
+  /**
+   * Default Locale
+   * The locale for a specific date instance can be specified by setting a 'locale' property on the date object;
+   */
+  config.locale = 'en';
+
+  var locales = ext.locales = { };
+
+  /**
+   * Localised strings for days of the week and months of the year.
+   *
+   * a - Short names of days of week starting with Sunday
+   * A - Long names days of week starting with Sunday
+   * b - Short names of months of the year starting with January
+   * B - Long names of months of the year starting with February
+   * c - The preferred date and time representation in your locale
+   * p - AM or PM in your locale
+   * P - am or pm in your locale
+   * x - The preferred date representation for the current locale without the time.
+   * X - The preferred time representation for the current locale without the date.
+   *
+   */
+  locales.en = {
+    a: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    A: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    b: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    B: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    c: '%d %b %Y %I:%M %p',
+    p: ['AM', 'PM'],
+    P: ['am', 'pm'],
+    x: '%d %b %Y',
+    X: '%I:%M %p'
+  };
+
+  locales['en-US'] = util.extend({}, locales.en);
+  locales['en-US'].c = '%b %d %Y %I:%M %p';
+  locales['en-US'].x = '%b %d %Y';
+  locales['en-GB'] = util.extend({}, locales.en);
+  locales['en-AU'] = util.extend({}, locales.en);
+
+  ext.formats = {
+    a: function(d) { return locales[d.locale].a[d.getDay()]; },
+    A: function(d) { return locales[d.locale].A[d.getDay()]; },
+    b: function(d) { return locales[d.locale].b[d.getMonth()]; },
+    B: function(d) { return locales[d.locale].B[d.getMonth()]; },
+    c: 'toLocaleString',
+    C: function(d) { return util.xPad(parseInt(d.getFullYear()/100, 10), 0); },
+    d: ['getDate', '0'],
+    e: ['getDate', ' '],
+    g: function(d) { return util.xPad(parseInt(util.G(d)/100, 10), 0); },
+    G: function(d) {
+        var y = d.getFullYear();
+        var V = parseInt(ext.formats.V(d), 10);
+        var W = parseInt(ext.formats.W(d), 10);
+        if(W > V) {
+          y++;
+        } else if(W === 0 && V >= 52) {
+          y--;
+        }
+        return y;
+      },
+    H: ['getHours', '0'],
+    I: function(d) { var I=d.getHours()%12; return util.xPad(I===0?12:I, 0); },
+    j: function(d) {
+        var ms = d - new Date('' + d.getFullYear() + '/1/1 GMT');
+        ms += d.getTimezoneOffset()*60000;
+        var doy = parseInt(ms/60000/60/24, 10)+1;
+        return util.xPad(doy, 0, 100);
+      },
+    m: function(d) { return util.xPad(d.getMonth()+1, 0); },
+    M: ['getMinutes', '0'],
+    p: function(d) { return locales[d.locale].p[d.getHours() >= 12 ? 1 : 0 ]; },
+    P: function(d) { return locales[d.locale].P[d.getHours() >= 12 ? 1 : 0 ]; },
+    S: ['getSeconds', '0'],
+    u: function(d) { var dow = d.getDay(); return dow===0?7:dow; },
+    U: function(d) {
+        var doy = parseInt(ext.formats.j(d), 10);
+        var rdow = 6-d.getDay();
+        var woy = parseInt((doy+rdow)/7, 10);
+        return util.xPad(woy, 0);
+      },
+    V: function(d) {
+        var woy = parseInt(ext.formats.W(d), 10);
+        var dow1_1 = (new Date('' + d.getFullYear() + '/1/1')).getDay();
+        var idow = woy + (dow1_1 > 4 || dow1_1 <= 1 ? 0 : 1);
+        if(idow == 53 && (new Date('' + d.getFullYear() + '/12/31')).getDay() < 4) {
+          idow = 1;
+        } else
+        if(idow === 0) {
+          idow = ext.formats.V(new Date('' + (d.getFullYear()-1) + '/12/31'));
+        }
+        return util.xPad(idow, 0);
+      },
+    w: 'getDay',
+    W: function(d) {
+        var doy = parseInt(ext.formats.j(d), 10);
+        var rdow = 7-ext.formats.u(d);
+        var woy = parseInt((doy+rdow)/7, 10);
+        return util.xPad(woy, 0, 10);
+      },
+    y: function(d) { return util.xPad(d.getFullYear()%100, 0); },
+    Y: 'getFullYear',
+    z: function(d) {
+        var o = d.getTimezoneOffset();
+        var H = util.xPad(parseInt(Math.abs(o/60), 10), 0);
+        var M = util.xPad(o%60, 0);
+        return (o>0?'-':'+') + H + M;
+      },
+    Z: function(d) { return d.toString().replace(/^.*([A-Z]{3}(?:[+-]\d+)?).*$/, '$1'); },
+    '%': function(d) { return '%'; }
+  };
+
+  /**
+   * List of aggregate format specifiers.
+   *
+   * Aggregate format specifiers map to a combination of basic format specifiers.
+   * These are implemented in terms of ext.formats.
+   *
+   * A format specifier that maps to 'locale' is read from locales[current-locale].
+   */
+  ext.aggregates = {
+    c: 'locale',
+    D: '%m/%d/%y',
+    h: '%b',
+    n: '\n',
+    r: '%I:%M:%S %p',
+    R: '%H:%M',
+    t: '\t',
+    T: '%H:%M:%S',
+    x: 'locale',
+    X: 'locale'
+  };
+
+  // Cache timezone values because they will never change for a given JS instance
+  ext.aggregates.z = ext.formats.z(new Date());
+  ext.aggregates.Z = ext.formats.Z(new Date());
+
+  /**
+   * \brief Formats the date according to the specified format.
+   * \param fmt  The format to format the date in.  This may be a combination of the following:
+   * \copydoc formats
+   *
+   * \return  A string representation of the date formatted based on the passed in parameter
+   * \sa http://www.php.net/strftime for documentation on format specifiers
+  */
+  exports.strftime = function(d, fmt, locale) {
+    //defaults
+    locale = d.locale = (locale && locales[locale]) ? locale : config.locale;
+    fmt = fmt ? String(fmt) : locales[locale].c;
+
+    // First replace aggregates
+    while (fmt.match(/%[cDhnrRtTxXzZ]/)) {
+      fmt = fmt.replace(/%([cDhnrRtTxXzZ])/g, function(m0, m1) {
+        var f = ext.aggregates[m1];
+        return (f == 'locale' ? locales[d.locale][m1] : f);
+      });
+    }
+
+    // Now replace formats - we need a closure so that the date object gets passed through
+    var str = fmt.replace(/%([aAbBCdegGHIjmMpPSuUVwWyY%])/g, function(m0, m1) {
+      var f = ext.formats[m1];
+      if (typeof(f) == 'string') {
+        return d[f]();
+      } else if (typeof(f) == 'function') {
+        return f.call(d, d);
+      } else if (typeof(f) == 'object' && typeof(f[0]) == 'string') {
+        return util.xPad(d[f[0]](), f[1]);
+      } else {
+        return m1;
+      }
+    });
+    d = null;
+    return str;
+  };
+
+});
+/**
+ * Port of Tobias Luetke's Liquid Template Engine
+ * from Ruby to JavaScript. Implements non-evaling
+ * "safe" rendering from template source.
+ *
+ * Requires:
+ *  - es5-shim
+ *  - cross-browser string.split() fix (or full regexp patch)
+ *  - strftime [ http://code.google.com/p/strftime-js/ ]
+ *  - Simple JavaScript Inheritance "Class" library by John Resig
+ *
+ * To Do:
+ *  - implement readTemplateFile
+ *  - refactor test suite
+ *  - implement "method_missing" -like functionality: page.block0.content
+ *  - better typeof function to handle null, arrays, etc
+ *  - extensions are just helpers and can be local
+ *
+ */
+define('liquid', function(require, exports, module) {
+
+  var Class = require('class');
+  var strftime = require('strftime').strftime;
+
+  //helper functions
+  function objectEach(obj, fn /*, context*/ ) {
+    var i = 0;
+    for (var p in obj) {
+      var value = obj[p], pair = [p, value];
+      pair.key = p;
+      pair.value = value;
+      fn.call(arguments[2] || obj, pair, i++, obj);
+    }
+  }
+
+  function flattenArray(source) {
+    var len = source.length, arr = [];
+    for (var i = 0; i < len; i++) {
+      if (source[i] instanceof Array) {
+        arr = arr.concat(source[i]);
+      } else {
+        arr.push(source[i]);
+      }
+    }
+    return arr;
+  }
+
+  var Liquid = module.exports = {
+
+    author: 'M@ McCray <darthapo@gmail.com>',
+    version: '1.2.1',
+
+    readTemplateFile: function(path) {
+      throw ("This liquid context does not allow includes.");
+    },
+
+    registerFilters: function(filters) {
+      Liquid.Template.registerFilter(filters);
+    },
+
+    parse: function(src) {
+      return Liquid.Template.parse(src);
+    }
+
+  };
+
+  Liquid.extensions = {};
+  Liquid.extensions.object = {};
+
+  Liquid.extensions.object.update = function(newObj) {
+    for (var p in newObj) {
+      this[p] = newObj[p];
+    }
+
+    return this;
+  };
+
+  Liquid.extensions.object.hasKey = function(arg) {
+    return !!this[arg];
+  };
+
+  Liquid.extensions.object.hasValue = function(arg) {
+    for (var p in this) {
+      if (this[p] == arg) return true;
+    }
+    return false;
+  };
+
+  Liquid.Tag = Class.extend({
+
+    init: function(tagName, markup, tokens) {
+      this.tagName = tagName;
+      this.markup = markup;
+      this.nodelist = this.nodelist || [];
+      this.parse(tokens);
+    },
+
+    parse: function(tokens) {},
+
+    render: function(context) {
+      return '';
+    }
+
+  });
+
+  Liquid.Block = Liquid.Tag.extend({
+
+    init: function(tagName, markup, tokens) {
+      this.blockName = tagName;
+      this.blockDelimiter = "end" + this.blockName;
+      this._super(tagName, markup, tokens);
+    },
+
+    parse: function(tokens) {
+      if (!this.nodelist) this.nodelist = [];
+      this.nodelist.length = 0;
+
+      var token = tokens.shift();
+      tokens.push(''); // To ensure we don't lose the last token passed in...
+      while(tokens.length) {
+
+        if( /^\{\%/.test(token) ) { // It's a tag...
+          var tagParts = token.match(/^\{\%\s*(\w+)\s*(.*)?\%\}$/);
+
+          if(tagParts) {
+            if( this.blockDelimiter == tagParts[1] ) {
+              this.endTag();
+              return;
+            }
+            if( tagParts[1] in Liquid.Template.tags ) {
+              this.nodelist.push( new Liquid.Template.tags[tagParts[1]]( tagParts[1], tagParts[2], tokens ) );
+            } else {
+              this.unknownTag( tagParts[1], tagParts[2], tokens );
+            }
+          } else {
+            throw ( "Tag '"+ token +"' was not properly terminated with: %}");
+          }
+        } else
+        if (/^\{\{/.test(token)) { // It's a variable...
+          this.nodelist.push( this.createVariable(token) );
+        } else { //if(token != '') {
+          this.nodelist.push( token );
+        } // Ignores tokens that are empty
+        token = tokens.shift(); // Assign the next token to loop again...
+      }
+
+      this.assertMissingDelimitation();
+    },
+
+    endTag: function() {},
+
+    unknownTag: function(tag, params, tokens) {
+      switch(tag) {
+        case 'else': throw (this.blockName +" tag does not expect else tag"); break;
+        case 'end':  throw ("'end' is not a valid delimiter for "+ this.blockName +" tags. use "+ this.blockDelimiter); break;
+        default:     throw ("Unknown tag: "+ tag);
+      }
+    },
+
+    createVariable: function(token) {
+      var match = token.match(/^\{\{(.*)\}\}$/);
+      if(match) { return new Liquid.Variable(match[1]); }
+      else { throw ("Variable '" + token + "' was not properly terminated with: }}"); }
+    },
+
+    render: function(context) {
+      return this.renderAll(this.nodelist, context);
+    },
+
+    renderAll: function(list, context) {
+      return (list || []).map(function(token, i) {
+        var output = '';
+        try { // hmmm... feels a little heavy
+          output = ( token['render'] ) ? token.render(context) : token;
+        } catch(e) {
+          output = context.handleError(e);
+        }
+        return output;
+      });
+    },
+
+    assertMissingDelimitation: function() {
+      throw (this.blockName + " tag was never closed");
+    }
+  });
+
+  Liquid.Document = Liquid.Block.extend({
+
+    init: function(tokens) {
+      this.blockDelimiter = [];
+      this.parse(tokens);
+    },
+
+    assertMissingDelimitation: function() {
+    }
+  });
+
+  Liquid.Strainer = Class.extend({
+
+    init: function(context) {
+      this.context = context;
+    },
+
+    respondTo: function(methodName) {
+      methodName = methodName.toString();
+      if (methodName.match(/^__/)) return false;
+      if (~Liquid.Strainer.requiredMethods.indexOf(methodName)) return false;
+      return (methodName in this);
+    }
+  });
+
+  Liquid.Strainer.filters = {};
+
+  Liquid.Strainer.globalFilter = function(filters) {
+    for (var f in filters) {
+      Liquid.Strainer.filters[f] = filters[f];
+    }
+  };
+
+  Liquid.Strainer.requiredMethods = ['respondTo', 'context'];
+
+  Liquid.Strainer.create = function(context) {
+    var strainer = new Liquid.Strainer(context);
+    for (var f in Liquid.Strainer.filters) {
+      strainer[f] = Liquid.Strainer.filters[f];
+    }
+    return strainer;
+  };
+
+  Liquid.Context = Class.extend({
+
+    init: function(assigns, registers, rethrowErrors) {
+      this.scopes = [ assigns ? assigns : {} ];
+      this.registers = registers ? registers : {};
+      this.errors = [];
+      this.rethrowErrors = rethrowErrors;
+      this.strainer = Liquid.Strainer.create(this);
+    },
+
+    get: function(varname) {
+      return this.resolve(varname);
+    },
+
+    set: function(varname, value) {
+      this.scopes[0][varname] = value;
+    },
+
+    hasKey: function(key) {
+      return (this.resolve(key)) ? true : false;
+    },
+
+    push: function() {
+      var scpObj = {};
+      this.scopes.unshift(scpObj);
+      return scpObj // Is this right?
+    },
+
+    merge: function(newScope) {
+      return Liquid.extensions.object.update.call(this.scopes[0], newScope);
+    },
+
+    pop: function() {
+      if(this.scopes.length == 1) { throw "Context stack error"; }
+      return this.scopes.shift();
+    },
+
+    stack: function(lambda, bind) {
+      var result = null;
+      this.push();
+      try {
+        result = lambda.apply(bind ? bind : this.strainer);
+      } finally {
+        this.pop();
+      }
+      return result;
+    },
+
+    invoke: function(method, args) {
+      if( this.strainer.respondTo(method) ) {
+        var result = this.strainer[method].apply(this.strainer, args);
+        return result;
+      } else {
+        return (args.length == 0) ? null : args[0]; // was: $pick
+      }
+    },
+
+    resolve: function(key) {
+      switch(key) {
+        case null:
+        case 'nil':
+        case 'null':
+        case '':
+          return null;
+
+        case 'true':
+          return true;
+
+        case 'false':
+          return false;
+
+        case 'blank':
+        case 'empty':
+          return '';
+
+        default:
+          if((/^'(.*)'$/).test(key))      // Single quoted strings
+            { return key.replace(/^'(.*)'$/, '$1'); }
+
+          else if((/^"(.*)"$/).test(key)) // Double quoted strings
+            { return key.replace(/^"(.*)"$/, '$1'); }
+
+          else if((/^(\d+)$/).test(key)) // Integer...
+            { return parseInt( key.replace(/^(\d+)$/ , '$1'), 10); }
+
+          else if((/^(\d[\d\.]+)$/).test(key)) // Float...
+            { return parseFloat( key.replace(/^(\d[\d\.]+)$/, '$1') ); }
+
+          else if((/^\((\S+)\.\.(\S+)\)$/).test(key)) {// Ranges
+            var range = key.match(/^\((\S+)\.\.(\S+)\)$/),
+                left  = parseInt(range[1], 10),
+                right = parseInt(range[2], 10),
+                arr   = [];
+            if (isNaN(left) || isNaN(right)) {
+              left = range[1].charCodeAt(0);
+              right = range[2].charCodeAt(0);
+
+              var limit = right-left+1;
+              for (var i=0; i<limit; i++) arr.push(String.fromCharCode(i+left));
+            } else { // okay to make array
+              var limit = right-left+1;
+              for (var i=0; i<limit; i++) arr.push(i+left);
+            }
+            return arr;
+          } else {
+            var result = this.variable(key);
+            return result;
+          }
+      }
+    },
+
+    findVariable: function(key) {
+      for (var i=0; i < this.scopes.length; i++) {
+        var scope = this.scopes[i];
+        if( scope && !!scope[key] ) {
+          var variable = scope[key];
+          if(typeof(variable) == 'function') {
+            variable = variable.apply(this);
+            scope[key] = variable;
+          }
+          if(variable && typeof(variable) == 'object' && ('toLiquid' in variable)) {
+            variable = variable.toLiquid();
+          }
+          if(variable && typeof(variable) == 'object' && ('setContext' in variable)) {
+            variable.setContext(self);
+          }
+          return variable;
+        }
+      }
+      return null;
+    },
+
+    variable: function(markup) {
+      if(typeof markup != 'string') {
+        return null;
+      }
+
+      var parts       = markup.match( /\[[^\]]+\]|(?:[\w\-]\??)+/g ),
+          firstPart   = parts.shift(),
+          squareMatch = firstPart.match(/^\[(.*)\]$/);
+
+      if(squareMatch)
+        { firstPart = this.resolve( squareMatch[1] ); }
+
+      var object = this.findVariable(firstPart),
+          self = this;
+
+      if(object) {
+        parts.forEach(function(part) {
+          var squareMatch = part.match(/^\[(.*)\]$/);
+          if(squareMatch) {
+            var part = self.resolve( squareMatch[1] );
+            if( typeof(object[part]) == 'function') { object[part] = object[part].apply(this); }// Array?
+            object = object[part];
+            if(typeof(object) == 'object' && ('toLiquid' in object)) { object = object.toLiquid(); }
+          } else {
+            if( object && typeof(object) == 'object' && (part in object)) {
+              var res = object[part];
+              if( typeof(res) == 'function') { res = object[part] = res.apply(self) ; }
+              if( typeof(res) == 'object' && ('toLiquid' in res)) { object = res.toLiquid(); }
+              else { object = res; }
+            } else
+            if( (/^\d+$/).test(part) ) {
+              var pos = parseInt(part, 10);
+              if( typeof(object[pos]) == 'function') { object[pos] = object[pos].apply(self); }
+              if(typeof(object[pos]) == 'object' && typeof(object[pos]) == 'object' && ('toLiquid' in object[pos])) { object = object[pos].toLiquid(); }
+              else { object  = object[pos]; }
+            } else
+            if( typeof(object[part]) == 'function' && ~['length', 'size', 'first', 'last'].indexOf(part) ) {
+              object = object[part].apply(part);
+              if('toLiquid' in object) { object = object.toLiquid(); }
+            } else {
+              return null;
+            }
+            if(typeof(object) == 'object' && ('setContext' in object)) { object.setContext(self); }
+          }
+        });
+      }
+      return object;
+    },
+
+    addFilters: function(filters) {
+      filters = flattenArray(filters);
+      filters.forEach(function(f) {
+        if(typeof(f) != 'object') { throw ("Expected object but got: "+ typeof(f)) }
+        this.strainer.addMethods(f);
+      });
+    },
+
+    handleError: function(err) {
+      this.errors.push(err);
+      if(this.rethrowErrors) { throw err; }
+      return "Liquid error: " + (err.message ? err.message : (err.description ? err.description : err));
+    }
+
+  });
+
+  Liquid.Template = Class.extend({
+
+    init: function() {
+      this.root = null;
+      this.registers = {};
+      this.assigns = {};
+      this.errors = [];
+      this.rethrowErrors = false;
+    },
+
+    parse: function(src) {
+      this.root = new Liquid.Document( Liquid.Template.tokenize(src) );
+      return this;
+    },
+
+    render: function() {
+      if(!this.root) { return ''; }
+      var args = {
+        ctx: arguments[0],
+        filters: arguments[1],
+        registers: arguments[2]
+      };
+      var context = null;
+
+      if(args.ctx instanceof Liquid.Context ) {
+        context = args.ctx;
+        this.assigns = context.assigns;
+        this.registers = context.registers;
+      } else {
+        if(args.ctx) {
+          Liquid.extensions.object.update.call(this.assigns, args.ctx);
+        }
+        if(args.registers) {
+          Liquid.extensions.object.update.call(this.registers, args.registers);
+        }
+        context = new Liquid.Context(this.assigns, this.registers, this.rethrowErrors)
+      }
+
+      if(args.filters) { context.addFilters(arg.filters); }
+
+      try {
+        return this.root.render(context).join('');
+      } finally {
+        this.errors = context.errors;
+      }
+    },
+
+    renderWithErrors: function() {
+      var savedRethrowErrors = this.rethrowErrors;
+      this.rethrowErrors = true;
+      var res = this.render.apply(this, arguments);
+      this.rethrowErrors = savedRethrowErrors;
+      return res;
+    }
+  });
+
+
+  Liquid.Template.tags = {};
+
+  Liquid.Template.registerTag = function(name, klass) {
+    Liquid.Template.tags[ name ] = klass;
+  };
+
+  Liquid.Template.registerFilter = function(filters) {
+    Liquid.Strainer.globalFilter(filters)
+  };
+
+  Liquid.Template.tokenize = function(src) {
+    var tokens = src.split( /(\{\%.*?\%\}|\{\{.*?\}\}?)/ );
+    if(tokens[0] == '') { tokens.shift(); }
+    return tokens;
+  };
+
+
+  Liquid.Template.parse =  function(src) {
+    return (new Liquid.Template()).parse(src);
+  };
+
+  Liquid.Variable = Class.extend({
+
+    init: function(markup) {
+      this.markup = markup;
+      this.name = null;
+      this.filters = [];
+      var self = this;
+      var match = markup.match(/\s*("[^"]+"|'[^']+'|[^\s,|]+)/);
+      if( match ) {
+        this.name = match[1];
+        var filterMatches = markup.match(/\|\s*(.*)/);
+        if(filterMatches) {
+          var filters = filterMatches[1].split(/\|/);
+          filters.forEach(function(f) {
+            var matches = f.match(/\s*(\w+)/);
+            if(matches) {
+              var filterName = matches[1];
+              var filterArgs = [];
+              flattenArray(f.match(/(?:[:|,]\s*)("[^"]+"|'[^']+'|[^\s,|]+)/g) || []).forEach(function(arg) {
+                var cleanupMatch = arg.match(/^[\s|:|,]*(.*?)[\s]*$/);
+                if(cleanupMatch)
+                  { filterArgs.push( cleanupMatch[1] );}
+              });
+              self.filters.push( [filterName, filterArgs] );
+            }
+          });
+        }
+      }
+    },
+
+    render: function(context) {
+      if(this.name == null) { return ''; }
+      var output = context.get(this.name);
+      this.filters.forEach(function(filter) {
+        var filterName = filter[0],
+            filterArgs = (filter[1] || []).map(function(arg) {
+              return context.get(arg);
+            });
+        filterArgs.unshift(output); // Push in input value into the first argument spot...
+        output = context.invoke(filterName, filterArgs);
+      });
+
+      return output;
+    }
+  });
+
+  Liquid.Condition = Class.extend({
+
+    init: function(left, operator, right) {
+      this.left = left;
+      this.operator = operator;
+      this.right = right;
+      this.childRelation = null;
+      this.childCondition = null;
+      this.attachment = null;
+    },
+
+    evaluate: function(context) {
+      context = context || new Liquid.Context();
+      var result = this.interpretCondition(this.left, this.right, this.operator, context);
+      switch(this.childRelation) {
+        case 'or':
+          return (result || this.childCondition.evaluate(context));
+        case 'and':
+          return (result && this.childCondition.evaluate(context));
+        default:
+          return result;
+      }
+    },
+
+    or: function(condition) {
+      this.childRelation = 'or';
+      this.childCondition = condition;
+    },
+
+    and: function(condition) {
+      this.childRelation = 'and';
+      this.childCondition = condition;
+    },
+
+    attach: function(attachment) {
+      this.attachment = attachment;
+      return this.attachment;
+    },
+
+    isElse: false,
+
+    interpretCondition: function(left, right, op, context) {
+      if(!op)
+        { return context.get(left); }
+
+      left = context.get(left);
+      right = context.get(right);
+      op = Liquid.Condition.operators[op];
+      if(!op)
+        { throw ("Unknown operator "+ op); }
+
+      var results = op(left, right);
+      return results;
+    },
+
+    toString: function() {
+      return "<Condition " + this.left + " " + this.operator + " " + this.right + ">";
+    }
+
+  });
+
+  Liquid.Condition.operators = {
+    '==': function(l,r) {  return (l == r); },
+    '=':  function(l,r) { return (l == r); },
+    '!=': function(l,r) { return (l != r); },
+    '<>': function(l,r) { return (l != r); },
+    '<':  function(l,r) { return (l < r); },
+    '>':  function(l,r) { return (l > r); },
+    '<=': function(l,r) { return (l <= r); },
+    '>=': function(l,r) { return (l >= r); },
+
+    'contains': function(l,r) { return ~l.indexOf(r); },
+    'hasKey':   function(l,r) { return Liquid.extensions.object.hasKey.call(l, r); },
+    'hasValue': function(l,r) { return Liquid.extensions.object.hasValue.call(l, r); }
+  };
+
+  Liquid.ElseCondition = Liquid.Condition.extend({
+
+    isElse: true,
+
+    evaluate: function(context) {
+      return true;
+    },
+
+    toString: function() {
+      return "<ElseCondition>";
+    }
+
+  });
+
+  Liquid.Drop = Class.extend({
+    setContext: function(context) {
+      this.context = context;
+    },
+    beforeMethod: function(method) {
+
+    },
+    invokeDrop: function(method) {
+      var results = this.beforeMethod();
+      if( !results && (method in this) )
+        { results = this[method].apply(this); }
+      return results;
+    },
+    hasKey: function(name) {
+      return true;
+    }
+  });
+
+  Liquid.Template.registerTag( 'assign', Liquid.Tag.extend({
+
+    tagSyntax: /((?:\(?[\w\-\.\[\]]\)?)+)\s*=\s*((?:"[^"]+"|'[^']+'|[^\s,|]+)+)/,
+
+    init: function(tagName, markup, tokens) {
+      var parts = markup.match(this.tagSyntax)
+      if( parts ) {
+        this.to   = parts[1];
+        this.from = parts[2];
+      } else {
+        throw ("Syntax error in 'assign' - Valid syntax: assign [var] = [source]");
+      }
+      this._super(tagName, markup, tokens)
+    },
+    render: function(context) {
+      context.scopes[context.scopes.length - 1][this.to.toString()] = context.get(this.from);
+      return '';
+    }
+  }));
+
+  Liquid.Template.registerTag( 'cache', Liquid.Block.extend({
+    tagSyntax: /(\w+)/,
+
+    init: function(tagName, markup, tokens) {
+      var parts = markup.match(this.tagSyntax)
+      if( parts ) {
+        this.to = parts[1];
+      } else {
+        throw ("Syntax error in 'cache' - Valid syntax: cache [var]");
+      }
+      this._super(tagName, markup, tokens);
+    },
+    render: function(context) {
+      var output = this._super(context);
+      context.scopes[context.scopes.length - 1][this.to] = flattenArray([output]).join('');
+      return '';
+    }
+  }));
+
+
+  Liquid.Template.registerTag( 'capture', Liquid.Block.extend({
+    tagSyntax: /(\w+)/,
+
+    init: function(tagName, markup, tokens) {
+      var parts = markup.match(this.tagSyntax)
+      if( parts ) {
+        this.to = parts[1];
+      } else {
+        throw ("Syntax error in 'capture' - Valid syntax: capture [var]");
+      }
+      this._super(tagName, markup, tokens);
+    },
+    render: function(context) {
+      var output = this._super(context);
+      context.set( this.to, flattenArray([output]).join('') );
+      return '';
+    }
+  }));
+
+  Liquid.Template.registerTag( 'case', Liquid.Block.extend({
+
+    tagSyntax     : /("[^"]+"|'[^']+'|[^\s,|]+)/,
+    tagWhenSyntax : /("[^"]+"|'[^']+'|[^\s,|]+)(?:(?:\s+or\s+|\s*\,\s*)("[^"]+"|'[^']+'|[^\s,|]+.*))?/,
+
+    init: function(tagName, markup, tokens) {
+      this.blocks = [];
+      this.nodelist = [];
+
+      var parts = markup.match(this.tagSyntax)
+      if( parts ) {
+        this.left = parts[1];
+      } else {
+        throw ("Syntax error in 'case' - Valid syntax: case [condition]");
+      }
+
+      this._super(tagName, markup, tokens);
+    },
+    unknownTag: function(tag, markup, tokens) {
+      switch(tag) {
+        case 'when':
+          this.recordWhenCondition(markup);
+          break;
+        case 'else':
+          this.recordElseCondition(markup);
+          break;
+        default:
+          this._super(tag, markup, tokens);
+      }
+
+    },
+    render: function(context) {
+      var self = this,
+          output = [],
+          execElseBlock = true;
+
+      context.stack(function() {
+        for (var i=0; i < self.blocks.length; i++) {
+          var block = self.blocks[i];
+          if( block.isElse  ) {
+            if(execElseBlock == true) { output = flattenArray([output, self.renderAll(block.attachment, context)]); }
+            return output;
+          } else if( block.evaluate(context) ) {
+            execElseBlock = false;
+            output = flattenArray([output, self.renderAll(block.attachment, context)]);
+          }
+        }
+      });
+
+      return output;
+    },
+    recordWhenCondition: function(markup) {
+      while(markup) {
+        var parts = markup.match(this.tagWhenSyntax);
+        if(!parts) {
+          throw ("Syntax error in tag 'case' - Valid when condition: {% when [condition] [or condition2...] %} ");
+        }
+
+        markup = parts[2];
+
+        var block = new Liquid.Condition(this.left, '==', parts[1]);
+        this.blocks.push( block );
+        this.nodelist = block.attach([]);
+      }
+    },
+    recordElseCondition: function(markup) {
+      if( (markup || '').trim() != '') {
+        throw ("Syntax error in tag 'case' - Valid else condition: {% else %} (no parameters) ")
+      }
+      var block = new Liquid.ElseCondition();
+      this.blocks.push(block);
+      this.nodelist = block.attach([]);
+    }
+  }));
+
+  Liquid.Template.registerTag( 'comment', Liquid.Block.extend({
+    render: function(context) {
+      return '';
+    }
+  }));
+
+  Liquid.Template.registerTag( 'cycle', Liquid.Tag.extend({
+
+    tagSimpleSyntax: /"[^"]+"|'[^']+'|[^\s,|]+/,
+    tagNamedSyntax:  /("[^"]+"|'[^']+'|[^\s,|]+)\s*\:\s*(.*)/,
+
+    init: function(tag, markup, tokens) {
+      var matches, variables;
+      matches = markup.match(this.tagNamedSyntax);
+      if(matches) {
+        this.variables = this.variablesFromString(matches[2]);
+        this.name = matches[1];
+      } else {
+        matches = markup.match(this.tagSimpleSyntax);
+        if(matches) {
+          this.variables = this.variablesFromString(markup);
+          this.name = "'"+ this.variables.toString() +"'";
+        } else {
+          throw ("Syntax error in 'cycle' - Valid syntax: cycle [name :] var [, var2, var3 ...]");
+        }
+      }
+      this._super(tag, markup, tokens);
+    },
+
+    render: function(context) {
+      var self   = this,
+          key    = context.get(self.name),
+          output = '';
+
+      if(!context.registers['cycle']) {
+        context.registers['cycle'] = {};
+      }
+
+      if(!context.registers['cycle'][key]) {
+        context.registers['cycle'][key] = 0;
+      }
+
+      context.stack(function() {
+        var iter    = context.registers['cycle'][key],
+            results = context.get( self.variables[iter] );
+        iter += 1;
+        if(iter == self.variables.length) { iter = 0; }
+        context.registers['cycle'][key] = iter;
+        output = results;
+      });
+
+      return output;
+    },
+
+    variablesFromString: function(markup) {
+      return markup.split(',').map(function(varname) {
+        var match = varname.match(/\s*("[^"]+"|'[^']+'|[^\s,|]+)\s*/);
+        return (match[1]) ? match[1] : null
+      });
+    }
+  }));
+
+  Liquid.Template.registerTag( 'for', Liquid.Block.extend({
+    tagSyntax: /(\w+)\s+in\s+((?:\(?[\w\-\.\[\]]\)?)+)/,
+
+    init: function(tag, markup, tokens) {
+      var matches = markup.match(this.tagSyntax);
+      if(matches) {
+        this.variableName = matches[1];
+        this.collectionName = matches[2];
+        this.name = this.variableName +"-"+ this.collectionName;
+        this.attributes = {};
+        var attrmarkup = markup.replace(this.tagSyntax, '');
+        var attMatchs = markup.match(/(\w*?)\s*\:\s*("[^"]+"|'[^']+'|[^\s,|]+)/g);
+        if(attMatchs) {
+          attMatchs.forEach(function(pair) {
+            pair = pair.split(":");
+            this.attributes.set[pair[0].trim()] = pair[1].trim();
+          }, this);
+        }
+      } else {
+        throw ("Syntax error in 'for loop' - Valid syntax: for [item] in [collection]");
+      }
+      this._super(tag, markup, tokens);
+    },
+
+    render: function(context) {
+      var self       = this,
+          output     = [],
+          collection = (context.get(this.collectionName) || []),
+          range      = [0, collection.length];
+
+      if(!context.registers['for']) { context.registers['for'] = {}; }
+
+      if(this.attributes['limit'] || this.attributes['offset']) {
+        var offset   = 0,
+            limit    = 0,
+            rangeEnd = 0,
+            segement = null;
+
+        if(this.attributes['offset'] == 'continue')
+          { offset = context.registers['for'][this.name]; }
+        else
+          { offset = context.get( this.attributes['offset'] ) || 0; }
+
+        limit = context.get( this.attributes['limit'] );
+
+        rangeEnd = (limit) ? offset + limit + 1 : collection.length;
+        range = [ offset, rangeEnd - 1 ];
+
+        context.registers['for'][this.name] = rangeEnd;
+      }
+
+      segment = collection.slice(range[0], range[1]);
+      if(!segment || segment.length == 0) { return ''; }
+
+      context.stack(function() {
+        var length = segment.length;
+
+        segment.forEach(function(item, index) {
+          context.set( self.variableName, item );
+          context.set( 'forloop', {
+            name:   self.name,
+            length: length,
+            index:  (index + 1),
+            index0: index,
+            rindex: (length - index),
+            rindex0:(length - index - 1),
+            first:  (index == 0),
+            last:   (index == (length - 1))
+          });
+          output.push( (self.renderAll(self.nodelist, context) || []).join('') );
+        });
+      });
+
+      return flattenArray([output]).join('');
+    }
+  }));
+
+  Liquid.Template.registerTag( 'if', Liquid.Block.extend({
+
+    tagSyntax: /("[^"]+"|'[^']+'|[^\s,|]+)\s*([=!<>a-z_]+)?\s*("[^"]+"|'[^']+'|[^\s,|]+)?/,
+
+    init: function(tag, markup, tokens) {
+      this.nodelist = [];
+      this.blocks = [];
+      this.pushBlock('if', markup);
+      this._super(tag, markup, tokens);
+    },
+
+    unknownTag: function(tag, markup, tokens) {
+      if( ~['elsif', 'else'].indexOf(tag) ) {
+        this.pushBlock(tag, markup);
+      } else {
+        this._super(tag, markup, tokens);
+      }
+    },
+
+    render: function(context) {
+      var self = this,
+          output = '';
+      context.stack(function() {
+        for (var i=0; i < self.blocks.length; i++) {
+          var block = self.blocks[i];
+          if( block.evaluate(context) ) {
+            output = self.renderAll(block.attachment, context);
+            return;
+          }
+        }
+      });
+      return flattenArray([output]).join('');
+    },
+
+    pushBlock: function(tag, markup) {
+      var block;
+      if(tag == 'else') {
+        block = new Liquid.ElseCondition();
+      } else {
+        var expressions = markup.split(/\b(and|or)\b/).reverse(),
+            expMatches  = expressions.shift().match( this.tagSyntax );
+
+        if(!expMatches) { throw ("Syntax Error in tag '"+ tag +"' - Valid syntax: "+ tag +" [expression]"); }
+
+        var condition = new Liquid.Condition(expMatches[1], expMatches[2], expMatches[3]);
+
+        while(expressions.length > 0) {
+          var operator = expressions.shift(),
+              expMatches  = expressions.shift().match( this.tagSyntax );
+          if(!expMatches) { throw ("Syntax Error in tag '"+ tag +"' - Valid syntax: "+ tag +" [expression]"); }
+
+          var newCondition = new Liquid.Condition(expMatches[1], expMatches[2], expMatches[3]);
+          newCondition[operator](condition);
+          condition = newCondition;
+        }
+
+        block = condition;
+      }
+      block.attach([]);
+      this.blocks.push(block);
+      this.nodelist = block.attachment;
+    }
+  }));
+
+  Liquid.Template.registerTag( 'ifchanged', Liquid.Block.extend({
+
+    render: function(context) {
+      var self = this,
+          output = '';
+      context.stack(function() {
+        var results = self.renderAll(self.nodelist, context).join('');
+        if(results != context.registers['ifchanged']) {
+          output = results;
+          context.registers['ifchanged'] = output;
+        }
+      });
+      return output;
+    }
+  }));
+
+  Liquid.Template.registerTag( 'include', Liquid.Tag.extend({
+
+    tagSyntax: /((?:"[^"]+"|'[^']+'|[^\s,|]+)+)(\s+(?:with|for)\s+((?:"[^"]+"|'[^']+'|[^\s,|]+)+))?/,
+
+    init: function(tag, markup, tokens) {
+      var matches = (markup || '').match(this.tagSyntax);
+      if(matches) {
+        this.templateName = matches[1];
+        this.templateNameVar = this.templateName.substring(1, this.templateName.length - 1);
+        this.variableName = matches[3];
+        this.attributes = {};
+
+        var attMatchs = markup.match(/(\w*?)\s*\:\s*("[^"]+"|'[^']+'|[^\s,|]+)/g);
+        if(attMatchs) {
+          attMatchs.forEach(function(pair) {
+            pair = pair.split(":");
+            this.attributes[pair[0].trim()] = pair[1].trim();
+          }, this);
+        }
+      } else {
+        throw ("Error in tag 'include' - Valid syntax: include '[template]' (with|for) [object|collection]");
+      }
+      this._super(tag, markup, tokens);
+    },
+
+    render: function(context) {
+      var self     = this,
+          source   = Liquid.readTemplateFile( context.get(this.templateName) ),
+          partial  = Liquid.parse(source),
+          variable = context.get((this.variableName || this.templateNameVar)),
+          output   = '';
+      context.stack(function() {
+        objectEach(self.attributes, function(pair) {
+          context.set(pair.key, context.get(pair.value));
+        });
+
+        if(variable instanceof Array) {
+          output = variable.map(function(variable) {
+            context.set( self.templateNameVar, variable );
+            return partial.render(context);
+          });
+        } else {
+          context.set(self.templateNameVar, variable);
+          output = partial.render(context);
+        }
+      });
+      output = flattenArray([output]).join('');
+      return output
+    }
+  }));
+
+  Liquid.Template.registerTag( 'unless', Liquid.Template.tags['if'].extend({
+
+    render: function(context) {
+      var self = this,
+          output = '';
+      context.stack(function() {
+        var block = self.blocks[0];
+        if( !block.evaluate(context) ) {
+          output = self.renderAll(block.attachment, context);
+          return;
+        }
+        for (var i=1; i < self.blocks.length; i++) {
+          var block = self.blocks[i];
+          if( block.evaluate(context) ) {
+            output = self.renderAll(block.attachment, context);
+            return;
+          }
+        }
+      });
+      return output;
+    }
+  }));
+
+  Liquid.Template.registerFilter({
+
+    size: function(iterable) {
+      return (iterable['length']) ? iterable.length : 0;
+    },
+
+    downcase: function(input) {
+      return input.toString().toLowerCase();
+    },
+
+    upcase: function(input) {
+      return input.toString().toUpperCase();
+    },
+
+    capitalize: function(input) {
+      input = String(input);
+      return input.charAt(0).toUpperCase() + input.substring(1).toLowerCase();
+    },
+
+    escape: function(input) {
+      input = input.toString();
+      input = input.replace(/&/g, '&amp;');
+      input = input.replace(/</g, '&lt;');
+      input = input.replace(/>/g, '&gt;');
+      input = input.replace(/"/g, '&quot;');
+      return input;
+    },
+
+    h: function(input) {
+      input = input.toString();
+      input = input.replace(/&/g, '&amp;');
+      input = input.replace(/</g, '&lt;');
+      input = input.replace(/>/g, '&gt;');
+      input = input.replace(/"/g, '&quot;');
+      return input;
+    },
+
+    truncate: function(input, length, string) {
+      if(!input || input == '') { return ''; }
+      length = length || 50;
+      string = string || "...";
+
+      var seg = input.slice(0, length);
+      return seg + string;
+    },
+
+    truncatewords: function(input, words, string) {
+      if(!input || input == '') { return ''; }
+      words = parseInt(words || 15, 10);
+      string = string || '...';
+      var wordlist = input.toString().split(" "),
+          l = Math.max((words), 0);
+      return (wordlist.length > l) ? wordlist.slice(0,l).join(' ') + string : input;
+    },
+
+    truncate_words: function(input, words, string) {
+      if(!input || input == '') { return ''; }
+      words = parseInt(words || 15, 10);
+      string = string || '...';
+      var wordlist = input.toString().split(" "),
+          l = Math.max((words), 0);
+      return (wordlist.length > l) ? wordlist.slice(0,l).join(' ') + string : input;
+    },
+
+    strip_html: function(input) {
+      return input.toString().replace(/<.*?>/g, '');
+    },
+
+    strip_newlines: function(input) {
+      return input.toString().replace(/\n/g, '')
+    },
+
+    join: function(input, separator) {
+      separator = separator ||  ' ';
+      return input.join(separator);
+    },
+
+    sort: function(input) {
+      return input.sort();
+    },
+
+    reverse: function(input) {
+      return input.reverse();
+    },
+
+    replace: function(input, string, replacement) {
+      replacement = replacement || '';
+      return input.toString().replace(new RegExp(string, 'g'), replacement);
+    },
+
+    replace_first: function(input, string, replacement) {
+      replacement = replacement || '';
+      return input.toString().replace(new RegExp(string, ""), replacement);
+    },
+
+    newline_to_br: function(input) {
+      return input.toString().replace(/\n/g, "<br/>\n");
+    },
+
+    date: function(input, format) {
+      var date;
+      if (input instanceof Date) {
+        date = input;
+      } else
+      if (input == 'now') {
+        date = new Date();
+      } else {
+        date = new Date(input) || new Date(Date.parse(input));
+      }
+      if(!(date instanceof Date)) { return input; } // Punt
+      //TODO: pass in locale (en-US or en-GB) as third param
+      return strftime(date, format);
+    },
+
+    first: function(input) {
+      return input[0];
+    },
+
+    last: function(input) {
+      return input[input.length -1];
+    },
+
+    //non-standard filters
+    format_as_money: function(input, places) {
+      var out = String(input);
+      out = Number(out.replace(/[$,\s]/g, ''));
+      var parts = out.toString().split('.');
+      out = parts[0];
+      //add thousand separator(s)
+      while (out.match(/\d{4}\b/)) out = out.replace(/(\d)(\d{3})\b/g, '$1,$2');
+      //decimal places defaults to 2
+      if (places == null) places = 2;
+      if (places && places > 0) {
+        parts[1] = parts[1] || '0';
+        parts[1] = Math.round(Math.pow(10, places) * Number('.' + parts[1])).toString();
+        out += '.' + (new Array(places).join('0') + parts[1]).slice(-places);
+      }
+      return '$' + out;
+    }
+  });
+
+});
+/*global app, define */
+define('session', function(require, exports, module) {
+  "use strict";
+
+  var RE_TOKEN = /^[0-9a-f]{32}$/i;
+
+  var cache = {};
+  var datastore = (app.cfg('session/default_datastore') == 'database') ? 'database' : 'memory';
+
+  function getCookieName(type) {
+    return (type == 'longterm') ? 'LTSID' : 'STSID';
+  }
+
+  function generateSessionToken() {
+    var token = '';
+    for (var i = 0; i < 32; i++) {
+      token += Math.floor(Math.random() * 16).toString(16);
+    }
+    return token;
+  }
+
+  function getSessionObject(inst) {
+    var type = inst.type, req = inst.req, res = inst.res;
+    if (cache[type]) {
+      return cache[type];
+    }
+    var key = getCookieName(type);
+    var token = req.cookies(key);
+    token = RE_TOKEN.test(token) ? token : null;
+    if (!token || type == 'longterm') {
+      token = token || generateSessionToken();
+      if (type == 'longterm') {
+        res.cookies(key, {value: token, expires: Date.today().add({months: 12})});
+      } else {
+        res.cookies(key, token);
+      }
+    }
+    var session = cache[type] = {token: token};
+    req.on('end', function() {
+      controllers[datastore].saveAll(session);
+    });
+    return session;
+  }
+
+  var controllers = {
+    memory: {
+      'load': function(session, inst) {
+        var token = session.token;
+        var data = app.data('session:' + token + ':' + inst.namespace);
+        session.lastAccess = app.data('session:last-access:' + token);
+        if (session.lastAccess) {
+          app.data('session:last-access:' + token, Date.now());
+        }
+        if (session.lastAccess && (!inst.oldest || inst.oldest < session.lastAccess)) {
+          data = data || {};
+        } else {
+          data = {};
+        }
+        this._old = JSON.stringify(data);
+        if (!session.namespaces) session.namespaces = {};
+        return session.namespaces[inst.namespace] = data;
+      },
+      'saveAll': function(session) {
+        var self = controllers.memory;
+        forEach(session.namespaces, function(namespace, data) {
+          self.save(session, namespace, data);
+        });
+      },
+      'save': function(session, namespace, data) {
+        var stringified = (data == null) ? '' : JSON.stringify(data);
+        //is dirty?
+        if (stringified !== (session._old || '')) {
+          app.data('session:' + session.token + ':' + namespace, data);
+          session._old = stringified;
+        }
+        if (!session.lastAccess) {
+          session.lastAccess = Date.now();
+          app.data('session:last-access:' + session.token, session.lastAccess);
+        }
+      }
+    },
+    database: {
+      'load': function(session, inst) {
+        var self = controllers.database;
+        var db = self.db || (self.db = require('localdb').open(app.cfg('session/database') || 'session', dbInit));
+        var token = session.token, data;
+        if (!session.lastAccess) {
+          var meta = db.query("SELECT * FROM [session] WHERE [guid] = CAST_GUID($1)", [token]).getOne();
+          if (meta) {
+            session.lastAccess = meta.last_accessed;
+          }
+        }
+        if (session.lastAccess && (!inst.oldest || inst.oldest < session.lastAccess)) {
+          var rec = db.query("SELECT * FROM [session_data] WHERE [guid] = CAST_GUID($1) AND [namespace] = $2", [token, inst.namespace]).getOne();
+          if (rec) {
+            data = JSON.parse(rec.data);
+          }
+        }
+        if (!data) {
+          data = {};
+        }
+        this._old = JSON.stringify(data);
+        if (!session.namespaces) session.namespaces = {};
+        return session.namespaces[inst.namespace] = data;
+      },
+      'saveAll': function(session) {
+        var self = controllers.database;
+        forEach(session.namespaces, function(namespace, data) {
+          self.save(session, namespace, data);
+        });
+      },
+      'save': function(session, namespace, data) {
+        var self = controllers.database, req = session.req;
+        var db = self.db || (self.db = require('localdb').open(app.cfg('session/database') || 'session', dbInit));
+        var stringified = (data == null) ? '' : JSON.stringify(data);
+        //is dirty?
+        if (stringified !== (session._old || '')) {
+          var sql = "UPDATE [session_data] SET [data] = $3 WHERE [guid] = CAST_GUID($1) AND [namespace] = $2";
+          var num = db.exec(sql, [session.token, namespace, stringified], true);
+          if (!num) {
+            sql = "INSERT INTO [session_data] ([guid], [namespace], [data]) VALUES (CAST_GUID($1), $2, $3)";
+            db.exec(sql, [session.token, namespace, stringified]);
+          }
+          session._old = stringified;
+        }
+        //Update Last-Accessed (whether we saved any data or not)
+        if (!session.lastAccessUpdated) {
+          var sql = "UPDATE [session] SET [last_accessed] = NOW() WHERE [guid] = CAST_GUID($1)";
+          var num = db.exec(sql, [session.token], true);
+          if (!num) {
+            sql = "INSERT INTO [session] ([guid], [ip_addr], [http_ua], [created], [last_accessed]) VALUES (CAST_GUID($1), $2, $3, NOW(), NOW())";
+            db.exec(sql, [session.token, req.data('ipaddr'), req.headers('user-agent')]);
+          }
+          session.lastAccess = Date.now();
+          session.lastAccessUpdated = true;
+        }
+      }
+    }
+  };
+
+  function dbInit(conn) {
+    conn.exec("CREATE TABLE [session] ([guid] GUID CONSTRAINT [pk_guid] PRIMARY KEY, [ip_addr] TEXT(15), [http_ua] MEMO, [created] DATETIME, [last_accessed] DATETIME)");
+    conn.exec("CREATE TABLE [session_data] ([id] INTEGER IDENTITY(1234,1) CONSTRAINT [pk_id] PRIMARY KEY, [guid] GUID, [namespace] TEXT(255), [data] MEMO)");
+  }
+
+  function Session(req, res, opts) {
+    this.req = req;
+    this.res = res;
+    this.opts = opts;
+    this.init();
+  }
+
+  Session.prototype = {
+    init: function() {
+      this.type = (this.opts.longterm) ? 'longterm' : 'shortterm';
+      this.namespace = this.opts.namespace || '';
+      var m, units = {d: 'days', h: 'hours', m: 'minutes'};
+      if (this.opts.expires && (m = this.opts.expires.match(/^(\d+)([dhm])$/))) {
+        var u = units[m[2]], param = {};
+        param[u] = 0 - Number.parseInt(m[1]);
+        this.oldest = Date.now().add(param);
+      }
+    },
+    load: function() {
+      var session = getSessionObject(this);
+      return controllers[datastore].load(session, this);
+    },
+    getData: function() {
+      var session = getSessionObject(this);
+      return session.namespaces && session.namespaces[this.namespace] || this.load();
+    },
+    reload: function() {
+      var session = getSessionObject(this);
+      if (session.namespaces) {
+        session.namespaces[this.namespace] = null;
+      }
+    },
+    access: function(n, val) {
+      var data = this.getData();
+      if (arguments.length == 2) {
+        (val == null) ? delete data[n] : data[n] = val;
+        return val;
+      } else {
+        val = data[n];
+        return (val == null) ? '' : val;
+      }
+    },
+    clear: function() {
+      var data = this.getData(), keys = Object.keys(data);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        delete data[key];
+      }
+      return data;
+    },
+    flush: function() {
+      var session = getSessionObject(this);
+      if (session.namespaces && session.namespaces[this.namespace]) {
+        controllers[datastore].save(session, this.namespace, session.namespaces[this.namespace]);
+      }
+    }
+  };
+
+  module.exports = {
+    init: function(req, res, opts) {
+      var options = {};
+      if (vartype(opts, 'string')) {
+        opts = opts.w();
+      }
+      if (vartype(opts, 'array')) {
+        opts.each(function(i, opt) {
+          var m = opt.match(/^([\w-]+)(?:[:=]([^\s]+))?$/);
+          if (m && m[2]) {
+            options[m[1]] = m[2];
+          } else {
+            options[opt] = 'true';
+          }
+        });
+      } else
+      if (vartype(opts, 'object')) {
+        Object.append(options, opts);
+      }
+      var session = new Session(req, res, options);
+      var accessor = function() {
+        return session.access.apply(session, arguments);
+      };
+      accessor.reload = session.reload.bind(session);
+      accessor.clear = session.clear.bind(session);
+      accessor.flush = session.flush.bind(session);
+      accessor.getToken = function() {
+        return getSessionObject(session).token;
+      };
+      return accessor;
+    }
+  };
+
+});
+/*global app, define */
+define('request', function(require, exports, module) {
+  "use strict";
+
+  var qs = require('qs');
+
+  var Request = function(req) {
+    this.req = req;
+    this._data = {};
+    this._events = {};
+  };
+
+  Request.prototype = {
+    data: function(n, val) {
+      var data = this._data;
+      if (arguments.length == 2) {
+        (val == null) ? delete data[n] : data[n] = val;
+        return val;
+      } else {
+        val = data[n];
+        return (val == null) ? '' : val;
+      }
+    },
+    on: function(name, fn) {
+      var events = this._events;
+      var list = events[name] || (events[name] = []);
+      list.push(fn);
+    },
+    emit: function(name) {
+      var events = this._events;
+      var args = Array.prototype.slice.call(arguments, 1);
+      var list = events[name] || [];
+      for (var i = 0; i < list.length; i++) {
+        list[i].apply(this, args);
+      }
+    },
+    url: function(part) {
+      if (part) {
+        if (!this.url_parts) this.url_parts = this.req.getURLParts();
+        return this.url_parts[part];
+      } else {
+        if (!this._url) this._url = this.req.getURL();
+        return this._url;
+      }
+    },
+    headers: function(n) {
+      if (!this._headers) {
+        this._headers = this.req.getHeaders();
+      }
+      if (arguments.legnth) {
+        return this._headers[n.toLowerCase()] || '';
+      } else {
+        return this._headers;
+      }
+    },
+    cookies: function(n) {
+      if (!this._cookies) {
+        this._cookies = this.req.getCookies();
+      }
+      if (arguments.legnth) {
+        return this._cookies[n] || '';
+      } else {
+        return this._cookies;
+      }
+    },
+    method: function(s) {
+      var r = this.req.getMethod();
+      return (typeof s == 'string') ? (s.toUpperCase() == r) : r;
+    },
+    params: function(n) {
+      if (!this._params) {
+        this._params = qs.parse(this.req.url('qs'));
+      }
+      if (arguments.legnth) {
+        return this._params[n] || '';
+      } else {
+        return this._params;
+      }
+    },
+    post: function(n) {
+      if (!this._postdata) {
+        this._postdata = this.req.getPostData();
+      }
+      if (arguments.legnth) {
+        return this._postdata.fields[n.toLowerCase()] || '';
+      } else {
+        return this._postdata.fields;
+      }
+    },
+    uploads: function(n) {
+      if (!this._postdata) {
+        this._postdata = this.req.getPostData();
+      }
+      if (!this._postdata.files) return null;
+      if (arguments.legnth) {
+        return this._postdata.files[n] || null;
+      } else {
+        return this._postdata.files;
+      }
+    }
+  };
+
+  module.exports = Request;
+
+});
+/*global app, define */
+define('response', function(require, exports, module) {
+  "use strict";
+
+  var Response = function(res) {
+    this.res = res;
+  };
+
+  Response.prototype = {
+    headers: function() {
+      this.res.headers.apply(this.res, arguments);
+    },
+    cookies: function() {
+      this.res.cookies.apply(this.res, arguments);
+    },
+    debug: function() {
+      this.res.debug.apply(this.res, arguments);
+    },
+    charset: function() {
+      this.res.charset.apply(this.res, arguments);
+    },
+    status: function() {
+      this.res.status.apply(this.res, arguments);
+    },
+    sendFile: function() {
+      this.res.sendFile.apply(this.res, arguments);
+    },
+    clear: function(type, status) {
+      this.res.clear();
+      if (type) {
+        //hack to override application/json -> text/plain when not an xhr request
+        if (type.match(/\/json$/) && !(/XMLHttpRequest/i).test(this.req.headers('x-requested-with'))) {
+          this.res.headers('Content-Type', 'text/plain');
+        } else {
+          this.res.headers('Content-Type', type);
+        }
+      }
+      if (status) {
+        this.res.status(status);
+      }
+    },
+    write: function(data) {
+      //todo: binary
+      if (isPrimitive(data)) {
+        this.res.write(String(data));
+      } else {
+        //stringify might return undefined in some cases
+        this.res.write(JSON.stringify(data) || '');
+      }
+    },
+    end: function(data) {
+      if (arguments.length) {
+        this.write(data);
+      }
+      this.req.emit('end');
+      this.res.end();
+    },
+    die: function() {
+      var args = toArray(arguments), status = '200', ctype = 'text/plain';
+      if (args.length > 1 && /^\d{3}\b/.test(args[0])) {
+        status = args.shift();
+      }
+      if (args.length > 1 && /^[\w-]+\/[\w-]+$/.test(args[0])) {
+        ctype = args.shift();
+      }
+      this.clear(ctype, status);
+      for (var i = 0; i < args.length; i++) {
+        this.write(args[i]);
+      }
+      this.end();
+    },
+    redirect: function(url, type) {
+      if (type == 'html') {
+        this.html_redirect(url);
+      }
+      if (type == '301') {
+        this.res.status('301 Moved Permanently');
+      } else
+      if (type == '303') {
+        this.res.status('303 See Other');
+      } else {
+        this.res.status('302 Moved');
+      }
+      this.res.headers('Location', url);
+      this.res.end();
+    },
+    html_redirect: function(url) {
+      var tmpl = require('tmpl')
+        , markup = app.cfg('html_redir');
+      if (tmpl && markup) {
+        this.res.clear('text/html');
+        this.res.write(tmpl.renderContent(markup, {redir: url}));
+        this.res.end();
+      }
+    }
+  };
+
+  module.exports = Response;
+
+});
+/*global app */
+app.on('ready', function(require) {
+  "use strict";
+
+  var localdb = require('localdb');
+
+  app.route('/db-test', function(req, res) {
+    var db = localdb.open('test');
+    try {
+      db.createTable('test', {name: ['TEXT', 'NOT NULL']});
+    } catch(e) {
+      if (e.message.indexOf('already exists') < 0) throw e;
+    }
+    console.log('created table');
+    db.insert('test', {name: new Date().toJSON()});
+    console.log('inserted record');
+    var result = db.fetchAll('select * from test');
+    console.log('finished query');
+    res.die(result);
+  });
+
+});
+/*global app */
+app.on('ready', function(require) {
+  "use strict";
+
+  var fs = require('fs');
+  var Liquid = require('liquid');
+  Liquid.render = function(tmpl, data) {
+    return Liquid.parse(tmpl).renderWithErrors(data);
+  };
+
+  app.route('GET:/form-test', function(req, res) {
+    var tmpl = fs.readTextFile('views/test-form.liquid');
+    var markup = Liquid.render(tmpl, {name: 'test'});
+    res.die('text/html', markup);
+  });
+
+  app.route('POST:/form-test', function(req, res) {
+    res.die({fields: req.post(), files: req.uploads()});
+  });
+
+});
+/*global app, define */
+app.on('ready', function(require) {
+  "use strict";
+
+  app.route('/test/:id', function(req, res, id) {
+    var qs = require('qs');
+    res.debug(qs.parse('a=1&&b=2&c&=3&c=' + id, {flatten: false}));
+
+  });
+
+  app.route('/readfile', function(req, res) {
+    var fs = require('fs');
+    var text = fs.readTextFile('../assets/test.txt');
+    res.end(text);
+  });
+
+  app.route('/sendfile', function(req, res) {
+    res.sendFile('../assets/test.txt');
+  });
+
+  app.route('/log', function(req, res) {
+    var fs = require('fs');
+    fs.log('test');
+    res.end('done');
+  });
+
+  app.route('/cookie/:name/:value', function(req, res, name, value) {
+    res.cookies(name, value);
+    res.end('set cookie: ' + name);
+  });
+
+  app.route('/cookies', function(req, res) {
+    res.die(req.cookies());
+  });
+
+  app.route('/liquid', function(req, res) {
+    var Liquid = require('liquid');
+    var render = function(src, ctx) {
+      return Liquid.parse(src).renderWithErrors(ctx);
+    };
+    var markup = render("<p>{{user | capitalize}}</p>", {user: 'bob'});
+    res.die('text/plain', markup);
+  });
+
+  app.route('/throw', function(req, res) {
+    throw new Error(req.url('path') + ' threw');
+  });
+
+});
 (function() {
   "use strict";
 
@@ -285,6 +2833,6 @@ var app, define;
   }
 
 })();
-</script>
+//]]></script>
 </job>
 </package>
