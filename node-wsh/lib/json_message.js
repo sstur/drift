@@ -5,7 +5,7 @@
 
   var REG_CHARS = /[^\x20-\x7E]/g;
 
-  function Messenger(readStream, writeStream) {
+  function Messenger(writeStream, readStream) {
     EventEmitter.call(this);
     this.readStream = readStream;
     this.writeStream = writeStream;
@@ -21,11 +21,12 @@
     var readStream = this.readStream, msgNum = ++this._msgNum, chunks = [], self = this;
     readStream.on('data', function handler(data) {
       data = data.toString();
+      console.log('data', data);
       chunks.push(data);
       if (~data.indexOf('\n')) {
         readStream.removeListener('data', handler);
         var message = JSON.parse(chunks.join(''));
-        callback(null, message.data);
+        callback(null, message);
         self.emit('message', message);
       }
     });

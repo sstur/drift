@@ -11,8 +11,19 @@
   }
 
   reqData = JSON.parse(reqData);
+  var reqNum = reqData.id || 0;
+  reqData = reqData.data || reqData;
 
-  wsh.stdout.write(JSON.stringify({status: '200', headers: {'content-type': 'text/plain'}, body: [{data: reqData.url}]}));
+  var responseData = {
+    status: '200',
+    headers: {
+      'content-type': 'text/plain'
+    },
+    body: [
+      {data: reqData.url}
+    ]
+  };
+  wsh.stdout.write(JSON.stringify(responseData) + '\r\n');
   //wsh.stdin.readline();
 
   //for debugging; can pass json data as cmd line arg

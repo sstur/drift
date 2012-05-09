@@ -15,10 +15,11 @@
     spawnWorker(function(stdin, stdout) {
       var messenger = new Messenger(stdin, stdout);
       messenger.on('command', function(command) {
-        //get/set app var, serve file, etc
+        //get/set app var, console.log, serve file, etc
         //messenger.sendMessage(answer);
       });
-      messenger.sendMessage(data, function(response) {
+      messenger.sendMessage(data, function(err, response) {
+        console.log('received', response);
         if (res._header) return;
         var parts = response.body, length = 0, i;
         for (i = 0; i < parts.length; i++) {
@@ -85,6 +86,7 @@
       callback(child.stdin, child.stdout);
     });
     child.on('exit', function(code) {
+      console.log('worker process exited with code', code);
       if (stderr.length) {
         err500(stderr.join(''));
       }

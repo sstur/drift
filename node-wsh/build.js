@@ -11,6 +11,7 @@
 
   var loadFile = function(dir, file) {
     var path = join(dir, file), fullpath = join(basePath, path);
+    console.log('load file', path);
     var filedata = fs.readFileSync(fullpath, 'utf8');
     var lines = filedata.split(REG_NL);
     sourceFiles.push({
@@ -44,6 +45,9 @@
 
     //load framework core (instantiates `app` and `define`)
     loadFile('app/system', 'core.js');
+
+    //load shim/patches
+    loadPath('app/system/support');
 
     //load framework modules
     loadPath('app/system/lib');
