@@ -2,6 +2,10 @@
 app.on('ready', function(require) {
   "use strict";
 
+  app.route('/', function(req, res) {
+    res.die('Hello world!');
+  });
+
   app.route('/test/:id', function(req, res, id) {
     var qs = require('qs');
     res.debug(qs.parse('a=1&&b=2&c&=3&c=' + id, {flatten: false}));
@@ -43,7 +47,7 @@ app.on('ready', function(require) {
   });
 
   app.route('/throw', function(req, res) {
-    throw new Error(req.url('path') + ' threw');
+    var err = this.a.b;
   });
 
 });

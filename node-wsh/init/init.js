@@ -1,7 +1,9 @@
-(function() {
+(function(require) {
   "use strict";
 
-  var Messenger = app.require('messenger');
+  var Messenger = require('messenger');
+  var Request = require('node-request');
+  var Response = require('node-response');
 
   var wsh = global['WScript'];
   var messenger = new Messenger(wsh.stdin, wsh.stdout);
@@ -9,22 +11,25 @@
   //expose messenger for modules to use
   app.messenger = messenger;
 
+  app.emit('ready', require);
+
   var status = 'running';
   while(status != 'exit') {
     var request = messenger.send('get-request');
 
-    //todo: var req = new Request(), res = new Response(); app.route(req, res);
+    try {
+      app.route(new Request(), new Response());
+    } catch(e) {
+      if (e instanceof Response) {
+        status = messenger.send('done', e.response);
+        continue;
+      } else {
+        throw e;
+      }
+    }
 
-    console.log(request.url);
-    var response = {
-      status: '200',
-      headers: {
-        'content-type': 'text/plain'
-      },
-      body: JSON.stringify(request)
-    };
+    throw new Error('Router returned without ending request');
 
-    status = messenger.send('done', response);
   }
 
-})();
+})(app.require);

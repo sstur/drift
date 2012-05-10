@@ -46,7 +46,7 @@
         parts[i] = new Buffer(part.data || part, part.encoding || 'utf8');
         length += parts[i].length;
       }
-      response.headers['Content-Type'] = String(length);
+      response.headers['Content-Length'] = String(length);
       res.writeHead(response.status, response.headers);
       for (i = 0; i < parts.length; i++) {
         res.write(parts[i]);

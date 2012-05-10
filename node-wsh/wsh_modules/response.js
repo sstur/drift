@@ -1,9 +1,6 @@
-(function() {
+/*global app, define */
+define('node-response', function(require, exports, module) {
   "use strict";
-
-  var util = require('util');
-  var Fiber = global.Fiber;
-  var Buffer = global.Buffer;
 
   var TEXT_CTYPES = /^text\/|\/json$/i;
   var STATUS_PARTS = /^(\d{3}\b)?\s*(.*)$/i;
@@ -31,9 +28,7 @@
     return (charset && TEXT_CTYPES.test(contentType)) ? contentType + '; charset=' + charset : contentType;
   };
 
-  function Response(httpRes) {
-    //node's http response
-    this._super = httpRes;
+  function Response() {
     //init response buffer
     this.clear();
   }
@@ -111,65 +106,53 @@
         headers: {'Content-Type': 'text/plain'},
         cookies: {},
         charset: 'utf-8',
-        length: 0,
         body: []
       };
     },
     write: function(data) {
-      data = (Buffer.isBuffer(data)) ? data : new Buffer(String(data));
-      this.response.length += data.length;
-      this.response.body.push(data);
+      this.response.body.push(String(data));
     },
     writebin: function(data) {
       this.write(data);
     },
     end: function() {
       var res = this.response, headers = res.headers;
-      var statusParts = STATUS_PARTS.exec(res.status);
-      var statusCode = statusParts[1] || '200', reasonPhrase = statusParts[2] || null;
       headers['Content-Type'] = buildContentType(res.charset, headers['Content-Type']);
-      headers['Content-Length'] = this.response.length;
       var cookies = this.response.cookies;
       for (var n in cookies) {
         this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
       }
-      this._super.writeHead(statusCode, reasonPhrase || headers, headers); //hacky
-      for (var i = 0; i < res.body.length; i++) {
-        this._super.write(res.body[i]);
-      }
-      this._super.end();
-      Fiber.current.abort();
+      //we must throw to unwind our call stack and get back to main loop
+      throw this;
     },
     sendFile: function(opts) {
-      var res = this.response, httpRes = this._super;
-      if (Object.isPrimitive(opts)) {
-        opts = {file: String(opts)};
-      }
-      if (!opts.ctype) {
-        opts.ctype = this.headers('content-type');
-      }
-      opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
-      if (!opts.name) {
-        opts.name = opts.file.split('/').pop();
-      }
-      opts.fullpath = global.mappath('app/' + opts.file);
-      console.log('sendfile: ' + opts.fullpath);
-      Fiber.current.abort(function() {
-        httpRes.sendFile({
-          path: opts.fullpath,
-          contentType: opts.ctype,
-          attachment: !!opts.attachment,
-          filename: opts.name
-        });
-      });
+      //var res = this.response, httpRes = this._super;
+      //if (Object.isPrimitive(opts)) {
+      //  opts = {file: String(opts)};
+      //}
+      //if (!opts.ctype) {
+      //  opts.ctype = this.headers('content-type');
+      //}
+      //opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
+      //if (!opts.name) {
+      //  opts.name = opts.file.split('/').pop();
+      //}
+      //opts.fullpath = global.mappath('app/' + opts.file);
+      //console.log('sendfile: ' + opts.fullpath);
+      //httpRes.sendFile({
+      //  path: opts.fullpath,
+      //  contentType: opts.ctype,
+      //  attachment: !!opts.attachment,
+      //  filename: opts.name
+      //});
     },
     debug: function(data) {
       this.clear();
-      this.write(util.inspect(data));
+      //todo: util.inspect
+      this.write(JSON.stringify(data));
       this.end();
     }
   };
 
   module.exports = Response;
-
-})();
+});

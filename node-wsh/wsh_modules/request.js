@@ -1,13 +1,12 @@
-/*global Fiber */
-(function() {
+/*global app, define */
+define('node-request', function(require, exports, module) {
   "use strict";
-  var qs = require('./qs')
-    , parseUrl = require('url').parse;
+  var qs = require('qs');
 
   var COOKIE_SEP = /[;,] */;
 
-  function Request(httpReq) {
-    this._super = httpReq;
+  function Request() {
+    this._super = app.messenger.send('get-request');
   }
 
   Request.prototype = {
@@ -19,14 +18,12 @@
     },
     getURLParts: function() {
       if (!this._url) {
-        var parts = parseUrl(this._super.url);
-        this._url = {path: qs.unescape(parts.pathname), qs: parts.search || ''};
+        var parts = this._super.url.split('?');
+        this._url = {path: qs.unescape(parts[0]), qs: parts[1] || ''};
       }
       return this._url;
     },
     getHeaders: function() {
-      //var allHeaders = this._super.allHeaders || {};
-      //var headers = parseHeaders(allHeaders);
       return this._super.headers;
     },
     getCookies: function() {
@@ -36,17 +33,7 @@
       return this._cookies;
     },
     getPostData: function() {
-      var req = this._super;
-      if (!req.body || !req.body.getParsed) {
-        throw new Error('Request body parser not loaded');
-      }
-      return Fiber.sync(req.body.getParsed, req.body)();
-    },
-    httpError: function(code) {
-      var res = this._super.res;
-      Fiber.current.abort(function() {
-        res.httpError(code);
-      });
+      throw new Error('Body must be parsed in Node');
     }
   };
 
@@ -55,7 +42,6 @@
     str = (str == null) ? '' : String(str);
     var obj = {}, split = str.split(COOKIE_SEP);
     for (var i = 0, len = split.length; i < len; i++) {
-      //var part = split[i], pos = part.indexOf('=');
       var part = split[i], pos = part.indexOf('=');
       if (pos < 0) {
         pos = part.length;
@@ -73,4 +59,4 @@
   }
 
   module.exports = Request;
-})();
+});
