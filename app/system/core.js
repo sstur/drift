@@ -123,11 +123,13 @@ var app, define;
 
   app.cfg = function(data) {
     if (typeof data == 'string') {
-      var val = config[data]
+      var val = config[data];
+      //todo: xpath
       return (val == null) ? '' : val;
     } else {
       data = data || {};
       for (var n in data) {
+        //todo deep merge
         config[n] = data[n];
       }
     }
@@ -136,6 +138,7 @@ var app, define;
 
   /*!
    * Application data (in-memory)
+   * todo: move elsewhere; this is adapter/environment specific
    */
   var data = app._data = {};
   app.data = function(n, val) {
@@ -159,7 +162,7 @@ var app, define;
   };
 
 
-  //helper functions
+  //module loader helpers
 
   function loadModule(name) {
     var module, fn = definitions[name];

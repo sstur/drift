@@ -7,7 +7,8 @@
 
   var REG_NL = /\r\n|\r|\n/g;
 
-  var basePath = join(__dirname, '..');
+  var basePath = global.basePath
+    , buildPath = join(__dirname, '../build');
   var sourceFiles, sourceLines;
 
   var loadFile = function(dir, file) {
@@ -40,7 +41,7 @@
     });
   };
 
-  exports.build = function() {
+  module.exports = function() {
     sourceFiles = [];
     sourceLines = [];
 
@@ -65,7 +66,7 @@
     var buffer = new Buffer(bom.length + sourceLength);
     bom.copy(buffer);
     buffer.write(source, bom.length, sourceLength, 'utf8');
-    fs.writeFileSync(join(__dirname, 'build', 'app.js'), buffer);
+    fs.writeFileSync(join(buildPath, 'app.js'), buffer);
 
     return sourceFiles;
 

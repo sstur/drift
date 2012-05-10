@@ -1,9 +1,12 @@
 (function() {
   "use strict";
 
+  var join = require('path').join;
   var Buffer = require('buffer').Buffer;
 
-  var build = require('./build').build;
+  global.basePath = join(__dirname, '..');
+
+  var build = require('./lib/build');
   var Worker = require('./lib/worker');
 
   var sourceFiles = build(), data = {};
