@@ -4,7 +4,7 @@
   var wsh = global['WScript'];
   var args = wsh.arguments, reqData;
   if (args.length == 1) {
-    reqData = JSON.parse(shellDec(args(0)));
+    reqData = shellDec(args(0));
   } else {
     wsh.stdout.write('\n');
     reqData = wsh.stdin.readline();

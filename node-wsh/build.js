@@ -3,6 +3,7 @@
 
   var fs = require('fs');
   var join = require('path').join;
+  var Buffer = require('buffer').Buffer;
 
   var REG_NL = /\r\n|\r|\n/g;
 
@@ -56,6 +57,9 @@
     //load adapter specific modules
     loadPath('node-wsh/wsh_modules');
 
+    //load init script (fires app.ready and notifies us over stdout)
+    loadFile('node-wsh/init', 'init.js');
+
     //add header
     sourceLines.splice.call(sourceLines, 0, 0,
         '<?xml version="1.0" encoding="utf-8"?>',
@@ -67,20 +71,14 @@
     sourceLines.push('</job>');
     sourceLines.push('</package>');
 
-    //todo: make buffer from sourceLines and add bom
-    fs.writeFileSync(join(__dirname, outfile), sourceLines.join('\r\n'));
+    //construct buffer including byte-order-mark and source
+    var bom = new Buffer('EFBBBF', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
+    var buffer = new Buffer(bom.length + sourceLength);
+    bom.copy(buffer);
+    buffer.write(source, bom.length, sourceLength, 'utf8');
+    fs.writeFileSync(join(__dirname, 'build', outfile), buffer);
 
     return sourceFiles;
-
-
-    //var lines = [
-    //  '<?xml version="1.0" encoding="utf-8"?>',
-    //  '<package>',
-    //  '<job>',
-    //  '<script language="javascript">',
-    //  '<\/script>',
-    //  '</job>',
-    //  '</package>'];
 
   };
 
