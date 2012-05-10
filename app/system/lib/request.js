@@ -7,7 +7,6 @@ define('request', function(require, exports, module) {
   var Request = function(req) {
     this.req = req;
     this._data = {};
-    this._events = {};
   };
 
   Request.prototype = {
@@ -19,19 +18,6 @@ define('request', function(require, exports, module) {
       } else {
         val = data[n];
         return (val == null) ? '' : val;
-      }
-    },
-    on: function(name, fn) {
-      var events = this._events;
-      var list = events[name] || (events[name] = []);
-      list.push(fn);
-    },
-    emit: function(name) {
-      var events = this._events;
-      var args = Array.prototype.slice.call(arguments, 1);
-      var list = events[name] || [];
-      for (var i = 0; i < list.length; i++) {
-        list[i].apply(this, args);
       }
     },
     url: function(part) {
@@ -99,6 +85,8 @@ define('request', function(require, exports, module) {
       }
     }
   };
+
+  app.eventify(Request.prototype);
 
   module.exports = Request;
 

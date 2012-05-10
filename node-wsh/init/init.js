@@ -1,35 +1,29 @@
 (function() {
   "use strict";
 
+  var Messenger = app.require('messenger');
+
   var wsh = global['WScript'];
-  var args = wsh.arguments, reqData;
-  if (args.length == 1) {
-    reqData = shellDec(args(0));
-  } else {
-    wsh.stdout.write('\n');
-    reqData = wsh.stdin.readline();
-  }
+  var messenger = new Messenger(wsh.stdin, wsh.stdout);
 
-  reqData = JSON.parse(reqData);
-  var reqNum = reqData.id || 0;
-  reqData = reqData.data || reqData;
+  //expose messenger for modules to use
+  app.messenger = messenger;
 
-  var responseData = {
-    status: '200',
-    headers: {
-      'content-type': 'text/plain'
-    },
-    body: [
-      {data: reqData.url}
-    ]
-  };
-  wsh.stdout.write(JSON.stringify(responseData) + '\r\n');
-  //wsh.stdin.readline();
+  var status = 'running';
+  while(status != 'exit') {
+    var request = messenger.send('get-request');
 
-  //for debugging; can pass json data as cmd line arg
-  function shellDec(str) {
-    str = String(str).replace(/`/g, '"').replace(/\+/g, ' ');
-    return decodeURIComponent(str);
+    //todo: var req = new Request(), res = new Response(); app.route(req, res);
+
+    var response = {
+      status: '200',
+      headers: {
+        'content-type': 'text/plain'
+      },
+      body: JSON.stringify(request)
+    };
+
+    status = messenger.send('done', response);
   }
 
 })();

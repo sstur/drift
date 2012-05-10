@@ -8,7 +8,7 @@
   var REG_NL = /\r\n|\r|\n/g;
 
   var basePath = join(__dirname, '..');
-  var sourceFiles, sourceLines, offset = 4;
+  var sourceFiles, sourceLines;
 
   var loadFile = function(dir, file) {
     var path = join(dir, file), fullpath = join(basePath, path);
@@ -18,7 +18,7 @@
     sourceFiles.push({
       path: path,
       fullpath: fullpath,
-      lineOffset: offset + sourceLines.length,
+      lineOffset: sourceLines.length,
       lineCount: lines.length
     });
     sourceLines = sourceLines.concat(lines);
@@ -40,7 +40,7 @@
     });
   };
 
-  exports.build = function(outfile) {
+  exports.build = function() {
     sourceFiles = [];
     sourceLines = [];
 
@@ -60,23 +60,12 @@
     //load init script (fires app.ready and notifies us over stdout)
     loadFile('node-wsh/init', 'init.js');
 
-    //add header
-    sourceLines.splice.call(sourceLines, 0, 0,
-        '<?xml version="1.0" encoding="utf-8"?>',
-        '<package>',
-        '<job>',
-        '<script language="javascript">//<![CDATA[');
-
-    sourceLines.push('//]]><\/script>');
-    sourceLines.push('</job>');
-    sourceLines.push('</package>');
-
     //construct buffer including byte-order-mark and source
     var bom = new Buffer('EFBBBF', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
     var buffer = new Buffer(bom.length + sourceLength);
     bom.copy(buffer);
     buffer.write(source, bom.length, sourceLength, 'utf8');
-    fs.writeFileSync(join(__dirname, 'build', outfile), buffer);
+    fs.writeFileSync(join(__dirname, 'build', 'app.js'), buffer);
 
     return sourceFiles;
 

@@ -73,23 +73,29 @@ var app, define;
 
 
   /*!
+   * Add basic event emitter to an object
+   */
+  app.eventify = function(obj) {
+    obj.on = function(name, fn) {
+      var events = this._events || (this._events = {})
+        , list = events[name] || (events[name] = []);
+      list.push(fn);
+    };
+    obj.emit = function(name) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      var events = this._events || {}, list = events[name] || [];
+      for (var i = 0; i < list.length; i++) {
+        list[i].apply(this, args);
+      }
+    };
+  };
+
+
+
+  /*!
    * Basic app-level event emitter
    */
-  var events = {};
-
-  app.on = function(name, fn) {
-    var list = events[name] || (events[name] = []);
-    list.push(fn);
-  };
-
-  app.emit = function(name) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    var list = events[name] || [];
-    for (var i = 0; i < list.length; i++) {
-      //allows a custom context by app.emit.call(ctx, 'event')
-      list[i].apply(this, args);
-    }
-  };
+  app.eventify(app);
 
 
   /*!
