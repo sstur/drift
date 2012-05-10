@@ -1,5 +1,3 @@
-/*global app, define */
-
 //for environments that don't define `global`
 var global = (function() { return this; })();
 
@@ -74,24 +72,6 @@ var app, define;
 
 
 
-  //app.run(function(one, two) { this === app }, 1, 2)
-  //app.run(['request', 'response'], function(req, res) { ... })
-  app.run = function(fn) {
-    var deps, args = Array.prototype.slice.call(arguments);
-    if (typeof args[0] != 'function') {
-      deps = args.shift();
-    }
-    fn = args.shift();
-    if (deps) {
-      //todo: add to deferred functions
-    } else {
-      //if no args specified, pass in require
-      fn.apply(app, args.length ? args : [require]);
-    }
-  };
-
-
-
   /*!
    * Basic app-level event emitter
    */
@@ -116,7 +96,7 @@ var app, define;
    * Routing provided by seperate module, but routes
    * can be added before that module is loaded.
    */
-  var routes = [];
+  var routes = app._routes = [];
 
   app.route = function(a, b) {
     if (typeof a == 'string' || a instanceof RegExp) {
@@ -151,7 +131,7 @@ var app, define;
   /*!
    * Application data (in-memory)
    */
-  var data = {};
+  var data = app._data = {};
   app.data = function(n, val) {
     if (arguments.length == 2) {
       (val == null) ? delete data[n] : data[n] = val;
@@ -167,6 +147,8 @@ var app, define;
    * Misc app-related functions
    */
   app.mappath = function(path) {
+    //global.mappath is expected to be defined by the
+    //  server/environment specific adapter
     return global.mappath('app/' + path);
   };
 
@@ -242,6 +224,7 @@ var app, define;
     }
   })();
 
+  //this may become deprecated
   app.setGlobal = function(name, val) {
     if (globalIsMutable) {
       return global[name] = val;
