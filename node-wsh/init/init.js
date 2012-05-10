@@ -15,6 +15,7 @@
 
     //todo: var req = new Request(), res = new Response(); app.route(req, res);
 
+    console.log(request.url);
     var response = {
       status: '200',
       headers: {

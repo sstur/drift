@@ -16,11 +16,12 @@
         case 'get-request':
           worker.send(requestData);
           break;
-        case 'app-var':
+        case 'app-data':
           worker.send(appData(data.name, data.value));
           break;
         case 'log':
           console.log.apply(console, data);
+          worker.send(null);
           break;
         case 'done':
           worker.emit('done', data);

@@ -12,7 +12,7 @@
     var child = this.child = idlePool.pop() || this.create();
     child.worker = this;
     if (child.initialized) {
-      console.log('resuming child', child.id);
+      //console.log('resuming child', child.id);
       this.send('resume');
     } else {
       child.initialized = true;
@@ -29,6 +29,7 @@
     var path = join(__dirname, '../build', 'app.wsf');
     var child = spawn('cscript', ['//nologo', path], {cwd: __dirname});
     child.id = ++spawnCount;
+    console.log('spawned child', child.id);
     var stdout = [], stderr = [];
     child.stderr.on('data', function(data) {
       stderr.push(data.toString());
@@ -39,7 +40,7 @@
       if (~data.indexOf('\n')) {
         var message = JSON.parse(stdout.join(''));
         stdout.length = 0;
-        console.log('child', child.id, 'says', {id: message.id, query: message.query});
+        //console.log('child', child.id, 'says', {id: message.id, query: message.query});
         child.worker.emit('message', message.query, message.payload);
       }
     });
