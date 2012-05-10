@@ -12,7 +12,7 @@
     var child = this.child = idlePool.pop() || this.create();
     child.worker = this;
     if (child.initialized) {
-      //console.log('resuming child', child.id);
+      //console.log('resuming worker', child.id);
       this.send('resume');
     } else {
       child.initialized = true;
@@ -29,7 +29,7 @@
     var path = join(__dirname, '../build', 'app.wsf');
     var child = spawn('cscript', ['//nologo', path], {cwd: __dirname});
     child.id = ++spawnCount;
-    console.log('spawned child', child.id);
+    console.log('spawned worker', child.id);
     var stdout = [], stderr = [];
     child.stderr.on('data', function(data) {
       stderr.push(data.toString());
@@ -40,12 +40,12 @@
       if (~data.indexOf('\n')) {
         var message = JSON.parse(stdout.join(''));
         stdout.length = 0;
-        //console.log('child', child.id, 'says', {id: message.id, query: message.query});
+        //console.log('worker', child.id, 'says', {id: message.id, query: message.query});
         child.worker.emit('message', message.query, message.payload);
       }
     });
     child.on('exit', function(code) {
-      console.log('child', child.id, 'exited with code', code);
+      console.log('worker', child.id, 'exited with code', code);
       if (stderr.length) {
         child.worker.emit('error', stderr.join(''));
       }

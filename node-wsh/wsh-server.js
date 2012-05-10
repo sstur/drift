@@ -33,7 +33,10 @@
     worker.on('error', function(error) {
       if (res._header) return;
       res.writeHead('500', {'content-type': 'text/plain'});
-      res.write(parseError(error));
+      if (res._hasBody) {
+        //body is not written for HEAD requests
+        res.write(parseError(error));
+      }
       res.end();
     });
     worker.on('done', function(response) {
@@ -48,10 +51,14 @@
       }
       response.headers['Content-Length'] = String(length);
       res.writeHead(response.status, response.headers);
-      for (i = 0; i < parts.length; i++) {
-        res.write(parts[i]);
+      if (res._hasBody) {
+        //body is not written for HEAD requests
+        for (i = 0; i < parts.length; i++) {
+          res.write(parts[i]);
+        }
       }
       res.end();
+      //worker can be put back in idle pool
       worker.emit('end');
     });
   };
