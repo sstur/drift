@@ -6,6 +6,10 @@ app.on('ready', function(require) {
     res.die('Hello world!');
   });
 
+  app.route('/rpc', function(req, res) {
+    res.die(app.divide(1, 0));
+  });
+
   app.route('/test/:id', function(req, res, id) {
     var qs = require('qs');
     res.debug(qs.parse('a=1&&b=2&c&=3&c=' + id, {flatten: false}));

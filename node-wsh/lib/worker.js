@@ -3,6 +3,7 @@
 
   var join = require('path').join;
   var spawn = require('child_process').spawn;
+  var Buffer = require('buffer').Buffer;
   var EventEmitter = require('events').EventEmitter;
 
   var idlePool = [], spawnCount = 0;
@@ -55,11 +56,37 @@
 
   Worker.prototype.send = function(data) {
     var child = this.child, message = {data: data};
-    child.stdin.write(JSON.stringify(message).replace(REG_CHARS, encodeChars) + '\r\n');
+    child.stdin.write(stringify(message) + '\r\n');
+  };
+
+  Worker.prototype.respond = function(err, data) {
+    var child = this.child
+      , message = err ? {error: err} : {data: data};
+    child.stdin.write(stringify(message) + '\r\n');
   };
 
 
+  //helpers
+
   var REG_CHARS = /[^\x20-\x7E]/g;
+
+  function stringify(data) {
+    var string = JSON.stringify(data, function(key, val) {
+      if (val instanceof Error) {
+        return 'new Error(' + JSON.stringify(val.message) + ')';
+      } else
+      if (val instanceof Date) {
+        return 'new Date(' + val.valueOf() + ')';
+      } else
+      if (Buffer.isBuffer(val)) {
+        return 'new Buffer("' + val.toString('hex') + '","hex")';
+      } else {
+        return val;
+      }
+    });
+    return string.replace(REG_CHARS, encodeChars);
+  }
+
   function encodeChars(ch) {
     return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
   }

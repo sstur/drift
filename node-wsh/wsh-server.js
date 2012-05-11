@@ -9,12 +9,25 @@
   var build = require('./lib/build');
   var Worker = require('./lib/worker');
 
+  //todo: load rpc methods via require()
+  var rpc = {
+    'math.divide': function(a, b, callback) {
+      var result = a / b;
+      process.nextTick(function() {
+        isFinite(result) ? callback(null, result) : callback(new Error('Error dividing'));
+      });
+    }
+  };
+
   var sourceFiles = build(), data = {};
 
   exports.requestHandler = function(req, res) {
     var requestData = serializeRequest(req, res);
     var worker = new Worker();
+    //respond accepts err as first arg
+    var respond = worker.respond.bind(worker);
     worker.on('message', function(message, data) {
+      var args = (data && Array.isArray(data.args)) ? data.args : [];
       switch(message) {
         case 'get-request':
           worker.send(requestData);
@@ -22,8 +35,13 @@
         case 'app-data':
           worker.send(appData(data.name, data.value));
           break;
+        case 'rpc':
+          args.push(respond);
+          var method = rpc[data.method];
+          (method) ? method.apply(rpc, args) : respond(new Error('Invalid RPC method'));
+          break;
         case 'log':
-          console.log.apply(console, data);
+          console.log.apply(console, args);
           worker.send(null);
           break;
         case 'done':
