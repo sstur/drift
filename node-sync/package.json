@@ -1,7 +1,7 @@
 {
   "author": "sstur",
-  "name": "sync-server",
-  "description": "Syncronous Server using Node Fibers",
+  "name": "node-sync",
+  "description": "Node Syncronous Web Server using Fibers",
   "version": "0.1.0",
   "main": "./sync-server.js",
   "dependencies": {},

@@ -158,7 +158,8 @@ var app, define;
   app.mappath = function(path) {
     //global.mappath is expected to be defined by the
     //  server/environment specific adapter
-    return global.mappath('app/' + path);
+    var mappath = global.mappath; //wtf?
+    return mappath('app/' + path);
   };
 
 

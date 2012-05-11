@@ -1,7 +1,7 @@
 {
   "author": "sstur",
-  "name": "wsh-server",
-  "description": "Syncronous Server using Windows Scripting Host",
+  "name": "node-wsh",
+  "description": "Node Web Server using WSH worker processes",
   "version": "0.1.0",
   "main": "./wsh-server.js",
   "dependencies": {},

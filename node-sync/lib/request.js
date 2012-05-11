@@ -41,12 +41,6 @@
         throw new Error('Request body parser not loaded');
       }
       return Fiber.sync(req.body.getParsed, req.body)();
-    },
-    httpError: function(code) {
-      var res = this._super.res;
-      Fiber.current.abort(function() {
-        res.httpError(code);
-      });
     }
   };
 

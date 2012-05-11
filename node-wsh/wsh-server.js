@@ -1,13 +1,21 @@
 (function() {
   "use strict";
 
+  //patch some built-in methods
+  require('./support/patch');
+
   var join = require('path').join;
   var Buffer = require('buffer').Buffer;
 
-  global.basePath = join(__dirname, '..');
+  var basePath = global.basePath = join(__dirname, '..');
+  //used in request_body module
+  global.mappath = function(path) {
+    return join(basePath, path);
+  };
 
   var build = require('./lib/build');
   var Worker = require('./lib/worker');
+  var RequestBody = require('./lib/request_body');
 
   //todo: load rpc methods via require()
   var rpc = {
@@ -21,7 +29,7 @@
 
   var sourceFiles = build(), data = {};
 
-  exports.requestHandler = function(req, res) {
+  var dispatchWorker = function(req, res) {
     var requestData = serializeRequest(req, res);
     var worker = new Worker();
     //respond accepts err as first arg
@@ -31,6 +39,11 @@
       switch(message) {
         case 'get-request':
           worker.send(requestData);
+          break;
+        case 'get-body':
+          req.body.getParsed(function(err, body) {
+            worker.send(body);
+          });
           break;
         case 'app-data':
           worker.send(appData(data.name, data.value));
@@ -84,25 +97,36 @@
     });
   };
 
-  function processRequestBody(req, res) {
-    //todo
-  }
+  exports.requestHandler = function(req, res) {
+    //cross-reference request and response
+    req.res = res;
+    res.req = req;
+    //debugging: ignore favicon request
+    if (req.url.match(/\/favicon\.ico$/i)) {
+      res.writeHead(404);
+      res.end();
+    }
+    //instantiate request body parser
+    req.body = new RequestBody(req, res);
+    //attempt to serve static file
+    res.tryStaticPath('assets/', function() {
+      dispatchWorker(req, res);
+    });
+  };
 
   function serializeRequest(req, res) {
-    var data = {
+    var requestData = {
       url: req.url,
       method: req.method,
       headers: req.headers,
-      cookies: {},
       ipaddr: req.connection.remoteAddress,
       server: 'Node ' + process.version
     };
-    data.files = {};
-    data.fields = {};
-    if (data.headers['content-type']) {
-      data.headers['content-type'] = data.headers['content-type'].split(';')[0];
-    }
-    return data;
+    //should the content-type be normalized?
+    //if (requestData.headers['content-type']) {
+    //  requestData.headers['content-type'] = requestData.headers['content-type'].split(';')[0];
+    //}
+    return requestData;
   }
 
   function appData(n, val) {

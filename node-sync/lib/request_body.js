@@ -1,7 +1,7 @@
 (function() {
   "use strict";
 
-  var qs = require('../lib/qs');
+  var qs = require('./qs');
   var fs = require('fs');
   var join = require('path').join;
   var formidable = require('formidable');

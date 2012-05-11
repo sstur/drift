@@ -8,7 +8,7 @@
   var fs = require('fs')
     , join = require('path').join
     , Fiber = require('./lib/sync-fiber')
-    , RequestBody = require('./support/request_body');
+    , RequestBody = require('./lib/request_body');
 
   var Request = require('./lib/request.js');
   var Response = require('./lib/response.js');
@@ -78,7 +78,7 @@
       res.writeHead(404);
       res.end();
     }
-    //cross-reference request and response
+    //instantiate request body parser
     req.body = new RequestBody(req, res);
     //attempt to serve static file
     res.tryStaticPath('assets/', function() {

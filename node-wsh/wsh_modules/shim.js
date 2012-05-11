@@ -8,8 +8,18 @@
     }
   };
 
+  global.mappath = function(path) {
+    var wsh = global['WScript'];
+    var fullpath = String(wsh.scriptFullName);
+    fullpath = fullpath.replace(/[^\\]+\\build\\.*$/, '');
+    fullpath = fullpath + String(path).replace(/\//g, '\\');
+    fullpath = fullpath.replace(/[\\]+/g, '\\');
+    fullpath = fullpath.replace(/\\$/g, '');
+    return fullpath;
+  };
+
   app.data = function(n, val) {
-    return app.messenger.send('app-data', {name: n, value: val})
+    return app.messenger.send('app-data', {name: n, value: val});
   };
 
   //debug

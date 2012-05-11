@@ -33,7 +33,7 @@ define('node-request', function(require, exports, module) {
       return this._cookies;
     },
     getPostData: function() {
-      throw new Error('Body must be parsed in Node');
+      return app.messenger.send('get-body');
     }
   };
 
