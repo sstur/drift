@@ -60,8 +60,9 @@ res.sendError = function(err) {
 
 res.tryStaticPath = function(path, fallback) {
   var req = this.req, res = this, url = req.url.split('?')[0];
-  var assetPrefix = join('/', path, '/').toLowerCase();
+  var assetPrefix = urlJoin('/', path, '/').toLowerCase();
   if (url.toLowerCase().indexOf(assetPrefix) == 0) {
+    //root here is filesystem path
     var opts = {root: join(global.basePath, path), path: url.slice(assetPrefix.length)};
     res.serveAsset(opts, fallback);
   } else {
@@ -241,9 +242,14 @@ res.sendFile = function(opts, fallback) {
  *
  */
 
+function urlJoin() {
+  var path = join.apply(null, arguments);
+  return path.replace(/\\/g, '/');
+}
+
 function fsEscape(filename) {
   filename = filename || '';
   return filename.replace(INVALID_CHARS, function(c) {
     return encodeURIComponent(c);
   });
-};
+}

@@ -139,7 +139,7 @@
 
   RequestBody.prototype.processBinaryBody = function() {
     var req = this.req, res = this.res, opts = this.opts, self = this;
-    var uploadDir = global.mappath('app/data/temp');
+    var uploadDir = global.mappath(savePath);
     var mimeType = req.headers['x-content-type'] || 'application/octet-stream';
     var fileName = req.headers['x-file-name'] || 'upload';
     var fileSize = 0;
@@ -156,7 +156,7 @@
     req.on('end', function() {
       self.files = {};
       self.files[fieldName] = {
-        path: filePath,
+        path: savePath + '/' +  basename(filePath),
         name: fileName,
         type: mimeType,
         size: fileSize,
