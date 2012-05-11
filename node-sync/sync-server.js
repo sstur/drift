@@ -42,7 +42,7 @@
   require(join(basePath, 'app/system/core'));
 
   //load sync modules
-  loadPath('node-server/sync_modules');
+  loadPath('node-sync/sync_modules');
 
   //load framework modules
   loadPath('app/system/lib');
