@@ -115,6 +115,11 @@
       self.files = {};
       for (var n in files) {
         var file = files[n];
+        if (file.size == 0) {
+          console.log('upload of size 0?');
+          fs.unlink(file.path);
+          continue;
+        }
         self.files[n] = {
           path: file.path,
           name: file.name,
