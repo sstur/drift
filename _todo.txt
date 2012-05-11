@@ -3,4 +3,5 @@ fix app.cfg
 Buffer/Binary abstraction
 
 possibly:
+  rename uploaded file based on original filename
   fiber-safe fs write/append

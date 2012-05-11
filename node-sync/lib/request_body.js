@@ -3,9 +3,13 @@
 
   var qs = require('./qs');
   var fs = require('fs');
-  var join = require('path').join;
+  var path = require('path');
+  var join = path.join;
+  var basename = path.basename;
   var formidable = require('formidable');
   var EventEmitter = require('events').EventEmitter;
+
+  var savePath = 'app/data/temp';
 
   var RequestBody = function(req, res, opts) {
     EventEmitter.call(this);
@@ -110,18 +114,17 @@
   RequestBody.prototype.processMultiPartBody = function() {
     var req = this.req, res = this.res, opts = this.opts, self = this;
     var form = new formidable.IncomingForm();
-    form.uploadDir = global.mappath('app/data/temp');
+    form.uploadDir = global.mappath(savePath);
     form.parse(req, function(err, fields, files) {
       self.files = {};
       for (var n in files) {
         var file = files[n];
         if (file.size == 0) {
-          console.log('upload of size 0?');
           fs.unlink(file.path);
           continue;
         }
         self.files[n] = {
-          path: file.path,
+          path: savePath + '/' +  basename(file.path),
           name: file.name,
           type: file.type,
           size: file.size,

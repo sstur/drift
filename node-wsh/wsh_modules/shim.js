@@ -8,10 +8,8 @@
     }
   };
 
-  global.mappath = function(path) {
-    var wsh = global['WScript'];
-    var fullpath = String(wsh.scriptFullName);
-    fullpath = fullpath.replace(/[^\\]+\\build\\.*$/, '');
+  app.mappath = function(path) {
+    var fullpath = global.basePath + 'app\\';
     fullpath = fullpath + String(path).replace(/\//g, '\\');
     fullpath = fullpath.replace(/[\\]+/g, '\\');
     fullpath = fullpath.replace(/\\$/g, '');
