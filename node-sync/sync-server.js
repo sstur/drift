@@ -77,6 +77,7 @@
     if (req.url.match(/\/favicon\.ico$/i)) {
       res.writeHead(404);
       res.end();
+      return;
     }
     //instantiate request body parser
     req.body = new RequestBody(req, res);
