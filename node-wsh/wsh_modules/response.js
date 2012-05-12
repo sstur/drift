@@ -110,6 +110,7 @@ define('node-response', function(require, exports, module) {
       };
     },
     write: function(data) {
+      //todo: binary
       this.response.body.push(String(data));
     },
     writebin: function(data) {
@@ -139,6 +140,7 @@ define('node-response', function(require, exports, module) {
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
+      opts.fullpath = app.mappath(opts.file);
       console.log('sendfile:', opts.file);
       res.sendFile = {
         path: opts.fullpath,

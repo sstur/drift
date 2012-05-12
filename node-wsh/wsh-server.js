@@ -29,6 +29,32 @@
 
   var sourceFiles = global.sourceFiles = build(), data = {};
 
+  var sendResponse = function(req, res, data) {
+    if (res._header) return;
+    if (data.sendFile) {
+      var opts = data.sendFile;
+      res.sendFile(opts);
+      return;
+    }
+    var parts = (Array.isArray(data.body)) ? data.body : [String(data.body)]
+      , length = 0, i;
+    for (i = 0; i < parts.length; i++) {
+      var part = parts[i];
+      parts[i] = new Buffer(part.data || part, part.encoding || 'utf8');
+      length += parts[i].length;
+    }
+    data.headers['Content-Length'] = String(length);
+    //todo: Date
+    res.writeHead(data.status, data.headers);
+    if (res._hasBody) {
+      //body is not written for HEAD requests
+      for (i = 0; i < parts.length; i++) {
+        res.write(parts[i]);
+      }
+    }
+    res.end();
+  };
+
   var dispatchWorker = function(req, res) {
     var requestData = serializeRequest(req, res);
     var worker = new Worker();
@@ -58,45 +84,16 @@
           (method) ? method.apply(rpc, args) : respond(new Error('Invalid RPC method'));
           break;
         case 'done':
-          worker.emit('done', data);
+          sendResponse(req, res, data);
           //worker can be put back in idle pool
           worker.emit('end');
           break;
         default:
-          throw new Error('no handler for worker message ' + message);
+          console.error('no handler for worker message ' + message);
       }
     });
     worker.on('error', function(error) {
-      if (res._header) return;
-      res.writeHead('500', {'content-type': 'text/plain'});
-      if (res._hasBody) {
-        //body is not written for HEAD requests
-        res.write(error);
-      }
-      res.end();
-    });
-    worker.on('done', function(response) {
-      if (res._header) return;
-      if (response.sendFile) {
-        res.sendFile(response.sendFile);
-        return;
-      }
-      var parts = (Array.isArray(response.body)) ? response.body : [String(response.body)]
-        , length = 0, i;
-      for (i = 0; i < parts.length; i++) {
-        var part = parts[i];
-        parts[i] = new Buffer(part.data || part, part.encoding || 'utf8');
-        length += parts[i].length;
-      }
-      response.headers['Content-Length'] = String(length);
-      res.writeHead(response.status, response.headers);
-      if (res._hasBody) {
-        //body is not written for HEAD requests
-        for (i = 0; i < parts.length; i++) {
-          res.write(parts[i]);
-        }
-      }
-      res.end();
+      sendResponse(req, res, {status: '500', headers: {'content-type': 'text/plain'}, body: error})
     });
   };
 
