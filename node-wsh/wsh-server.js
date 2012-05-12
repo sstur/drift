@@ -27,7 +27,7 @@
     }
   };
 
-  var sourceFiles = build(), data = {};
+  var sourceFiles = global.sourceFiles = build(), data = {};
 
   var dispatchWorker = function(req, res) {
     var requestData = serializeRequest(req, res);
@@ -71,7 +71,7 @@
       res.writeHead('500', {'content-type': 'text/plain'});
       if (res._hasBody) {
         //body is not written for HEAD requests
-        res.write(parseError(error));
+        res.write(error);
       }
       res.end();
     });
@@ -105,7 +105,7 @@
     //  improves response time to have one in the idle pool
     var worker = new Worker();
     worker.on('ready', function() {
-      console.log('worker', worker.child.id, 'ready');
+      //console.log('worker', worker.child.id, 'ready');
       worker.emit('end');
     });
   };
@@ -151,23 +151,5 @@
       return data[n] = val;
     }
   }
-
-  function parseError(output) {
-    var match = output.match(/^(.*?)\((\d+), (\d+)\)([\s\S]*)$/);
-    var file = match[1], line = +match[2], index = +match[3], message = (match[4] || '').trim();
-    var chosen = {};
-    for (var i = 0; i < sourceFiles.length; i++) {
-      var source = sourceFiles[i];
-      if (line < source.lineOffset + source.lineCount) {
-        chosen.file = source.path.replace(/\\/g, '/');
-        chosen.line = line - source.lineOffset;
-        break;
-      }
-    }
-    var report = 'Error at: ' + chosen.file + ':' + chosen.line + ':' + index + '\r\n' +  message;
-    console.log(report);
-    return report;
-  }
-
 
 })();

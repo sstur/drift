@@ -32,6 +32,9 @@
     //worker.send('resume');
     var child = this.child;
     child.worker = this;
+    this.on('error', function(error) {
+      console.log(error);
+    });
     //todo: should this be a method?
     this.on('end', function() {
       idlePool.push(child);
@@ -75,8 +78,8 @@
     });
     child.on('exit', function(code) {
       console.log('worker', child.id, 'exited with code', code);
-      if (stderr.length) {
-        child.worker.emit('error', stderr.join(''));
+      if (stderr.length && child.worker) {
+        child.worker.emit('error', parseError(stderr.join('')));
       }
     });
     return child;
@@ -117,6 +120,22 @@
 
   function encodeChars(ch) {
     return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
+  }
+
+  function parseError(output) {
+    var match = output.match(/^(.*?)\((\d+), (\d+)\)([\s\S]*)$/);
+    var file = match[1], line = +match[2], index = +match[3], message = (match[4] || '').trim();
+    var chosen = {}, sourceFiles = global.sourceFiles;
+    for (var i = 0; i < sourceFiles.length; i++) {
+      var source = sourceFiles[i];
+      if (line < source.lineOffset + source.lineCount) {
+        chosen.file = source.path.replace(/\\/g, '/');
+        chosen.line = line - source.lineOffset;
+        break;
+      }
+    }
+    var report = 'Error at: ' + chosen.file + ':' + chosen.line + ':' + index + '\r\n' +  message;
+    return report;
   }
 
   module.exports = Worker;
