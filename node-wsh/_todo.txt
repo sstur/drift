@@ -1,5 +1,5 @@
+rpc load using require
 basePath -> fsPath
 replacer/reviver only implemented on wsh side
-sendFile content-type charset
 filesystem and localdb
 vbs helper

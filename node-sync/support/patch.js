@@ -166,7 +166,7 @@ res.sendFile = function(opts, fallback) {
       //opts.charset === false disables charset completely
       if (opts.charset !== false) {
         var charset = opts.charset || mime.charsets.lookup(contentType);
-        contentType += '; charset=' + charset;
+        if (charset) contentType += '; charset=' + charset;
       }
       res.setHeader('Content-Type', contentType);
     }
