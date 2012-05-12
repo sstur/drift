@@ -44,7 +44,9 @@
       length += parts[i].length;
     }
     data.headers['Content-Length'] = String(length);
-    //todo: Date
+    if (!data.headers['Date']) {
+      data.headers['Date'] = new Date().toUTCString();
+    }
     res.writeHead(data.status, data.headers);
     if (res._hasBody) {
       //body is not written for HEAD requests
