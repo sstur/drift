@@ -126,10 +126,6 @@
       ipaddr: req.connection.remoteAddress,
       server: 'Node ' + process.version
     };
-    //should the content-type be normalized?
-    //if (requestData.headers['content-type']) {
-    //  requestData.headers['content-type'] = requestData.headers['content-type'].split(';')[0];
-    //}
     return requestData;
   }
 

@@ -24,6 +24,7 @@ app.on('ready', function(require) {
 
   app.route('/sendfile', function(req, res) {
     //res.sendFile('../assets/test.txt');
+    console.log('sending file...');
     res.sendFile({file: 'data/temp/57772a58475eab182229d8b329c3cad3', ctype: 'image/jpeg', name: 'image.jpg'});
 
   });

@@ -117,7 +117,9 @@ define('node-response', function(require, exports, module) {
     },
     end: function() {
       var res = this.response, headers = res.headers;
-      headers['Content-Type'] = buildContentType(res.charset, headers['Content-Type']);
+      if (!res.sendFile) {
+        headers['Content-Type'] = buildContentType(res.charset, headers['Content-Type']);
+      }
       var cookies = res.cookies;
       for (var n in cookies) {
         this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
@@ -137,8 +139,7 @@ define('node-response', function(require, exports, module) {
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
-      opts.fullpath = app.mappath(opts.file);
-      console.log('sendfile: ' + opts.fullpath);
+      console.log('sendfile:', opts.file);
       res.sendFile = {
         path: opts.fullpath,
         contentType: opts.ctype,

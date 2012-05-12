@@ -18,7 +18,7 @@
   var status = 'running';
   while(status != 'exit') {
     var request = messenger.send('get-request');
-
+    console.log('route:', request.url);
     try {
       app.route(new Request(), new Response());
     } catch(e) {
