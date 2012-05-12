@@ -1,4 +1,5 @@
 rpc load using require
+Buffer abstraction
 basePath -> fsPath
 replacer/reviver only implemented on wsh side
 filesystem and localdb

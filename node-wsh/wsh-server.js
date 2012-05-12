@@ -17,15 +17,7 @@
   var Worker = require('./lib/worker');
   var RequestBody = require('./lib/request_body');
 
-  //todo: load rpc methods via require()
-  var rpc = {
-    'math.divide': function(a, b, callback) {
-      var result = a / b;
-      process.nextTick(function() {
-        isFinite(result) ? callback(null, result) : callback(new Error('Error dividing'));
-      });
-    }
-  };
+  var rpc = require('./lib/rpc');
 
   var sourceFiles = global.sourceFiles = build(), data = {};
 

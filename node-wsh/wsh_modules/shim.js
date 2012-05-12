@@ -20,9 +20,9 @@
     return app.messenger.query('app-data', {name: n, value: val});
   };
 
-  //debug
-  app.divide = function(a, b) {
-    return app.messenger.query('rpc', {method: 'math.divide', args: [a, b]});
+  app.rpc = function(method /*, args */) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return app.messenger.query('rpc', {method: method, args: args});
   };
 
 })();

@@ -7,7 +7,8 @@ app.on('ready', function(require) {
   });
 
   app.route('/rpc', function(req, res) {
-    res.die(app.divide(1, 0));
+    var text = app.rpc('fs.readFile', app.mappath('../assets/test.txt'), 'utf8');
+    res.die(text);
   });
 
   app.route('/test/:id', function(req, res, id) {
