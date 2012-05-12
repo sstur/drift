@@ -6,6 +6,7 @@
   var path = require('path');
   var join = path.join;
   var basename = path.basename;
+  var crypto = require('crypto');
   var formidable = require('formidable');
   var EventEmitter = require('events').EventEmitter;
 
@@ -115,6 +116,18 @@
     var req = this.req, res = this.res, opts = this.opts, self = this;
     var form = new formidable.IncomingForm();
     form.uploadDir = global.mappath(savePath);
+    //calculate md5 hash for each uploaded file
+    form.on('fileBegin', function(name, file) {
+      file._hash = crypto.createHash('md5');
+      var _write = file.write;
+      file.write = function(buffer, cb) {
+        file._hash.update(buffer);
+        _write.apply(file, arguments);
+      };
+      file.on('end', function() {
+        file.hash = file._hash.digest('hex');
+      });
+    });
     form.parse(req, function(err, fields, files) {
       self.files = {};
       for (var n in files) {
@@ -128,6 +141,7 @@
           name: file.name,
           type: file.type,
           size: file.size,
+          hash: file.hash,
           fieldName: n
         }
       }
@@ -143,6 +157,7 @@
     var mimeType = req.headers['x-content-type'] || 'application/octet-stream';
     var fileName = req.headers['x-file-name'] || 'upload';
     var fileSize = 0;
+    var fileHash = crypto.createHash('md5');
     var fieldName = req.headers['x-field-name'] || 'upload';
     var filePath = join(uploadDir, generateName());
     var outStream = fs.createWriteStream(filePath);
@@ -151,6 +166,7 @@
     });
     req.pipe(outStream);
     req.on('data', function(data) {
+      fileHash.update(data);
       fileSize += data.length;
     });
     req.on('end', function() {
@@ -160,6 +176,7 @@
         name: fileName,
         type: mimeType,
         size: fileSize,
+        hash: fileHash.digest('hex'),
         fieldName: fieldName
       };
       self.fields = {};

@@ -14,6 +14,7 @@ function init() {
   });
 
   form.addEventListener('submit', function(evt) {
+    if (form.className != 'ajax') return;
     evt.preventDefault();
     var xhr = new XMLHttpRequest();
 
