@@ -118,7 +118,7 @@ define('node-response', function(require, exports, module) {
     end: function() {
       var res = this.response, headers = res.headers;
       headers['Content-Type'] = buildContentType(res.charset, headers['Content-Type']);
-      var cookies = this.response.cookies;
+      var cookies = res.cookies;
       for (var n in cookies) {
         this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
       }
@@ -126,25 +126,26 @@ define('node-response', function(require, exports, module) {
       throw this;
     },
     sendFile: function(opts) {
-      //var res = this.response, httpRes = this._super;
-      //if (Object.isPrimitive(opts)) {
-      //  opts = {file: String(opts)};
-      //}
-      //if (!opts.ctype) {
-      //  opts.ctype = this.headers('content-type');
-      //}
-      //opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
-      //if (!opts.name) {
-      //  opts.name = opts.file.split('/').pop();
-      //}
-      //opts.fullpath = global.mappath('app/' + opts.file);
-      //console.log('sendfile: ' + opts.fullpath);
-      //httpRes.sendFile({
-      //  path: opts.fullpath,
-      //  contentType: opts.ctype,
-      //  attachment: !!opts.attachment,
-      //  filename: opts.name
-      //});
+      var res = this.response;
+      if (Object.isPrimitive(opts)) {
+        opts = {file: String(opts)};
+      }
+      if (!opts.ctype) {
+        opts.ctype = this.headers('content-type');
+      }
+      opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
+      if (!opts.name) {
+        opts.name = opts.file.split('/').pop();
+      }
+      opts.fullpath = app.mappath(opts.file);
+      console.log('sendfile: ' + opts.fullpath);
+      res.sendFile = {
+        path: opts.fullpath,
+        contentType: opts.ctype,
+        attachment: !!opts.attachment,
+        filename: opts.name
+      };
+      this.end();
     },
     debug: function(data) {
       this.clear();

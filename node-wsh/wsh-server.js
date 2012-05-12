@@ -59,6 +59,8 @@
           break;
         case 'done':
           worker.emit('done', data);
+          //worker can be put back in idle pool
+          worker.emit('end');
           break;
         default:
           throw new Error('no handler for worker message ' + message);
@@ -75,8 +77,11 @@
     });
     worker.on('done', function(response) {
       if (res._header) return;
-      var type = typeof response.body
-        , parts = (Array.isArray(response.body)) ? response.body : [String(response.body)]
+      if (response.sendFile) {
+        res.sendFile(response.sendFile);
+        return;
+      }
+      var parts = (Array.isArray(response.body)) ? response.body : [String(response.body)]
         , length = 0, i;
       for (i = 0; i < parts.length; i++) {
         var part = parts[i];
@@ -92,8 +97,6 @@
         }
       }
       res.end();
-      //worker can be put back in idle pool
-      worker.emit('end');
     });
   };
 
