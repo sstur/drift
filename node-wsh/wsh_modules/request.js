@@ -6,7 +6,8 @@ define('node-request', function(require, exports, module) {
   var COOKIE_SEP = /[;,] */;
 
   function Request() {
-    this._super = app.messenger.send('get-request');
+    this._super = app.messenger.query('get-request');
+    console.log('route:', this._super.url);
   }
 
   Request.prototype = {
@@ -33,7 +34,7 @@ define('node-request', function(require, exports, module) {
       return this._cookies;
     },
     getPostData: function() {
-      return app.messenger.send('get-body');
+      return app.messenger.query('get-body');
     }
   };
 

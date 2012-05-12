@@ -1,3 +1,4 @@
 basePath -> fsPath
+sendFile content-type charset
 filesystem and localdb
 vbs helper

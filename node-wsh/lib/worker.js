@@ -10,21 +10,34 @@
 
   function Worker() {
     EventEmitter.call(this);
-    var child = this.child = idlePool.pop() || this.create();
-    child.worker = this;
-    if (child.initialized) {
-      //console.log('resuming worker', child.id);
-      this.send('resume');
+    var worker = this;
+    var child = this.child = idlePool.pop();
+    if (child) {
+      process.nextTick(function() {
+        worker.init();
+      });
     } else {
-      child.initialized = true;
+      child = this.child = worker.create();
+      child.stdout.once('data', function() {
+        child.initialized = true;
+        worker.init();
+      });
     }
+  }
+
+  Worker.prototype = Object.create(EventEmitter.prototype);
+
+  //worker.init gets called as soon as child is ready (in sleep/waiting state)
+  Worker.prototype.init = function() {
+    //worker.send('resume');
+    var child = this.child;
+    child.worker = this;
     //todo: should this be a method?
     this.on('end', function() {
       idlePool.push(child);
     });
-  }
-
-  Worker.prototype = Object.create(EventEmitter.prototype);
+    this.emit('ready');
+  };
 
   Worker.prototype.create = function() {
     var path = join(__dirname, '../build', 'app.wsf');
@@ -36,12 +49,27 @@
       stderr.push(data.toString());
     });
     child.stdout.on('data', function(data) {
+      //console.log('worker', child.id, 'sent data of length', data.length);
+      //if we're not assigned to a worker, consider the data a ready signal
+      if (!child.worker) return;
       data = data.toString();
-      stdout.push(data);
       if (~data.indexOf('\n')) {
-        var message = JSON.parse(stdout.join(''));
-        stdout.length = 0;
-        //console.log('worker', child.id, 'says', {id: message.id, query: message.query});
+        var parts = data.split('\n');
+        for (var i = 0; i < parts.length; i++) {
+          var part = parts[i];
+          if (!part && i > 0) continue; //ends in a break;
+          stdout.push(part);
+          child.emit('data', stdout.join(''));
+          stdout.length = 0;
+        }
+      }
+    });
+    child.on('data', function(data) {
+      var message = JSON.parse(data);
+      //console.log('worker', child.id, 'says', {id: message.id, query: message.query});
+      if (message.query == 'log') {
+        console.log.apply(console, message.payload);
+      } else {
         child.worker.emit('message', message.query, message.payload);
       }
     });

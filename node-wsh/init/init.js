@@ -13,25 +13,23 @@
   //expose messenger for modules to use
   app.messenger = messenger;
 
+  messenger.notify('ready'); //let parent know we're ready
+
+  //todo: what if we console.log or throw from ready event?
   app.emit('ready', require);
 
-  var status = 'running';
-  while(status != 'exit') {
-    var request = messenger.send('get-request');
-    console.log('route:', request.url);
+  while(messenger.query() == 'go') {
     try {
       app.route(new Request(), new Response());
     } catch(e) {
       if (e instanceof Response) {
-        status = messenger.send('done', e.response);
+        messenger.send('done', e.response);
         continue;
       } else {
         throw e;
       }
     }
-
     throw new Error('Router returned without ending request');
-
   }
 
 })(app.require);

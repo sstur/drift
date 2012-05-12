@@ -5,6 +5,10 @@ define('messenger', function(require, exports, module) {
   var REG_CHARS = /[^\x20-\x7E]/g;
   var REG_CONSTR = /^new (Error|Date|Buffer)\(.*\)$/;
 
+  var statusCodes = {
+    'ready': '1'
+  };
+
   function Messenger(stdin, stdout) {
     this.readStream = stdin;
     this.writeStream = stdout;
@@ -12,6 +16,9 @@ define('messenger', function(require, exports, module) {
   }
 
   Messenger.prototype = {
+    notify: function(status) {
+      this.writeStream.write(statusCodes[status] || '0');
+    },
     send: function(query, data) {
       var message = {
         id: ++this._count,
@@ -19,8 +26,13 @@ define('messenger', function(require, exports, module) {
         payload: data
       };
       message = JSON.stringify(message);
-      message = message.replace(REG_CHARS, encodeChars) + '\r\n';
+      message = message.replace(REG_CHARS, encodeChars) + '\n';
       this.writeStream.write(message);
+    },
+    query: function(query, data) {
+      if (query) {
+        this.send(query, data);
+      }
       var response = this.readStream.readLine();
       response = JSON.parse(response, reviver);
       if (response.error) {

@@ -34,6 +34,10 @@
     var worker = new Worker();
     //respond accepts err as first arg
     var respond = worker.respond.bind(worker);
+    worker.on('ready', function() {
+      //tells the worker to ask for the request
+      worker.send('go');
+    });
     worker.on('message', function(message, data) {
       var args = (data && Array.isArray(data.args)) ? data.args : [];
       switch(message) {
@@ -52,10 +56,6 @@
           args.push(respond);
           var method = rpc[data.method];
           (method) ? method.apply(rpc, args) : respond(new Error('Invalid RPC method'));
-          break;
-        case 'log':
-          console.log.apply(console, args);
-          worker.send(null);
           break;
         case 'done':
           worker.emit('done', data);
@@ -97,6 +97,16 @@
         }
       }
       res.end();
+    });
+  };
+
+  exports.init = function() {
+    //initialize a worker and tell it to go to sleep
+    //  improves response time to have one in the idle pool
+    var worker = new Worker();
+    worker.on('ready', function() {
+      console.log('worker', worker.child.id, 'ready');
+      worker.emit('end');
     });
   };
 
