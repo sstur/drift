@@ -2,6 +2,8 @@
 define('node-response', function(require, exports, module) {
   "use strict";
 
+  var Buffer = require('buffer').Buffer;
+
   var TEXT_CTYPES = /^text\/|\/json$/i;
   var STATUS_PARTS = /^(\d{3}\b)?\s*(.*)$/i;
 
@@ -110,8 +112,8 @@ define('node-response', function(require, exports, module) {
       };
     },
     write: function(data) {
-      //todo: binary
-      this.response.body.push(String(data));
+      data = Buffer.isBuffer(data) ? {data: data.toString('hex'), encoding: 'hex'} : String(data);
+      this.response.body.push(data);
     },
     writebin: function(data) {
       this.write(data);

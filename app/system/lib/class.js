@@ -9,7 +9,7 @@ define('class', function(require, exports, module) {
   var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 
   // The base Class implementation (does nothing)
-  var Class =  module.exports = function(){};
+  function Class() {};
 
   // Create a new Class that inherits from this class
   Class.extend = function(prop) {
@@ -63,5 +63,7 @@ define('class', function(require, exports, module) {
 
     return Class;
   };
+
+  module.exports = Class;
 
 });

@@ -1,7 +1,7 @@
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
-  var Buffer = global.Buffer;
+  var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
     res.die('Hello world!');
@@ -13,8 +13,8 @@ app.on('ready', function(require) {
   });
 
   app.route('/buffer', function(req, res) {
-    var buffer = new Buffer('<Buffer 617364660d0a5374c3bc720d0a61736466>');
-    res.die(buffer.toString());
+    var buffer = new Buffer('<Buffer 4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B>');
+    res.die('image/gif', buffer);
   });
 
   app.route('/test/:id', function(req, res, id) {

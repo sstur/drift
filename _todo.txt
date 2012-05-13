@@ -1,3 +1,4 @@
+res.end(404, 'text/plain', 'stuff')
 req.data('ipaddr')
 fix app.cfg
 Buffer/Binary abstraction

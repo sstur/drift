@@ -2,9 +2,11 @@
 define('response', function(require, exports, module) {
   "use strict";
 
-  var Response = function(res) {
+  var Buffer = require('buffer').Buffer;
+
+  function Response(res) {
     this.res = res;
-  };
+  }
 
   Response.prototype = {
     headers: function() {
@@ -43,6 +45,9 @@ define('response', function(require, exports, module) {
       //todo: binary
       if (isPrimitive(data)) {
         this.res.write(String(data));
+      } else
+      if (Buffer.isBuffer(data)) {
+        this.res.write(data);
       } else {
         //stringify might return undefined in some cases
         this.res.write(JSON.stringify(data) || '');

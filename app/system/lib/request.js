@@ -4,10 +4,10 @@ define('request', function(require, exports, module) {
 
   var qs = require('qs');
 
-  var Request = function(req) {
+  function Request(req) {
     this.req = req;
     this._data = {};
-  };
+  }
 
   Request.prototype = {
     data: function(n, val) {
