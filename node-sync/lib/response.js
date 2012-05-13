@@ -120,9 +120,6 @@
       this.response.length += data.length;
       this.response.body.push(data);
     },
-    writebin: function(data) {
-      this.write(data);
-    },
     end: function() {
       var res = this.response, headers = res.headers;
       var statusParts = STATUS_PARTS.exec(res.status);

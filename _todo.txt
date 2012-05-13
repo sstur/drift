@@ -1,7 +1,7 @@
 res.end(404, 'text/plain', 'stuff')
 req.data('ipaddr')
 fix app.cfg
-Buffer/Binary abstraction
+Date header is in wsh-server only
 
 possibly:
   rename uploaded file based on original filename

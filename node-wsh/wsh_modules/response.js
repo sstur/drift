@@ -115,9 +115,6 @@ define('node-response', function(require, exports, module) {
       data = Buffer.isBuffer(data) ? {data: data.toString('hex'), encoding: 'hex'} : String(data);
       this.response.body.push(data);
     },
-    writebin: function(data) {
-      this.write(data);
-    },
     end: function() {
       var res = this.response, headers = res.headers;
       if (!res.sendFile) {

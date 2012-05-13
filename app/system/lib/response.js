@@ -4,6 +4,9 @@ define('response', function(require, exports, module) {
 
   var Buffer = require('buffer').Buffer;
 
+  var RE_CTYPE = /^[\w-]+\/[\w-]+$/;
+  var RE_STATUS = /^\d{3}\b/;
+
   function Response(res) {
     this.res = res;
   }
@@ -27,52 +30,52 @@ define('response', function(require, exports, module) {
     sendFile: function() {
       this.res.sendFile.apply(this.res, arguments);
     },
+    contentType: function(type) {
+      //hack to override application/json -> text/plain when not an xhr request
+      if (type.match(/\/json$/) && !(/XMLHttpRequest/i).test(this.req.headers('x-requested-with'))) {
+        type = 'text/plain'
+      }
+      this.res.headers('Content-Type', type);
+    },
     clear: function(type, status) {
       this.res.clear();
       if (type) {
-        //hack to override application/json -> text/plain when not an xhr request
-        if (type.match(/\/json$/) && !(/XMLHttpRequest/i).test(this.req.headers('x-requested-with'))) {
-          this.res.headers('Content-Type', 'text/plain');
-        } else {
-          this.res.headers('Content-Type', type);
-        }
+        this.contentType(type);
       }
       if (status) {
         this.res.status(status);
       }
     },
     write: function(data) {
-      //todo: binary
       if (isPrimitive(data)) {
         this.res.write(String(data));
       } else
       if (Buffer.isBuffer(data)) {
         this.res.write(data);
       } else {
-        //stringify might return undefined in some cases
+        //stringify returns undefined in some cases
         this.res.write(JSON.stringify(data) || '');
       }
     },
-    end: function(data) {
-      if (arguments.length) {
-        this.write(data);
+    end: function() {
+      var args = toArray(arguments);
+      if (args.length) {
+        if (args.length > 1 && RE_STATUS.test(args[0])) {
+          this.res.status(args.shift());
+        }
+        if (args.length > 1 && RE_CTYPE.test(args[0])) {
+          this.contentType(args.shift());
+        }
+        for (var i = 0; i < args.length; i++) {
+          this.write(args[i]);
+        }
       }
       this.req.emit('end');
       this.res.end();
     },
     die: function() {
-      var args = toArray(arguments), status = '200', ctype = 'text/plain';
-      if (args.length > 1 && /^\d{3}\b/.test(args[0])) {
-        status = args.shift();
-      }
-      if (args.length > 1 && /^[\w-]+\/[\w-]+$/.test(args[0])) {
-        ctype = args.shift();
-      }
-      this.clear(ctype, status);
-      for (var i = 0; i < args.length; i++) {
-        this.write(args[i]);
-      }
-      this.end();
+      this.clear();
+      this.end.apply(this, arguments);
     },
     redirect: function(url, type) {
       if (type == 'html') {
