@@ -29,7 +29,7 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   };
 
   //Append properties from one or more objects into the first (overwriting)
-  Object.append = function() {
+  Object.extend = function() {
     var args = Array.toArray(arguments), ret = args.shift();
     for (var i = 0; i < args.length; i++) {
       var obj = args[i];
@@ -40,17 +40,8 @@ var forEach, vartype, isPrimitive, isSet, toArray;
     return ret;
   };
 
-  //Extend an object so it "inherits" from parent but contains the given properties as its own
-  //todo: deprecate and make alias of Object.append
-  Object.extend = function(parent, ext) {
-    var obj = Object.create(parent);
-    if (typeof ext == 'function') {
-      Object.append(obj, ext.call(parent, parent));
-    } else {
-      Object.append(obj, ext)
-    }
-    return obj;
-  };
+  //alias (should be deprecated)
+  Object.append = Object.extend;
 
   Object.each = function(obj, fn) {
     var i = 0;

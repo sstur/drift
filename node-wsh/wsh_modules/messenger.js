@@ -2,11 +2,7 @@
 define('messenger', function(require, exports, module) {
   "use strict";
 
-  //possibly used when eval'ing
-  var Buffer = require('buffer').Buffer;
-
-  var REG_CHARS = /[^\x20-\x7E]/g;
-  var REG_CONSTR = /^new (Error|Date|Buffer)\(.*\)$/;
+  var util = require('util'), fs = require('fs');
 
   var statusCodes = {
     'ready': '1'
@@ -28,8 +24,7 @@ define('messenger', function(require, exports, module) {
         query: query,
         payload: data
       };
-      message = JSON.stringify(message);
-      message = message.replace(REG_CHARS, encodeChars) + '\n';
+      message = util.stringify(message) + '\n';
       this.writeStream.write(message);
     },
     query: function(query, data) {
@@ -37,7 +32,7 @@ define('messenger', function(require, exports, module) {
         this.send(query, data);
       }
       var response = this.readStream.readLine();
-      response = JSON.parse(response, reviver);
+      response = util.parse(response);
       if (response.error) {
         throw response.error;
       }
@@ -46,19 +41,6 @@ define('messenger', function(require, exports, module) {
   };
 
   app.eventify(Messenger.prototype);
-
-  //helpers
-
-  function reviver(key, val) {
-    if (typeof val == 'string' && val.match(REG_CONSTR)) {
-      return new Function('return ' + val)();
-    }
-    return val;
-  }
-
-  function encodeChars(ch) {
-    return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
-  }
 
   module.exports = Messenger;
 

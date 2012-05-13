@@ -112,7 +112,7 @@ define('node-response', function(require, exports, module) {
       };
     },
     write: function(data) {
-      data = Buffer.isBuffer(data) ? {data: data.toString('hex'), encoding: 'hex'} : String(data);
+      data = Buffer.isBuffer(data) ? {data: data.toString('hex'), enc: 'hex'} : String(data);
       this.response.body.push(data);
     },
     end: function() {

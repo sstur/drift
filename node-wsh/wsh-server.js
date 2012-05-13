@@ -7,6 +7,8 @@
   var join = require('path').join;
   var Buffer = require('buffer').Buffer;
 
+  var STATUS_PARTS = /^(\d{3}\b)?\s*(.*)$/i;
+
   var basePath = global.basePath = join(__dirname, '..');
   //used in request_body module
   global.mappath = function(path) {
@@ -32,14 +34,16 @@
       , length = 0, i;
     for (i = 0; i < parts.length; i++) {
       var part = parts[i];
-      parts[i] = new Buffer(part.data || part, part.encoding || 'utf8');
+      parts[i] = new Buffer(part.data || part, part.enc || 'utf8');
       length += parts[i].length;
     }
     data.headers['Content-Length'] = String(length);
     if (!data.headers['Date']) {
       data.headers['Date'] = new Date().toUTCString();
     }
-    res.writeHead(data.status, data.headers);
+    var statusParts = STATUS_PARTS.exec(data.status);
+    var statusCode = statusParts[1] || '200', reasonPhrase = statusParts[2];
+    res.writeHead(statusCode, reasonPhrase || data.headers, data.headers);
     if (res._hasBody) {
       //body is not written for HEAD requests
       for (i = 0; i < parts.length; i++) {

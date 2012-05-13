@@ -1,6 +1,9 @@
 (function() {
   "use strict";
 
+  var fs = require('fs')
+    , join = require('path').join;
+
   var exportModule = function(name, methodNames) {
     var module = require(name);
     name = name.split('/').pop(); //normalize './path/module'
@@ -18,6 +21,9 @@
 
   exportModule('fs');
 
-  //todo: readDirSync(join(__dirname, '../rpc'))
+  var path = join(__dirname, '../rpc');
+  fs.readdirSync(path).forEach(function(file) {
+    exportModule('../rpc/' + file);
+  });
 
 })();

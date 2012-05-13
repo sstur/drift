@@ -68,7 +68,7 @@
       }
     });
     child.on('data', function(data) {
-      var message = JSON.parse(data);
+      var message = parse(data);
       //console.log('worker', child.id, 'says', {id: message.id, query: message.query});
       if (message.query == 'log') {
         console.log.apply(console, message.payload);
@@ -87,35 +87,59 @@
 
   Worker.prototype.send = function(data) {
     var child = this.child, message = {data: data};
-    child.stdin.write(stringify(message) + '\r\n');
+    message = stringify(message);
+    child.stdin.write(message + '\r\n');
   };
 
   Worker.prototype.respond = function(err, data) {
     var child = this.child
       , message = err ? {error: err} : {data: data};
-    child.stdin.write(stringify(message) + '\r\n');
+    message = stringify(message);
+    child.stdin.write(message + '\r\n');
   };
 
 
   //helpers
 
-  var REG_CHARS = /[^\x20-\x7E]/g;
+  //extended JSON.stringify to handle special cases (Error, Date, Buffer)
+  var stringify = function(obj) {
+    var str = JSON.stringify(obj, replacer);
+    return str.replace(REG_CHARS, encodeChars);
+  };
 
-  function stringify(data) {
-    var string = JSON.stringify(data, function(key, val) {
-      if (val instanceof Error) {
-        return 'new Error(' + JSON.stringify(val.message) + ')';
-      } else
-      if (val instanceof Date) {
-        return 'new Date(' + val.valueOf() + ')';
-      } else
-      if (Buffer.isBuffer(val)) {
-        return 'new Buffer("' + val.toString('hex') + '","hex")';
-      } else {
-        return val;
-      }
-    });
-    return string.replace(REG_CHARS, encodeChars);
+  //extended JSON.parse to handle special cases (Error, Date, Buffer)
+  //  * this is unsafe to use with untrusted JSON as it uses eval!
+  var parse = function(str) {
+    return JSON.parse(str, reviver);
+  };
+
+
+  var REG_CHARS = /[^\x20-\x7E]/g;
+  var REG_CONSTR = /^new (Error|Date|Buffer)\(.*\)$/;
+
+  function replacer(key, val) {
+    if (!val || typeof val != 'object') {
+      return val;
+    }
+    var type = Object.prototype.toString.call(val).slice(8, -1);
+    if (type == 'Error') {
+      return 'new Error(' + JSON.stringify(val.message) + ')';
+    } else
+    if (type == 'Date') {
+      return 'new Date(' + val.valueOf() + ')';
+    } else
+    if (Buffer.isBuffer(val)) {
+      return 'new Buffer("' + val.toString('hex') + '","hex")';
+    } else {
+      return val;
+    }
+  }
+
+  function reviver(key, val) {
+    if (typeof val == 'string' && REG_CONSTR.test(val)) {
+      return new Function('return ' + val)();
+    }
+    return val;
   }
 
   function encodeChars(ch) {

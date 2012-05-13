@@ -4,17 +4,22 @@ app.on('ready', function(require) {
   var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
-    res.die('Hello world!');
+    res.end('Hello world!');
+  });
+
+  app.route('/get', function(req, res) {
+    var response = app.rpc('http.get', 'http://localhost:8080/buffer');
+    res.end('image/gif', response.body);
   });
 
   app.route('/rpc', function(req, res) {
     var buffer = app.rpc('fs.readFile', app.mappath('../assets/test.txt'));
-    res.die(buffer);
+    res.end(buffer);
   });
 
   app.route('/buffer', function(req, res) {
     var buffer = new Buffer('<Buffer 4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B>');
-    res.die('image/gif', buffer);
+    res.end('image/gif', buffer);
   });
 
   app.route('/test/:id', function(req, res, id) {
@@ -47,7 +52,7 @@ app.on('ready', function(require) {
   });
 
   app.route('/cookies', function(req, res) {
-    res.die(req.cookies());
+    res.end(req.cookies());
   });
 
   app.route('/liquid', function(req, res) {
@@ -56,7 +61,7 @@ app.on('ready', function(require) {
       return Liquid.parse(src).renderWithErrors(ctx);
     };
     var markup = render("<p>{{user | capitalize}}</p>", {user: 'bob'});
-    res.die('text/plain', markup);
+    res.end('text/plain', markup);
   });
 
   app.route('/throw', function(req, res) {

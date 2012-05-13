@@ -1,10 +1,8 @@
 /*global app, define */
-define('fs', function(require, exports, module) {
+define('fs', function(require, fs) {
   "use strict";
 
   var fso = new ActiveXObject('Scripting.FileSystemObject');
-
-  var fs = exports;
 
   fs.readTextFile = function(file, enc) {
     enc = parseEnc(enc) || 'UTF-8';
@@ -17,6 +15,36 @@ define('fs', function(require, exports, module) {
       stream.close();
       return text;
     }
+  };
+
+  fs.writeTextToFile = function(file, text, opts) {
+    if (!opts) opts = {};
+    //TODO: Character Encoding
+    var mode = (opts.overwrite === true) ? 2 : 8;
+    var stream = fso.openTextFile(app.mappath(file), mode, -1);
+    stream.write(String(text));
+    stream.close();
+  };
+
+  fs.log = function() {
+    var logfile, args = toArray(arguments), logLevel = 1;
+    if (typeof args[0] == 'number' && args[0] > 0 && +args[0] == args[0]) {
+      logLevel = args.shift();
+    }
+    if (args.length > 1) {
+      logfile = args.pop();
+    }
+    if (!logfile) logfile = 'default';
+    var data = args
+      , path = 'logs/' + logfile.replace(/\.log$/, '') + '.log';
+    data.forEach(function(line, i) {
+      data[i] = (line instanceof Object) ? JSON.stringify(line) : String(line);
+    });
+    data.unshift(new Date().toUTCString());
+    data.push('');
+    data = data.join('\n');
+    data = data.replace(/(\r\n|[\r\n])+/g, '\r\n');
+    fs.writeTextToFile(path, data + '\r\n');
   };
 
 
