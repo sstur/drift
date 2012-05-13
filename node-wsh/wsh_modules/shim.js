@@ -8,6 +8,8 @@
     }
   };
 
+  global.Buffer = app.require('buffer').Buffer;
+
   app.mappath = function(path) {
     var fullpath = global.basePath + 'app\\';
     fullpath = fullpath + String(path).replace(/\//g, '\\');

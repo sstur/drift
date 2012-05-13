@@ -2,6 +2,9 @@
 define('messenger', function(require, exports, module) {
   "use strict";
 
+  //possibly used when eval'ing
+  var Buffer = require('buffer').Buffer;
+
   var REG_CHARS = /[^\x20-\x7E]/g;
   var REG_CONSTR = /^new (Error|Date|Buffer)\(.*\)$/;
 

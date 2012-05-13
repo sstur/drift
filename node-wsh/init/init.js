@@ -1,9 +1,9 @@
 (function(require) {
   "use strict";
 
-  var Messenger = require('messenger');
   var Request = require('node-request');
   var Response = require('node-response');
+  var Messenger = require('messenger');
 
   var wsh = global['WScript'];
   //filesystem path including trailing slash
@@ -15,7 +15,6 @@
 
   messenger.notify('ready'); //let parent know we're ready
 
-  //todo: what if we console.log or throw from ready event?
   app.emit('ready', require);
 
   while(messenger.query() == 'go') {
