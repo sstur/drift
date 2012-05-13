@@ -9,7 +9,7 @@ app.on('ready', function(require) {
 
   app.route('/get', function(req, res) {
     var response = app.rpc('http.get', 'http://localhost:8080/buffer');
-    res.end('image/gif', response.body);
+    res.debug(response);
   });
 
   app.route('/rpc', function(req, res) {

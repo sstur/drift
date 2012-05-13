@@ -177,7 +177,7 @@ define('inspect', function(require, exports) {
 
   function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
     var name, str, desc;
-    desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+    desc = Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
     if (desc.get) {
       if (desc.set) {
         str = ctx.stylize('[Getter/Setter]', 'special');

@@ -2,10 +2,10 @@
 define('node-response', function(require, exports, module) {
   "use strict";
 
-  var Buffer = require('buffer').Buffer;
+  var util = require('util')
+    , Buffer = require('buffer').Buffer;
 
   var TEXT_CTYPES = /^text\/|\/json$/i;
-  var STATUS_PARTS = /^(\d{3}\b)?\s*(.*)$/i;
 
   var headers = ['Accept-Ranges', 'Age', 'Allow', 'Cache-Control', 'Connection', 'Content-Encoding', 'Content-Language',
     'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Disposition', 'Content-Range', 'Content-Type', 'Date',
@@ -151,8 +151,7 @@ define('node-response', function(require, exports, module) {
     },
     debug: function(data) {
       this.clear();
-      //todo: util.inspect
-      this.write(JSON.stringify(data));
+      this.write(util.inspect(data));
       this.end();
     }
   };
