@@ -54,8 +54,13 @@ define('util', function(require, util) {
   }
 
   function reviver(key, val) {
-    if (typeof val == 'string' && REG_CONSTR.test(val)) {
-      return new Function('return ' + val)();
+    if (typeof val == 'string') {
+      if (val.slice(0, 8) == '<Buffer ' && val.slice(-1) == '>') {
+        return new Buffer(val.slice(8, -1), 'hex');
+      }
+      if (REG_CONSTR.test(val)) {
+        return new Function('return ' + val)();
+      }
     }
     return val;
   }

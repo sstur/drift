@@ -28,6 +28,12 @@ app.on('ready', function(require) {
 
   });
 
+  app.route('/writefile', function(req, res) {
+    var data = new Buffer('4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B', 'hex');
+    var buffer = app.rpc('fs.writeFile', app.mappath('image.gif'), data);
+    res.end('success');
+  });
+
   app.route('/readfile', function(req, res) {
     var fs = require('fs');
     var text = fs.readTextFile('../assets/test.txt');
