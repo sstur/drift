@@ -3,25 +3,26 @@ define('buffer', function(require, exports) {
 
   var RE_NON_ASCII = /[\x80-\xFF]+/g;
 
-  function Buffer(subject, enc) {
+  //todo: offset, inspect, base64
+  function Buffer(subject, encoding, offset) {
     var type = typeof subject;
     if (arguments.length == 1 && type == 'string' && subject.slice(0, 8) == '<Buffer ') {
       //hack: revive buffer that was flattened to '<Buffer 01ab>'
       subject = subject.slice(8, -1);
-      enc = 'hex';
+      encoding = 'hex';
     }
     if (!(this instanceof Buffer)) {
-      return new Buffer(subject, enc);
+      return new Buffer(subject, encoding, offset);
     }
     if (type == 'number') {
       this._raw = new Array(subject + 1).join('\x00');
     } else
     if (type == 'string') {
-      enc = enc || 'utf8';
-      if (enc == 'utf8') {
+      encoding = encoding || 'utf8';
+      if (encoding == 'utf8') {
         this._raw = unescape(encodeURI(subject));
       } else
-      if (enc == 'hex') {
+      if (encoding == 'hex') {
         this._raw = hexToRaw(subject);
       } else {
         this._raw = subject;
@@ -72,7 +73,7 @@ define('buffer', function(require, exports) {
       return len;
     },
     slice: function(start, end) {
-      return new Buffer(this._raw.slice(start, end), 'raw');
+      return new Buffer(this._raw.slice(start, end), 'binary');
     },
     toString: function(enc, start, end) {
       var s = this._raw;
