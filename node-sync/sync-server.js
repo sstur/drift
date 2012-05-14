@@ -21,7 +21,7 @@
   };
 
   //helpers for app and framework
-  var loadPath = function(dir) {
+  var loadPath = function(dir, callback) {
     var path = join(basePath, dir);
     var files = fs.readdirSync(path);
     files.forEach(function(file) {
@@ -33,13 +33,24 @@
       } else
       if (stat.isFile() && file.match(/\.js$/i)) {
         console.log('load file', join(dir, file));
-        require(fullpath);
+        var module = require(fullpath);
+        if (callback) {
+          callback(file, module);
+        }
       }
     });
   };
 
   //load framework core (instantiates `app` and `define`)
   require(join(basePath, 'app/system/core'));
+
+  //load async modules into define system as sync
+  loadPath('node-sync/async_modules', function(file, _super) {
+    var name = file.replace(/\.js$/, '');
+    define(name, function(require, exports, module) {
+      module.exports = Fiber.makeSync(_super);
+    });
+  });
 
   //load sync modules
   loadPath('node-sync/sync_modules');

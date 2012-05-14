@@ -1,14 +1,6 @@
-var Fiber = require('fiber').Fiber;
-var _super = require('../async/fs');
+var _super = require('fs');
 define('fs', function(require, exports) {
   "use strict";
-
-  _super = Fiber.makeSync(_super);
-
-  /*
-   * Private Variables
-   */
-  var fs = exports;
 
   var toArray = Array.prototype.slice;
 
@@ -16,73 +8,83 @@ define('fs', function(require, exports) {
   var mappath = app.mappath;
 
   //Path Resolution Functions
-  fs.path = {};
+  exports.path = {};
+
+  var RE_HEAD = /^(.*)\//
+    , RE_TAIL = /\/([^\/]*)$/
+    , RE_SLASHES = /\/+/g
+    , RE_DOTSLASH = /\/.\//g
+    , RE_DOTDOTSLASH = /[^\/]+\/\.\.\//g
+    , RE_TRAILING_SLASH = /\/$/;
 
   /*
    * Join one or more paths
    * path.join('assets/', 'scripts', 'file.js')
    */
-  fs.path.join = function() {
+  exports.path.join = function() {
     var a = [], args = toArray.call(arguments);
     args.forEach(function(s, i) {
       if (s) a.push(s);
     });
-    var p = a.join('/');
-    p = p.replace(/\/\//g, '/');
-    p = p.replace(/\/.\//g, '/');
-    p = p.replace(/[^\/]+\/\.\.\//g, '');
-    p = p.replace(/\/$/, '');
-    return p;
+    var path = a.join('/');
+    path = path.replace(RE_SLASHES, '/');
+    path = path.replace(RE_DOTSLASH, '/');
+    path = path.replace(RE_DOTDOTSLASH, '');
+    path = path.replace(RE_TRAILING_SLASH, '');
+    return path;
   };
+  exports.path.join.sync = true;
 
   /*
-   * This function returns the "folder" part of a path
+   * Get the directory part of a path
    * /data/file.txt -> /data/
    */
-  fs.path.parent = function(p) {
-    return p.replace(/\/([^\/]*)$/, '');
+  exports.path.parent = function(path) {
+    return path.replace(RE_TAIL, '');
   };
+  exports.path.parent.sync = true;
 
   /*
-   * This function returns the "file" part of a path
+   * Get the file part of a path
    * /data/file.txt -> file.txt
    */
-  fs.path.member = function(p) {
-    return p.replace(/^(.*)\//, '');
+  exports.path.member = function(path) {
+    return path.replace(RE_HEAD, '');
   };
+  exports.path.member.sync = true;
 
 
-  fs.escape = function(filename) {
+  //escape unsafe characters in a filename
+  exports.escape = function(filename) {
     return String(filename).replace(/[^\w\d!@#$()_\-+={}[],;']/g, function(char) {
       return encodeURIComponent(char);
     });
   };
+  exports.escape.sync = true;
 
-  fs.isFile = function(path) {
-    var stats, result = true;
-    try {
-      stats = _super.stat(mappath(path));
-    } catch(e) {
-      return false;
-    }
-    return stats.isFile();
+
+  exports.isFile = function(path, callback) {
+    _super.stat(path, function(err, stat) {
+      //todo: if exists but error
+      callback(null, !err && stat.isFile());
+    });
   };
 
-  fs.isDir = function(path) {
-    var stats, result = true;
-    try {
-      stats = _super.stat(mappath(path));
-    } catch(e) {
-      return false;
-    }
-    return stats.isDirectory();
+  exports.isDir = function(path, callback) {
+    _super.stat(path, function(err, stat) {
+      //todo: if exists but error
+      callback(null, !err && stat.isDirectory());
+    });
   };
 
-  fs.readTextFile = function(file, enc) {
-    return _super.readFile(mappath(file), enc || 'utf8');
+  exports.readTextFile = function(file, enc, callback) {
+    var args = toArray.call(arguments);
+    callback = args.pop();
+    enc = (typeof enc == 'string') ? enc : 'utf8';
+    _super.readFile(mappath(file), enc, callback);
   };
 
-  fs.writeTextToFile = function(file, text, opts) {
+  exports.writeTextToFile = function(file, text, opts) {
     if (!opts) opts = {};
     _super.writeFile(mappath(file), String(text), {
       mode: opts.overwrite ? 'w' : 'a',
@@ -90,32 +92,32 @@ define('fs', function(require, exports) {
     });
   };
 
-  fs.moveFile = function(file, dest) {
+  exports.moveFile = function(file, dest) {
     //todo: if dest is directory?
     _super.rename(mappath(file), mappath(dest));
   };
 
-  fs.copyFile = function(file, dest) {
+  exports.copyFile = function(file, dest) {
     //todo: if dest is directory?
     _super.copyFile(mappath(file), mappath(dest));
   };
 
-  fs.deleteFile = function(file) {
+  exports.deleteFile = function(file) {
     _super.unlink(mappath(file));
   };
 
-  fs.createDir = function(path, name) {
-    var fullpath = fs.path.join(path, name);
+  exports.createDir = function(path, name) {
+    var fullpath = exports.path.join(path, name);
     _super.mkdir(mappath(fullpath));
   };
 
-  fs.removeDir = function(file, recurse) {
+  exports.removeDir = function(file, recurse) {
     //todo: recursive
     _super.rmdir(mappath(file));
   };
 
   //todo: change to details or readdir
-  fs.stat = function(path, deep) {
+  exports.stat = function(path, deep) {
     var fso, stats, result = {}, getChildren;
     if (typeof path == 'string') {
       try {
@@ -140,14 +142,14 @@ define('fs', function(require, exports) {
         result._folders = [];
         stats.subFolders.forEach(function(item, i) {
           result.folders.push(item.name);
-          result._folders.push(fs.stat(item, deep));
+          result._folders.push(exports.stat(item, deep));
           result.children.push(result._folders[i]);
         });
         result.files = [];
         result._files = [];
         stats.files.forEach(function(item, i) {
           result.files.push(item.name);
-          result._files.push(fs.stat(item, deep));
+          result._files.push(exports.stat(item, deep));
           result.children.push(result._files[i]);
         });
       }
@@ -168,7 +170,7 @@ define('fs', function(require, exports) {
   /*
    * Logging / Debugging
    */
-  fs.log = function() {
+  exports.log = function() {
     var logfile, args = toArray.call(arguments), logLevel = 1;
     if (typeof args[0] == 'number' && args[0] > 0 && parseInt(args[0], 10) == args[0]) {
       logLevel = args.shift();
@@ -179,12 +181,12 @@ define('fs', function(require, exports) {
     if (!logfile) logfile = 'default';
     var date = new Date().toUTCString()
       , data = args
-      , path = fs.path.join('logs', logfile.replace(/\.log$/i, '') + '.log');
+      , path = exports.path.join('logs', logfile.replace(/\.log$/i, '') + '.log');
     data.forEach(function(line, i) {
       data[i] = (line instanceof Object) ? JSON.stringify(line) : String(line);
     });
     data.push('');
-    fs.writeTextToFile(path, (date + '\n' + data.join('\n')).replace(/(\r\n|[\r\n])+/g, '\r\n') + '\r\n');
+    exports.writeTextToFile(path, (date + '\n' + data.join('\n')).replace(/(\r\n|[\r\n])+/g, '\r\n') + '\r\n');
   };
 
 });

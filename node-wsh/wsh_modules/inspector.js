@@ -1,4 +1,4 @@
-define('inspect', function(require, exports) {
+define('inspector', function(require, exports) {
   "use strict";
 
   /**

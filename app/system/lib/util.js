@@ -3,7 +3,7 @@ define('util', function(require, util) {
   "use strict";
 
   var Buffer = require('buffer').Buffer;
-  var inspector = require('inspect');
+  var inspector = require('inspector');
 
   util.inspect = inspector.inspect;
 

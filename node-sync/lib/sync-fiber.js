@@ -96,9 +96,10 @@
       if (methodName.charAt(0) == '_') continue;
       var method = module[methodName];
       if (typeof method == 'function') {
-        exports[methodName] = method.bind(module);
+        exports[methodName] = method.sync ? method.bind(module) : Fiber.sync(method, module);
       }
     }
+    return exports;
   };
 
   module.exports = Fiber;
