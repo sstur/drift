@@ -85,6 +85,22 @@
     };
   };
 
+  Fiber.makeSync = function(module, methodNames) {
+    var exports = {};
+    if (typeof module == 'string') {
+      module = require(module);
+    }
+    methodNames = methodNames ? methodNames.split(' ') : Object.keys(module);
+    for (var i = 0; i < methodNames.length; i++) {
+      var methodName = methodNames[i];
+      if (methodName.charAt(0) == '_') continue;
+      var method = module[methodName];
+      if (typeof method == 'function') {
+        exports[methodName] = method.bind(module);
+      }
+    }
+  };
+
   module.exports = Fiber;
 
 })();

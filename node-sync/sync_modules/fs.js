@@ -1,67 +1,9 @@
-var _super = (function() {
-  var fs = require('fs')
-    , Fiber = global.Fiber
-    , sync = Fiber.sync;
-
-  var writeAll = function(fd, buffer, offset, length, callback) {
-    fs.write(fd, buffer, offset, length, offset, function(err, written) {
-      if (err) {
-        fs.close(fd, function() {
-          if (callback) callback(err);
-        });
-      } else {
-        if (written === length) {
-          fs.close(fd, callback);
-        } else {
-          writeAll(fd, buffer, offset + written, length - written, callback);
-        }
-      }
-    });
-  };
-
-  var writeFile = function(path, data, opts, callback) {
-    callback = (typeof(callback) == 'function' ? callback : null);
-    fs.open(path, opts.mode, 438 /*=0666*/, function(err, fd) {
-      if (err) {
-        if (callback) callback(err);
-      } else {
-        var buffer = Buffer.isBuffer(data) ? data : new Buffer('' + data, opts.encoding);
-        writeAll(fd, buffer, 0, buffer.length, callback);
-      }
-    });
-  };
-
-  var copyFile = function(sourcePath, destPath, callback) {
-    var source = fs.createReadStream(sourcePath);
-    var dest = fs.createWriteStream(destPath);
-    source.on('error', callback);
-    source.on('close', function() {
-      callback();
-    });
-    source.pipe(dest);
-  };
-
-  return {
-    stat: sync(fs.stat, fs),
-    open: sync(fs.open, fs),
-    write: sync(fs.write, fs),
-    close: sync(fs.close, fs),
-    readFile: sync(fs.readFile, fs),
-    writeFile: sync(writeFile, fs),
-    copyFile: sync(copyFile, fs),
-    rename: sync(fs.rename, fs),
-    unlink: sync(fs.unlink, fs),
-    mkdir: sync(fs.mkdir, fs),
-    rmdir: sync(fs.rmdir, fs)
-  };
-})();
-
-/**
- * Filesystem Module
- *
- */
+var Fiber = require('fiber').Fiber;
+var _super = require('../async/fs');
 define('fs', function(require, exports) {
   "use strict";
+
+  _super = Fiber.makeSync(_super);
 
   /*
    * Private Variables

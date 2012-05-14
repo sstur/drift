@@ -4,6 +4,14 @@ define('fs', function(require, fs) {
 
   var fso = new ActiveXObject('Scripting.FileSystemObject');
 
+  //fs.readFile = function(file) {
+  //  return app.rpc('fs.readFile', app.mappath(file));
+  //};
+  //
+  //fs.writeFile = function(file, data, enc) {
+  //  return app.rpc('fs.writeFile', app.mappath(file), data, enc);
+  //};
+
   fs.readTextFile = function(file, enc) {
     enc = parseEnc(enc) || 'UTF-8';
     if (enc == 'UTF-8' || enc == 'UTF-16BE') {

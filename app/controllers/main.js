@@ -1,6 +1,8 @@
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
+
+  var fs = require('fs');
   var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
@@ -10,11 +12,6 @@ app.on('ready', function(require) {
   app.route('/get', function(req, res) {
     var response = app.rpc('http.get', 'http://localhost:8080/buffer');
     res.debug(response);
-  });
-
-  app.route('/rpc', function(req, res) {
-    var buffer = app.rpc('fs.readFile', app.mappath('../assets/test.txt'));
-    res.end(buffer);
   });
 
   app.route('/buffer', function(req, res) {
@@ -36,7 +33,7 @@ app.on('ready', function(require) {
 
   app.route('/writefile', function(req, res) {
     var data = new Buffer('4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B', 'hex');
-    app.rpc('fs.writeFile', app.mappath('image.gif'), data);
+    fs.writeFile('image.gif', data);
     res.end('success');
   });
 
