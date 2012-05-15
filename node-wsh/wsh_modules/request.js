@@ -1,5 +1,5 @@
 /*global app, define */
-define('node-request', function(require, exports, module) {
+define('wsh-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
 

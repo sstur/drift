@@ -1,5 +1,5 @@
 /*global app, define */
-define('node-response', function(require, exports, module) {
+define('wsh-response', function(require, exports, module) {
   "use strict";
 
   var Buffer = require('buffer').Buffer;

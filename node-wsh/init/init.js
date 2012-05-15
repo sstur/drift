@@ -1,8 +1,8 @@
 (function(require) {
   "use strict";
 
-  var Request = require('node-request');
-  var Response = require('node-response');
+  var Request = require('wsh-request');
+  var Response = require('wsh-response');
   var Messenger = require('messenger');
 
   var wsh = global['WScript'];
