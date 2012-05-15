@@ -33,7 +33,7 @@ define('request', function(require, exports, module) {
       if (!this._headers) {
         this._headers = this.req.getHeaders();
       }
-      if (arguments.legnth) {
+      if (arguments.length) {
         return this._headers[n.toLowerCase()] || '';
       } else {
         return this._headers;
@@ -43,7 +43,7 @@ define('request', function(require, exports, module) {
       if (!this._cookies) {
         this._cookies = this.req.getCookies();
       }
-      if (arguments.legnth) {
+      if (arguments.length) {
         return this._cookies[n] || '';
       } else {
         return this._cookies;
@@ -55,9 +55,9 @@ define('request', function(require, exports, module) {
     },
     params: function(n) {
       if (!this._params) {
-        this._params = qs.parse(this.req.url('qs'));
+        this._params = qs.parse(this.url('qs'));
       }
-      if (arguments.legnth) {
+      if (arguments.length) {
         return this._params[n] || '';
       } else {
         return this._params;
@@ -67,7 +67,7 @@ define('request', function(require, exports, module) {
       if (!this._postdata) {
         this._postdata = this.req.getPostData();
       }
-      if (arguments.legnth) {
+      if (arguments.length) {
         return this._postdata.fields[n.toLowerCase()] || '';
       } else {
         return this._postdata.fields;
@@ -78,7 +78,7 @@ define('request', function(require, exports, module) {
         this._postdata = this.req.getPostData();
       }
       if (!this._postdata.files) return null;
-      if (arguments.legnth) {
+      if (arguments.length) {
         return this._postdata.files[n] || null;
       } else {
         return this._postdata.files;
