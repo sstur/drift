@@ -1,150 +1,88 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Domains and Web Hosting</title>
-</head>
-<body>
-<!-- RESELLER HEADER START -->
-<div class="header_wrapper">
-  <h1>{{ reseller.name }}</h1>
-  <div class="menu">
-    <ul>
-      <li><a href="/system/home/home" title="Home Page">Home Page</a></li>
-      <li><a href="javascript:void(0)" title="Domain Names">Domain Names</a>
-        <ul>
-          <li><a href="/system/domain/check_domain">Register Domains</a></li>
-          <li><a href="/system/domain/check_transfer">Transfer Domains</a></li>
-          <li><a href="/system/domain/check_renew">Renew Domains</a></li>
-          <li><a href="/system/domain/pricing">Domain Pricing</a></li>
-        </ul>
-      </li>
-      <li><a href="/system/hosting" title="Hosting">Hosting</a></li>
-      <li><a href="javascript:void(0)" title="Domain Names">Account Manager</a>
-        <ul>
-          <li><a href="/system/home/login">Domain Manager</a></li>
-          <li><a href="/system/home/login_hosting">Hosting Manager</a></li>
-        </ul>
-      </li>
-    </ul>
-  </div>
+{% assign layout = 'system' %}
+<h3 class="page_header_system">Domain Name Search</h3>
 
-</div>
-<!-- RESELLER HEADER END -->
-<link rel="stylesheet" type="text/css" href="/assets/css/system.css"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/status_boxes.css"/>
-
-<!-- DOMAIN SYSTEM START -->
-
-
-<div class="content">
-  <h3 class="page_header_system">Domain Name Search</h3>
-
-  <div class="content_indent">
-    <div class="search_box_home">
-      <div class="big_number_wrapper">
-        <div class="big_number_div"><span class="big_number">1.</span> <span class="big_number_desc">Enter a name</span>
-        </div>
-        <div class="big_number_div"><span class="big_number">2.</span> <span
-            class="big_number_desc">Select a domain</span></div>
-        <div class="big_number_div"><span class="big_number">3.</span> <span class="big_number_desc">Click Search</span>
-        </div>
+<div class="content_indent">
+  <div class="search_box_home">
+    <div class="big_number_wrapper">
+      <div class="big_number_div"><span class="big_number">1.</span> <span class="big_number_desc">Enter a name</span>
       </div>
-      <form name="form" action="/system/domain/domain_register" method="GET" id="domain" style="clear: both; margin:0">
-        <table border="0" cellspacing="0" align="center">
-          <tr>
-            <td><strong class="www_bigger">www.</strong></td>
-            <td><input name="domain" type="text" value="" size="40"></td>
-            <td><a href="javascript:void(0)" onclick="document.form.submit()" class="button_search"><span
-                class="inv">Search</span></a></td>
-          </tr>
-        </table>
-        <table border="0" cellpadding="0" cellspacing="0" class="table_checkboxes" align="center" id="tld_table">
-          <tr>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".com" id=".com" checked /><label for=".com">.com</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".net" id=".net" checked /><label for=".net">.net</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".org" id=".org" checked /><label for=".org">.org</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".in" id=".in" /><label for=".in">.in</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".info" id=".info" /><label for=".info">.info</label></td>
-          </tr>
-          <tr>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".co.uk" id=".co.uk" /><label for=".co.uk">.co.uk</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".us" id=".us" /><label for=".us">.us</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".me" id=".me" /><label for=".me">.me</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".co" id=".co" /><label for=".co">.co</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".ca" id=".ca" /><label for=".ca">.ca</label></td>
-          </tr>
-          <tr>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".mobi" id=".mobi" /><label for=".mobi">.mobi</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".biz" id=".biz" /><label for=".biz">.biz</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".xxx" id=".xxx" /><label for=".xxx">.xxx</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".de" id=".de" /><label for=".de">.de</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".tv" id=".tv" /><label for=".tv">.tv</label></td>
-          </tr>
-          <tr>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".eu" id=".eu" /><label for=".eu">.eu</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".org.uk" id=".org.uk" /><label for=".org.uk">.org.uk</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".me.uk" id=".me.uk" /><label for=".me.uk">.me.uk</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".cc" id=".cc" /><label for=".cc">.cc</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".asia" id=".asia" /><label for=".asia">.asia</label></td>
-          </tr>
-          <tr>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".ws" id=".ws" /><label for=".ws">.ws</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".bz" id=".bz" /><label for=".bz">.bz</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".cm" id=".cm" /><label for=".cm">.cm</label></td>
-            <td class="domain_ext_check"><input type="checkbox" name="tld[]" value=".nu" id=".nu" /><label for=".nu">.nu</label></td>
-            <td colspan="3" class="domain_ext_check"><input type="checkbox" name="tld" value="All" id="All" onclick="select_all_tlds(this.checked)">
-              <label for="All">Search All</label></td>
-          </tr>
-        </table>
-      </form>
+      <div class="big_number_div"><span class="big_number">2.</span> <span
+          class="big_number_desc">Select a domain</span></div>
+      <div class="big_number_div"><span class="big_number">3.</span> <span class="big_number_desc">Click Search</span>
+      </div>
     </div>
-    <h4>Register your domain now!</h4>
-
-    <p>Your domain name registration will be processed once the domain application form has been completed. The
-      registration process takes only minutes. A confirmation e-mail will be sent confirming domain registered once
-      processed.</p>
-    <h4>Helpful tips when registering a domain</h4>
-    <ul>
-      <li>The only characters allowed are letters, digits and a hyphen (-)</li>
-      <li>Spaces are not allowed</li>
-      <li>The name should be between 3 and 63 characters long</li>
-      <li>www. is not actually part of the domain name</li>
-      <li>You can buy as many domain names as you wish</li>
-      <li>Domain names are NOT cAsE sEnSiTiVe - so abc.com is the same as ABC.com</li>
-    </ul>
+    <form name="form" action="/system/domain/domain_register" method="GET" id="domain" style="clear: both; margin:0">
+      <table border="0" cellspacing="0" align="center">
+        <tr>
+          <td><strong class="www_bigger">www.</strong></td>
+          <td><input name="domain" type="text" value="" size="40"></td>
+          <td><a href="javascript:void(0)" onclick="document.form.submit()" class="button_search"><span
+              class="inv">Search</span></a></td>
+        </tr>
+      </table>
+      <table border="0" cellpadding="0" cellspacing="0" class="table_checkboxes" align="center" id="tld_table">
+        <tr>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".com" id=".com" checked /><label for=".com">.com</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".net" id=".net" checked /><label for=".net">.net</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".org" id=".org" checked /><label for=".org">.org</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".in" id=".in" /><label for=".in">.in</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".info" id=".info" /><label for=".info">.info</label></td>
+        </tr>
+        <tr>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".co.uk" id=".co.uk" /><label for=".co.uk">.co.uk</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".us" id=".us" /><label for=".us">.us</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".me" id=".me" /><label for=".me">.me</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".co" id=".co" /><label for=".co">.co</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".ca" id=".ca" /><label for=".ca">.ca</label></td>
+        </tr>
+        <tr>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".mobi" id=".mobi" /><label for=".mobi">.mobi</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".biz" id=".biz" /><label for=".biz">.biz</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".xxx" id=".xxx" /><label for=".xxx">.xxx</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".de" id=".de" /><label for=".de">.de</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".tv" id=".tv" /><label for=".tv">.tv</label></td>
+        </tr>
+        <tr>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".eu" id=".eu" /><label for=".eu">.eu</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".org.uk" id=".org.uk" /><label for=".org.uk">.org.uk</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".me.uk" id=".me.uk" /><label for=".me.uk">.me.uk</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".cc" id=".cc" /><label for=".cc">.cc</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".asia" id=".asia" /><label for=".asia">.asia</label></td>
+        </tr>
+        <tr>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".ws" id=".ws" /><label for=".ws">.ws</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".bz" id=".bz" /><label for=".bz">.bz</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".cm" id=".cm" /><label for=".cm">.cm</label></td>
+          <td class="domain_ext_check"><input type="checkbox" name="tld" value=".nu" id=".nu" /><label for=".nu">.nu</label></td>
+          <td colspan="3" class="domain_ext_check"><input type="checkbox" name="tld" value="All" id="All" onclick="select_all_tlds(this.checked)">
+            <label for="All">Search All</label></td>
+        </tr>
+      </table>
     </form>
   </div>
-  <script type="text/javascript">
-    function select_all_tlds(checked) {
-      if (!document.getElementsByTagName) {
-        return;
-      }
-      var inputs = document.getElementById('tld_table').getElementsByTagName('input');
-      var count = inputs.length;
-      for (var i = 0; i < count; i++) {
-        var obj = inputs[i];
-        obj.checked = checked;
-      }
-    }
-  </script>
+  <h4>Register your domain now!</h4>
+
+  <p>Your domain name registration will be processed once the domain application form has been completed. The
+    registration process takes only minutes. A confirmation e-mail will be sent confirming domain registered once
+    processed.</p>
+  <h4>Helpful tips when registering a domain</h4>
+  <ul>
+    <li>The only characters allowed are letters, digits and a hyphen (-)</li>
+    <li>Spaces are not allowed</li>
+    <li>The name should be between 3 and 63 characters long</li>
+    <li>www. is not actually part of the domain name</li>
+    <li>You can buy as many domain names as you wish</li>
+    <li>Domain names are NOT cAsE sEnSiTiVe - so abc.com is the same as ABC.com</li>
+  </ul>
+  </form>
 </div>
 <script type="text/javascript">
-  window.onload = function () {
-
+  function select_all_tlds(checked) {
+    var inputs = document.getElementById('tld_table').getElementsByTagName('input');
+    var count = inputs.length;
+    for (var i = 0; i < count; i++) {
+      var obj = inputs[i];
+      obj.checked = checked;
+    }
   }
 </script>
-<!-- DOMAIN SYSTEM END -->
-<!-- RESELLER FOOTER START -->
-<div class="footer_wrapper">
-
-  <table width="100%" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-      <td align="left">{{ reseller.name }} | {{ reseller.domain }}</td>
-      <td align="right">Reseller Panel</td>
-    </tr>
-  </table>
-
-</div>
-<!-- RESELLER FOOTER END -->
-</body>
-</html>

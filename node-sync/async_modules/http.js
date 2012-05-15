@@ -3,6 +3,7 @@
 
   var url = require('url')
     , http = require('http')
+    , https = require('https')
     , Buffer = require('buffer').Buffer;
 
   var qs = require('../lib/qs');
@@ -21,7 +22,8 @@
   });
 
   exports.request = function(opts, callback) {
-    var req = http.request(opts, function(res) {
+    var _super = (opts.protocol == 'https:') ? https : http;
+    var req = _super.request(opts, function(res) {
       var body = [], length = 0;
       res.on('data', function(data) {
         length += data.length;
@@ -76,6 +78,9 @@
     if (opts.url) {
       extend(opts, url.parse(opts.url));
     }
+    if (opts.params) {
+      opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
+    }
     opts.method = 'GET';
     return exports.request(opts, callback);
   };
@@ -83,6 +88,9 @@
   exports.post = function(opts, callback) {
     if (opts.url) {
       extend(opts, url.parse(opts.url));
+    }
+    if (opts.params) {
+      opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
     }
     opts.method = 'POST';
     return exports.request(opts, callback);
