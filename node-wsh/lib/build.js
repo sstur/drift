@@ -50,6 +50,7 @@
 
     //load shim/patches
     loadPath('app/system/support');
+    loadPath('app/system/adapters/activex');
 
     //load framework modules
     loadPath('app/system/lib');
