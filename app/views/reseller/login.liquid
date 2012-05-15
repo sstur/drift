@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>CRMS - Syra</title>
+<link href="/assets/css/reseller.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+.style2 { color: #333; }
+body { margin: 0; }
+</style>
+</head>
+<body onload="document.getElementById('reseller_username').focus();">
+<table width="100%" height="100%" style="position: absolute">
+  <tr>
+    <td valign="middle">
+      <form action="/reseller/home/reseller_login" method="POST">
+        <input type="hidden" name="submitted" value="TRUE"/>
+        <table border="0" align="center" cellpadding="0" cellspacing="0" class="login">
+          <tr>
+            <td height="114" align="center" valign="middle"><p><img src="/assets/reseller/images/logo_reseller.jpg"/></p>
+              <table width="296" border="0" align="center">
+                {% if error == '1' %}
+                <tr>
+                  <td colspan="2" class="textstyle1 style2" align="center"><font color="#FF0000"><b>Username or password incorrect<br/><br/></b></font></td>
+                </tr>
+                {% endif %}
+                <tr>
+                  <td width="90" class="textstyle1 style2">Username:</td>
+                  <td width="196"><label>
+                    <input name="reseller_username" id="reseller_username" class="textstyle1" type="text" size="30"/>
+                  </label></td>
+                </tr>
+                <tr>
+                  <td class="textstyle1 style2">Password:</td>
+                  <td><input name="reseller_password" id="reseller_password" type="password" class="textstyle1" size="30"/></td>
+                </tr>
+              </table>
+              <br/>
+              <p><input type="submit" name="Submit" value="Login Now" class="buttonHme"/><br/><br/><br/><br/><br/></p></td>
+          </tr>
+        </table>
+      </form>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,353 @@
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+body, tr, td, table {
+	font: 8pt Verdana, Verdana, Arial, Helvetica, sans-serif;
+	color:#333333;
+}
+.bg{
+margin:0;
+padding:0;
+background:url(/assets/reseller/images/background3.gif) top left repeat-x;}
+
+.pad td.none, .links td td td.none{
+padding:0;
+color:#333333;}
+
+.links td td.page_headers, .links td td td, .pad td, td.pad1{
+padding:5px;
+color:#333333;}
+
+td.member{
+padding:5px;
+color:#333333;}
+
+.hosting select{
+width:270px;}
+
+tr.productsRow td {
+	background-color: #FFFFFF;
+	cursor: pointer;
+}
+
+tr.productsRowOver td {
+	background-color: #cde8f6;
+	cursor: pointer;
+}
+
+.status_box {
+	background-color:#FD404E;
+	color: #FFF;
+	font: 400 11px Verdana, Arial, Helvetica, sans-serif;
+	font-weight: bold;
+}
+
+.noborder{
+border:0;}
+
+.bottom_page_text {
+	color: #FFF;
+	text-decoration: none;
+	font: 400 xx-small Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.all_website_text {
+	color: #333;
+	font: 400 9px/normal Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.right_hand_links {
+	color: #000;
+	font: normal 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.page_headers {
+	text-transform: none;
+	color: #333333;
+	font: 18px normal Verdana, Verdana, Arial, Helvetica, sans-serif;
+	margin:0;
+	padding:0;
+}
+.copyright {
+	color: #333;
+	font: 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.page_header {
+	color: #333;
+	font: 700 small Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+A {
+	text-decoration: none;
+}
+A:hover {
+	color: #C00;
+}
+a:link.right_hand_links, a:visited.right_hand_links{
+margin:0;
+padding: 4px 5px 4px 20px;
+background-color:#a4c3d7;
+width:153px;
+display:block;
+color:#333333;}
+
+a:hover.right_hand_links{
+margin:0;
+padding: 4px 5px 4px 20px;
+background-color:#7ca8c3;
+width:153px;
+color:#333333;}
+
+*html a:link.right_hand_links, *html a:visited.right_hand_links, *html a:hover.right_hand_links{
+width:178px;}
+
+input.textstyle1{
+margin:0;
+padding:2px;
+background-color:#fff;
+border:1px solid #999999;
+font:11px Verdana, Arial, Helvetica, sans-serif;
+}
+
+select{
+margin:0;
+padding:1px;
+background-color:#fff;
+border:1px solid #999999;
+font:11px Verdana, Arial, Helvetica, sans-serif;
+}
+
+input.buttonHme{
+margin:0;
+padding:6px 4px 4px 4px;
+background-color:#c3d9e7;
+border:1px solid #a4c3d7;
+font:11px Verdana, Arial, Helvetica, sans-serif;
+text-transform:uppercase;
+cursor:pointer;}
+
+input.button{
+margin:0;
+padding:6px 4px 4px 4px;
+background-color:#c3d9e7;
+border:1px solid #a4c3d7;
+font:11px Verdana, Arial, Helvetica, sans-serif;
+text-transform:uppercase;
+cursor:pointer;}
+
+input.button_grey{
+margin:0;
+padding:4px 2px 2px 2px;
+background-color:#CCCCCC;
+border:1px solid #AAAAAA;
+font:11px Verdana, Arial, Helvetica, sans-serif;
+text-transform:uppercase;
+cursor:pointer;}
+
+.login{
+margin:0 auto;
+width:400px;
+padding:30px;
+background-color:#fafafa;
+border:1px solid #999999;
+font:11px Verdana, Arial, Helvetica, sans-serif;}
+
+
+.justify {
+	color: #000;
+	text-align: justify;
+	font: 400 x-small Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.nojust {
+	color: #333;
+	font: 400 x-small Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.links {
+	color: #369;
+	font: 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.linker {
+	color: #369;
+	font: 9px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.linkfront {
+	color: #369;
+	font: xx-small Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.fronttext {
+	color: #000;
+	text-align: justify;
+	font: 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.status {
+	color: #009900;
+	font: 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.registration_red {
+	color:#AF0515;
+	font: 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.textstyle1 {
+	color: #333;
+	font: 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.textstyle2 {
+	color: #333;
+	font: 400 12px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.textlink {
+	color: #039;
+	font: 400 x-small Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.textstyle3 {
+	color: #FFF;
+	font: 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.allfonts {
+	color: #333;
+	font: 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.allfontsCopy {
+	color: #369;
+	font: 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.allwebunder {
+	color: #333;
+	text-decoration: underline;
+	font: 400 xx-small/normal Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.rightnad1 {
+	color: #999;
+	text-decoration: underline;
+	font: normal 400 11px Verdana, Verdana, Arial, Helvetica, sans-serif;
+}
+.warning {
+	color: #FFFFFF
+}
+.redwarning {
+	color: #FF0000
+}
+.lines {
+	margin: 3px;
+	padding: 3px;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #e5e5e5;
+}
+/*
+	styles changed: copyright_email, unnamed1, unnamed2, red_page_hedears
+	to:             links          , textstyle1,textstyle3,page_header
+*/
+
+#cvv_box  {
+	cursor: pointer;
+	left: 381px;
+	*left: 377px;
+	margin-top: -241px;
+	margin-left: -270px;
+	position: relative;
+	top: 242px;
+	*top: 222px;
+	float: left;
+	background-image: url(/assets/reseller/images/cvv_box.png);
+	display: block;
+	width: 270px;
+	height: 241px;
+}
+
+
+@media screen and (-webkit-min-device-pixel-ratio:0){
+	#cvv_box  {
+	left: 375px !important;
+	top: 242px !important;
+	}
+}
+
+#cvv_box { _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/reseller/images/cvv_box.png", sizingMethod="scale"); _background-image:none; }
+
+#cvv_anchor {
+	outline: none;
+}
+
+.questionMark {
+	border-style: none;
+	cursor: pointer;
+	position: relative;
+	top: -1px;
+	*top: 0px;
+}
+
+
+
+
+.error_content {
+	text-align: left;
+	padding: 13px 13px 13px 45px;
+	background: #F8C3C3 url(/assets/reseller/images/icon_error.png) 12px 8px no-repeat;
+	margin: 0 auto 15px;
+	border: 1px solid #E00;
+	color: #333;
+}
+
+.error_content ul {
+	margin:0px;
+	padding:8px 0 5px 30px;
+}
+
+.success_content {
+	text-align: left;
+	padding: 9px 13px 11px 45px;
+	background: #D8EFC5 url(/assets/reseller/images/icon_success.png) 12px 8px no-repeat;
+	margin: 0 auto 15px;
+	border: 1px solid #86C31D;
+	color: #333;
+	font-weight: bold;
+	line-height: 20px;
+}
+
+
+
+
+/*auto complete*/
+
+.autoComplete { height: 23px; }
+
+.autoCompleteInputWrapper { position: absolute; }
+
+	.autoCompleteListWrapper { cursor: pointer; top: -1px; *top: -2px; overflow: hidden; position: relative; z-index: 999; border: 1px solid #DDD; box-shadow: 4px 4px 4px #F0F0F0; }
+
+	.autoCompleteList { margin: 8px 0 0; overflow: auto; background: #FFF; list-style: none !important; }
+
+	.autoCompleteListWrapper ul { margin: 0px !important; padding: 0px !important;}
+
+	.autoCompleteList li { padding: 2px 0; }
+
+	.autoCompleteList li a { font-family: Verdana,Arial,sans-serif !important; font-size: 11px !important; }
+
+	.autoCompleteList li a:hover { text-decoration: none; }
+
+	.autoCompleteItem, .autoCompleteActiveItem { line-height: 22px; }
+
+	.autoCompleteActiveItem { background-color: #F3F3F3; }
+
+	.autoCompleteLink, .autoCompleteLink:visited { font-size: 14px !important; font-family: Arial, Helvetica, sans-serif !important; color: #555 !important; display: block; padding-left: 12px; }
+
+/* Popup Boxes
+************************************************************************/
+
+#dhtmltooltip { position: absolute; width: 180px; padding: 7px 14px; visibility: hidden; z-index: 100; text-align: left !important; border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px; }
+
+.greenToolTip { border: 1px solid #72BE02; background-color: #F3FEE1; }
+
+.blueToolTip { border: 1px solid #5378A4; background-color: #EBF6F9; }
+
+.grayToolTip { border: 1px solid #CCC; background-color: #EFEFEF; width: 250px !important; }
+
+#dhtmltooltip p { margin-top: 5px !important; margin-bottom: 10px !important; }
+
+.linkTip { color: #484848 !important; border-bottom: 1px dotted #646464; cursor: help; }
+
+.linkTip:hover { text-decoration: none !important; }

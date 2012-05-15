@@ -2,19 +2,10 @@
 app.on('ready', function(require) {
   "use strict";
 
-  app.route('/reseller/home/login', function(req, res) {
-    var error = req.params('error');
-    res.send('reseller/login', {action: '/reseller/home/reseller_login', error: error});
-  });
-
-  app.route('POST:/reseller/home/reseller_login', function(req, res) {
-    var un = req.post('reseller_username')
-      , pw = req.post('reseller_password');
-    if (un == 'user' && pw == 'password') {
-      res.redirect('/reseller/home/home');
-    } else {
-      res.redirect('/reseller/home/login?error=1');
-    }
+  app.route('/reseller/home/home', function(req, res) {
+    res.send('reseller/home', {
+      reseller: {name: 'Domain Company', id: 'R3765', domain: 'company.xappr.com'}
+    });
   });
 
 

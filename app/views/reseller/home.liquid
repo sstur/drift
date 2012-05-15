@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Reseller - Syra</title>
+</head>
+<body background="/assets/reseller/images/background2.gif" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr bgcolor="#FFFFFF">
+    <td width="178"><img src="/assets/reseller/images/side1.gif" width="178" height="35"></td>
+    <td rowspan="2">&nbsp;</td>
+  </tr>
+  <tr bgcolor="#FFFFFF">
+    <td><img src="/assets/reseller/images/side2.gif" width="178" height="28"></td>
+  </tr>
+  <tr bgcolor="#FFFFFF">
+    <td><img src="/assets/reseller/images/leftbar.gif" width="178" height="22"></td>
+    <td background="/assets/reseller/images/leftbar.gif" align="left">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td align="left" class="textstyle3">
+            <table width="775px" border="0" align="left" cellpadding="0" cellspacing="0">
+              <tr>
+                <td class="textstyle3" style="padding-left: 8px;">
+                  <font color="#FFFFFF"><strong>Balance:</strong></font> <font color="#FFFF00">$ 12.90</font>
+                </td>
+                <td class="textstyle3" align="right">{{ 'now' | date: "%A %e %B %Y" }}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table width="953" border="0" cellspacing="0" cellpadding="0">
+<tr>
+  <td width="180"><img src="/assets/reseller/images/1dd.gif" width="180" height="22"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+<td valign="top">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>
+        <table border="0" cellspacing="1" cellpadding="0">
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/home/home" class="right_hand_links">Home Page</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/home/logout" class="right_hand_links">Log Out</a></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><img src="/assets/reseller/images/searchbar.gif" width="180" height="22"></td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center">
+        <form name="menu_form" id="menu_from" method="post" onSubmit="javascript: return set_action();"
+              style="margin: 0;">
+          <table width="77%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td colspan="3"><input name="menu_search_keyword" id="menu_search_keyword" type="text" class="textstyle1"
+                                     value="" style="width: 100%;"></td>
+            </tr>
+            <tr>
+              <td colspan="3">&nbsp;</td>
+            </tr>
+            <tr>
+              <td><select name="menu_search_type" id="menu_search_type" class="textstyle1">
+                <option value="domain" selected>Domain Name</option>
+                <option value="hosting">Hosting</option>
+                <option value="product">Product</option>
+                <option value="email">Email</option>
+                <option value="username">Username</option>
+                <option value="last_name">Last Name</option>
+                <option value="member_id">Member ID</option>
+              </select></td>
+              <td>&nbsp;</td>
+              <td align="right"><input type="image" src="/assets/reseller/images/search_icon.gif" width="21" height="21"
+                                       style="cursor: pointer;"></td>
+            </tr>
+          </table>
+        </form>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><img src="/assets/reseller/images/1e.gif" width="180" height="22"></td>
+    </tr>
+    <tr>
+      <td>
+        <table border="0" cellspacing="1" cellpadding="0">
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/reseller/reseller_account_details" class="right_hand_links">Account
+              Details</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/reseller/reseller_view_notifications" class="right_hand_links">View
+              Notifications</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/reseller/reseller_invoice_reports" class="right_hand_links">View
+              Invoices</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/reseller/reseller_reports" class="right_hand_links">View
+              Reports</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/reseller/reseller_add_credit" class="right_hand_links">Add
+              Credit</a></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><img src="/assets/reseller/images/1ee.gif" width="180" height="22"></td>
+    </tr>
+    <tr>
+      <td>
+        <table border="0" cellspacing="1" cellpadding="0">
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/reseller/reseller_setup" class="right_hand_links">Reseller
+              Setup</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/reseller/reseller_pricing_domains" class="right_hand_links">Set
+              Product Pricing</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="http://{{ reseller.domain }}" target="_blank" class="right_hand_links">View
+              My Website</a></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><img src="/assets/reseller/images/title_members.gif" width="180" height="22"></td>
+    </tr>
+    <tr>
+      <td>
+        <table border="0" cellspacing="1" cellpadding="0">
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/member/member_search" class="right_hand_links">Find Member</a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/member/member_register" class="right_hand_links">Register New
+              Member</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/member/member_view" class="right_hand_links">View Members</a></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><img src="/assets/reseller/images/title_orders.gif" width="180" height="22"></td>
+    </tr>
+    <tr>
+      <td>
+        <table border="0" cellspacing="1" cellpadding="0">
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/order/orders_new" class="right_hand_links">New Orders</a></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><img src="/assets/reseller/images/title_domains.gif" width="180" height="22"></td>
+    </tr>
+    <tr>
+      <td>
+        <table border="0" cellspacing="1" cellpadding="0">
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/order/domain_pending_approval" class="right_hand_links">Pending
+              Approval</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/order/domain_orders_awaiting_info" class="right_hand_links">Awaiting
+              Information</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/order/order_domain_transfer" class="right_hand_links">Transfers
+              Pending</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/domain/domains" class="right_hand_links">Register Domain</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/domain/domain_renew" class="right_hand_links">Renew Domain</a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/domain/domain_transfer" class="right_hand_links">Transfer
+              Domain</a></td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/domain/domains_delete" class="right_hand_links">Delete Domain</a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/domain/domains_view" class="right_hand_links">View Domains</a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#C6DAFB"><a href="/reseller/domain/domains_view?expiry=1" class="right_hand_links">Domains
+              Near Expiry</a></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+  </table>
+</td>
+<td align="center" valign="top" class="links">
+  <table width="728" border="0" align="center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td bgcolor="#E4E4E4" class="page_headers">
+        <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="page_headers">
+              <table width="100%" border="0" cellpadding="4" cellspacing="1" bordercolor="#FFFFFF">
+                <tr>
+
+                  <td width="77%" bgcolor="#FFFFFF" class="textstyle1"><font color="#FF0000">{{ reseller.name }}</font>
+                  </td>
+                  <td width="23%" bgcolor="#FFFFFF" class="textstyle1" align="right">Reseller ID: {{ reseller.id }}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td class="pad1" align="right"><a href="/reseller/reseller/send_support_ticket" class="links">Send Support
+        Ticket</a></td>
+    </tr>
+  </table>
+  <br/>
+  <table width="714" border="0" align="center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="page_headers">Reseller Management</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>
+        <table width="455" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <div align="center"><span class="textstyle1">Reseller Account Status: <font
+                  color="#009900"><strong>Active</strong></font></span></div>
+            </td>
+          </tr>
+        </table>
+        <table width="560" border="0" align="center" cellpadding="0" cellspacing="20">
+          <tr valign="top">
+            <td width="259" bgcolor="#E4E4E4" align="center">
+              <table width="259" border="0" cellspacing="1" cellpadding="2" class="pad">
+                <tr>
+                  <td width="74%" height="17" class="textstyle1"><strong>Domains</strong></td>
+                  <td width="26%">&nbsp;</td>
+                </tr>
+                <tr bgcolor="#FFFFFF" class="productsRow" onmouseout="rowOutEffect(this)"
+                    onmouseover="rowOverEffect(this)">
+                  <td class="textstyle1"
+                      onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains/';">Total
+                  </td>
+                  <td onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains/';">
+                    <div align="center"><a href="/reseller/reseller/reseller_manage_domains" class="links">17</a></div>
+                  </td>
+                </tr>
+                <tr bgcolor="#FFFFFF" class="productsRow" onmouseout="rowOutEffect(this)"
+                    onmouseover="rowOverEffect(this)">
+                  <td class="textstyle1"
+                      onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains?status=2';">
+                    Pending Approval
+                  </td>
+                  <td onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains?status=2';">
+                    <div align="center"><a href="/reseller/reseller/reseller_manage_domains?status=2"
+                                           class="links">0</a></div>
+                  </td>
+                </tr>
+                <tr bgcolor="#FFFFFF" class="productsRow" onmouseout="rowOutEffect(this)"
+                    onmouseover="rowOverEffect(this)">
+                  <td class="textstyle1"
+                      onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains?status=4';">
+                    Awaiting Information
+                  </td>
+                  <td onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains?status=4';">
+                    <div align="center"><a href="/reseller/reseller/reseller_manage_domains?status=4"
+                                           class="links">0</a></div>
+                  </td>
+                </tr>
+                <tr bgcolor="#FFFFFF" class="productsRow" onmouseout="rowOutEffect(this)"
+                    onmouseover="rowOverEffect(this)">
+                  <td class="textstyle1"
+                      onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains?status=11';">Due
+                    For Renewal
+                  </td>
+                  <td onclick="javascript:window.location='/reseller/reseller/reseller_manage_domains?status=11';">
+                    <div align="center"><a href="/reseller/reseller/reseller_manage_domains?status=11"
+                                           class="links"><font color="#FF0000">5</font></a></div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <td width="259" align="center">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td colspan="2" bgcolor="#E4E4E4" class="none">
+                    <table width="259" border="0" cellpadding="2" cellspacing="1">
+                      <tr>
+                        <td height="17" width="76%" bgcolor="#E4E4E4" class="textstyle1"><strong>Hosting</strong></td>
+                        <td height="17" width="24%" bgcolor="#E4E4E4" class="textstyle1">&nbsp;</td>
+                      </tr>
+                      <tr class="productsRow" onmouseout="rowOutEffect(this)" onmouseover="rowOverEffect(this)">
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_hosting/';">Total
+                        </td>
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_hosting/';">
+                          <div align="center"><a href="/reseller/reseller/reseller_manage_hosting" class="links">0</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="productsRow" onmouseout="rowOutEffect(this)" onmouseover="rowOverEffect(this)">
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_hosting?status=2';">
+                          Awaiting Setup
+                        </td>
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_hosting?status=2';">
+                          <div align="center"><a href="/reseller/reseller/reseller_manage_hosting?status=2"
+                                                 class="links">0</a></div>
+                        </td>
+                      </tr>
+                      <tr class="productsRow" onmouseout="rowOutEffect(this)" onmouseover="rowOverEffect(this)">
+                        <td valign="top" bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_hosting?status=10';">
+                          Due For Renewal
+                        </td>
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_hosting?status=10';">
+                          <div align="center"><a href="/reseller/reseller/reseller_manage_hosting?status=10"
+                                                 class="links"><font color="#FF0000">0</font></a></div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr valign="top">
+            <td width="259" align="center">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td colspan="2" bgcolor="#E4E4E4" class="none">
+                    <table width="259" border="0" cellpadding="2" cellspacing="1">
+                      <tr>
+                        <td height="17" width="76%" bgcolor="#E4E4E4" class="textstyle1"><strong>Products</strong></td>
+                        <td height="17" width="24%" bgcolor="#E4E4E4" class="textstyle1">&nbsp;</td>
+                      </tr>
+                      <tr class="productsRow" onmouseout="rowOutEffect(this)" onmouseover="rowOverEffect(this)">
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_products/';">Total
+                        </td>
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_products/';">
+                          <div align="center"><a href="/reseller/reseller/reseller_manage_products" class="links">0</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="productsRow" onmouseout="rowOutEffect(this)" onmouseover="rowOverEffect(this)">
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_products?status=2';">
+                          Awaiting Setup
+                        </td>
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_products?status=2';">
+                          <div align="center"><a href="/reseller/reseller/reseller_manage_products?status=2"
+                                                 class="links">0</a></div>
+                        </td>
+                      </tr>
+                      <tr class="productsRow" onmouseout="rowOutEffect(this)" onmouseover="rowOverEffect(this)">
+                        <td valign="top" bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_products?status=10';">
+                          Due For Renewal
+                        </td>
+                        <td bgcolor="#FFFFFF" class="textstyle1"
+                            onclick="javascript:window.location='/reseller/reseller/reseller_manage_products?status=10';">
+                          <div align="center"><a href="/reseller/reseller/reseller_manage_products?status=10"
+                                                 class="links"><font color="#FF0000">0</font></a></div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <td width="259">&nbsp;</td>
+          </tr>
+        </table>
+        <br/>
+        <br/>
+        <table width="714" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="page_headers">Getting Started</td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+          </tr>
+          <tr>
+            <td>
+              <table width="625" border="0" cellspacing="0" cellpadding="0" align="center">
+                <tr>
+                  <td height="30" valign="top">The following manuals have been created to help and guide you through the
+                    reseller system.
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-left:44px;"><a href="/reseller/docs" class="links"
+                                                    target="_blank"><img src="/assets/reseller/images/pdf_icon.png" width="16"
+                                                                         height="16" border="0"
+                                                                         style="margin-right:4px; position:relative; top:3px;"/>
+                    Reseller Guide 101</a></td>
+                </tr>
+                <tr>
+                  <td style="padding-left:44px;"><a href="/reseller/docs" class="links"
+                                                    target="_blank"><img src="/assets/reseller/images/pdf_icon.png" width="16"
+                                                                         height="16" border="0"
+                                                                         style="margin-right:4px; position:relative; top:3px;"/>
+                    Reseller API Guide</a></td>
+                </tr>
+              </table>
+              <br/>
+
+              <br/>
+              <br/>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <br/>
+  <br/>
+</td>
+</tr>
+</table>
+<script language="javascript" type="text/javascript">
+  function MM_preloadImages() {
+    var d = document;
+    if (d.images) {
+      if (!d.MM_p) d.MM_p = new Array();
+      var i, j = d.MM_p.length, a = MM_preloadImages.arguments;
+      for (i = 0; i < a.length; i++)
+        if (a[i].indexOf("#") != 0) {
+          d.MM_p[j] = new Image;
+          d.MM_p[j++].src = a[i];
+        }
+    }
+  }
+  function rowOverEffect(object) {
+    if (object.className == 'productsRow') {
+      object.className = 'productsRowOver';
+    }
+  }
+  function rowOutEffect(object) {
+    if (object.className == 'productsRowOver') {
+      object.className = 'productsRow';
+    }
+  }
+  function set_action() {
+    var keyword = document.getElementById('menu_search_keyword').value;
+    var type = document.getElementById('menu_search_type').value;
+    if (keyword != '') {
+      if (type == 'domain') {
+        window.location = '/reseller/domain/domains_search?q=' + keyword + '&search_by=domain_name';
+      } else if (type == 'hosting') {
+        window.location = '/reseller/hosting/hosting_search?q=' + keyword + '&search_by=domain_name';
+      } else if (type == 'product') {
+        window.location = '/reseller/product/product_search?q=' + keyword + '&search_by=domain_name';
+      } else if (type == 'email') {
+        window.location = '/reseller/member/member_search_view?email=' + keyword;
+      } else if (type == 'username') {
+        window.location = '/reseller/member/member_search_view?username=' + keyword;
+      } else if (type == 'last_name') {
+        window.location = '/reseller/member/member_search_view?last_name=' + keyword;
+      } else if (type == 'member_id') {
+        window.location = '/reseller/member/member_search_view?member_id=' + keyword;
+      }
+    } else {
+      alert('Keyword may not be blank');
+    }
+    return false;
+  }
+</script>
+<link href="/assets/css/reseller.css" rel="stylesheet" type="text/css"/>
+</body>
+</html>
