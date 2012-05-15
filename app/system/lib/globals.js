@@ -251,10 +251,10 @@ var forEach, vartype, isPrimitive, isSet, toArray;
 
   //explicit globals for commonjs platforms
   if (!global.vartype) {
-    global.vartype = vartype;
-    global.isPrimitive = isPrimitive;
-    global.isSet = isSet;
-    global.toArray = toArray;
+    app.setGlobal('vartype', vartype);
+    app.setGlobal('isPrimitive', isPrimitive);
+    app.setGlobal('isSet', isSet);
+    app.setGlobal('toArray', toArray);
   }
 
 })();

@@ -247,8 +247,8 @@ var app, define;
 
   //explicit globals for commonjs platforms
   if (!global.app) {
-    global.app = app;
-    global.define = define;
+    app.setGlobal('app', app);
+    app.setGlobal('define', define);
   }
 
 })();

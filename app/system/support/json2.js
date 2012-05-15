@@ -3,7 +3,7 @@ var JSON;
 (function() {
 
   JSON = {};
-  if (!global.JSON) global.JSON = JSON;
+  //if (!global.JSON) global.JSON = JSON;
 
   function f(n) {
     // Format integers to have at least two digits.
