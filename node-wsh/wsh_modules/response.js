@@ -2,8 +2,7 @@
 define('node-response', function(require, exports, module) {
   "use strict";
 
-  var util = require('util')
-    , Buffer = require('buffer').Buffer;
+  var Buffer = require('buffer').Buffer;
 
   var TEXT_CTYPES = /^text\/|\/json$/i;
 
@@ -147,11 +146,6 @@ define('node-response', function(require, exports, module) {
         attachment: !!opts.attachment,
         filename: opts.name
       };
-      this.end();
-    },
-    debug: function(data) {
-      this.clear();
-      this.write(util.inspect(data));
       this.end();
     }
   };

@@ -1,14 +1,19 @@
 /*global app, define */
-(function() {
+(function(require) {
+
+  var util = require('util');
 
   global.console = {
     log: function() {
       var args = toArray(arguments);
+      for (var i = 0; i < args.length; i++) {
+        args[i] = util.inspect(args[i]);
+      }
       app.messenger.send('log', args);
     }
   };
 
-  global.Buffer = app.require('buffer').Buffer;
+  global.Buffer = require('buffer').Buffer;
 
   app.mappath = function(path) {
     var fullpath = global.basePath + 'app\\';
@@ -27,4 +32,4 @@
     return app.messenger.query('rpc', {method: method, args: args});
   };
 
-})();
+})(app.require);

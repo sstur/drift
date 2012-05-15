@@ -1,7 +1,6 @@
 (function() {
   "use strict";
 
-  var util = require('util');
   var Fiber = global.Fiber;
   var Buffer = global.Buffer;
 
@@ -159,11 +158,6 @@
           filename: opts.name
         });
       });
-    },
-    debug: function(data) {
-      this.clear();
-      this.write(util.inspect(data));
-      this.end();
     }
   };
 

@@ -2,7 +2,8 @@
 define('response', function(require, exports, module) {
   "use strict";
 
-  var Buffer = require('buffer').Buffer;
+  var util = require('util')
+    , Buffer = require('buffer').Buffer;
 
   var RE_CTYPE = /^[\w-]+\/[\w-]+$/;
   var RE_STATUS = /^\d{3}\b/;
@@ -17,9 +18,6 @@ define('response', function(require, exports, module) {
     },
     cookies: function() {
       this.res.cookies.apply(this.res, arguments);
-    },
-    debug: function() {
-      this.res.debug.apply(this.res, arguments);
     },
     charset: function() {
       this.res.charset.apply(this.res, arguments);
@@ -76,6 +74,11 @@ define('response', function(require, exports, module) {
     die: function() {
       this.clear();
       this.end.apply(this, arguments);
+    },
+    debug: function(data) {
+      this.clear();
+      this.write(util.inspect(data));
+      this.end();
     },
     redirect: function(url, type) {
       if (type == 'html') {
