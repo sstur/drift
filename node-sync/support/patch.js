@@ -12,9 +12,15 @@
     , normalize = path.normalize
     , mime = require('mime')
     , utils = require('./http_utils')
-    , inspect = require('util').inspect;
+    , inspect = require('util').inspect
+    , Buffer = require('buffer').Buffer;
 
   var INVALID_CHARS = /[^\w\d!@#$()_\-+={}[],;']/g;
+
+  //Patch buffer to serialize nicely to JSON
+  Buffer.prototype.toJSON = function() {
+    return '<Buffer ' + this.toString('hex') + '>';
+  };
 
   //Patch ServerRequest to save unmodified copy of headers
   var _addHeaderLine = req._addHeaderLine;

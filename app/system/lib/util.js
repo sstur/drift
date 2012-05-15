@@ -33,21 +33,17 @@ define('util', function(require, util) {
 
 
   var REG_CHARS = /[^\x20-\x7E]/g;
-  var REG_CONSTR = /^new (Error|Date|Buffer)\(.*\)$/;
+  var REG_CONSTR = /^new Error\(.*\)$/;
+  var REG_ISODATE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)Z$/;
 
   function replacer(key, val) {
+    //this function runs after .toJSON()
     if (!val || typeof val != 'object') {
       return val;
     }
     var type = Object.prototype.toString.call(val).slice(8, -1);
     if (type == 'Error') {
       return 'new Error(' + JSON.stringify(val.message) + ')';
-    } else
-    if (type == 'Date') {
-      return 'new Date(' + val.valueOf() + ')';
-    } else
-    if (Buffer.isBuffer(val)) {
-      return 'new Buffer("' + val.toString('hex') + '","hex")';
     } else {
       return val;
     }
@@ -55,6 +51,10 @@ define('util', function(require, util) {
 
   function reviver(key, val) {
     if (typeof val == 'string') {
+      var date = val.match(REG_ISODATE);
+      if (date) {
+        val = new Date(val) || new Date(Date.UTC(+date[1], +date[2] - 1, +date[3], +date[4], +date[5], +date[6]));
+      }
       if (val.slice(0, 8) == '<Buffer ' && val.slice(-1) == '>') {
         return new Buffer(val.slice(8, -1), 'hex');
       }
