@@ -3,9 +3,6 @@
   <h3 class="page_header_system">Domain Registration</h3>
 
   <div class="register_steps">
-    <map name="progress">
-      <area coords="0,0,180,29" href="/system/domain/domain_register?domain={{ domain }}&amp;tld=All" />
-    </map>
     <img src="/assets/system/images/step1.png" usemap="#progress" border="0" /></div>
   <div class="content_indent">
 
@@ -18,9 +15,10 @@
           <td><strong class="www_bigger">www.</strong></td>
           <td><input name="domain" type="text" value="" size="40"/></td>
           <td class="select_td"><select name="tld" id="tld" class="textstyle1">
-            <option value=".com.au">.com</option>
-            <option value=".net.au">.net</option>
-            <option value=".org.au">.org</option>
+            {% for tld in all_tlds %}
+            <option value="{{ tld }}">{{ tld }}</option>
+            {% endfor %}
+            <option value="all">All</option>
           </select></td>
           <td><a href="javascript:void(0)" onclick="document.getElementById('domain').submit()" class="button_search"><span class="inv">Search</span></a></td>
         </tr>
@@ -34,7 +32,7 @@
   <input type="hidden" name="back_order_price" id="back_order_price" value="$ 9.60"/>
   <table width="100%" border="0" cellspacing="0" class="table_style2">
   <tr>
-    <td colspan="3" class="td_style1">Available Domains</td>
+    <td colspan="3" class="td_style1">Domain Search Results</td>
   </tr>
   <tr>
     <th class="first">Domain</th>

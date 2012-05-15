@@ -6,6 +6,10 @@ define('nc-api', function(require, exports, module) {
   var self_ip = '110.174.212.150';
   var api_key = '98df5701e8e8458eabb72469d599414d';
 
+  var tlds = exports.tlds = [
+    ".com", ".net", ".org", ".in", ".info", ".co.uk", ".us", ".me", ".co", ".ca", ".mobi", ".biz", ".xxx", ".de", ".tv",
+    ".eu", ".org.uk", ".me.uk", ".cc", ".asia", ".ws", ".bz", ".cm", ".nu"];
+
   exports.checkDomains = function(domains) {
     var response = http.get({
       url: 'https://api.namecheap.com/xml.response',
