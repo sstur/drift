@@ -5,15 +5,10 @@ define('buffer', function(require, exports) {
 
   //todo: offset, inspect, base64
   function Buffer(subject, encoding, offset) {
-    var type = typeof subject;
-    if (arguments.length == 1 && type == 'string' && subject.slice(0, 8) == '<Buffer ') {
-      //hack: revive buffer that was flattened to '<Buffer 01ab>'
-      subject = subject.slice(8, -1);
-      encoding = 'hex';
-    }
     if (!(this instanceof Buffer)) {
       return new Buffer(subject, encoding, offset);
     }
+    var type = typeof subject;
     if (type == 'number') {
       this._raw = new Array(subject + 1).join('\x00');
     } else
@@ -35,8 +30,8 @@ define('buffer', function(require, exports) {
       this._raw = arrToRaw(subject);
     } else
     if (type == 'unknown') {
-      //adodb stream
-      this._raw = binToRaw(subject);
+      //ado binary
+      this._raw = adoToRaw(subject);
     } else {
       throw new Error('Invalid parameters to construct Buffer')
     }
@@ -89,13 +84,11 @@ define('buffer', function(require, exports) {
       }
       return s;
     },
-    valueOf: function() {
-      //the idea is that if buffer.valueOf() flattens to a primitive val,
-      // then new Buffer(val) should revive
-      return '<Buffer ' + rawToHex(this._raw) + '>';
+    toADO: function() {
+      return rawToAdo(this._raw);
     },
     toJSON: function() {
-      return this.valueOf();
+      return '<Buffer ' + rawToHex(this._raw) + '>';
     }
   };
 
@@ -143,11 +136,18 @@ define('buffer', function(require, exports) {
     return out.join('');
   }
 
-  function binToRaw(bin) {
+  function adoToRaw(bin) {
     var el = new ActiveXObject('Microsoft.XMLDOM').createElement('node');
     el.dataType = 'bin.hex';
     el.nodeTypedValue = bin;
     return hexToRaw(el.text);
+  }
+
+  function rawToAdo(input) {
+    var el = new ActiveXObject('Microsoft.XMLDOM').createElement('node');
+    el.dataType = 'bin.hex';
+    el.text = rawToHex(input);
+    return el.nodeTypedValue;
   }
 
 
