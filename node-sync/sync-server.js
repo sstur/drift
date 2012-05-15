@@ -58,6 +58,7 @@
   //load framework modules
   loadPath('app/system/lib');
   loadPath('app/controllers');
+  loadPath('app/helpers');
 
   //all modules loaded
   app.emit('ready', app.require);
