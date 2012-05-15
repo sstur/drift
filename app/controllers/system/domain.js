@@ -22,7 +22,6 @@ app.on('ready', function(require) {
     }
     var result = api.checkDomains(domains);
     var data = {
-      reseller: {name: 'Domain Company', domain: 'company.xappr.com'},
       all_tlds: all_tlds,
       domain: domain
     };
@@ -30,9 +29,6 @@ app.on('ready', function(require) {
       data.errors = result.errors;
     } else {
       data.domains = result;
-      //result.forEach(function(domain) {
-      //  if (domain) {}
-      //});
     }
     res.send('system/domain-search', data);
   });

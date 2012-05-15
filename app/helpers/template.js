@@ -1,8 +1,11 @@
 app.on('ready', function(require) {
 
   var fs = require('fs')
+    , config = require('config')
     , Liquid = require('liquid')
     , Response = require('response');
+
+  var defaults = config.template_defaults || {};
 
   //var cache = {};
   var REG_TAG = /\{%\s*(?:assign)\s+(.*?)\s*%\}/;
@@ -40,7 +43,7 @@ app.on('ready', function(require) {
   };
 
   Response.prototype.send = function(path, data) {
-    var rendered = Liquid.renderTemplate(path, data);
+    var rendered = Liquid.renderTemplate(path, Object.extend({}, defaults, data));
     this.end('text/html', rendered);
   };
 

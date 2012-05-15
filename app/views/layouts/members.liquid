@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Domains and Web Hosting</title>
+</head>
+<body>
+
+<div class="header_wrapper">
+
+  <h1>Sigate Solutions</h1>
+
+  <div class="menu">
+    <ul>
+      <li><a href="/system/home/home" title="Home Page">Home Page</a></li>
+      <li><a href="javascript:void(0)" title="Domain Names">Domain Names</a>
+        <ul>
+          <li><a href="/system/domain/check_domain">Register Domains</a></li>
+          <li><a href="/system/domain/check_transfer">Transfer Domains</a></li>
+          <li><a href="/system/domain/check_renew">Renew Domains</a></li>
+          <li><a href="/system/domain/pricing">Domain Pricing</a></li>
+        </ul>
+      </li>
+      <li><a href="javascript:void(0)" title="Hosting">Hosting</a>
+        <ul>
+          <li><a href="/system/hosting/hosting_register?hosting_type=1">Web Hosting</a></li>
+          <li><a href="/system/hosting/hosting_register?hosting_type=2">Email Hosting</a></li>
+          <li><a href="/system/hosting/hosting_register?hosting_type=3">DNS Hosting</a></li>
+          <li><a href="/system/hosting/hosting_register?hosting_type=4">SSL Certificates</a></li>
+          <li><a href="/system/hosting/hosting_register?hosting_type=5">Website Builder</a></li>
+          <li><a href="/system/hosting/hosting_register?hosting_type=6">Spam Filter</a></li>
+        </ul>
+      </li>
+      <li><a href="javascript:void(0)" title="Domain Names">Account Manager</a>
+        <ul>
+          <li><a href="/system/home/login">Domain Manager</a></li>
+          <li><a href="/system/home/login_hosting">Hosting Manager</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+</div>
+<link href="/assets/css/reseller.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="http://framework.secureapi.com.au/jquery/1.7.1/jquery.js"></script>
+<script type="text/javascript">
+function jquery_id(id) {
+  return '#' + id.replace(/(:|\.)/g, '\\$1');
+}
+</script>
+<link href="/assets/css/reseller-custom.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="/assets/css/status_boxes.css"/>
+
+{% include content %}
+
+<script type="text/javascript" src="http://framework.secureapi.com.au/ajax/1.0/ajax.js"></script>
+<script type="text/javascript" defer="true">
+function send_timezone_offset() {
+  var timezone_date = new Date();
+  var timezone_url = '/members/member/ajax_set_timezone_offset/';
+  var timezone_params = 'offset=' + (-timezone_date.getTimezoneOffset() / 60);
+  var timezone_ajax_object = get_ajax_object();
+  ajax_request(timezone_ajax_object, timezone_url, timezone_params);
+}
+send_timezone_offset();
+</script>
+<div class="footer_wrapper">
+
+  <table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    <tr>
+      <td align="left">Sigate Solutions | domains.sigate.com.au</td>
+      <td align="right">sYra Systems</td>
+    </tr>
+    </tbody>
+  </table>
+
+</div>
+
+</body>
+</html>
