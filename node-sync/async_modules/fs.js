@@ -1,7 +1,7 @@
 (function() {
   var fs = require('fs');
 
-  var toArray = Array.prototype.slice;
+  var slice = Array.prototype.slice;
 
   //module.exports = exports = {
   //  stat: fs.stat.bind(fs),
@@ -29,7 +29,7 @@
    * path.join('assets/', 'scripts', 'file.js')
    */
   exports.path.join = function() {
-    var a = [], args = toArray.call(arguments);
+    var a = [], args = slice.call(arguments);
     args.forEach(function(s, i) {
       if (s) a.push(s);
     });
@@ -88,7 +88,7 @@
   };
 
   exports.readTextFile = function(file, enc, callback) {
-    var args = toArray.call(arguments);
+    var args = slice.call(arguments);
     callback = args.pop();
     enc = (typeof enc == 'string') ? enc : 'utf8';
     file = mappath(file);
@@ -96,7 +96,7 @@
   };
 
   exports.writeFile = function(path, data, opts, callback) {
-    var args = toArray.call(arguments);
+    var args = slice.call(arguments);
     callback = args.pop();
     opts = (opts && typeof opts == 'object') ? opts : {};
     opts.mode = opts.mode || (opts.overwrite ? 'w' : 'a');
@@ -113,7 +113,7 @@
   };
 
   exports.writeTextToFile = function(file, text, opts, callback) {
-    var args = toArray.call(arguments);
+    var args = slice.call(arguments);
     callback = args.pop();
     exports.writeFile(file, String(text), opts, callback);
   };
@@ -168,7 +168,7 @@
 
   //todo: recursive
   exports.createDir = function(path, recurse, callback) {
-    var args = toArray.call(arguments);
+    var args = slice.call(arguments);
     callback = args.pop();
     recurse = (recurse === true);
     path = mappath(path);
@@ -177,7 +177,7 @@
 
   //todo: recursive
   exports.removeDir = function(file, recurse, callback) {
-    var args = toArray.call(arguments);
+    var args = slice.call(arguments);
     callback = args.pop();
     recurse = (recurse === true);
     file = mappath(file);
@@ -185,7 +185,7 @@
   };
 
   exports.log = function(data, logfile, callback) {
-    var args = toArray.call(arguments);
+    var args = slice.call(arguments);
     callback = args.pop();
     if (args.length > 1) {
       logfile = args.pop();
