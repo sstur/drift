@@ -3,7 +3,6 @@ app.on('ready', function(require) {
   "use strict";
 
   var fs = require('fs');
-  var http = require('http');
   var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
@@ -11,6 +10,7 @@ app.on('ready', function(require) {
   });
 
   app.route('/get', function(req, res) {
+    var http = require('http');
     var response = http.get('http://www.google.com/');
     res.debug(response);
   });

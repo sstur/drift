@@ -2,6 +2,8 @@ var console, Buffer;
 (function(require) {
   "use strict";
 
+  app.__init = Date.now();
+
   var util = require('util');
   var Request = require('iis-request');
   var Response = require('iis-response');
@@ -22,7 +24,7 @@ var console, Buffer;
   var server = global['Server'], application = global['Application'];
 
   //filesystem path including trailing slash
-  var basePath = global.basePath = server.mappath('/') + '\\';
+  var basePath = server.mappath('/') + '\\';
 
   app.mappath = function(path) {
     var fullpath = basePath + 'app\\';

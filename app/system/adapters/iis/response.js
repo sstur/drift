@@ -29,11 +29,11 @@ define('iis-response', function(require, exports, module) {
     allHeaders[header.toLowerCase()] = header;
   });
 
-  var buildContentType = function(charset, contentType) {
-    //contentType may already have charset
-    contentType = contentType.split(';')[0];
-    charset = charset && charset.toUpperCase();
-    return (charset && TEXT_CTYPES.test(contentType)) ? contentType + '; charset=' + charset : contentType;
+  var getCharset = function(charset, contentType) {
+    charset = charset || 'utf-8';
+    if (TEXT_CTYPES.test(contentType)) {
+      return charset.toUpperCase();
+    }
   };
 
   function Response() {
@@ -126,15 +126,15 @@ define('iis-response', function(require, exports, module) {
       for (var n in cookies) {
         this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
       }
-      if (cfg.logging && cfg.logging.response_time && req.__init) {
-        this.headers('X-Response-Time', new Date().valueOf() - req.__init.valueOf());
+      if (cfg.logging && cfg.logging.response_time && app.__init) {
+        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
       }
       iis.res.status = res.status;
-      var contentType = buildContentType(res.charset, res.headers['Content-Type']);
-      if (~contentType.indexOf('charset')) {
-        iis.res.charset = res.charset;
+      var charset = getCharset(res.charset, res.headers['Content-Type']);
+      if (charset) {
+        iis.res.charset = charset;
       }
-      iis.res.contentType = contentType;
+      iis.res.contentType = res.headers['Content-Type'];
       forEach(res.headers, function(n, val) {
         switch (n.toLowerCase()) {
           case 'content-type':
@@ -165,7 +165,7 @@ define('iis-response', function(require, exports, module) {
       if (!opts.ctype) {
         opts.ctype = this.headers('content-type');
       }
-      opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
+      opts.ctype = getCharset(opts.charset || res.charset, opts.ctype);
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
