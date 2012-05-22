@@ -106,8 +106,7 @@ var app, define;
 
   app.route = function(a, b) {
     if (typeof a == 'string' || a instanceof RegExp) {
-      var route = a, fn = b;
-      routes.push({route: route, handler: fn});
+      routes.push({route: a, handler: b});
     } else {
       var router = require('router'), req = a, res = b;
       return router.route(req, res, routes);

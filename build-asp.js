@@ -50,7 +50,9 @@
 
   //load framework modules
   loadPath('app/system/lib');
+  loadPath('app/config');
   loadPath('app/controllers');
+  loadPath('app/helpers');
 
   //load adapter specific modules
   loadPath('app/system/adapters/iis');
