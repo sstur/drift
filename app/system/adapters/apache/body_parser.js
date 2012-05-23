@@ -1,12 +1,30 @@
 /*global app, define */
-define('body-parser', function(require, exports) {
+define('body-parser', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');
 
+  var BUFFER_SIZE = 1024;
+  var MAX_HEADER_SIZE = 1024;
+  var MAX_BUFFER_SIZE = 4096;
+
+  function BodyParser(headers, read) {
+    this._headers = headers;
+    this._read = read;
+  }
+  module.exports = BodyParser;
+
+  app.eventify(BodyParser.prototype);
+
+  BodyParser.prototype.parse = function() {
+    return {files: {}, fields: {}};
+  };
+
+
+
   var _parsePOST = function() {
-    var ct = this._headers["CONTENT_TYPE"] || "";
-    var length = parseInt(this._headers["CONTENT_LENGTH"], 10);
+    var ct = this._headers['content-type'] || '';
+    var length = parseInt(this._headers['content-length'], 10);
     if (!length) { return; }
 
     if (ct.indexOf("application/x-www-form-urlencoded") != -1) {
@@ -60,15 +78,14 @@ define('body-parser', function(require, exports) {
       var line = headerArray[i];
       if (!line) { continue; }
       var r = line.match(/([^:]+): *(.*)/);
-      if (!r) { throw new Error("Malformed multipart header '"+line+"'"); }
+      if (!r) { throw new Error("Malformed multipart header '" + line + "'"); }
 
-      var name = r[1].replace(/-/g,"_").toUpperCase();
-      var value = r[2];
+      var name = r[1].toLowerCase(), value = r[2];
       headers[name] = value;
     }
 
-    var cd = headers["CONTENT_DISPOSITION"] || "";
-    var ct = headers["CONTENT_TYPE"] || "";
+    var cd = headers['content-disposition'] || '';
+    var ct = headers['content-type'] || '';
     var r = cd.match(/ name="(.*?)"/i); /* form field name in header */
     if (r) { fieldName = r[1]; }
 
