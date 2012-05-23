@@ -119,6 +119,7 @@ define('apache-response', function(require, exports, module) {
     end: function() {
       var req = this.request, res = this.response;
       var cookies = res.cookies;
+      throw new Error(Object.keys(cookies).toString());
       for (var n in cookies) {
         this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
       }
