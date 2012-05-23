@@ -119,7 +119,6 @@ define('apache-response', function(require, exports, module) {
     end: function() {
       var req = this.request, res = this.response;
       var cookies = res.cookies;
-      throw new Error(Object.keys(cookies).toString());
       for (var n in cookies) {
         this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
       }
@@ -128,6 +127,9 @@ define('apache-response', function(require, exports, module) {
       }
       apache.header('Status', res.status);
       res.headers['Content-Type'] = buildContentType(res.charset, res.headers['Content-Type']);
+      for (var n in res.headers) {
+        apache.header(n, res.headers[n]);
+      }
       var parts = res.body;
       for (var i = 0; i < parts.length; i++) {
         var data = parts[i];
