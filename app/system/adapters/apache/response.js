@@ -1,13 +1,9 @@
-/*global app, define */
-define('iis-response', function(require, exports, module) {
+/*global app, define, global, apache, system */
+define('apache-response', function(require, exports, module) {
   "use strict";
 
   var cfg = {
     logging: {response_time: 1}
-  };
-  var iis = {
-    req: global['Request'],
-    res: global['Response']
   };
   var Buffer = require('buffer').Buffer;
 
@@ -129,33 +125,21 @@ define('iis-response', function(require, exports, module) {
       if (cfg.logging && cfg.logging.response_time && app.__init) {
         this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
       }
-      iis.res.status = res.status;
-      var charset = getCharset(res.charset, res.headers['Content-Type']);
-      if (charset) {
-        iis.res.charset = charset;
+      apache.header('Status', res.status);
+      //buildCharset(res.charset, res.headers['Content-Type']);
+      for (var n in res.headers) {
+        apache.header(n, res.headers[n]);
       }
-      iis.res.contentType = res.headers['Content-Type'];
-      forEach(res.headers, function(n, val) {
-        switch (n.toLowerCase()) {
-          case 'content-type':
-            break;
-          case 'cache-control':
-            iis.res.cacheControl = String(val);
-            break;
-          default:
-            iis.res.addHeader(n, val);
-        }
-      });
       var parts = res.body;
       for (var i = 0; i < parts.length; i++) {
         var data = parts[i];
         if (Buffer.isBuffer(data)) {
-          iis.res.binaryWrite(data.toBin());
+          apache.write(data.toBin());
         } else {
-          iis.res.write(String(data));
+          apache.write(String(data));
         }
       }
-      iis.res.end();
+      global.exit();
     },
     sendFile: function(opts) {
       var res = this.response;
@@ -170,8 +154,8 @@ define('iis-response', function(require, exports, module) {
         opts.name = opts.file.split('/').pop();
       }
       opts.fullpath = app.mappath(opts.file);
-      //todo: persits
-      iis.res.end();
+      //todo: x-sendfile or fs.read
+      global.exit();
     }
   };
 

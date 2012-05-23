@@ -9,7 +9,7 @@
   var REG_NL = /\r\n|\r|\n/g;
 
   var basePath = __dirname
-    , buildPath = join(__dirname, 'app/build');
+    , buildPath = join(__dirname, 'apache');
   var sourceFiles = [], sourceLines = [];
 
   var loadFile = function(dir, file) {
@@ -46,9 +46,7 @@
   loadFile('app/system', 'core.js');
 
   //load shim/patches
-  loadPath('app/system/support');
   loadPath('app/system/adapters/shared');
-  loadPath('app/system/adapters/activex');
 
   //load framework modules
   loadPath('app/system/lib');
@@ -57,16 +55,16 @@
   loadPath('app/helpers');
 
   //load adapter specific modules
-  loadPath('app/system/adapters/iis');
+  loadPath('app/system/adapters/apache');
 
   //load init script (fires app.ready and notifies us over stdout)
-  loadFile('app/system/adapters', 'asp.js');
+  loadFile('app/system/adapters', 'v8cgi.js');
 
   //construct buffer including byte-order-mark and source
-  var bom = new Buffer('EFBBBF', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
+  var bom = new Buffer('', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
   var buffer = new Buffer(bom.length + sourceLength);
   bom.copy(buffer);
   buffer.write(source, bom.length, sourceLength, 'utf8');
-  fs.writeFileSync(join(buildPath, 'app.js'), buffer);
+  fs.writeFileSync(join(buildPath, 'app.sjs'), buffer);
 
 })();

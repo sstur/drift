@@ -1,5 +1,24 @@
+var _super = (typeof require != 'undefined') && require('binary').Buffer;
 define('buffer', function(require, exports) {
   "use strict";
+
+  //patch for environments supporting CommonJS Binary/F
+  if (_super) {
+    _super.prototype.toRaw = function() {
+      var len = this.length, arr = new Array(len);
+      for (var i = 0; i < len; i++) {
+        arr[i] = String.fromCharCode(this[i]);
+      }
+      return arr.join('');
+    };
+    _super.fromRaw = function(str) {
+      var len = str.length, b = new _super(len);
+      for (var i = 0; i < len; i++) {
+        b[i] = str.charCodeAt(i);
+      }
+      return b;
+    };
+  }
 
   var RE_NON_ASCII = /[\x80-\xFF]+/g;
 
@@ -28,6 +47,9 @@ define('buffer', function(require, exports) {
     } else
     if (Array.isArray(subject)) {
       this._raw = arrToRaw(subject);
+    } else
+    if (_super.isBuffer(subject)) {
+      this._raw = subject.toRaw();
     } else
     if (type == 'unknown') {
       //ado binary
@@ -84,8 +106,8 @@ define('buffer', function(require, exports) {
       }
       return s;
     },
-    toADO: function() {
-      return rawToAdo(this._raw);
+    toBin: function() {
+      return (_super) ? _super.fromRaw(this._raw) : rawToAdo(this._raw);
     },
     toJSON: function() {
       return '<Buffer ' + rawToHex(this._raw) + '>';
