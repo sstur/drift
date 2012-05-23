@@ -1,4 +1,4 @@
-/*global app, define */
+/*global app, define, global */
 define('iis-response', function(require, exports, module) {
   "use strict";
 
@@ -165,7 +165,7 @@ define('iis-response', function(require, exports, module) {
       if (!opts.ctype) {
         opts.ctype = this.headers('content-type');
       }
-      opts.ctype = getCharset(opts.charset || res.charset, opts.ctype);
+      //todo: opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }

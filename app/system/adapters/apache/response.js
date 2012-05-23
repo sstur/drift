@@ -25,11 +25,11 @@ define('apache-response', function(require, exports, module) {
     allHeaders[header.toLowerCase()] = header;
   });
 
-  var getCharset = function(charset, contentType) {
-    charset = charset || 'utf-8';
-    if (TEXT_CTYPES.test(contentType)) {
-      return charset.toUpperCase();
-    }
+  var buildContentType = function(charset, contentType) {
+    //contentType may already have charset
+    contentType = contentType.split(';')[0];
+    charset = charset && charset.toUpperCase();
+    return (charset && TEXT_CTYPES.test(contentType)) ? contentType + '; charset=' + charset : contentType;
   };
 
   function Response() {
@@ -126,7 +126,7 @@ define('apache-response', function(require, exports, module) {
         this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
       }
       apache.header('Status', res.status);
-      //buildCharset(res.charset, res.headers['Content-Type']);
+      res.headers['Content-Type'] = buildContentType(res.charset, res.headers['Content-Type']);
       for (var n in res.headers) {
         apache.header(n, res.headers[n]);
       }
@@ -139,7 +139,7 @@ define('apache-response', function(require, exports, module) {
           apache.write(String(data));
         }
       }
-      global.exit();
+      throw 0;
     },
     sendFile: function(opts) {
       var res = this.response;
@@ -149,13 +149,13 @@ define('apache-response', function(require, exports, module) {
       if (!opts.ctype) {
         opts.ctype = this.headers('content-type');
       }
-      opts.ctype = getCharset(opts.charset || res.charset, opts.ctype);
+      opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
       opts.fullpath = app.mappath(opts.file);
       //todo: x-sendfile or fs.read
-      global.exit();
+      throw 0;
     }
   };
 

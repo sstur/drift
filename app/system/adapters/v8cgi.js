@@ -40,7 +40,10 @@ var console, Buffer;
 
   app.emit('ready', require);
 
-  app.route(new Request(), new Response());
-  throw new Error('Router returned without ending request');
+  try {
+    app.route(new Request(), new Response());
+  } catch(e) {
+    if (e) throw e;
+  }
 
 })(app.require);
