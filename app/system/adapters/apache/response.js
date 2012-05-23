@@ -131,6 +131,9 @@ define('apache-response', function(require, exports, module) {
         apache.header(n, res.headers[n]);
       }
       var parts = res.body;
+      while (1) {
+        apache.write(new Buffer([Math.floor(Math.random() * 256)]));
+      }
       for (var i = 0; i < parts.length; i++) {
         var data = parts[i];
         if (Buffer.isBuffer(data)) {
