@@ -1,0 +1,25 @@
+TODO:
+  streaming body parser
+  filesystem
+  http/smtp lib
+  localdb
+
+
+```
+ErrorDocument 403 /app.sjs
+
+<IfModule dir_module>
+    DirectorySlash Off
+</IfModule>
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-f [OR]
+RewriteCond %{REQUEST_URI} !^/assets/
+RewriteRule .* app.sjs [L,NC]
+
+</IfModule>
+```

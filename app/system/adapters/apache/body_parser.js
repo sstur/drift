@@ -3,6 +3,7 @@ define('body-parser', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');
+  var md5 = require('md5');
 
   var BUFFER_SIZE = 1024;
   var MAX_HEADER_SIZE = 1024;
@@ -99,13 +100,15 @@ define('body-parser', function(require, exports, module) {
     m = cdisp.match(/\bname="(.*?)"/i);
     var fieldName = m && m[1] || 'file';
     m = cdisp.match(/\bfilename="(.*?)"/i);
+    //todo: var hash = md5.create();
+    //todo: hash.update(body, 'binary');
     if (m) {
       var file = {
         headers: headers,
         fieldName: fieldName,
         originalName: m[1],
         data: body,
-        md5: null
+        md5: null //todo: hash.digest('hex')
       };
       this.parsed.files[fieldName] = file;
     } else {
