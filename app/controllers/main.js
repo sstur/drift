@@ -23,7 +23,9 @@ app.on('ready', function(require) {
 //    res.write('\r\n');
 //    var len = +headers['content-length'] || 0;
 //    var buffer = req.req.read(len);
-//    res.end(buffer.toString('binary'));
+//    var text = buffer.toString('binary');
+//    text = JSON.stringify(text).slice(1, -1).replace(/\\"/g, '"');
+//    res.end(text);
 //  });
 
   app.route('/form-post', function(req, res) {

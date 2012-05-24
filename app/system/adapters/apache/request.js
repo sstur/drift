@@ -68,7 +68,8 @@ define('apache-request', function(require, exports, module) {
       //parser.on('file', function(file) {});
       var data = parser.parse();
       if (data instanceof Error) {
-        this.res.die(data.message);
+        //todo: respond with correct http status
+        throw data;
       }
       return data;
     }

@@ -77,7 +77,7 @@ define('response', function(require, exports, module) {
     },
     debug: function(data) {
       this.clear();
-      this.write(util.inspect(data));
+      this.write(util.inspect(data, false, 4));
       this.end();
     },
     redirect: function(url, type) {

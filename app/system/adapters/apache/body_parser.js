@@ -104,15 +104,20 @@ define('body-parser', function(require, exports, module) {
     m = cdisp.match(/\bname="(.*?)"/i);
     var fieldName = m && m[1] || 'file';
     m = cdisp.match(/\bfilename="(.*?)"/i);
+    var fileName = m && m[1] || '';
+    if (!fileName) return;
     //todo: var hash = md5.create();
     //todo: hash.update(body, 'binary');
     if (m) {
+      var hash = md5.create();
+      hash.update(body, 'binary');
       var file = {
         headers: headers,
+        contentType: ctype,
         fieldName: fieldName,
-        originalName: m[1],
+        fileName: fileName,
         data: body,
-        md5: null //todo: hash.digest('hex')
+        md5: hash.digest('hex')
       };
       this.parsed.files[fieldName] = file;
     } else {
@@ -125,6 +130,7 @@ define('body-parser', function(require, exports, module) {
     var headers = {}, all = raw.split('\r\n');
     for (var i = 0; i < all.length; i++) {
       var header = all[i], pos = header.indexOf(':');
+      if (pos < 0) continue;
       var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
       headers[key] = headers[key] ? headers[key] + ', ' + val : val;
     }
