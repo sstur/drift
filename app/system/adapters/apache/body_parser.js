@@ -5,6 +5,8 @@ define('body-parser', function(require, exports, module) {
   var qs = require('qs');
   var md5 = require('md5');
 
+  var log = app._log = [];
+
   var BUFFER_SIZE = 1024;
   var MAX_HEADER_SIZE = 1024;
   var MAX_BUFFER_SIZE = 4096;
@@ -23,43 +25,35 @@ define('body-parser', function(require, exports, module) {
     this.type = this.type.toLowerCase().split(';')[0];
     this.length = parseInt(this._headers['content-length'], 10);
     if (!this.length) {
-      return this.parsed;
+      return;
     }
     switch(this.type) {
       case 'application/x-www-form-urlencoded':
-        this.processFormBody();
-        break;
+        return this.processFormBody();
       case 'application/json':
-        this.processJSONBody();
-        break;
+        return this.processJSONBody();
       case 'multipart/form-data':
-        this.processMultiPartBody();
-        break;
+        return this.processMultiPartBody();
       //case 'application/octet-stream':
-      //  this.processBinaryBody();
-      //  break;
-      default:
-        return new Error(415);
+      //  return this.processBinaryBody();
     }
-    return this.parsed;
+    return new Error(415);
   };
 
   BodyParser.prototype.processFormBody = function() {
     var body = this._read(Math.min(this.length, MAX_BUFFER_SIZE));
-    //todo: ascii
+    //todo: decode
     this.parsed.fields = qs.parse(body);
-    return this.parsed;
   };
 
   BodyParser.prototype.processJSONBody = function() {
     var body = this._read(Math.min(this.length, MAX_BUFFER_SIZE));
     try {
-      //todo: utf8
+      //todo: decode (try utf8, fallback)
       this.parsed.fields = JSON.parse(body);
     } catch(e) {
       return new Error('500 Invalid JSON Body');
     }
-    return this.parsed;
   };
 
   BodyParser.prototype.processMultiPartBody = function() {
@@ -70,61 +64,116 @@ define('body-parser', function(require, exports, module) {
     }
     var boundary1 = '--' + boundary;
     var boundary2 = '\r\n--' + boundary;
-    //todo: chunks
-    var body = this._read(Math.min(this.length, MAX_BUFFER_SIZE));
-    var index1 = 0; /* start of part in body */
-    var index2 = -1; /* end of part in body (start of next boundary) */
-
+    var length = +this._headers['content-length'] || 0;
+    log.push('length: ' + length);
+    var buffer = '', read = 0, currentPart, nomatch, loopCount = 0;
     while (1) {
-      boundary = (index1) ? boundary2 : boundary1; /* 2nd and next boundaries start with newline */
-      index2 = body.indexOf(boundary, index1);
-      if (index2 < 0) {
-        /* no next boundary -> die */
-        return;
-      }
-      if (index1 != 0) {
-        /* both boundaries -> process whats between them */
-        var headerBreak = body.indexOf('\r\n\r\n', index1);
-        if (headerBreak < 0) {
-          throw new Error('500 No header break in multipart component');
+      loopCount ++;
+      if (loopCount > 20) return;
+
+      if (nomatch || buffer.length == 0) {
+        //read more data or else we're done
+        if (read < length) {
+          var data = this._read(Math.min(BUFFER_SIZE, length - read));
+          buffer += data;
+          read += data.length;
+          nomatch = false;
+          log.push('read: ' + data.length + '; total: ' + read);
+        } else {
+          return;
         }
-        var headerView = body.slice(index1, headerBreak);
-        var bodyView = body.slice(headerBreak + 4, index2);
-        this._processMultipartItem(headerView, bodyView);
       }
-      index1 = index2 + boundary.length;
+
+      log.push('buffer: ' + buffer.length + '; ' + JSON.stringify(truncate(buffer, 80)));
+      if (!currentPart) {
+        //header state
+        if (buffer.length > MAX_HEADER_SIZE) {
+          return new Error('500 Multipart header size exceeds limit');
+        }
+        var endHeader = buffer.indexOf('\r\n\r\n');
+        log.push('endHeader: ' + endHeader);
+        if (endHeader > 0) {
+          currentPart = new Part(buffer.slice(boundary1.length + 2, endHeader));
+          log.push('new part: ' + currentPart.headers['content-disposition']);
+          buffer = buffer.slice(endHeader + 4);
+        } else {
+          nomatch = true; //causes read or exit on next loop
+        }
+      } else {
+        //body state
+        var endBody = buffer.indexOf(boundary2);
+        log.push('endBody: ' + endBody);
+        if (endBody >= 0) {
+          //part of buffer belongs to current item
+          currentPart.write(buffer.slice(0, endBody));
+          this._processMultipartItem(currentPart);
+          buffer = buffer.slice(endBody + 2);
+          currentPart = null;
+        } else {
+          //buffer belongs to current item
+          currentPart.write(buffer);
+          buffer = '';
+        }
+      }
     }
-    return this.parsed;
   };
 
-  BodyParser.prototype._processMultipartItem = function(header, body) {
-    var headers = parseHeaders(header), m;
+  BodyParser.prototype._processMultipartItem = function(part) {
+    var headers = part.headers, m;
     var cdisp = headers['content-disposition'] || '';
     var ctype = headers['content-type'] || '';
     m = cdisp.match(/\bname="(.*?)"/i);
     var fieldName = m && m[1] || 'file';
     m = cdisp.match(/\bfilename="(.*?)"/i);
     var fileName = m && m[1] || '';
-    //todo: var hash = md5.create();
-    //todo: hash.update(body, 'binary');
-    if (m) {
+    if (part.type == 'file') {
       if (!fileName) return;
-      var hash = md5.create();
-      hash.update(body, 'binary');
       var file = {
         headers: headers,
         contentType: ctype,
         fieldName: fieldName,
         fileName: fileName,
-        data: body,
-        md5: hash.digest('hex')
+        md5: part.hash.digest('hex')
       };
       this.parsed.files[fieldName] = file;
     } else {
-      //todo: decode
-      this.parsed.fields[fieldName] = body;
+      //todo: decode (try utf8, fallback)
+      this.parsed.fields[fieldName] = part.data.join('');
     }
   };
+
+
+
+  function Part(head) {
+    this.headers = parseHeaders(head);
+    var contentDisp = this.headers['content-disposition'] || '';
+    this.type = (contentDisp.match(/\bfilename=/)) ? 'file' : 'field';
+    this.data = [];
+    if (this.type == 'file') {
+      this.hash = md5.create();
+    }
+  }
+
+  Part.prototype.write = function(data) {
+    if (this.type == 'file') {
+      //todo: actually write to disk
+      this.hash.update(data, 'binary');
+    } else {
+      this.data.push(data);
+    }
+  };
+
+
+
+  function truncate(str, len) {
+    if (str.length > len) {
+      var snip = len / 2 - 2;
+      str = str.slice(0, snip) + '...' + str.slice(0 - snip);
+    }
+    return str;
+  }
+
+
 
   function parseHeaders(raw) {
     var headers = {}, all = raw.split('\r\n');

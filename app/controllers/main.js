@@ -29,7 +29,9 @@ app.on('ready', function(require) {
 //  });
 
   app.route('/form-post', function(req, res) {
-    res.debug({fields: req.post(), files: req.uploads()});
+    var fields = req.post(), files = req.uploads();
+    //res.end(app._log.join('\r\n'));
+    res.debug({fields: fields, files: files});
   });
 
   app.route('/md5', function(req, res) {

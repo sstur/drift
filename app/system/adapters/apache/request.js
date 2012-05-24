@@ -66,12 +66,12 @@ define('apache-request', function(require, exports, module) {
     getPostData: function() {
       var parser = new BodyParser(this.getHeaders(), this.read);
       //parser.on('file', function(file) {});
-      var data = parser.parse();
-      if (data instanceof Error) {
+      var err = parser.parse();
+      if (err) {
         //todo: respond with correct http status
-        throw data;
+        throw err;
       }
-      return data;
+      return parser.parsed;
     }
   };
 
