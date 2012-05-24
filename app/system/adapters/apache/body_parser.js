@@ -105,10 +105,10 @@ define('body-parser', function(require, exports, module) {
     var fieldName = m && m[1] || 'file';
     m = cdisp.match(/\bfilename="(.*?)"/i);
     var fileName = m && m[1] || '';
-    if (!fileName) return;
     //todo: var hash = md5.create();
     //todo: hash.update(body, 'binary');
     if (m) {
+      if (!fileName) return;
       var hash = md5.create();
       hash.update(body, 'binary');
       var file = {
