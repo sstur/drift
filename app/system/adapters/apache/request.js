@@ -66,7 +66,11 @@ define('apache-request', function(require, exports, module) {
     getPostData: function() {
       var parser = new BodyParser(this.getHeaders(), this.read);
       //parser.on('file', function(file) {});
-      return parser.parse();
+      var data = parser.parse();
+      if (data instanceof Error) {
+        this.res.die(data.message);
+      }
+      return data;
     }
   };
 

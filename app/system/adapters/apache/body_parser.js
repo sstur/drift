@@ -27,13 +27,17 @@ define('body-parser', function(require, exports, module) {
     }
     switch(this.type) {
       case 'application/x-www-form-urlencoded':
-        return this.processFormBody();
+        this.processFormBody();
+        break;
       case 'application/json':
-        return this.processJSONBody();
+        this.processJSONBody();
+        break;
       case 'multipart/form-data':
-        return this.processMultiPartBody();
+        this.processMultiPartBody();
+        break;
       //case 'application/octet-stream':
-      //  return this.processBinaryBody();
+      //  this.processBinaryBody();
+      //  break;
       default:
         return new Error(415);
     }

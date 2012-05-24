@@ -15,15 +15,19 @@ app.on('ready', function(require) {
     res.debug(response);
   });
 
+//  app.route('/form-post', function(req, res) {
+//    var headers = req.headers();
+//    for (var n in headers) {
+//      res.write(n + ': ' + headers[n] + '\r\n');
+//    }
+//    res.write('\r\n');
+//    var len = +headers['content-length'] || 0;
+//    var buffer = req.req.read(len);
+//    res.end(buffer.toString('binary'));
+//  });
+
   app.route('/form-post', function(req, res) {
-    var headers = req.headers();
-    for (var n in headers) {
-      res.write(n + ': ' + headers[n] + '\r\n');
-    }
-    res.write('\r\n');
-    var len = +headers['content-length'] || 0;
-    var buffer = req.req.read(len);
-    res.end(buffer.toString('binary'));
+    res.debug({fields: req.post(), files: req.uploads()});
   });
 
   app.route('/md5', function(req, res) {
