@@ -48,7 +48,7 @@ define('buffer', function(require, exports) {
     if (Array.isArray(subject)) {
       this._raw = arrToRaw(subject);
     } else
-    if (_super.isBuffer(subject)) {
+    if (subject instanceof _super) {
       this._raw = subject.toRaw();
     } else
     if (type == 'unknown') {

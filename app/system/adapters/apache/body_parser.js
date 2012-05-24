@@ -17,12 +17,6 @@ define('body-parser', function(require, exports, module) {
 
   app.eventify(BodyParser.prototype);
 
-  //BodyParser.prototype.parse = function() {
-  //  return {files: {}, fields: {}};
-  //};
-
-
-
   BodyParser.prototype.parse = function() {
     this.type = this._headers['content-type'] || '';
     this.type = this.type.toLowerCase().split(';')[0];
@@ -42,6 +36,7 @@ define('body-parser', function(require, exports, module) {
       default:
         return new Error(415);
     }
+    return this.parsed;
   };
 
   BodyParser.prototype.processFormBody = function() {
@@ -88,8 +83,8 @@ define('body-parser', function(require, exports, module) {
         if (headerBreak < 0) {
           throw new Error('500 No header break in multipart component');
         }
-        var headerView = body.range(index1, headerBreak);
-        var bodyView = body.range(headerBreak + 4, index2);
+        var headerView = body.slice(index1, headerBreak);
+        var bodyView = body.slice(headerBreak + 4, index2);
         this._processMultipartItem(headerView, bodyView);
       }
       index1 = index2 + boundary.length;
@@ -109,7 +104,8 @@ define('body-parser', function(require, exports, module) {
         headers: headers,
         fieldName: fieldName,
         originalName: m[1],
-        data: body
+        data: body,
+        md5: null
       };
       this.parsed.files[fieldName] = file;
     } else {

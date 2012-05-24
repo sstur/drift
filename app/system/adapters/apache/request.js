@@ -1,8 +1,10 @@
 /*global app, define, global, apache, system */
 define('apache-request', function(require, exports, module) {
   "use strict";
+
   var qs = require('qs');
-  var BodyParser = require('body_parser');
+  var Buffer = require('buffer').Buffer;
+  var BodyParser = require('body-parser');
 
   var varmap = {
     ipaddr: 'REMOTE_ADDR'
@@ -16,6 +18,7 @@ define('apache-request', function(require, exports, module) {
   var REG_COOKIE_SEP = /[;,] */;
 
   function Request() {
+    this._super = apache;
   }
 
   Request.prototype = {
@@ -57,8 +60,11 @@ define('apache-request', function(require, exports, module) {
       }
       return this._cookies;
     },
+    read: function(bytes) {
+      return new Buffer(apache.read(bytes)).toString('binary');
+    },
     getPostData: function() {
-      var parser = new BodyParser(this.getHeaders(), apache.read);
+      var parser = new BodyParser(this.getHeaders(), this.read);
       //parser.on('file', function(file) {});
       return parser.parse();
     }

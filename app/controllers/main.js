@@ -15,6 +15,14 @@ app.on('ready', function(require) {
     res.debug(response);
   });
 
+  app.route('/md5', function(req, res) {
+    var md5 = require('md5').create();
+    md5.update('4749463839610100010080FF00C0C0C000000021F9', 'hex');
+    md5.update('0401000000002C00000000010001000002024401003B', 'hex');
+    var hash = md5.digest('hex');
+    res.end(hash);
+  });
+
   app.route('/buffer', function(req, res) {
     var buffer = new Buffer('4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B', 'hex');
     res.end('image/gif', buffer);
