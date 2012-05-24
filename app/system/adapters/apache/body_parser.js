@@ -66,11 +66,8 @@ define('body-parser', function(require, exports, module) {
     var boundary2 = '\r\n--' + boundary;
     var length = +this._headers['content-length'] || 0;
     //log.push('content-length: ' + length);
-    var buffer = '', read = 0, currentPart, nomatch, loopCount = 0;
+    var buffer = '', read = 0, currentPart, nomatch;
     while (1) {
-      loopCount ++;
-      if (loopCount > 20) return;
-
       if (nomatch || buffer.length == 0) {
         //read more data or else we're done
         if (read < length) {
@@ -83,7 +80,6 @@ define('body-parser', function(require, exports, module) {
           return;
         }
       }
-
       //log.push('buffer: ' + buffer.length + '; ' + JSON.stringify(truncate(buffer, 80)));
       if (!currentPart) {
         //header state
