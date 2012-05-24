@@ -1,4 +1,4 @@
-/*global app, global, system */
+/*global app, system */
 var console, Buffer;
 (function(require) {
   "use strict";

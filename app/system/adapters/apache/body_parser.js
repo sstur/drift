@@ -59,8 +59,8 @@ define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype.processMultiPartBody = function() {
-    var boundary = this._headers['content-type'].split(';')[1] || '';
-    boundary = boundary.trim().split('=')[1] || '';
+    var boundary = this._headers['content-type'], pos = boundary.indexOf('=');
+    boundary = boundary.slice(pos + 1);
     if (!boundary) {
       return new Error('500 Invalid Boundary');
     }

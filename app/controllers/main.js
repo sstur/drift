@@ -15,6 +15,17 @@ app.on('ready', function(require) {
     res.debug(response);
   });
 
+  app.route('/form-post', function(req, res) {
+    var headers = req.headers();
+    for (var n in headers) {
+      res.write(n + ': ' + headers[n] + '\r\n');
+    }
+    res.write('\r\n');
+    var len = +headers['content-length'] || 0;
+    var buffer = req.req.read(len);
+    res.end(buffer.toString('binary'));
+  });
+
   app.route('/md5', function(req, res) {
     var md5 = require('md5').create();
     md5.update('4749463839610100010080FF00C0C0C000000021F9', 'hex');

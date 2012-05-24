@@ -1,4 +1,4 @@
-/*global app, define, global, apache, system */
+/*global app, define, apache, system */
 define('apache-request', function(require, exports, module) {
   "use strict";
 

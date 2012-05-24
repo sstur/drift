@@ -1,4 +1,4 @@
-/*global app, define, global */
+/*global app, define */
 define('iis-response', function(require, exports, module) {
   "use strict";
 
