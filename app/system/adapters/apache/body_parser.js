@@ -5,7 +5,7 @@ define('body-parser', function(require, exports, module) {
   var qs = require('qs');
   var md5 = require('md5');
 
-  var log = app._log = [];
+  //var log = app._log = [];
 
   var BUFFER_SIZE = 1024;
   var MAX_HEADER_SIZE = 1024;
@@ -65,7 +65,7 @@ define('body-parser', function(require, exports, module) {
     var boundary1 = '--' + boundary;
     var boundary2 = '\r\n--' + boundary;
     var length = +this._headers['content-length'] || 0;
-    log.push('length: ' + length);
+    //log.push('content-length: ' + length);
     var buffer = '', read = 0, currentPart, nomatch, loopCount = 0;
     while (1) {
       loopCount ++;
@@ -78,31 +78,32 @@ define('body-parser', function(require, exports, module) {
           buffer += data;
           read += data.length;
           nomatch = false;
-          log.push('read: ' + data.length + '; total: ' + read);
+          //log.push('read: ' + data.length + '; total: ' + read);
         } else {
           return;
         }
       }
 
-      log.push('buffer: ' + buffer.length + '; ' + JSON.stringify(truncate(buffer, 80)));
+      //log.push('buffer: ' + buffer.length + '; ' + JSON.stringify(truncate(buffer, 80)));
       if (!currentPart) {
         //header state
         if (buffer.length > MAX_HEADER_SIZE) {
           return new Error('500 Multipart header size exceeds limit');
         }
         var endHeader = buffer.indexOf('\r\n\r\n');
-        log.push('endHeader: ' + endHeader);
+        //log.push('endHeader: ' + endHeader);
         if (endHeader > 0) {
           currentPart = new Part(buffer.slice(boundary1.length + 2, endHeader));
-          log.push('new part: ' + currentPart.headers['content-disposition']);
+          //log.push('new part: ' + currentPart.headers['content-disposition']);
           buffer = buffer.slice(endHeader + 4);
         } else {
+          //log.push('nomatch');
           nomatch = true; //causes read or exit on next loop
         }
       } else {
         //body state
         var endBody = buffer.indexOf(boundary2);
-        log.push('endBody: ' + endBody);
+        //log.push('endBody: ' + endBody);
         if (endBody >= 0) {
           //part of buffer belongs to current item
           currentPart.write(buffer.slice(0, endBody));
@@ -110,9 +111,14 @@ define('body-parser', function(require, exports, module) {
           buffer = buffer.slice(endBody + 2);
           currentPart = null;
         } else {
-          //buffer belongs to current item
-          currentPart.write(buffer);
-          buffer = '';
+          //buffer contains data and possibly partial boundary
+          if (buffer.length > boundary2.length) {
+            currentPart.write(buffer.slice(0, buffer.length - boundary2.length));
+            buffer = buffer.slice(0 - boundary2.length);
+          } else {
+            //log.push('nomatch');
+            nomatch = true;
+          }
         }
       }
     }
@@ -155,6 +161,7 @@ define('body-parser', function(require, exports, module) {
   }
 
   Part.prototype.write = function(data) {
+    //log.push('body data: ' + JSON.stringify(data));
     if (this.type == 'file') {
       //todo: actually write to disk
       this.hash.update(data, 'binary');
@@ -165,13 +172,13 @@ define('body-parser', function(require, exports, module) {
 
 
 
-  function truncate(str, len) {
-    if (str.length > len) {
-      var snip = len / 2 - 2;
-      str = str.slice(0, snip) + '...' + str.slice(0 - snip);
-    }
-    return str;
-  }
+  //function truncate(str, len) {
+  //  if (str.length > len) {
+  //    var snip = len / 2 - 2;
+  //    str = str.slice(0, snip) + '...' + str.slice(0 - snip);
+  //  }
+  //  return str;
+  //}
 
 
 
