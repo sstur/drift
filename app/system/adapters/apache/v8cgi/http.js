@@ -1,86 +1,92 @@
 /*global app, define */
+
+//these use v8cgi require
+var TLS = require("tls").TLS;
+var Socket = require("socket").Socket;
+var Buffer = require("binary").Buffer;
+
 define('http', function(require, exports) {
   "use strict";
 
   var qs = require('qs');
 
+  //todo: add optional second param opts (for max_follow)
   function ClientRequest(url) {
     this._headers = {};
     this.method = "GET";
     this.get = {};
     this.post = {};
-    this.cookie = {};
 
     var u = url;
     var index = u.indexOf("?");
-    if (index != -1) { /* parse user-supplied get */
+    if (index != -1) {
+      /* parse user-supplied get */
       u = url.substring(0, index);
-      var querystring = url.substring(index+1);
+      var querystring = url.substring(index + 1);
       this.get = qs.parse(querystring);
     }
 
-    if (u.indexOf("://") == -1) { u = "http://"+u; }
-    if (u.indexOf("/", 8) == -1) { u += "/"; }
+    if (u.indexOf("://") == -1) {
+      u = "http://" + u;
+    }
+    if (u.indexOf("/", 8) == -1) {
+      u += "/";
+    }
     this._url = u;
   }
 
-  ClientRequest.prototype.header = function(obj) {
+  ClientRequest.prototype.addHeaders = function(obj) {
     for (var p in obj) {
       this._headers[p] = obj[p];
     }
   };
 
   ClientRequest.prototype.send = function(follow) {
-    var Socket = require("socket").Socket;
-    var Buffer = require("binary").Buffer;
     var items = this._splitUrl();
     var proto = items[0];
     var host = items[1];
     var port = items[2];
     var url = items[3];
     var hiddenSocket = null;
-    this.header({"Host":host});
+    this.addHeaders({"Host": host});
 
     /* defaults */
-    this.header({
-      "Connection":"close",
-      "Accept-Charset":"utf-8",
-      "Accept-Encoding":"identity"
+    this.addHeaders({
+      "Connection": "close",
+      "Accept-Charset": "utf-8",
+      "Accept-Encoding": "identity"
     });
 
     /* add get data */
     var get = this._serialize(this.get);
-    if (get) { url += "?"+get; }
-
-    /* add cookies */
-    var arr = [];
-    for (var p in this.cookie) {
-      arr.push(escape(p)+"="+escape(this.cookie[p]));
+    if (get) {
+      url += "?" + get;
     }
-    if (arr.length) { this.header({"Cookie":arr.join("; ")}); }
 
     /* add post headers */
     var post = null;
-    if (typeof(this.post) == "object") {
-      var post = this._serialize(this.post);
+    if (typeof this.post == "object") {
+      post = this._serialize(this.post);
       if (post.length) {
-        this.header({
+        this.addHeaders({
           "Content-Length": post.length,
           "Content-Type": "application/x-www-form-urlencoded"
         });
       }
     } else {
       post = this.post;
-      this.header({"Content-Length": post.length});
+      this.addHeaders({"Content-Length": post.length});
     }
 
     /* build request */
     var data = this.method + " " + url + " HTTP/1.1\r\n";
     for (var p in this._headers) {
-      data += p+": "+this._headers[p]+"\r\n";
+      data += p + ": " + this._headers[p] + "\r\n";
     }
     data += "\r\n";
-    if (post) { data += post; }
+    if (post) {
+      data += post;
+    }
 
     var protocol = Socket.PF_INET;
     var ip = null;
@@ -93,14 +99,15 @@ define('http', function(require, exports) {
     var socket = new Socket(protocol, Socket.SOCK_STREAM, Socket.IPPROTO_TCP);
     socket.connect(ip, port);
 
-    if (proto == "https") { /* wrap in a TLS connection */
-      var TLS = require("tls").TLS;
+    if (proto == "https") {
+      /* wrap in a TLS connection */
       hiddenSocket = socket;
       socket = new TLS(socket);
       socket.connect();
     }
 
-    socket.send(data); /* send request */
+    /* send request */
+    socket.send(data);
 
     var received = new Buffer(0);
     do {
@@ -111,7 +118,8 @@ define('http', function(require, exports) {
       received = tmp;
     } while (part.length > 0);
 
-    if (hiddenSocket) { /* unwrap and close TLS connection */
+    if (hiddenSocket) {
+      /* unwrap and close TLS connection */
       socket.close();
       socket = socket.getSocket();
     }
@@ -125,9 +133,11 @@ define('http', function(require, exports) {
     var arr = [];
     for (var p in obj) {
       var val = obj[p];
-      if (!(val instanceof Array)) { val = [val]; }
-      for (var i=0, len=val.length;i<len;i++) {
-        arr.push(encodeURIComponent(p)+"="+encodeURIComponent(val[i]));
+      if (!(val instanceof Array)) {
+        val = [val];
+      }
+      for (var i = 0, len = val.length; i < len; i++) {
+        arr.push(encodeURIComponent(p) + "=" + encodeURIComponent(val[i]));
       }
     }
     return arr.join("&");
@@ -145,17 +155,25 @@ define('http', function(require, exports) {
   /**
    * @param {Buffer} data
    * @param {bool} follow Follow redirects?
+   *
+   * todo: follow should be an integer indicating the MAX redirects to follow
    */
   ClientRequest.prototype._handleResponse = function(buffer, follow) {
     var codes = [301, 302, 303, 307];
     var r = new ClientResponse(buffer);
-    if (!follow) { return r; }
+    if (!follow) {
+      return r;
+    }
 
     var code = r.status;
-    if (codes.indexOf(code) == -1) { return r; }
+    if (codes.indexOf(code) == -1) {
+      return r;
+    }
 
-    var loc = r.header("Location");
-    if (!loc) { return r; }
+    var loc = r.getHeader("Location");
+    if (!loc) {
+      return r;
+    }
 
     if (code == 302 || code == 303) {
       /*
@@ -172,16 +190,15 @@ define('http', function(require, exports) {
       if (loc.charAt(0) == "/") {
         var i = this._url.indexOf("/", 8);
       } else {
-        var i = this._url.lastIndexOf("/")+1;
+        var i = this._url.lastIndexOf("/") + 1;
       }
       this._url = this._url.substring(0, i) + loc;
     }
     return this.send(follow);
   };
 
-  function ClientResponse(buffer) {
-    var Buffer = require("binary").Buffer;
 
+  function ClientResponse(buffer) {
     this.data = null;
     this.status = 0;
     this.statusReason = "";
@@ -189,34 +206,36 @@ define('http', function(require, exports) {
 
     var index = buffer.indexOf("\r\n\r\n");
 
-    if (index == -1) { throw new Error("No header-body separator found"); }
+    if (index == -1) {
+      throw new Error("No header-body separator found");
+    }
     var head = buffer.range(0, index).toString("utf-8");
-    var body = buffer.range(index+4);
+    var body = buffer.range(index + 4);
     var arr = head.split("\r\n");
 
     var parts = arr.shift().match(/^ *http\/[^ ]+ *([0-9]+) *(.*)$/i);
     this.status = parseInt(parts[1], 10);
     this.statusReason = parts[2] || "";
 
-    for (var i=0, len=arr.length;i<len;i++) {
+    for (var i = 0, len = arr.length; i < len; i++) {
       var parts = arr[i].match(/^ *([^: ]+) *: *(.*)$/);
       if (parts) {
-        this._headers[parts[1].toUpperCase()] = parts[2];
+        this._headers[parts[1].toLowerCase()] = parts[2];
       }
     }
 
-    if (this.header("Transfer-encoding") == "chunked") {
+    if (this.getHeader("Transfer-encoding") == "chunked") {
       this.data = this._parseChunked(body);
     } else {
       this.data = body;
     }
   }
 
-  ClientResponse.prototype.header = function(name) {
-    return this._headers[name.toUpperCase()];
+  ClientResponse.prototype.getHeader = function(name) {
+    return this._headers[name.toLowerCase()];
   };
 
-  ClientResponse.prototype.headers = function() {
+  ClientResponse.prototype.getHeaders = function() {
     return this._headers;
   };
 
@@ -224,8 +243,6 @@ define('http', function(require, exports) {
    * @param {Buffer} body
    */
   ClientResponse.prototype._parseChunked = function(body) {
-    var Buffer = require("binary").Buffer;
-
     var index = 0
     var num, hex;
     var result = new Buffer(0);
@@ -236,7 +253,9 @@ define('http', function(require, exports) {
       /* fetch hex number at the beginning of each chunk. this is terminated by \r\n */
       while (index < body.length) {
         num = body[index];
-        if (num == 13) { break; }
+        if (num == 13) {
+          break;
+        }
         hex += String.fromCharCode(num);
         index++;
       }
@@ -245,7 +264,9 @@ define('http', function(require, exports) {
       index += 2;
 
       var chunkLength = parseInt(hex, 16);
-      if (!chunkLength) { break; }
+      if (!chunkLength) {
+        break;
+      }
 
       /* read the chunk */
       var tmp = new Buffer(result.length + chunkLength);
@@ -260,6 +281,9 @@ define('http', function(require, exports) {
 
     return result;
   };
+
+
+  //todo: wrap request interface and return ClientResponse instance
 
   exports.ClientRequest = ClientRequest;
   exports.ClientResponse = ClientResponse;
