@@ -1,17 +1,17 @@
 /*global app, define */
 
+//these use v8cgi require
+var Socket = require("socket").Socket;
+
 var _require = function(path) {
   return require(path);
 };
-
-//these use v8cgi require
-var Socket = require("socket").Socket;
-var Buffer = require("binary").Buffer;
 
 define('http', function(require, exports) {
   "use strict";
 
   var qs = require('qs');
+  var Buffer = require('buffer').Buffer;
 
   var headers = [
     "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
@@ -27,7 +27,6 @@ define('http', function(require, exports) {
   });
 
 
-  //todo: add optional param for maxRedirects
   function ClientRequest(opts) {
     extend(this, opts);
     this.headers = this.headers || {};
@@ -54,7 +53,7 @@ define('http', function(require, exports) {
     }
   };
 
-  ClientRequest.prototype.send = function(follow) {
+  ClientRequest.prototype.send = function() {
     var hiddenSocket = null;
 
     //ensure host header is present
@@ -62,16 +61,14 @@ define('http', function(require, exports) {
       this.addHeader('Host', this.generateHost());
     }
 
-    //build request
-    var data = this.method + ' ' + this.path + ' HTTP/1.1\r\n';
+    this.requestCount = (this.requestCount || 0) + 1;
+
+    //build request head
+    var head = this.method + ' ' + this.path + ' HTTP/1.1\r\n';
     for (var n in this.headers) {
-      data += n + ': ' + this.headers[n] + '\r\n';
+      head += n + ': ' + this.headers[n] + '\r\n';
     }
-    data += '\r\n';
-    //todo: body might be buffer
-    if (this.body) {
-      data += this.body;
-    }
+    head += '\r\n';
 
     var protocol = Socket.PF_INET;
     var ip = null;
@@ -93,7 +90,10 @@ define('http', function(require, exports) {
     }
 
     /* send request */
-    socket.send(data);
+    socket.send(head);
+    if (this.body) {
+      socket.send(this.body);
+    }
 
     var chunk, received = [];
     do {
@@ -109,24 +109,26 @@ define('http', function(require, exports) {
 
     socket.close();
 
-    return this._handleResponse(received.join(''), follow);
+    return this._handleResponse(received.join(''));
   };
 
-  ClientRequest.prototype._handleResponse = function(raw, follow) {
-    var codes = [301, 302, 303, 307];
-    var r = new ClientResponse(raw);
-    if (!follow) {
-      return r;
+  ClientRequest.prototype._handleResponse = function(raw) {
+    var redirectCodes = [301, 302, 303, 307];
+    var res = new ClientResponse(raw);
+
+    var maxRedirects = this.maxRedirects || 0;
+    if (!maxRedirects || this.requestCount > maxRedirects + 1) {
+      return res;
     }
 
-    var code = r.status;
-    if (codes.indexOf(code) == -1) {
-      return r;
+    var code = res.status;
+    if (redirectCodes.indexOf(code) < 0) {
+      return res;
     }
 
-    var loc = r.getHeader('Location');
+    var loc = res.getHeader('Location');
     if (!loc) {
-      return r;
+      return res;
     }
 
     if (code == 302 || code == 303) {
@@ -136,22 +138,21 @@ define('http', function(require, exports) {
       */
       this.method = 'GET';
     }
-    var url, i;
+    var oldUrl = this.protocol + '//' + this.host + this.path;
+    var newUrl, i;
     if (~loc.indexOf('://')) {
       /* absolute URI, standards compliant */
-      url = loc;
+      newUrl = loc;
     } else {
-      //todo: use parsed
-      /* relative URI */
       if (loc.charAt(0) == '/') {
-        i = url.indexOf('/', 8);
+        i = oldUrl.indexOf('/', 8);
       } else {
-        i = url.lastIndexOf('/') + 1;
+        i = oldUrl.lastIndexOf('/') + 1;
       }
-      url = url.substring(0, i) + loc;
+      newUrl = oldUrl.substring(0, i) + loc;
     }
-    extend(this, parseUrl(url));
-    return this.send(follow);
+    extend(this, parseUrl(newUrl));
+    return this.send();
   };
 
 
@@ -243,7 +244,6 @@ define('http', function(require, exports) {
 
   function parseUrl(url) {
     var parts = url.match(/^ *((https?):\/\/)?([^:\/]+)(:([0-9]+))?([^\?]*)(\?.*)?$/);
-    //todo: use indexOf
     var parsed = {
       protocol: parts[2] ? parts[2].toLowerCase() + ':' : 'http:',
       hostname: parts[3] ? parts[3].toLowerCase() : '',
@@ -265,8 +265,6 @@ define('http', function(require, exports) {
     var req = new ClientRequest(opts);
     var res = req.send(false);
     var data = {statusCode: res.status, headers: res.headers};
-    //raw body -> framework buffer
-    var Buffer = require('buffer').Buffer;
     data.body = new Buffer(res.data, 'binary');
     return data;
   };
@@ -284,22 +282,18 @@ define('http', function(require, exports) {
   };
 
   exports.post = function(opts) {
-    //todo:
-    /* add post headers */
-    var post = null;
-
-    if (typeof opts.post == 'object') {
-      post = qs.stringify(opts.post);
-      if (post.length) {
-        this.addHeader('Content-Length', post.length);
-        this.addHeader('Content-Type', 'application/x-www-form-urlencoded');
-      }
-    } else {
-      //todo: verify string or buffer
-      post = this.post;
-      this.addHeader('Content-Length', post.length);
+    if (opts.url) {
+      extend(opts, parseUrl(opts.url));
     }
+    opts.method = 'POST';
 
+    if (!Buffer.isBuffer(opts.body) || typeof opts.body != 'string') {
+      opts.body = qs.stringify(opts.body || {});
+      this.addHeader('Content-Type', 'application/x-www-form-urlencoded');
+    }
+    this.addHeader('Content-Length', opts.body.length);
+
+    return exports.request(opts);
   };
 
 });
