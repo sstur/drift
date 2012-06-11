@@ -6,8 +6,17 @@ app.on('ready', function(require) {
   var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
-    res.end('Hello world!');
+    var http = require('http');
+    var response = http.get({
+      url: 'https://sstur.cloudant.com/crittercrawl/_all_docs?limit=100',
+      headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
+    });
+    res.end(response.body.toString('utf8'));
   });
+
+//  app.route('/', function(req, res) {
+//    res.end('Hello world!');
+//  });
 
   app.route('/get', function(req, res) {
     var http = require('http');

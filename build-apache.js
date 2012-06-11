@@ -7,8 +7,8 @@
 
   var REG_NL = /\r\n|\r|\n/g;
 
-  var basePath = __dirname
-    , buildPath = join(__dirname, 'apache');
+  var basePath = __dirname;
+  var buildPath = process.argv[2] || join(__dirname, 'apache');
   var sourceFiles = [], sourceLines = [];
 
   var loadFile = function(dir, file) {
