@@ -70,16 +70,9 @@ define('http', function(require, exports) {
     }
     head += '\r\n';
 
-    var protocol = Socket.PF_INET;
-    var ip = null;
-    try {
-      ip = Socket.getAddrInfo(this.hostname, Socket.PF_INET6).split('%', 1)[0];
-      protocol = Socket.PF_INET6;
-    } catch(e) {
-      ip = Socket.getAddrInfo(this.hostname, Socket.PF_INET);
-    }
-    var socket = new Socket(protocol, Socket.SOCK_STREAM, Socket.IPPROTO_TCP);
-    socket.connect(ip, this.port);
+    var ipaddr = Socket.getAddrInfo(this.hostname, Socket.PF_INET);
+    var socket = new Socket(Socket.PF_INET, Socket.SOCK_STREAM, Socket.IPPROTO_TCP);
+    socket.connect(ipaddr, this.port);
 
     if (this.protocol == 'https:') {
       /* wrap in a TLS connection */

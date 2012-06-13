@@ -7,9 +7,13 @@ app.on('ready', function(require) {
 
   app.route('/', function(req, res) {
     var http = require('http');
+    //var response = http.get({
+    //  url: 'http://sstur.cloudant.com/crittercrawl/_all_docs?limit=100',
+    //  headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
+    //});
     var response = http.get({
-      url: 'http://sstur.cloudant.com/crittercrawl/_all_docs?limit=100',
-      headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
+      url: 'https://www.google.com/',
+      headers: {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5'}
     });
     res.end(response.body.toString('utf8'));
   });
