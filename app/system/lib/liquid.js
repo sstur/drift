@@ -191,6 +191,24 @@ define('liquid', function(require, exports, module) {
         locals = 'locals';
       locals += '.';
       n = n.trim();
+
+      //unwrap parenthesis
+      var PARENS = /^\((.*)\)$/;
+      while (PARENS.test(n)) {
+        n = n.replace(PARENS, '$1');
+      }
+
+      //evaluate ranges
+      //var RANGE_NUM = /^(\d+)\.\.(\d+)$/;
+      //var match = RANGE_NUM.exec(n);
+      //if (match) {
+      //  var arr = [];
+      //
+      //}
+      if (n.indexOf('..') >= 0) {
+        throw new Error('ranges not implemented: ' + n);
+      }
+
       // 是否为常量
       if (CONST_VAL.indexOf(n) > -1)
         return n;
@@ -931,7 +949,7 @@ define('liquid', function(require, exports, module) {
       };
 
       // 无法识别的标记
-      var unknowTag = function () {
+      var unknownTag = function () {
         context.error = {
           message:    'UnknowTag: ' + line,
           start:      start,
@@ -945,7 +963,7 @@ define('liquid', function(require, exports, module) {
         outLoop:      outLoop,
         loopNotMatch: loopNotMatch,
         syntaxError:  syntaxError,
-        unknowTag:    unknowTag,
+        unknownTag:   unknownTag,
         filtered:     utils.filtered,
         localsWrap:   utils.localsWrap
       };
@@ -1074,7 +1092,7 @@ define('liquid', function(require, exports, module) {
               break;
             // 出错
             default:
-              unknowTag();
+              unknownTag();
           }
         }
       }
@@ -1229,7 +1247,7 @@ define('liquid', function(require, exports, module) {
               break;
             // 其他
             default:
-              unknowTag();
+              unknownTag();
           }
         }
       }
@@ -1468,6 +1486,7 @@ define('liquid', function(require, exports, module) {
       if (!format)
         format = '%Y-%m-%j %H:%M:%S';
       var dates = time.toDateString().split(/\s/);      // ["Wed", "Apr", "11", "2012"]
+      dates[2] = pad(dates[2]);
       var dateS = time.toLocaleDateString().split(/\s/);// ["Wednesday,", "April", "11,", "2012"]
       var times = time.toTimeString().split(/[\s:\+]/); // ["10", "37", "44", "GMT", "0800", "(中国标准时间)"]
       var replace = {
@@ -1480,7 +1499,7 @@ define('liquid', function(require, exports, module) {
         H:      times[0],       // 24小时制
         I:      times[0] % 12,  // 12小时制
         j:      dates[2], // 日
-        m:      time.getMonth() + 1,  // 月份
+        m:      pad(time.getMonth() + 1),  // 月份
         M:      times[1], // 分钟
         p:      Number(times[0]) < 12 ? 'AM' : 'PM',  // 上午/下午
         S:      times[2], // 秒
@@ -1499,6 +1518,10 @@ define('liquid', function(require, exports, module) {
       }
       return ret;
     };
+
+    function pad(num) {
+      return ('0' + num).slice(-2);
+    }
 
     function weekNo(now, mondayFirst) {
       var totalDays = 0;
@@ -1633,14 +1656,14 @@ define('liquid', function(require, exports, module) {
      * 将数组以指定的字符串拼接起来
      *
      * @param {array} input
-     * @param {string} segmenter
+     * @param {string} sep
      * @return {string}
      */
-    exports.join = function(input, segmenter) {
-      if (!segmenter)
-        segmenter = ' ';
+    exports.join = function(input, sep) {
+      if (typeof sep !== 'string')
+        sep = ' ';
       if (Array.isArray(input))
-        return input.join(segmenter);
+        return input.join(sep);
       else
         return '';
     };
@@ -1669,9 +1692,11 @@ define('liquid', function(require, exports, module) {
      */
     exports.replace = function(input, substring, replacement) {
       input = String(input);
-      while (input.indexOf(substring) > -1)
-        input = input.replace(substring, replacement);
-      return input;
+      if (typeof substring !== 'string')
+        return input;
+      if (typeof replacement !== 'string')
+        replacement = '';
+      return input.split(substring).join(replacement);
     };
 
     /**
@@ -1697,13 +1722,13 @@ define('liquid', function(require, exports, module) {
     };
 
     /**
-     * 将\n转换为<br>
+     * 将\n转换为<br/>
      *
      * @param {string} input
      * @return {string}
      */
     exports.newline_to_br = function(input) {
-      return String(input).replace(/\n/img, '<br>');
+      return String(input).replace(/(\r\n|\r|\n)/g, '<br/>$1');
     };
 
     /**
@@ -1768,31 +1793,35 @@ define('liquid', function(require, exports, module) {
      * 截断字符串
      *
      * @param {string} input
-     * @param {int} characters
+     * @param {int} length
      * @return {string}
      */
-    exports.truncate = function(input, characters) {
+    exports.truncate = function(input, length, tail) {
       input = String(input);
-      characters = parseInt(characters, 10);
-      if (!isFinite(characters) || characters < 0)
-        characters = 50;
-      if (characters >= input.length)
+      length = parseInt(length, 10);
+      if (!isFinite(length) || length < 0)
+        length = 50;
+      if (typeof tail !== 'string')
+        tail = '...';
+      if (length >= input.length)
         return input;
-      return input.substr(0, characters) + '...';
+      return input.substr(0, length) + tail;
     };
 
     /**
      * 取字符串的前N个单词
      *
      * @param {string} input
-     * @param {int} words
+     * @param {int} length
      * @return {string}
      */
-    exports.truncatewords = function(input, words) {
-      words = parseInt(words, 10);
-      if (!isFinite(words) || words < 0)
-        words = 15;
-      return String(input).trim().split(/\s+/).slice(0, words).join(' ') + '...';
+    exports.truncatewords = function(input, length, tail) {
+      length = parseInt(length, 10);
+      if (!isFinite(length) || length < 0)
+        length = 15;
+      if (typeof tail !== 'string')
+        tail = '...';
+      return String(input).trim().split(/\s+/).slice(0, length).join(' ') + tail;
     };
 
     /**

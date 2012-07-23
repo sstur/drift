@@ -6,6 +6,10 @@ var assert = require('assert');
 require('../app/system/core');
 require('../app/system/lib/liquid');
 
+//add node's crypto to our require system
+define('crypto', require('crypto'));
+
+
 (function(require) {
   "use strict";
 
@@ -15,7 +19,12 @@ require('../app/system/lib/liquid');
 
   function render(src, data) {
     var fn = liquid.template.compile(src, opts);
-    return fn(data, liquid.filters);
+    try {
+      var output = fn(data, liquid.filters);
+    } catch(e) {
+      throw new Error(fn.toString());
+    }
+    return output;
   }
 
   describe('liquid', function() {
@@ -224,12 +233,12 @@ require('../app/system/lib/liquid');
       assert.equal("3,2,1", render("{{ c | reverse }}", {c:[1,2,3]}));
     },
 
-    "{{ string | relace:string }}": function() {
+    "{{ string | replace:string }}": function() {
       assert.equal("bnns", render("{{'bananas'|replace:'a'}}"));
       assert.equal("bnns", render("{{ 'bananas' | replace:'a' }}"));
     },
 
-    "{{ string | relace_first:string }}": function() {
+    "{{ string | replace_first:string }}": function() {
       assert.equal("bnanas", render("{{'bananas'|replace_first:'a'}}"));
       assert.equal("bnanas", render("{{ 'bananas' | replace_first:'a' }}"));
     },
@@ -303,12 +312,12 @@ require('../app/system/lib/liquid');
 
     "{% case conditionLeft %} {% when conditionRight %} {% else %} {% endcase %}": function() {
       var src = [
-        "{% case testVar %}",
+        "{% case testVar %}\n",
         "{% when 1 %} One!",
         "{% when 2 %} Two!",
         "{% when 'test' %} Test!",
         "{% else %} Got me{% endcase %}"
-      ].join('\n');
+      ].join('');
 
       var render = liquid.template.compile(src, opts);
 
