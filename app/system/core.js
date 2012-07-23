@@ -16,11 +16,15 @@ var app, define;
 
   define = function(name, deps, definition) {
     if (typeof name != 'string') {
-      throw new Error('Invalid parameters for module definition')
+      throw new Error('Invalid module name');
     }
     if (arguments.length == 2) {
       definition = arguments[1];
       deps = [];
+    }
+    if (typeof definition !== 'function') {
+      var module = definition;
+      definition = function() { this.exports = module; };
     }
     definition.deps = deps;
     definitions[name] = (typeof definition == 'function') ? definition : function() {};
