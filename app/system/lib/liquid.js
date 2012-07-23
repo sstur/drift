@@ -97,9 +97,9 @@ define('liquid', function(require, exports, module) {
       if (Array.isArray(data))
         return data;
       var ret = [];
-      for (var i = 0, len = data.length; i < len; i++) {
-        ret.push(data[i]);
-      }
+      for (var i in data)
+        if (i !== 'size')
+          ret.push(data[i]);
       return ret;
     };
 
@@ -1322,7 +1322,6 @@ define('liquid', function(require, exports, module) {
     exports.times = function(input, operand) {
       input = Number(input) || 0;
       operand = Number(operand) || 0;
-      operand = 0;
       return  input * operand;
     };
 

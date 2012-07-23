@@ -1,4 +1,6 @@
-/*global app, define, describe, it, should */
+/*global app, define, describe, it */
+require('should');
+
 (function() {
   "use strict";
 
