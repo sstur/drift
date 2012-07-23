@@ -124,14 +124,13 @@
   };
 
   function serializeRequest(req, res) {
-    var requestData = {
+    return {
       url: req.url,
       method: req.method,
       headers: req.headers,
       ipaddr: req.connection.remoteAddress,
       server: 'Node ' + process.version
     };
-    return requestData;
   }
 
   function appData(n, val) {

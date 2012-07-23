@@ -3,6 +3,8 @@ req.data('ipaddr')
 fix app.cfg
 Date header is in wsh-server only
 
+common crypto interface (md5)
+
 decide what to do with async->sync methods accepting/returning buffer
   normalize to binary string (at Fiber.sync level?)
   ditch buffer abstraction
