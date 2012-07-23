@@ -156,9 +156,10 @@ define('liquid', function(require, exports, module) {
      * @param {string} msg
      */
     exports.errorMessage = function (msg) {
-      var html = '<pre style="font-weight:bold; font-size:14px; color:red; padding:4px 20px 4px 20px; border:1px solid #CCC; background-color:#FFF5F0;">' + msg + '</pre>';
+      //var html = '<pre style="font-weight:bold; font-size:14px; color:red; padding:4px 20px 4px 20px; border:1px solid #CCC; background-color:#FFF5F0;">' + msg + '</pre>';
       //console.log(html);
-      return html;
+      //return html;
+      throw new Error(msg);
     };
     var $_err = exports.errorMessage;
 
@@ -1653,7 +1654,9 @@ define('liquid', function(require, exports, module) {
      * @return {string}
      */
     exports.replace_first = function(input, substring, replacement) {
-      return String(input).replace(substring, replacement);
+      if (!substring)
+        return input;
+      return String(input).replace(substring, replacement || '');
     };
 
     /**
@@ -1769,10 +1772,13 @@ define('liquid', function(require, exports, module) {
      * @return {string}
      */
     exports.truncate = function(input, characters) {
+      input = String(input);
       characters = parseInt(characters, 10);
       if (!isFinite(characters) || characters < 0)
-        characters = 100;
-      return String(input).substr(0, characters);
+        characters = 50;
+      if (characters >= input.length)
+        return input;
+      return input.substr(0, characters) + '...';
     };
 
     /**
@@ -1786,7 +1792,7 @@ define('liquid', function(require, exports, module) {
       words = parseInt(words, 10);
       if (!isFinite(words) || words < 0)
         words = 15;
-      return String(input).trim().split(/\s+/).slice(0, words).join(' ');
+      return String(input).trim().split(/\s+/).slice(0, words).join(' ') + '...';
     };
 
     /**
