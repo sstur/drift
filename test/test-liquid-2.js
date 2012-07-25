@@ -14,7 +14,7 @@ define('crypto', require('crypto'));
   //var Template = require('liquid');
   var liquid = require('liquid');
 
-  var context, opts = {original: true};
+  var context;
 
 
   //helper functions
@@ -22,7 +22,7 @@ define('crypto', require('crypto'));
   function assert_template_result(expected, template, assigns, message) {
     assigns = assigns || {};
     //return assert.equal(expected, Template.parse(template).render(assigns));
-    return assert.equal(expected, liquid.template.parse(template, opts).render(assigns, liquid.filters));
+    return assert.equal(expected, liquid.template.parse(template).render(assigns, liquid.filters));
   }
 
   function assert_template_result_matches(expected, template, assigns, message) {
@@ -30,7 +30,7 @@ define('crypto', require('crypto'));
     if (!(expected instanceof RegExp)) {
       return assert_template_result(expected, template, assigns, message);
     }
-    return assert.match(expected, liquid.template.parse(template, opts).render(assigns, liquid.filters));
+    return assert.match(expected, liquid.template.parse(template).render(assigns, liquid.filters));
   }
 
   function assert_evaluates_true(left, op, right) {
@@ -113,7 +113,7 @@ define('crypto', require('crypto'));
       liquid.template.register_tag("testtag", "Block")
 
       assert_nothing_thrown(function() {
-        var template = liquid.template.parse( "{% testtag %} {% endtesttag %}")
+        var template = liquid.template.parse("{% testtag %} {% endtesttag %}")
       });
     });
 
@@ -138,8 +138,8 @@ define('crypto', require('crypto'));
         "{% endif %}",
         "{{var}}"
       ].join('\n');
-      var template = liquid.template.parse(template_source);
-      var rendered = template.render();
+      var parsed = liquid.template.parse(template_source);
+      var rendered = parsed.render();
       assert.equal("test-string", rendered.replace(/\s/g, ''));
     });
 
@@ -153,8 +153,8 @@ define('crypto', require('crypto'));
         "{% endfor %}",
         "{{ first }}-{{ second }}"
       ].join('\n');
-      var template = liquid.template.parse(template_source);
-      var rendered = template.render();
+      var parsed = liquid.template.parse(template_source);
+      var rendered = parsed.render();
       assert.equal("3-3", rendered.replace(/\s/g, ''));
     });
 
@@ -290,83 +290,83 @@ define('crypto', require('crypto'));
     it('test_product_drop', function() {
 
       assert_nothing_raised(function() {
-        var tpl = liquid.template.parse( '  '  )
-        tpl.render({'product': new ProductDrop})
+        var parsed = liquid.template.parse('  ');
+        parsed.render({'product': new ProductDrop});
       });
     });
 
     it('test_text_drop', function() {
-      var output = liquid.template.parse( ' {{ product.texts.text }} '  ).render({'product': new ProductDrop})
+      var output = liquid.template.parse(' {{ product.texts.text }} ').render({'product': new ProductDrop});
       assert.equal(' text1 ', output);
 
     });
 
     it('test_unknown_method', function() {
-      var output = liquid.template.parse( ' {{ product.catchall.unknown }} '  ).render({product: new ProductDrop})
+      var output = liquid.template.parse(' {{ product.catchall.unknown }} ').render({product: new ProductDrop});
       assert.equal(' method: unknown ', output);
 
     });
 
     it('test_integer_argument_drop', function() {
-      var output = liquid.template.parse( ' {{ product.catchall[8] }} '  ).render({product: new ProductDrop})
+      var output = liquid.template.parse(' {{ product.catchall[8] }} ').render({product: new ProductDrop});
       assert.equal(' method: 8 ', output);
     });
 
     it('test_text_array_drop', function() {
-      var output = liquid.template.parse( '{% for text in product.texts.array %} {{text}} {% endfor %}'  ).render({product: new ProductDrop})
+      var output = liquid.template.parse('{% for text in product.texts.array %} {{text}} {% endfor %}').render({product: new ProductDrop});
       assert.equal(' text1  text2 ', output);
     });
 
     it('test_context_drop', function() {
-      var output = liquid.template.parse( ' {{ context.bar }} '  ).render({context: new ContextDrop, 'bar': "carrot"})
+      var output = liquid.template.parse(' {{ context.bar }} ').render({context: new ContextDrop, 'bar': "carrot"});
       assert.equal(' carrot ', output);
     });
 
     it('test_nested_context_drop', function() {
-      var output = liquid.template.parse( ' {{ product.context.foo }} '  ).render({product: new ProductDrop, 'foo': "monkey"})
+      var output = liquid.template.parse(' {{ product.context.foo }} ').render({product: new ProductDrop, 'foo': "monkey"});
       assert.equal(' monkey ', output);
     });
 
     it('test_protected', function() {
-      var output = liquid.template.parse( ' {{ product.callmenot }} '  ).render({product: new ProductDrop})
+      var output = liquid.template.parse(' {{ product.callmenot }} ').render({product: new ProductDrop});
       assert.equal('  ', output);
     });
 
     it('test_scope', function() {
-      assert.equal('1', liquid.template.parse( '{{ context.scopes }}'  ).render({context: new ContextDrop}));
-      assert.equal('2', liquid.template.parse( '{%for i in dummy%}{{ context.scopes }}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('3', liquid.template.parse( '{%for i in dummy%}{%for i in dummy%}{{ context.scopes }}{%endfor%}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('1', liquid.template.parse('{{ context.scopes }}').render({context: new ContextDrop}));
+      assert.equal('2', liquid.template.parse('{%for i in dummy%}{{ context.scopes }}{%endfor%}').render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('3', liquid.template.parse('{%for i in dummy%}{%for i in dummy%}{{ context.scopes }}{%endfor%}{%endfor%}').render({context: new ContextDrop, 'dummy': [1]}));
     });
 
     it('test_scope_though_proc', function() {
-      assert.equal('1', liquid.template.parse( '{{ s }}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] */})}));
-      assert.equal('2', liquid.template.parse( '{%for i in dummy%}{{ s }}{%endfor%}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
-      assert.equal('3', liquid.template.parse( '{%for i in dummy%}{%for i in dummy%}{{ s }}{%endfor%}{%endfor%}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
+      assert.equal('1', liquid.template.parse('{{ s }}').render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] */})}));
+      assert.equal('2', liquid.template.parse('{%for i in dummy%}{{ s }}{%endfor%}').render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
+      assert.equal('3', liquid.template.parse('{%for i in dummy%}{%for i in dummy%}{{ s }}{%endfor%}{%endfor%}').render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
     });
 
     it('test_scope_with_assigns', function() {
-      assert.equal('variable', liquid.template.parse( '{% assign a = "variable"%}{{a}}'  ).render({context: new ContextDrop}));
-      assert.equal('variable', liquid.template.parse( '{% assign a = "variable"%}{%for i in dummy%}{{a}}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('test', liquid.template.parse( '{% assign header_gif = "test"%}{{header_gif}}'  ).render({context: new ContextDrop}));
-      assert.equal('test', liquid.template.parse( "{% assign header_gif = 'test'%}{{header_gif}}"  ).render({context: new ContextDrop}));
+      assert.equal('variable', liquid.template.parse('{% assign a = "variable"%}{{a}}').render({context: new ContextDrop}));
+      assert.equal('variable', liquid.template.parse('{% assign a = "variable"%}{%for i in dummy%}{{a}}{%endfor%}').render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('test', liquid.template.parse('{% assign header_gif = "test"%}{{header_gif}}').render({context: new ContextDrop}));
+      assert.equal('test', liquid.template.parse("{% assign header_gif = 'test'%}{{header_gif}}").render({context: new ContextDrop}));
     });
     
     it('test_scope_from_tags', function() {
-      assert.equal('1', liquid.template.parse( '{% for i in context.scopes_as_array %}{{i}}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('12', liquid.template.parse( '{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('123', liquid.template.parse( '{%for a in dummy%}{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('1', liquid.template.parse('{% for i in context.scopes_as_array %}{{i}}{% endfor %}').render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('12', liquid.template.parse('{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}').render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('123', liquid.template.parse('{%for a in dummy%}{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}{% endfor %}').render({context: new ContextDrop, 'dummy': [1]}));
     });
     
     it('test_access_context_from_drop', function() {
-      assert.equal('123', liquid.template.parse( '{%for a in dummy%}{{ context.loop_pos }}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1,2,3]}));
+      assert.equal('123', liquid.template.parse('{%for a in dummy%}{{ context.loop_pos }}{% endfor %}').render({context: new ContextDrop, 'dummy': [1,2,3]}));
     });
     
     it('test_enumerable_drop', function() {
-      assert.equal('123', liquid.template.parse( '{% for c in collection %}{{c}}{% endfor %}').render({collection: new EnumerableDrop}));
+      assert.equal('123', liquid.template.parse('{% for c in collection %}{{c}}{% endfor %}').render({collection: new EnumerableDrop}));
     });
     
     it('test_enumerable_drop_size', function() {
-      assert.equal('3', liquid.template.parse( '{{collection.size}}').render({collection: new EnumerableDrop}));
+      assert.equal('3', liquid.template.parse('{{collection.size}}').render({collection: new EnumerableDrop}));
     });
     
     it('test_empty_string_value_access', function() {

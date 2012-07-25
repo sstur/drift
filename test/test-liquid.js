@@ -15,10 +15,8 @@ define('crypto', require('crypto'));
 
   var liquid = require('liquid');
 
-  var opts = {original: true};
-
   function render(src, data) {
-    var parsed = liquid.template.parse(src, opts);
+    var parsed = liquid.template.parse(src);
 
     try {
       var output = parsed.render(data, liquid.filters);
@@ -321,7 +319,7 @@ define('crypto', require('crypto'));
         "{% else %} Got me{% endcase %}"
       ].join('');
 
-      var parsed = liquid.template.parse(src, opts);
+      var parsed = liquid.template.parse(src);
       var render = parsed.render.bind(parsed);
 
       assert.equal(" One!", render({ testVar: 1 }, liquid.filters));
