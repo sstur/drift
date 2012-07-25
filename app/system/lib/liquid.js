@@ -1,7 +1,5 @@
 /**
- * Port of Tobias Luetke's Liquid Template Engine
- * from Ruby to JavaScript. Implements safe, non-eval'ing
- * rendering from template source.
+ * Implementation of Tobias Luetke's Liquid Template Language
  *
  * Requires:
  *  - es5-shim
@@ -239,27 +237,22 @@ define('liquid', function(require, exports, module) {
 
       // constant
       if (CONST_VAL.indexOf(n) > -1) {
-        //console.log('\n', 'constant');
         return n;
       }
       // "string literal"
       if (/^"(\\"|[^"])*"$/.test(n)) {
-        //console.log('\n', 'string literal (double)');
         return n;
       }
       // 'string literal'
       if (/^'(\\'|[^'])*'$/.test(n)) {
-        //console.log('\n', 'string literal (single)');
         return n;
       }
       // number literal
       if (/^[+\-]?\d+(\.\d+)?$/.test(n)) {
-        //console.log('\n', 'number literal');
         return n;
       }
       // normal variable
       if (/^([a-zA-Z_][a-zA-Z0-9_]*)$/.test(n)) {
-        //console.log('\n', 'normal variable');
         return '$_get(locals,"' + n + '")';
       }
 
@@ -267,10 +260,8 @@ define('liquid', function(require, exports, module) {
       match = n.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(\["(\\"|[^"])*"\]|\['(\\'|[^'])*'\]|\[\d+\]|\.[a-zA-Z_][a-zA-Z0-9_]*)*$/);
       if (match) {
         var ret = n, members = [];
-        //console.log('\n', 'member sequence: ', ret);
         var MEMBERS = /\["(\\"|[^"])*"\]|\['(\\'|[^'])*'\]|\[\d+\]|\.[a-zA-Z_][a-zA-Z0-9_]*/g;
         ret = ret.replace(MEMBERS, function(member) {
-          //console.log('\n', 'member: ', member);
           if (member.charAt(0) == '.') {
             member = '["' + member.slice(1) + '"]';
           }
@@ -351,7 +342,6 @@ define('liquid', function(require, exports, module) {
       };
 
       var blocks = exports.split(cond);
-      // console.log(blocks);
       // 拆分成多个子条件
       var conds = [[]];
       var condi = 0;
@@ -389,7 +379,6 @@ define('liquid', function(require, exports, module) {
           var op1 = localsWrap(ca[0]);
           var op2 = localsWrap(ca[2]);
           ca[1] = ca[1].toLowerCase();
-          // console.log(ca[1]);
           // contains 语句
           if (ca[1] === 'contains') {
             return '(Array.isArray(' + op1 + ') ? (' + op1 + '.indexOf(' + op2 + ') !== -1) : '
@@ -477,7 +466,6 @@ define('liquid', function(require, exports, module) {
 
       for (var i = 0, len = text.length; i < len; i++) {
         var c = text[i];
-        // console.log(i, c);
         // 字符串开始或结束
         if ((c === '"' || c === '\'') && text[i - 1] !== '\\') {
           // 结束
@@ -644,7 +632,6 @@ define('liquid', function(require, exports, module) {
      * @return {string}
      */
     exports.assign = function(expression, context) {
-      // console.log(expression, context);
       // 如果为 [], array() 则创建一个数组
       if (expression === '[]' || expression === 'array()')
         var ret = '[]';
@@ -665,7 +652,6 @@ define('liquid', function(require, exports, module) {
 
         ret = ret.replace(new RegExp(i, 'ig'), 'global[' + JSON.stringify(i) + ']');
       }
-      // console.log(ret);
       return ret;
     };
 
@@ -695,7 +681,6 @@ define('liquid', function(require, exports, module) {
         hasKey = list[0];
         list.splice(0, 2);
       }
-      // console.log(hasKey, list);
       for (var i in list) {
         list[i] = localsWrap(list[i], null);
       }
@@ -704,9 +689,7 @@ define('liquid', function(require, exports, module) {
       context.addCycle(cycleKey, list);
 
       var cycleName = '$_cycle_' + cycleKey;
-      var script = '$_buf+=(' + cycleName + '.items[' + cycleName + '.i])\n'
-        + '$_cycle_next(' + cycleName + ');\n';
-      return script;
+      return '$_buf+=(' + cycleName + '.items[' + cycleName + '.i])\n' + '$_cycle_next(' + cycleName + ');\n';
     };
 
     return exports;
@@ -753,7 +736,6 @@ define('liquid', function(require, exports, module) {
 
       var line = text.slice(start + 2, end).trim();
       end += 2;
-      // console.log('Line: ' + line);
 
       // 解析语句
       var space_start = line.indexOf(' ');
@@ -1924,7 +1906,6 @@ define('liquid', function(require, exports, module) {
           line_number++;
         context.line_num = line_number;
 
-        //console.log('Block: ' + block);
         switch (block) {
           // 变量
           case '{{':
@@ -1946,7 +1927,6 @@ define('liquid', function(require, exports, module) {
         }
 
         if (ret !== null) {
-          //console.log(ret);
           var html = text.slice(html_start, ret.start);
           if (html.length > 0 && context.ignoreOutput !== true) {
             html = utils.escapeHtml(html);
@@ -1992,9 +1972,6 @@ define('liquid', function(require, exports, module) {
         +    define_cycle;
       var wrap_bottom = '\n/* == Template End == */\n';
       var code = wrap_top + scripts.join('\n') + wrap_bottom;
-
-      // console.log('names', context.varNames);
-      // console.log('includes', context.includes);
 
       return {code: code, names: context.varNames, includes: context.includes};
     };
