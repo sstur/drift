@@ -271,7 +271,7 @@ define('liquid', function(require, exports, module) {
         members.unshift('"' + ret.slice(0, ret.indexOf('[')) + '"');
         return '$_get(locals,' + members.join(',') + ')';
       } else {
-        throw new Error('invalid literal or expression: ' + input + '\n' + arguments.callee.caller.toString());
+        throw new Error('invalid literal or expression: ' + input);
       }
     };
 
