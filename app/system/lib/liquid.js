@@ -15,13 +15,31 @@
  *  - replace strftime
  *  - implement function properties as getters; fallback to .get()
  *  - better typeof function to handle null, arrays, etc
- *  - extensions are just helpers and can be local
  *
  */
 define('liquid', function(require, exports, module) {
 
   var Class = require('class');
   var strftime = require('strftime').strftime;
+
+  var Liquid = module.exports = {
+
+    author: 'M@ McCray <darthapo@gmail.com>',
+    version: '1.2.1',
+
+    readTemplateFile: function(path) {
+      throw ("This liquid context does not allow includes.");
+    },
+
+    registerFilters: function(filters) {
+      Template.registerFilter(filters);
+    },
+
+    parse: function(src) {
+      return Template.parse(src);
+    }
+
+  };
 
   //helper functions
   function objectEach(obj, fn /*, context*/) {
@@ -46,45 +64,18 @@ define('liquid', function(require, exports, module) {
     return arr;
   }
 
-  var Liquid = module.exports = {
-
-    author: 'M@ McCray <darthapo@gmail.com>',
-    version: '1.2.1',
-
-    readTemplateFile: function(path) {
-      throw ("This liquid context does not allow includes.");
-    },
-
-    registerFilters: function(filters) {
-      Template.registerFilter(filters);
-    },
-
-    parse: function(src) {
-      return Template.parse(src);
-    }
-
-  };
-
-  var extensions = Liquid.extensions = {};
-  extensions.object = {};
-
-  extensions.object.update = function(newObj) {
-    for (var p in newObj) {
-      this[p] = newObj[p];
-    }
-
-    return this;
-  };
-
-  extensions.object.hasKey = function(arg) {
-    return !!this[arg];
-  };
-
-  extensions.object.hasValue = function(arg) {
-    for (var p in this) {
-      if (this[p] == arg) return true;
+  var hasValue = function(obj, value) {
+    for (var n in obj) {
+      if (obj[n] == value) return true;
     }
     return false;
+  };
+
+  var merge = function(dst, src) {
+    for (var p in src) {
+      dst[p] = src[p];
+    }
+    return this;
   };
 
   var Tag = Liquid.Tag = Class.extend({
@@ -257,7 +248,7 @@ define('liquid', function(require, exports, module) {
     },
 
     merge: function(newScope) {
-      return extensions.object.update.call(this.scopes[0], newScope);
+      return merge(this.scopes[0], newScope);
     },
 
     pop: function() {
@@ -304,37 +295,43 @@ define('liquid', function(require, exports, module) {
           return '';
 
         default:
-          if ((/^'(.*)'$/).test(key))      // Single quoted strings
-            { return key.replace(/^'(.*)'$/, '$1'); }
-
-          else if ((/^"(.*)"$/).test(key)) // Double quoted strings
-            { return key.replace(/^"(.*)"$/, '$1'); }
-
-          else if ((/^(\d+)$/).test(key)) // Integer...
-            { return parseInt(key.replace(/^(\d+)$/ , '$1'), 10); }
-
-          else if ((/^(\d[\d\.]+)$/).test(key)) // Float...
-            { return parseFloat(key.replace(/^(\d[\d\.]+)$/, '$1')); }
-
-          else if ((/^\((\S+)\.\.(\S+)\)$/).test(key)) {// Ranges
+          if ((/^'(.*)'$/).test(key)) {
+            // Single quoted strings
+            key = key.slice(1, -1).replace(/\\'/g, "'"); //un-quote and unescape
+            key = '"' + key.replace(/"/g, '\\"') + '"'; //re-quote and escape
+            return JSON.parse(key);
+          } else
+          if ((/^"(.*)"$/).test(key)) {
+            // Double quoted strings
+            return JSON.parse(key);
+          } else
+          if ((/^\d+$/).test(key)) {
+            // Integer
+            return parseInt(key, 10);
+          } else
+          if ((/^[+\-]\d+(\.\d+)?$/).test(key)) {
+            // Float
+            return parseFloat(key);
+          } else
+          if ((/^\((\S+)\.\.(\S+)\)$/).test(key)) {
+            // Ranges
             var range = key.match(/^\((\S+)\.\.(\S+)\)$/),
                 left  = parseInt(range[1], 10),
                 right = parseInt(range[2], 10),
                 arr   = [];
+            var limit, i;
             if (isNaN(left) || isNaN(right)) {
               left = range[1].charCodeAt(0);
               right = range[2].charCodeAt(0);
-
-              var limit = right-left+1;
-              for (var i=0; i<limit; i++) arr.push(String.fromCharCode(i+left));
+              limit = right - left + 1;
+              for (i=0; i < limit; i++) arr.push(String.fromCharCode(i+left));
             } else { // okay to make array
-              var limit = right-left+1;
-              for (var i=0; i<limit; i++) arr.push(i+left);
+              limit = right-left+1;
+              for (i=0; i<limit; i++) arr.push(i+left);
             }
             return arr;
           } else {
-            var result = this.variable(key);
-            return result;
+            return this.variable(key);
           }
       }
     },
@@ -455,10 +452,10 @@ define('liquid', function(require, exports, module) {
         this.registers = context.registers;
       } else {
         if (args.ctx) {
-          extensions.object.update.call(this.assigns, args.ctx);
+          merge(this.assigns, args.ctx);
         }
         if (args.registers) {
-          extensions.object.update.call(this.registers, args.registers);
+          merge(this.registers, args.registers);
         }
         context = new Context(this.assigns, this.registers, this.rethrowErrors)
       }
@@ -621,8 +618,8 @@ define('liquid', function(require, exports, module) {
     '>=': function(l,r) { return (l >= r); },
 
     'contains': function(l,r) { return ~l.indexOf(r); },
-    'hasKey':   function(l,r) { return extensions.object.hasKey.call(l, r); },
-    'hasValue': function(l,r) { return extensions.object.hasValue.call(l, r); }
+    'hasKey':   function(l,r) { return Object.hasOwnProperty.call(l, r); },
+    'hasValue': function(l,r) { return hasValue(l, r); }
   };
 
   var ElseCondition = Liquid.ElseCondition = Condition.extend({
