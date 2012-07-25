@@ -69,6 +69,20 @@ define('liquid', function(require, exports, module) {
     };
 
     /**
+     * Merge the properties from src object into dst
+     *
+     * @param {object} dst
+     * @param {object} src
+     * @return {object}
+     */
+    exports.merge = function(dst, src) {
+      for (var n in src) {
+        dst[n] = src[n];
+      }
+      return dst;
+    };
+
+    /**
      * Create a new object that inherits from the given object
      *
      * @param {object} obj
@@ -170,7 +184,6 @@ define('liquid', function(require, exports, module) {
 
     /**
      * Traverse an object by property name to fetch a descendant that may or may not exist
-     *   if not found, it looks in the global object
      *
      * @param {object} obj
      */
@@ -179,9 +192,6 @@ define('liquid', function(require, exports, module) {
       for (var i = 1, len = args.length; i < len; i++) {
         if (!ret) break;
         ret = ret[args[i]];
-      }
-      if (ret == null && obj !== global) {
-        ret = arguments.callee.apply(null, [global].concat(args.slice(1)));
       }
       return ret;
     };
@@ -267,10 +277,7 @@ define('liquid', function(require, exports, module) {
           members.push(member.slice(1, -1));
           return member;
         });
-        //console.log('\n', 'fixed: ', ret);
         members.unshift('"' + ret.slice(0, ret.indexOf('[')) + '"');
-        //console.log('\n', '$_get(locals, ' + members.join(', ') + ')');
-        //ret = ret.replace(/^(\w+)/, 'locals["$1"]');
         return '$_get(locals,' + members.join(',') + ')';
       } else {
         throw new Error('invalid literal or expression: ' + input + '\n' + arguments.callee.caller.toString());
@@ -616,7 +623,7 @@ define('liquid', function(require, exports, module) {
       var script = header
         + 'forloop.length = ' + array + '.length;\n'
         + 'for (var ' + n + ' = 0; ' + n + ' < forloop.length; ' + n + '++) {\n'
-        + 'locals.' + item + ' = ' + array + '[' + n + '];\n'
+        + 'locals[' + JSON.stringify(item) + '] = ' + array + '[' + n + '];\n'
         + 'forloop.name = \'' + blocks[0] + '\';\n'
         + 'forloop.index0 = ' + ni + ';\n'
         + 'forloop.index = ++' + ni + ';\n'
@@ -648,9 +655,7 @@ define('liquid', function(require, exports, module) {
         var ret = 'JSON.parse(\'' + expression + '\')';
       else
         var ret = exports.filtered(expression, null, context);
-      // console.log(expression, ret);
       // 替换用assign定义的名称为global
-      // console.log(expression, context.assignNames);
       for (var i in context.assignNames) {
         // 忽略loop中的名称名称（即优先使用loop内定义的名称）
         if (context.loopName.length > 0) {
@@ -658,7 +663,7 @@ define('liquid', function(require, exports, module) {
             continue;
         }
 
-        ret = ret.replace(RegExp(i, 'ig'), 'global.' + i);
+        ret = ret.replace(new RegExp(i, 'ig'), 'global[' + JSON.stringify(i) + ']');
       }
       // console.log(ret);
       return ret;
@@ -1040,7 +1045,6 @@ define('liquid', function(require, exports, module) {
                 var assign_expr = utils.assign(line_right.substr(eq_op + 1).trim(), context);
                 setLineNumber();
                 script += '$_set(global,' + assign_name.slice(13, -1) + ',' + assign_expr + ');';
-                //script += 'global.' + assign_name + ' = ' + assign_expr + ';';
               }
               break;
             // capture 定义变量块
@@ -2011,17 +2015,19 @@ define('liquid', function(require, exports, module) {
       var tpl = exports.parse(text, options);
 
       var script = '(function(locals, filters) { \n'
-        + 'locals = locals || {};\n'
         + 'filters = filters || {};\n'
-        + 'var global = {locals: locals, filters: filters};\n'
+        + 'var global = {filters: filters};\n'
         + 'var $_html = '    + utils.escapeHtml.toString() + ';\n'
         + 'var $_err = '     + utils.errorMessage.toString() + ';\n'
         + 'var $_rethrow = ' + utils.rethrowError.toString() + ';\n'
+        + 'var $_merge = '   + utils.merge.toString() + ';\n'
         + 'var $_create = '   + utils.create.toString() + ';\n'
         + 'var $_range = '   + utils.range.toString() + ';\n'
         + 'var $_array = '   + utils.toArray.toString() + ';\n'
         + 'var $_get = '     + utils.traverse.toString() + ';\n'
         + 'var $_set = '     + utils.assignProperty.toString() + ';\n'
+        //locals inherit from global
+        + 'locals = $_merge($_create(global), locals || {});\n'
         + 'try { \n'
         + tpl.code + '\n'
         + '} catch (err) {\n'
