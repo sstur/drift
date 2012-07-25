@@ -69,20 +69,15 @@ define('liquid', function(require, exports, module) {
     };
 
     /**
-     * 合并多个对象
+     * Create a new object that inherits from the given object
      *
-     * @param {object} obja
-     * @param {object} objb
+     * @param {object} obj
      * @return {object}
      */
-    exports.merge = function() {
-      var ret = {};
-      for (var i in arguments) {
-        var obj = arguments[i];
-        for (var j in obj)
-          ret[j] = obj[j];
-      }
-      return ret;
+    exports.create = function(obj) {
+      var F = function() {};
+      F.prototype = obj;
+      return new F();
     };
 
     /**
@@ -936,7 +931,7 @@ define('liquid', function(require, exports, module) {
               else {
                 setLineNumber();
                 script += '}\n'
-                  + '})($_merge(locals));';
+                  + '})($_create(locals));';
                 outLoop();
               }
               break;
@@ -2022,7 +2017,7 @@ define('liquid', function(require, exports, module) {
         + 'var $_html = '    + utils.escapeHtml.toString() + ';\n'
         + 'var $_err = '     + utils.errorMessage.toString() + ';\n'
         + 'var $_rethrow = ' + utils.rethrowError.toString() + ';\n'
-        + 'var $_merge = '   + utils.merge.toString() + ';\n'
+        + 'var $_create = '   + utils.create.toString() + ';\n'
         + 'var $_range = '   + utils.range.toString() + ';\n'
         + 'var $_array = '   + utils.toArray.toString() + ';\n'
         + 'var $_get = '     + utils.traverse.toString() + ';\n'
