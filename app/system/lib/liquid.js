@@ -309,8 +309,6 @@ define('liquid', function(require, exports, module) {
       var isFirst = true;
       var hasFilters = false;
 
-      //console.log('\n reduce:', js);
-      var debug = (js.indexOf('join') >= 0);
       var ret = exports.splitBy(js, '|').reduce(function(js, filter) {
         hasFilters = true;
         var parts = exports.splitBy(filter, ':');
@@ -564,21 +562,20 @@ define('liquid', function(require, exports, module) {
       var n = '$_loop_' + loopIndex;        // 索引
       var ni = '$_loop_i_' + loopIndex;     // 数字索引
       var array = localsWrap(blocks[2], null);    // 数组的名称
-      var item = localsWrap(blocks[0], null);     // 当前元素的名称
+      var item = blocks[0];     // 当前元素的名称
 
       // loop item临时名称
       context.loopName[context.loopName.length - 1].itemName = item;
 
       var header = '(function(locals) {\n'
         + 'var ' + ni + ' = 0;\n'
-        + 'locals.forloop = {};\n';
+        + 'var forloop = locals.forloop = {};\n';
 
-      // for i in (1..item.quantity)
-      var r = /^\((.+)\.\.(.+)\)$/.exec(blocks[2]);
-      if (r !== null) {
-        array = localsWrap('_range_' + loopIndex, null);
-        header += array + ' = $_range(' + localsWrap(r[1], null) + ', '
-          + localsWrap(r[2], null) + ');\n';
+      // todo: for i in (1..item.quantity)
+      var r = /^(\d+)\.\.(\d+)$/.exec(blocks[2]);
+      if (r) {
+        array = '_range_' + loopIndex;
+        header += 'var ' + array + ' = $_range(' + r[1] + ',' + r[2] + ');\n';
       }
 
       // 将对象转换为数组
@@ -622,128 +619,17 @@ define('liquid', function(require, exports, module) {
 
       // 生成基本代码
       var script = header
-        + 'locals.forloop.length = ' + array + '.length;\n'
-        + 'var forloop = locals.forloop;\n'
+        + 'forloop.length = ' + array + '.length;\n'
         + 'for (var ' + n + ' = 0; ' + n + ' < forloop.length; ' + n + '++) {\n'
-        + item + ' = ' + array + '[' + n + '];\n'
+        + 'locals.' + item + ' = ' + array + '[' + n + '];\n'
         + 'forloop.name = \'' + blocks[0] + '\';\n'
         + 'forloop.index0 = ' + ni + ';\n'
         + 'forloop.index = ++' + ni + ';\n'
         + 'forloop.rindex0 = forloop.length - forloop.index;\n'
         + 'forloop.rindex = forloop.length - forloop.index0;\n'
-        + 'forloop.first = ' + ni + ' === 1 ? true : false;\n'
-        + 'forloop.last = ' + ni + ' === forloop.length ? true : false;\n'
+        + 'forloop.first = ' + ni + ' === 1;\n'
+        + 'forloop.last = ' + ni + ' === forloop.length;\n'
         + '/* for loops body */';
-
-      return script;
-    };
-
-    /**
-     * 解析tablerowloop循环
-     *
-     * @param {string} loops
-     * @param {object} context
-     * @return {string}
-     */
-    exports.tablerow = function(loops, context) {
-      var blocks = loops.split(/\s+/);
-
-      var loopIndex = context.loop;
-
-      if (blocks.length < 2)
-        return null;
-
-      // 如果为tablerow array，自动转化为默认的 tablerow item in array
-      if (blocks.length === 2) {
-        blocks[3] = blocks[1];
-        blocks[1] = 'in';
-        blocks[2] = blocks[0];
-        blocks[0] = 'item';
-      }
-
-      var localsWrap = exports.localsWrap;
-      var n = '$_loop_' + loopIndex;        // 索引
-      var ni = '$_loop_i_' + loopIndex;     // 数字索引
-      var array = localsWrap(blocks[2], null);    // 数组的名称
-      var item = localsWrap(blocks[0], null);     // 当前元素的名称
-
-      // loop item临时名称
-      context.loopName[context.loopName.length - 1].itemName = item;
-
-      var header = '(function(locals) {\n'
-        + 'var ' + ni + ' = 0;\n'
-        + 'locals.tablerowloop = {};\n';
-
-      // tablerow i in (1..item.quantity)
-      var r = /^\((.+)\.\.(.+)\)$/.exec(blocks[2]);
-      if (r !== null) {
-        array = localsWrap('_range_' + loopIndex, null);
-        header += array + ' = $_range(' + localsWrap(r[1], null) + ', '
-          + localsWrap(r[2], null) + ');\n';
-      }
-
-      // 将对象转换为数组
-      var _array = '$_loop_arr_' + loopIndex;
-      header += 'var ' + _array + ' = $_array(' + array + ');\n';
-      array = _array;
-
-      // 允许增加的标记属性
-      var OPTIONS = ['cols', 'limit', 'offset'];
-      var options = {};
-      var getOptions = function(block) {
-        var b = block.split(':');
-        if (b.length !== 2)
-          return false;
-        var name = b[0].trim();
-        var value = localsWrap(b[1], null);
-        if (OPTIONS.indexOf(name) === -1)
-          return false;
-        options[name] = value;
-        return true;
-      };
-
-      // 格式化参数 limit: N offset: M  =>  limit:N offset:M
-      for (var i = 3; i < blocks.length; i++) {
-        if (blocks[i].substr(-1) === ':') {
-          blocks[i] += blocks[i + 1];
-          blocks.splice(i + 1, 1);
-        }
-      }
-      // tablerow item in arrays cols:3 limit:N offset:M
-      for (var i = 3; i < blocks.length; i++) {
-        if (getOptions(blocks[i]) === false)
-          return null;
-      }
-      if (options.limit && options.offset)
-        header += array + ' = ' + array + '.slice(' + options.offset + ', ' + options.offset + ' + ' + options.limit + ');\n';
-      else if (options.limit)
-        header += array + ' = ' + array + '.slice(0, ' + options.limit + ');\n';
-      else if (options.offset)
-        header += array + ' = ' + array + '.slice(' + options.offset + ');\n';
-
-      // 生成基本代码
-      var script = header
-        + 'locals.tablerowloop.length = ' + array + '.length;\n'
-        + 'var tablerowloop = locals.tablerowloop;\n'
-        + 'var ' + n + '_row = 0;\n'
-        + 'for (var ' + n + ' = 0; ' + n + ' < tablerowloop.length; ) {\n'
-        + n + '_row++;\n'
-        + '$_buf += \'<tr class=\"row\' + (' + n + '_row) + \'\">\\n\';'
-        + 'for (tablerowloop.col0 = 0; tablerowloop.col0 < ' + options.cols + ' && ' + n + ' < tablerowloop.length; tablerowloop.col0++, ' + n + '++) {\n'
-        + item + ' = ' + array + '[' + n + '];\n'
-        + 'tablerowloop.name = \'' + blocks[0] + '\';\n'
-        + 'tablerowloop.col = tablerowloop.col0 + 1;\n'
-        + 'tablerowloop.col_first = tablerowloop.col === 1 ? true : false;\n'
-        + 'tablerowloop.col_last = tablerowloop.col === ' + options.cols + ' ? true : false;\n'
-        + 'tablerowloop.index0 = ' + ni + ';\n'
-        + 'tablerowloop.index = ++' + ni + ';\n'
-        + 'tablerowloop.rindex0 = tablerowloop.length - tablerowloop.index;\n'
-        + 'tablerowloop.rindex = tablerowloop.length - tablerowloop.index0;\n'
-        + 'tablerowloop.first = ' + ni + ' === 1 ? true : false;\n'
-        + 'tablerowloop.last = ' + ni + ' === tablerowloop.length ? true : false;\n'
-        + 'if (tablerowloop.last === true) tablerowloop.col_last = true;\n'
-        + '$_buf += \'<td class=\"col\' + tablerowloop.col + \'\">\';'
-        + '/* tablerow loops body */';
 
       return script;
     };
@@ -773,8 +659,7 @@ define('liquid', function(require, exports, module) {
       for (var i in context.assignNames) {
         // 忽略loop中的名称名称（即优先使用loop内定义的名称）
         if (context.loopName.length > 0) {
-          if (i === context.loopName[context.loopName.length - 1].itemName ||
-            i.substr(0, 8) === 'forloop.' || i.substr(0, 13) === 'tablerowloop.')
+          if (i === context.loopName[context.loopName.length - 1].itemName || i.substr(0, 8) === 'forloop.')
             continue;
         }
 
@@ -1055,20 +940,6 @@ define('liquid', function(require, exports, module) {
                 outLoop();
               }
               break;
-            // endtablerow
-            case 'endtablerow':
-              if (loopName !== 'tablerow')
-                loopNotMatch();
-              else {
-                setLineNumber();
-                script += '$_buf += \'</td>\';\n'
-                  + '}\n'
-                  + '$_buf += \'</tr>\\n\';\n'
-                  + '}\n'
-                  + '})($_merge(locals));';
-                outLoop();
-              }
-              break;
             // endcapture
             case 'endcapture':
               if (loopName !== 'capture')
@@ -1155,17 +1026,6 @@ define('liquid', function(require, exports, module) {
             case 'for':
               enterLoop(line_left);
               var s = utils.forloops(line_right, context);
-              if (s === null)
-                syntaxError();
-              else {
-                setLineNumber();
-                script += s;
-              }
-              break;
-            // tablerow 循环
-            case 'tablerow':
-              enterLoop(line_left);
-              var s = utils.tablerow(line_right, context);
               if (s === null)
                 syntaxError();
               else {
@@ -2005,8 +1865,8 @@ define('liquid', function(require, exports, module) {
       context.assignNames = {};   // 使用assign标记定义的变量名称
       context.varNames = {};      // 变量的名称及引用的次数
       context.saveLocalsName = function(name) {  // 使用变量名称
-        // 忽略tablerowloop和forloop
-        if (name.substr(0, 13) === 'tablerowloop.' || name.substr(0, 8) === 'forloop.')
+        // 忽略forloop
+        if (name.substr(0, 8) === 'forloop.')
           return;
         if (!context.varNames[name])
           context.varNames[name] = 1;
@@ -2124,7 +1984,7 @@ define('liquid', function(require, exports, module) {
       define_cycle += 'var $_cycle_next = function(n) {\n'
         + 'n.i++;\n'
         + 'if (n.i >= n.length) n.i = 0;\n'
-        + '}\n';
+        + '};\n';
 
       // 包装
       var wrap_top =    '/* == Template Begin == */\n'
