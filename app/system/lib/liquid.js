@@ -56,18 +56,16 @@ define('liquid', function(require, exports, module) {
      * @param {string} input
      * @return {string}
      */
-    exports.stripQuotes = function (input) {
+    exports.stripQuotes = function(input) {
       input = String(input);
-      var s = 0;
-      var e = input.length;
-      var ei = e - 1;
-      if (input[0] === '\'' || input[0] === '"') {
-        s++;
-        e--;
+      var str = String(input), len = str.length;
+      if (str.charAt(0) == '"' && str.charAt(len - 1) == '"') {
+        return str.slice(1, -1);
       }
-      if (input[ei] === '\'' || input[ei] === '"')
-        e--;
-      return input.substr(s, e);
+      if (str.charAt(0) == "'" && str.charAt(len - 1) == "'") {
+        return str.slice(1, -1);
+      }
+      return str;
     };
 
     /**
@@ -77,7 +75,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} objb
      * @return {object}
      */
-    exports.merge = function () {
+    exports.merge = function() {
       var ret = {};
       for (var i in arguments) {
         var obj = arguments[i];
@@ -93,7 +91,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} data
      * @return {array}
      */
-    exports.toArray = function (data) {
+    exports.toArray = function(data) {
       if (Array.isArray(data))
         return data;
       var ret = [];
@@ -110,7 +108,7 @@ define('liquid', function(require, exports, module) {
      * @param {int} e
      * @return {array}
      */
-    exports.range = function (s, e) {
+    exports.range = function(s, e) {
       s = parseInt(s);
       e = parseInt(e);
       var r = [];
@@ -127,7 +125,7 @@ define('liquid', function(require, exports, module) {
      * @param {string} html
      * @return {string}
      */
-    exports.escape = function (html) {
+    exports.escape = function(html) {
       return String(html)
         .replace(/&(?!\w+;)/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -141,24 +139,21 @@ define('liquid', function(require, exports, module) {
      * @param {string} html
      * @return {string}
      */
-    exports.outputHtml = function (html) {
-      return html.replace(/\\/img, '\\\\')
-        .replace(/'/img, '\\\'')
-        .replace(/"/img, '\\\"')
-        .replace(/\r/img, '\\r')
-        .replace(/\n/img, '\\n');
+    exports.escapeHtml = function(html) {
+      return html.replace(/\\/g, '\\\\')
+        .replace(/'/g, '\\\'')
+        .replace(/"/g, '\\\"')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
     };
-    var $_html = exports.outputHtml;
+    var $_html = exports.escapeHtml;
 
     /**
      * 出错信息
      *
      * @param {string} msg
      */
-    exports.errorMessage = function (msg) {
-      //var html = '<pre style="font-weight:bold; font-size:14px; color:red; padding:4px 20px 4px 20px; border:1px solid #CCC; background-color:#FFF5F0;">' + msg + '</pre>';
-      //console.log(html);
-      //return html;
+    exports.errorMessage = function(msg) {
       throw new Error(msg);
     };
     var $_err = exports.errorMessage;
@@ -170,117 +165,123 @@ define('liquid', function(require, exports, module) {
      * @param {Error} err
      * @param {string} filename
      */
-    exports.rethrowError = function (err, filename) {
+    exports.rethrowError = function(err, filename) {
       var msg = 'An error occurred while rendering\n'
-        + 'Line: ' + $_line_num + (filename !== '' ? '  File: ' + filename : '') + '\n'
+        + 'Line: ' + $_line_num + (filename ? '  File: ' + filename : '') + '\n'
         + '    ' + err;
       $_buf+=($_err(msg));
     };
     var $_buf;
 
     /**
+     * Traverse an object by property name to fetch a descendant that may or may not exist
+     *   if not found, it looks in the global object
+     *
+     * @param {object} obj
+     */
+    exports.traverse = function(obj /*, members... */) {
+      var ret = obj, args = Array.prototype.slice.call(arguments, 0);
+      for (var i = 1, len = args.length; i < len; i++) {
+        if (!ret) break;
+        ret = ret[args[i]];
+      }
+      if (ret == null && obj !== global) {
+        ret = arguments.callee.apply(null, [global].concat(args.slice(1)));
+      }
+      return ret;
+    };
+
+    /**
+     * Traverse an object to assign a value to a descendant that may or may not exist
+     *
+     * @param {object} obj
+     */
+    exports.assignProperty = function(obj /*, members..., value */) {
+      if (arguments.length < 3) {
+        throw new Error('Invalid assignment parameters');
+      }
+      var members = Array.prototype.slice.call(arguments, 1), value = members.pop(), target = obj;
+      while (members.length > 1) {
+        var member = members.shift();
+        target = target[member] || (target[member] = {});
+      }
+      member = members[0];
+      target[member] = value;
+    };
+
+    /**
      * 包装变量
      *
      * @param {string} n
      * @param {string} locals
-     * @param {function} saveFunc
      * @return {string}
      */
-    exports.localsWrap = function (n, locals, saveFunc) {
-      if (!locals)
-        locals = 'locals';
-      locals += '.';
-      n = n.trim();
+    exports.localsWrap = function(input, locals) {
+      var n = String(input).trim(), match;
+      locals = locals || 'locals';
 
       //unwrap parenthesis
       var PARENS = /^\((.*)\)$/;
       while (PARENS.test(n)) {
-        n = n.replace(PARENS, '$1');
+        n = n.replace(PARENS, '$1').trim();
       }
 
-      //evaluate ranges
-      //var RANGE_NUM = /^(\d+)\.\.(\d+)$/;
-      //var match = RANGE_NUM.exec(n);
-      //if (match) {
-      //  var arr = [];
-      //
-      //}
-      if (n.indexOf('..') >= 0) {
-        throw new Error('ranges not implemented: ' + n);
+      //numeric ranges
+      match = n.match(/^(\d+)\.\.(\d+)$/);
+      if (match) {
+        return '$_range(' + match[1] + ',' + match[2] + ')';
       }
 
-      // 是否为常量
-      if (CONST_VAL.indexOf(n) > -1)
+      // constant
+      if (CONST_VAL.indexOf(n) > -1) {
+        //console.log('\n', 'constant');
         return n;
-      // 是否为字符串
-      if (/^['"].*['"]$/.test(n))
+      }
+      // "string literal"
+      if (/^"(\\"|[^"])*"$/.test(n)) {
+        //console.log('\n', 'string literal (double)');
         return n;
-      // 是否为数值
-      if (/^\d[\d\.]*\d?$/.test(n))
+      }
+      // 'string literal'
+      if (/^'(\\'|[^'])*'$/.test(n)) {
+        //console.log('\n', 'string literal (single)');
         return n;
-      // 是否为标识符
-      if (/^[a-zA-Z_][a-zA-Z0-9_\.]*$/.test(n) && n.substr(-1) !== '.') {
-        if (typeof saveFunc === 'function')
-          saveFunc(n);
-        return locals + n;
+      }
+      // number literal
+      if (/^[+\-]?\d+(\.\d+)?$/.test(n)) {
+        //console.log('\n', 'number literal');
+        return n;
+      }
+      // normal variable
+      if (/^([a-zA-Z_][a-zA-Z0-9_]*)$/.test(n)) {
+        //console.log('\n', 'normal variable');
+        return '$_get(locals,"' + n + '")';
       }
 
-      var i = n.indexOf('[');
-      if (i !== -1 && typeof saveFunc === 'function') {
-        var s = n.substr(0, i);
-        if (s.substr(-1) === '.')
-          s = s.substr(0, s.length - 1);
-        saveFunc(s);
+      //Convert dot-notation properties to bracket-notation
+      match = n.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(\["(\\"|[^"])*"\]|\['(\\'|[^'])*'\]|\[\d+\]|\.[a-zA-Z_][a-zA-Z0-9_]*)*$/);
+      if (match) {
+        var ret = n, members = [];
+        //console.log('\n', 'member sequence: ', ret);
+        var MEMBERS = /\["(\\"|[^"])*"\]|\['(\\'|[^'])*'\]|\[\d+\]|\.[a-zA-Z_][a-zA-Z0-9_]*/g;
+        ret = ret.replace(MEMBERS, function(member) {
+          //console.log('\n', 'member: ', member);
+          if (member.charAt(0) == '.') {
+            member = '["' + member.slice(1) + '"]';
+          }
+          members.push(member.slice(1, -1));
+          return member;
+        });
+        //console.log('\n', 'fixed: ', ret);
+        members.unshift('"' + ret.slice(0, ret.indexOf('[')) + '"');
+        //console.log('\n', '$_get(locals, ' + members.join(', ') + ')');
+        //ret = ret.replace(/^(\w+)/, 'locals["$1"]');
+        return '$_get(locals,' + members.join(',') + ')';
+      } else {
+        throw new Error('invalid literal or expression: ' + input + '\n' + arguments.callee.caller.toString());
       }
-
-      //转换为字符串索引
-      n = n.replace(/\.?((([\w\d\_]*[^\w\d\_\.\[\]]+[\w\d\_]*)+)|([\d]+[\w].*))\.?/img, function (a) {
-        if (/^["']|["']$/img.test(a))
-          return a;
-        if (a[0] === '.')
-          a = a.substr(1);
-        if (a.substr(-1) === '.')
-          a = a.substr(0, a.length - 1);
-        a = a.replace(/"/img, '\\"');
-        return '["' + a + '"]';
-      });
-      n = n.replace(/"\]/img, '"].');
-
-      // 变量索引
-      var left = n.indexOf('[');
-      var right = n.lastIndexOf(']');
-      if (left !== -1 && right !== -1) {
-        if (typeof saveFunc === 'function') {
-          n.split('[').forEach(function (item) {
-            var i = item.indexOf(']');
-            if (i === -1)
-              return;
-            var n = item.substr(0, i);
-            if (!/^['"].*['"]$/.test(n) && !/^\d[\d\.]*\d?$/.test(n) &&
-              /^[a-zA-Z_][a-zA-Z0-9_\.]*$/.test(n))
-              saveFunc(n);
-          });
-        }
-        n = n.replace(/\.?\[/img, '[' + locals)
-          .replace(RegExp((locals + '[\'"\\d]').replace(/\./img, '\\.'), 'img'), function (a) {
-            return a.substr(locals.length);
-          });
-      }
-
-      if (n.substr(-1) === '.')
-        n = n.substr(0, n.length - 1);
-      // console.log('--------', n);
-      if (n[0] === '[')
-        var ret = locals.substr(0, locals.length - 1) + n;
-      else
-        var ret = locals + n;
-
-      // 修正一些很奇怪的问题
-      ret = ret.replace(/\.\["/img, '["')
-        .replace(/"\]\.\]/img, '"]]');
-      return ret;
     };
-// 常量
+
     var CONST_VAL = ['nil', 'null', 'empty', 'blank', 'true', 'false'];
 
     /**
@@ -291,8 +292,8 @@ define('liquid', function(require, exports, module) {
      * @param {object} context
      * @return {string}
      */
-    exports.filtered = function (js, options, context) {
-      options = options || {}
+    exports.filtered = function(js, options, context) {
+      options = options || {};
       if (!options.locals)
         options.locals = 'locals';
       if (!options.filters)
@@ -308,26 +309,29 @@ define('liquid', function(require, exports, module) {
       var isFirst = true;
       var hasFilters = false;
 
-      var ret = exports.splitBy(js, '|').reduce(function (js, filter) {
+      //console.log('\n reduce:', js);
+      var debug = (js.indexOf('join') >= 0);
+      var ret = exports.splitBy(js, '|').reduce(function(js, filter) {
         hasFilters = true;
         var parts = exports.splitBy(filter, ':');
         var name = parts.shift();
         var args = (parts.shift() || '').trim();
         if (isFirst) {
-          js = localsWrap(js, null, context.saveLocalsName);
+          js = localsWrap(js, null);
           isFirst = false;
         }
         if (args) {
           var a = exports.splitBy(args, ',');
           for (var i in a)
-            a[i] = localsWrap(a[i], null, context.saveLocalsName);
+            a[i] = localsWrap(a[i], null);
           args = ', ' + a.join(', ');
         }
         return options.filters + name.trim() + '(' + js + args + ')';
       });
 
-      if (!hasFilters)
-        ret = localsWrap(ret, null, context.saveLocalsName);
+      if (!hasFilters) {
+        ret = localsWrap(ret, null);
+      }
 
       return ret;
     };
@@ -339,11 +343,11 @@ define('liquid', function(require, exports, module) {
      * @param {object} context
      * @return {string}
      */
-    exports.condition = function (cond, context) {
+    exports.condition = function(cond, context) {
       if (!context)
         context = {};
-      var localsWrap = function (a) {
-        return exports.localsWrap(a, null, context.saveLocalsName);
+      var localsWrap = function(a) {
+        return exports.localsWrap(a, null);
       };
 
       var blocks = exports.split(cond);
@@ -377,7 +381,7 @@ define('liquid', function(require, exports, module) {
       // 生成单个条件的js代码
       var op = ['>', '<', '==', '!=', '>=', '<>', '<=', 'contains', 'hasValue', 'hasKey'];
       var vempty = ['nil', 'null', 'empty', 'blank'];
-      var one = function (ca) {
+      var one = function(ca) {
         if (ca.length === 1) {
           return '(' + localsWrap(ca[0]) + ')';
         }
@@ -396,7 +400,7 @@ define('liquid', function(require, exports, module) {
           // hasValue 语句
           else if (ca[1] === 'hasvalue') {
             return '(Array.isArray(' + op1 + ') ? (' + op1 + '.indexOf(' + op2 + ') !== -1 ? true : false) : '
-              + '(function () {  for (var i in ' + op1 + ') if (' + op1 + '[i] == ' + op2 + ') return true;'
+              + '(function() {  for (var i in ' + op1 + ') if (' + op1 + '[i] == ' + op2 + ') return true;'
               + '  return false; })())';
           }
           // hasKey 语句
@@ -460,11 +464,11 @@ define('liquid', function(require, exports, module) {
      * @param {string} text
      * @return {array}
      */
-    exports.split = function (text) {
+    exports.split = function(text) {
       var isString = false;
       var lastIndex = 0;
       var ret = [];
-      var add = function (end) {
+      var add = function(end) {
         var w = text.slice(lastIndex, end).trim();
         if (w.length > 0)
           ret.push(w);
@@ -490,7 +494,7 @@ define('liquid', function(require, exports, module) {
         }
         // 非字符串
         else if (!isString) {
-          var isOpChar = function (c) {
+          var isOpChar = function(c) {
             return (c === '<' || c === '>' || c === '=' || c === '!');
           };
           // 空格
@@ -514,32 +518,26 @@ define('liquid', function(require, exports, module) {
     };
 
     /**
-     * 使用指定字符分割
+     * Split an expression preserving properly-escaped string literals
      *
      * @param {string} text
-     * @param {string} sep
+     * @param {string} ch
      * @return {array}
      */
-    exports.splitBy = function (text, sep) {
-      var arr = text.split(sep);
-      var ret = [];
-      for (var i = 0, len = arr.length; i < len; i++) {
-        var g = arr[i];
-        // 合并误分割的字符串内分割符
-        var gl = g.trimLeft();
-        var gr = g.trimRight();
-        if ((gl[0] === '"' || gl[0] === "'") && gl[0] !== gr.substr(-1)) {
-          var j = i;
-          do {
-            j++;
-          } while (j < len && arr[j].trimRight().substr(-1) !== gl[0])
-          if (j < len) {
-            g = arr.slice(i, j + 1).join(sep);
-            i = j;
-          }
-        }
-        ret.push(g.trim());
+    exports.splitBy = function(text, ch) {
+      var indices = [], pattern = /"(?:\\"|[^"])"|'(?:\\'|[^'])'/g;
+      pattern = pattern.source + '|[\\u' + ('000' + ch.charCodeAt(0).toString(16)).slice(-4) + ']';
+      pattern = new RegExp(pattern, 'g');
+      text.replace(pattern, function(str, i) {
+        if (str === ch) indices.push(i);
+      });
+      var ret = [], last = -1;
+      for (var i = 0; i < indices.length; i++) {
+        var index = indices[i];
+        ret.push(text.slice(last + 1, index));
+        last = index;
       }
+      ret.push(text.slice(last + 1));
       return ret;
     };
 
@@ -550,7 +548,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} context
      * @return {string}
      */
-    exports.forloops = function (loops, context) {
+    exports.forloops = function(loops, context) {
       var blocks = loops.split(/\s+/);
 
       // 如果为for array，自动转化为默认的 for item in array
@@ -565,22 +563,22 @@ define('liquid', function(require, exports, module) {
       var localsWrap = exports.localsWrap;
       var n = '$_loop_' + loopIndex;        // 索引
       var ni = '$_loop_i_' + loopIndex;     // 数字索引
-      var array = localsWrap(blocks[2], null, context.saveLocalsName);    // 数组的名称
-      var item = localsWrap(blocks[0], null, context.saveLocalsName);     // 当前元素的名称
+      var array = localsWrap(blocks[2], null);    // 数组的名称
+      var item = localsWrap(blocks[0], null);     // 当前元素的名称
 
       // loop item临时名称
       context.loopName[context.loopName.length - 1].itemName = item;
 
-      var header = '(function (locals) {\n'
+      var header = '(function(locals) {\n'
         + 'var ' + ni + ' = 0;\n'
         + 'locals.forloop = {};\n';
 
       // for i in (1..item.quantity)
       var r = /^\((.+)\.\.(.+)\)$/.exec(blocks[2]);
       if (r !== null) {
-        array = localsWrap('_range_' + loopIndex, null, context.saveLocalsName);
-        header += array + ' = $_range(' + localsWrap(r[1], null, context.saveLocalsName) + ', '
-          + localsWrap(r[2], null, context.saveLocalsName) + ');\n';
+        array = localsWrap('_range_' + loopIndex, null);
+        header += array + ' = $_range(' + localsWrap(r[1], null) + ', '
+          + localsWrap(r[2], null) + ');\n';
       }
 
       // 将对象转换为数组
@@ -591,12 +589,12 @@ define('liquid', function(require, exports, module) {
       // 允许增加的标记属性
       var OPTIONS = ['limit', 'offset'];
       var options = {};
-      var getOptions = function (block) {
+      var getOptions = function(block) {
         var b = block.split(':');
         if (b.length !== 2)
           return false;
         var name = b[0].trim();
-        var value = localsWrap(b[1], null, context.saveLocalsName);
+        var value = localsWrap(b[1], null);
         if (OPTIONS.indexOf(name) === -1)
           return false;
         options[name] = value;
@@ -647,7 +645,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} context
      * @return {string}
      */
-    exports.tablerow = function (loops, context) {
+    exports.tablerow = function(loops, context) {
       var blocks = loops.split(/\s+/);
 
       var loopIndex = context.loop;
@@ -666,22 +664,22 @@ define('liquid', function(require, exports, module) {
       var localsWrap = exports.localsWrap;
       var n = '$_loop_' + loopIndex;        // 索引
       var ni = '$_loop_i_' + loopIndex;     // 数字索引
-      var array = localsWrap(blocks[2], null, context.saveLocalsName);    // 数组的名称
-      var item = localsWrap(blocks[0], null, context.saveLocalsName);     // 当前元素的名称
+      var array = localsWrap(blocks[2], null);    // 数组的名称
+      var item = localsWrap(blocks[0], null);     // 当前元素的名称
 
       // loop item临时名称
       context.loopName[context.loopName.length - 1].itemName = item;
 
-      var header = '(function (locals) {\n'
+      var header = '(function(locals) {\n'
         + 'var ' + ni + ' = 0;\n'
         + 'locals.tablerowloop = {};\n';
 
       // tablerow i in (1..item.quantity)
       var r = /^\((.+)\.\.(.+)\)$/.exec(blocks[2]);
       if (r !== null) {
-        array = localsWrap('_range_' + loopIndex, null, context.saveLocalsName);
-        header += array + ' = $_range(' + localsWrap(r[1], null, context.saveLocalsName) + ', '
-          + localsWrap(r[2], null, context.saveLocalsName) + ');\n';
+        array = localsWrap('_range_' + loopIndex, null);
+        header += array + ' = $_range(' + localsWrap(r[1], null) + ', '
+          + localsWrap(r[2], null) + ');\n';
       }
 
       // 将对象转换为数组
@@ -692,12 +690,12 @@ define('liquid', function(require, exports, module) {
       // 允许增加的标记属性
       var OPTIONS = ['cols', 'limit', 'offset'];
       var options = {};
-      var getOptions = function (block) {
+      var getOptions = function(block) {
         var b = block.split(':');
         if (b.length !== 2)
           return false;
         var name = b[0].trim();
-        var value = localsWrap(b[1], null, context.saveLocalsName);
+        var value = localsWrap(b[1], null);
         if (OPTIONS.indexOf(name) === -1)
           return false;
         options[name] = value;
@@ -757,7 +755,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} context
      * @return {string}
      */
-    exports.assign = function (expression, context) {
+    exports.assign = function(expression, context) {
       // console.log(expression, context);
       // 如果为 [], array() 则创建一个数组
       if (expression === '[]' || expression === 'array()')
@@ -765,7 +763,7 @@ define('liquid', function(require, exports, module) {
       // 如果为 {}, object(), {"a":"xxx"} 则创建相应的对象
       else if (expression === 'object()')
         var ret = '{}';
-      else if (/^\{.*\}$/img.test(expression))
+      else if (/^\{.*\}$/.test(expression))
         var ret = 'JSON.parse(\'' + expression + '\')';
       else
         var ret = exports.filtered(expression, null, context);
@@ -780,7 +778,7 @@ define('liquid', function(require, exports, module) {
             continue;
         }
 
-        ret = ret.replace(RegExp(i, 'img'), 'global.' + i);
+        ret = ret.replace(RegExp(i, 'ig'), 'global.' + i);
       }
       // console.log(ret);
       return ret;
@@ -793,7 +791,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} context
      * @return {string}
      */
-    exports.cycle = function (strlist, context) {
+    exports.cycle = function(strlist, context) {
       var localsWrap = exports.localsWrap;
 
       var list = exports.splitBy(strlist, ',');
@@ -814,7 +812,7 @@ define('liquid', function(require, exports, module) {
       }
       // console.log(hasKey, list);
       for (var i in list) {
-        list[i] = localsWrap(list[i], null, context.saveLocalsName);
+        list[i] = localsWrap(list[i], null);
       }
 
       var cycleKey = md5((hasKey || list.join(','))).substr(0, 8);
@@ -830,7 +828,7 @@ define('liquid', function(require, exports, module) {
   })({});
 
   var parser = (function(exports) {
-    exports.output = function (text, start, context) {
+    exports.output = function(text, start, context) {
       if (context.isRaw || context.isComment)
         return null;
 
@@ -857,7 +855,7 @@ define('liquid', function(require, exports, module) {
     };
 
 
-    exports.tags = function (text, start, context) {
+    exports.tags = function(text, start, context) {
       // 查找结束标记
       var end = text.indexOf('%}', start);
       if (end === -1)
@@ -877,7 +875,7 @@ define('liquid', function(require, exports, module) {
       var script = '';
 
       // 设置行号，以便检查运行时错误
-      var setLineNumber = function () {
+      var setLineNumber = function() {
         if (script.substr(-1) === '\n')
           script += '$_line_num = ' + context.line_num + ';\n';
         else
@@ -911,7 +909,7 @@ define('liquid', function(require, exports, module) {
       }
 
       // 嵌套开始
-      var enterLoop = function (name) {
+      var enterLoop = function(name) {
         context.loop++;
         context.loopName.push({
           name:     name,
@@ -923,13 +921,13 @@ define('liquid', function(require, exports, module) {
       };
 
       // 退出嵌套
-      var outLoop = function () {
+      var outLoop = function() {
         context.loop--;
         context.loopName.pop();
       };
 
       // 嵌套结束标记不匹配
-      var loopNotMatch = function () {
+      var loopNotMatch = function() {
         context.error = {
           message:    'Unexpected token: ' + line,
           start:      start,
@@ -939,7 +937,7 @@ define('liquid', function(require, exports, module) {
       };
 
       // 意外的标记
-      var syntaxError = function () {
+      var syntaxError = function() {
         context.error = {
           message:    'SyntaxError: ' + line,
           start:      start,
@@ -949,7 +947,7 @@ define('liquid', function(require, exports, module) {
       };
 
       // 无法识别的标记
-      var unknownTag = function () {
+      var unknownTag = function() {
         context.error = {
           message:    'UnknowTag: ' + line,
           start:      start,
@@ -1081,7 +1079,7 @@ define('liquid', function(require, exports, module) {
                   + '  $_rethrow(err);\n'
                   + '}\n'
                   + 'return $_buf;\n'
-                  + '})();';
+                  + '})());';
                 outLoop();
               }
               break;
@@ -1136,7 +1134,7 @@ define('liquid', function(require, exports, module) {
             case 'case':
               enterLoop(line_left);
               setLineNumber();
-              script += 'switch (' + utils.localsWrap(line_right, null, context.saveLocalsName) + ') {';
+              script += 'switch (' + utils.localsWrap(line_right, null) + ') {';
               break;
             case 'when':
               if (context.hasWhen) {
@@ -1148,7 +1146,7 @@ define('liquid', function(require, exports, module) {
               if (loopName !== 'case')
                 loopNotMatch();
               else {
-                script += 'case ' + utils.localsWrap(line_right, null, context.saveLocalsName) + ':';
+                script += 'case ' + utils.localsWrap(line_right, null) + ':';
                 setLineNumber();
                 context.hasWhen = true;
               }
@@ -1182,19 +1180,21 @@ define('liquid', function(require, exports, module) {
                 syntaxError();
               }
               else {
-                var assign_name = utils.localsWrap(line_right.substr(0, eq_op).trim(), null, context.saveLocalsName);
+                var assign_name = utils.localsWrap(line_right.substr(0, eq_op).trim(), null);
                 context.assignNames[assign_name] = true;
                 var assign_expr = utils.assign(line_right.substr(eq_op + 1).trim(), context);
                 setLineNumber();
-                script += 'global.' + assign_name + ' = ' + assign_expr + ';';
+                script += '$_set(global,' + assign_name.slice(13, -1) + ',' + assign_expr + ');';
+                //script += 'global.' + assign_name + ' = ' + assign_expr + ';';
               }
               break;
             // capture 定义变量块
             case 'capture':
               enterLoop(line_left);
-              var n = utils.localsWrap(line_right, null, context.saveLocalsName);
+              //valid variable name?
+              var n = JSON.stringify(line_right);
               setLineNumber();
-              script += 'global.' + n + ' = ' + n + ' = (function () {\n'
+              script += '$_set(global,' + n + ',(function() {\n'
                 + 'var $_buf = \'\';\n'
                 + 'try {\n'
                 + '/* captures */\n';
@@ -1224,7 +1224,7 @@ define('liquid', function(require, exports, module) {
                   setLineNumber();
                   script += '/* === include "' + inc_tag.name + '"' + (inc_tag.with ? ' with "' + inc_tag.with + '"' : '') + ' === */\n'
                     + 'try {\n'
-                    + '$_buf+=((function (locals) {\n'
+                    + '$_buf+=((function(locals) {\n'
                     + context.files[inc_tag.name] + '\n'
                     + 'return $_buf;\n'
                     + '})(' + (inc_tag.with ? utils.localsWrap(inc_tag.with) : 'locals') + '));\n'
@@ -1776,7 +1776,7 @@ define('liquid', function(require, exports, module) {
      * @return {string}
      */
     exports.strip_html = function(text) {
-      return String(text).replace(/<[^>]*>/img, '');
+      return String(text).replace(/<[^>]*>/g, '');
     };
 
     /**
@@ -1982,7 +1982,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} options  files:子模版文件代码,用parse编译
      * @return {object}
      */
-    exports.parse = function (text, options) {
+    exports.parse = function(text, options) {
       options = options || {};
       options.tags = options.tags || {};
 
@@ -1991,7 +1991,7 @@ define('liquid', function(require, exports, module) {
       var scripts = [];    // 编译后的代码
       var context = {}     // 编译时传递的环境变量
 
-      scripts.add = function (s) {
+      scripts.add = function(s) {
         scripts.push(s);
       };
 
@@ -2004,7 +2004,7 @@ define('liquid', function(require, exports, module) {
       context.ignoreOutput = false; // 忽略该部分的HTML代码
       context.assignNames = {};   // 使用assign标记定义的变量名称
       context.varNames = {};      // 变量的名称及引用的次数
-      context.saveLocalsName = function (name) {  // 使用变量名称
+      context.saveLocalsName = function(name) {  // 使用变量名称
         // 忽略tablerowloop和forloop
         if (name.substr(0, 13) === 'tablerowloop.' || name.substr(0, 8) === 'forloop.')
           return;
@@ -2015,19 +2015,19 @@ define('liquid', function(require, exports, module) {
       };
       context.includes = {};                  // 包含的子模版
       context.files = options.files || {};    // 提供的资源文件
-      context.addIncludes = function (name) { // 包含子模版
+      context.addIncludes = function(name) { // 包含子模版
         if (!context.includes[name])
           context.includes[name] = 1;
         else
           context.includes[name]++;
       };
       context.cycles = {};        // cycle标记中的变量列表
-      context.addCycle = function (key, list) {  // 添加cycle
+      context.addCycle = function(key, list) {  // 添加cycle
         context.cycles[key] = list;
       };
 
       // 捕捉严重的错误
-      var catchError = function (data) {
+      var catchError = function(data) {
         if (!context.error && data) {
           context.error = {
             start:      data.start,
@@ -2038,8 +2038,8 @@ define('liquid', function(require, exports, module) {
         }
 
         // 生成出错信息描述
-        var html_top = utils.outputHtml(text.slice(0, context.error.start));
-        var html_bottom = utils.outputHtml(text.slice(context.error.end));
+        var html_top = utils.escapeHtml(text.slice(0, context.error.start));
+        var html_bottom = utils.escapeHtml(text.slice(context.error.end));
         var html_error = 'Line:' + line_number + '\n'
           + '    ' + context.error.line + '\n\n'
           + context.error.message + '\n';
@@ -2050,7 +2050,7 @@ define('liquid', function(require, exports, module) {
         }
 
         // 输出出错信息
-        html_error = utils.outputHtml(html_error);
+        html_error = utils.escapeHtml(html_error);
         scripts.splice(0, scripts.length);
         scripts.add('$_buf+=(\'' + html_top + '\');');
         scripts.add('$_buf+=($_err(\'' + html_error + '\'));');
@@ -2090,7 +2090,7 @@ define('liquid', function(require, exports, module) {
           //console.log(ret);
           var html = text.slice(html_start, ret.start);
           if (html.length > 0 && context.ignoreOutput !== true) {
-            html = utils.outputHtml(html);
+            html = utils.escapeHtml(html);
             scripts.add('$_buf+=(\'' + html + '\');');
           }
           // 代码
@@ -2104,7 +2104,7 @@ define('liquid', function(require, exports, module) {
       // 最后一部分的HTML
       var html = text.slice(html_start, len);
       if (html.length > 0) {
-        html = utils.outputHtml(html);
+        html = utils.escapeHtml(html);
         scripts.add('$_buf+=(\'' + html + '\');');
       }
 
@@ -2121,7 +2121,7 @@ define('liquid', function(require, exports, module) {
         var s = 'var ' + n + ' = {i: 0, length: ' + c.length + ', items: [' + c.join(',') + ']}\n';
         define_cycle += s;
       }
-      define_cycle += 'var $_cycle_next = function (n) {\n'
+      define_cycle += 'var $_cycle_next = function(n) {\n'
         + 'n.i++;\n'
         + 'if (n.i >= n.length) n.i = 0;\n'
         + '}\n';
@@ -2149,31 +2149,31 @@ define('liquid', function(require, exports, module) {
      *                               noeval:不执行eval(用于调试)，直接返回 {code, names, includes}
      * @return {function}
      */
-    exports.compile = function (text, options) {
+    exports.compile = function(text, options) {
       options = options || {};
 
       // 编译代码
       var tpl = exports.parse(text, options);
 
-      var script = '(function (locals, filters) { \n'
-        //+ '\'use strict\';\n'
+      var script = '(function(locals, filters) { \n'
         + 'locals = locals || {};\n'
         + 'filters = filters || {};\n'
         + 'var global = {locals: locals, filters: filters};\n'
-        + 'var $_html = ' + utils.outputHtml.toString() + ';\n'
-        + 'var $_err = ' + utils.errorMessage.toString() + ';\n'
+        + 'var $_html = '    + utils.escapeHtml.toString() + ';\n'
+        + 'var $_err = '     + utils.errorMessage.toString() + ';\n'
         + 'var $_rethrow = ' + utils.rethrowError.toString() + ';\n'
-        + 'var $_merge = ' + utils.merge.toString() + ';\n'
-        + 'var $_range = ' + utils.range.toString() + ';\n'
-        + 'var $_array = ' + utils.toArray.toString() + ';\n'
+        + 'var $_merge = '   + utils.merge.toString() + ';\n'
+        + 'var $_range = '   + utils.range.toString() + ';\n'
+        + 'var $_array = '   + utils.toArray.toString() + ';\n'
+        + 'var $_get = '     + utils.traverse.toString() + ';\n'
+        + 'var $_set = '     + utils.assignProperty.toString() + ';\n'
         + 'try { \n'
         + tpl.code + '\n'
         + '} catch (err) {\n'
-        + '  $_rethrow(err, "' + (options.filename || '').replace(/"/img, '\\"') + '");\n'
+        + '  $_rethrow(err, ' + JSON.stringify(options.filename || '') + ');\n'
         + '}\n'
         + 'return $_buf;\n'
         + '})';
-      //console.log(script);
 
       // 用于调试
       if (options.noeval) {
@@ -2196,7 +2196,7 @@ define('liquid', function(require, exports, module) {
           return fn;
 
         // 封装filters
-        var fnWrap = function (d, f) {
+        var fnWrap = function(d, f) {
           return fn(d, f || filters);
         };
         fnWrap.names = fn.names;
@@ -2216,7 +2216,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} f 自定义函数
      * @return {text}
      */
-    exports.render = function (text, data, f) {
+    exports.render = function(text, data, f) {
       var fn = exports.compile(text);
       return fn(data, f);
     };
