@@ -12,7 +12,8 @@
  * To Do:
  *  - implement readTemplateFile
  *  - refactor test suite
- *  - implement "method_missing" -like functionality: page.block0.content
+ *  - replace strftime
+ *  - implement function properties as getters; fallback to .get()
  *  - better typeof function to handle null, arrays, etc
  *  - extensions are just helpers and can be local
  *
