@@ -639,6 +639,7 @@ define('liquid', function(require, exports, module) {
       else if (expression === 'object()')
         var ret = '{}';
       else if (/^\{.*\}$/.test(expression))
+        //todo: parse here (try/catch)
         var ret = 'JSON.parse(\'' + expression + '\')';
       else
         var ret = exports.filtered(expression, null, context);
@@ -1023,6 +1024,8 @@ define('liquid', function(require, exports, module) {
               }
               else {
                 var assign_name = utils.localsWrap(line_right.substr(0, eq_op).trim(), null);
+                //console.log('\n', 'assign_name', assign_name);
+                //todo: verify valid identifier
                 context.assignNames[assign_name] = true;
                 var assign_expr = utils.assign(line_right.substr(eq_op + 1).trim(), context);
                 setLineNumber();
