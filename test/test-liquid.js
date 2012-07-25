@@ -18,13 +18,13 @@ define('crypto', require('crypto'));
   var opts = {original: true};
 
   function render(src, data) {
-    var fn = liquid.template.compile(src, opts);
+    var parsed = liquid.template.parse(src, opts);
 
     try {
-      var output = fn(data, liquid.filters);
+      var output = parsed.render(data, liquid.filters);
     } catch(e) {
       console.log('error', e);
-      throw new Error(fn.toString());
+      throw new Error(parsed.code);
     }
     return output;
   }
@@ -321,7 +321,8 @@ define('crypto', require('crypto'));
         "{% else %} Got me{% endcase %}"
       ].join('');
 
-      var render = liquid.template.compile(src, opts);
+      var parsed = liquid.template.parse(src, opts);
+      var render = parsed.render.bind(parsed);
 
       assert.equal(" One!", render({ testVar: 1 }, liquid.filters));
       assert.equal(" Two!", render({ testVar: 2 }, liquid.filters));

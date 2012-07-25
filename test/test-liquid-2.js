@@ -22,7 +22,7 @@ define('crypto', require('crypto'));
   function assert_template_result(expected, template, assigns, message) {
     assigns = assigns || {};
     //return assert.equal(expected, Template.parse(template).render(assigns));
-    return assert.equal(expected, liquid.template.compile(template, opts)(assigns, liquid.filters));
+    return assert.equal(expected, liquid.template.parse(template, opts).render(assigns, liquid.filters));
   }
 
   function assert_template_result_matches(expected, template, assigns, message) {
@@ -30,7 +30,7 @@ define('crypto', require('crypto'));
     if (!(expected instanceof RegExp)) {
       return assert_template_result(expected, template, assigns, message);
     }
-    return assert.match(expected, liquid.template.compile(template, opts)(assigns, liquid.filters));
+    return assert.match(expected, liquid.template.parse(template, opts).render(assigns, liquid.filters));
   }
 
   function assert_evaluates_true(left, op, right) {
@@ -70,50 +70,50 @@ define('crypto', require('crypto'));
   describe('blocks', function() {
 
     it('test_blankspace', function() {
-      var template = liquid.Template.parse("  ");
+      var template = liquid.template.parse("  ");
       assert.equal(["  "], template.root.nodelist);
     });
 
     it('test_variable_beginning', function() {
-      var template = liquid.Template.parse("{{funk}}  ");
+      var template = liquid.template.parse("{{funk}}  ");
       assert.equal(2, template.root.nodelist.size);
-      assert.equal(Variable, template.root.nodelist[0].class);
-      assert.equal(String, template.root.nodelist[1].class);
+      assert.equal("Variable", template.root.nodelist[0].type);
+      assert.equal("String", template.root.nodelist[1].type);
     });
 
     it('test_variable_end', function() {
-      var template = liquid.Template.parse("  {{funk}}");
+      var template = liquid.template.parse("  {{funk}}");
       assert.equal(2, template.root.nodelist.length);
-      assert.equal(String, template.root.nodelist[0].class);
-      assert.equal(Variable, template.root.nodelist[1].class);
+      assert.equal("String", template.root.nodelist[0].type);
+      assert.equal("Variable", template.root.nodelist[1].type);
     });
 
     it('test_variable_middle', function() {
-      var template = liquid.Template.parse("  {{funk}}  ");
+      var template = liquid.template.parse("  {{funk}}  ");
       assert.equal(3, template.root.nodelist.length);
-      assert.equal(String, template.root.nodelist[0].class);
-      assert.equal(Variable, template.root.nodelist[1].class);
-      assert.equal(String, template.root.nodelist[2].class);
+      assert.equal("String", template.root.nodelist[0].type);
+      assert.equal("Variable", template.root.nodelist[1].type);
+      assert.equal("String", template.root.nodelist[2].type);
     });
 
     it('test_variable_many_embedded_fragments', function() {
-      var template = liquid.Template.parse("  {{funk}} {{so}} {{brother}} ")
+      var template = liquid.template.parse("  {{funk}} {{so}} {{brother}} ")
       assert.equal(7, template.root.nodelist.length);
-      assert.equal([String, Variable, String, Variable, String, Variable, String],
+      assert.equal(["String", "Variable", "String", "Variable", "String", "Variable", "String"],
         block_types(template.root.nodelist));
     });
 
     it('test_with_block', function() {
-      var template = liquid.Template.parse("  {% comment %} {% endcomment %} ")
-      assert.equal([String, Comment, String], block_types(template.root.nodelist));
+      var template = liquid.template.parse("  {% comment %} {% endcomment %} ")
+      assert.equal(["String", "Comment", "String"], block_types(template.root.nodelist));
       assert.equal(3, template.root.nodelist.length);
     });
 
     it('test_with_custom_tag', function() {
-      liquid.Template.register_tag("testtag", Block)
+      liquid.template.register_tag("testtag", "Block")
 
       assert_nothing_thrown(function() {
-        var template = liquid.Template.parse( "{% testtag %} {% endtesttag %}")
+        var template = liquid.template.parse( "{% testtag %} {% endtesttag %}")
       });
     });
 
@@ -138,7 +138,7 @@ define('crypto', require('crypto'));
         "{% endif %}",
         "{{var}}"
       ].join('\n');
-      var template = Template.parse(template_source)
+      var template = liquid.template.parse(template_source);
       var rendered = template.render();
       assert.equal("test-string", rendered.replace(/\s/g, ''));
     });
@@ -153,7 +153,7 @@ define('crypto', require('crypto'));
         "{% endfor %}",
         "{{ first }}-{{ second }}"
       ].join('\n');
-      var template = Template.parse(template_source);
+      var template = liquid.template.parse(template_source);
       var rendered = template.render();
       assert.equal("3-3", rendered.replace(/\s/g, ''));
     });
@@ -211,8 +211,8 @@ define('crypto', require('crypto'));
     });
 
     it('test_contains_works_on_arrays', function() {
-      context = {}
-      context['array'] = [1,2,3,4,5]
+      context = {};
+      context['array'] = [1,2,3,4,5];
 
       assert_evaluates_false("array",  'contains', '0');
       assert_evaluates_true("array",   'contains', '1');
@@ -290,91 +290,91 @@ define('crypto', require('crypto'));
     it('test_product_drop', function() {
 
       assert_nothing_raised(function() {
-        var tpl = liquid.Template.parse( '  '  )
+        var tpl = liquid.template.parse( '  '  )
         tpl.render({'product': new ProductDrop})
       });
     });
 
     it('test_text_drop', function() {
-      var output = liquid.Template.parse( ' {{ product.texts.text }} '  ).render({'product': new ProductDrop})
+      var output = liquid.template.parse( ' {{ product.texts.text }} '  ).render({'product': new ProductDrop})
       assert.equal(' text1 ', output);
 
     });
 
     it('test_unknown_method', function() {
-      var output = liquid.Template.parse( ' {{ product.catchall.unknown }} '  ).render({product: new ProductDrop})
+      var output = liquid.template.parse( ' {{ product.catchall.unknown }} '  ).render({product: new ProductDrop})
       assert.equal(' method: unknown ', output);
 
     });
 
     it('test_integer_argument_drop', function() {
-      var output = liquid.Template.parse( ' {{ product.catchall[8] }} '  ).render({product: new ProductDrop})
+      var output = liquid.template.parse( ' {{ product.catchall[8] }} '  ).render({product: new ProductDrop})
       assert.equal(' method: 8 ', output);
     });
 
     it('test_text_array_drop', function() {
-      var output = liquid.Template.parse( '{% for text in product.texts.array %} {{text}} {% endfor %}'  ).render({product: new ProductDrop})
+      var output = liquid.template.parse( '{% for text in product.texts.array %} {{text}} {% endfor %}'  ).render({product: new ProductDrop})
       assert.equal(' text1  text2 ', output);
     });
 
     it('test_context_drop', function() {
-      var output = liquid.Template.parse( ' {{ context.bar }} '  ).render({context: new ContextDrop, 'bar': "carrot"})
+      var output = liquid.template.parse( ' {{ context.bar }} '  ).render({context: new ContextDrop, 'bar': "carrot"})
       assert.equal(' carrot ', output);
     });
 
     it('test_nested_context_drop', function() {
-      var output = liquid.Template.parse( ' {{ product.context.foo }} '  ).render({product: new ProductDrop, 'foo': "monkey"})
+      var output = liquid.template.parse( ' {{ product.context.foo }} '  ).render({product: new ProductDrop, 'foo': "monkey"})
       assert.equal(' monkey ', output);
     });
 
     it('test_protected', function() {
-      var output = liquid.Template.parse( ' {{ product.callmenot }} '  ).render({product: new ProductDrop})
+      var output = liquid.template.parse( ' {{ product.callmenot }} '  ).render({product: new ProductDrop})
       assert.equal('  ', output);
     });
 
     it('test_scope', function() {
-      assert.equal('1', liquid.Template.parse( '{{ context.scopes }}'  ).render({context: new ContextDrop}));
-      assert.equal('2', liquid.Template.parse( '{%for i in dummy%}{{ context.scopes }}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('3', liquid.Template.parse( '{%for i in dummy%}{%for i in dummy%}{{ context.scopes }}{%endfor%}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('1', liquid.template.parse( '{{ context.scopes }}'  ).render({context: new ContextDrop}));
+      assert.equal('2', liquid.template.parse( '{%for i in dummy%}{{ context.scopes }}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('3', liquid.template.parse( '{%for i in dummy%}{%for i in dummy%}{{ context.scopes }}{%endfor%}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
     });
 
     it('test_scope_though_proc', function() {
-      assert.equal('1', liquid.Template.parse( '{{ s }}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] */})}));
-      assert.equal('2', liquid.Template.parse( '{%for i in dummy%}{{ s }}{%endfor%}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
-      assert.equal('3', liquid.Template.parse( '{%for i in dummy%}{%for i in dummy%}{{ s }}{%endfor%}{%endfor%}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
+      assert.equal('1', liquid.template.parse( '{{ s }}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] */})}));
+      assert.equal('2', liquid.template.parse( '{%for i in dummy%}{{ s }}{%endfor%}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
+      assert.equal('3', liquid.template.parse( '{%for i in dummy%}{%for i in dummy%}{{ s }}{%endfor%}{%endfor%}'  ).render({context: new ContextDrop, 's': new Proc({/*|c| c['context.scopes'] }, 'dummy': [1]*/})}));
     });
 
     it('test_scope_with_assigns', function() {
-      assert.equal('variable', liquid.Template.parse( '{% assign a = "variable"%}{{a}}'  ).render({context: new ContextDrop}));
-      assert.equal('variable', liquid.Template.parse( '{% assign a = "variable"%}{%for i in dummy%}{{a}}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('test', liquid.Template.parse( '{% assign header_gif = "test"%}{{header_gif}}'  ).render({context: new ContextDrop}));
-      assert.equal('test', liquid.Template.parse( "{% assign header_gif = 'test'%}{{header_gif}}"  ).render({context: new ContextDrop}));
+      assert.equal('variable', liquid.template.parse( '{% assign a = "variable"%}{{a}}'  ).render({context: new ContextDrop}));
+      assert.equal('variable', liquid.template.parse( '{% assign a = "variable"%}{%for i in dummy%}{{a}}{%endfor%}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('test', liquid.template.parse( '{% assign header_gif = "test"%}{{header_gif}}'  ).render({context: new ContextDrop}));
+      assert.equal('test', liquid.template.parse( "{% assign header_gif = 'test'%}{{header_gif}}"  ).render({context: new ContextDrop}));
     });
     
     it('test_scope_from_tags', function() {
-      assert.equal('1', liquid.Template.parse( '{% for i in context.scopes_as_array %}{{i}}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('12', liquid.Template.parse( '{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
-      assert.equal('123', liquid.Template.parse( '{%for a in dummy%}{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('1', liquid.template.parse( '{% for i in context.scopes_as_array %}{{i}}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('12', liquid.template.parse( '{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
+      assert.equal('123', liquid.template.parse( '{%for a in dummy%}{%for a in dummy%}{% for i in context.scopes_as_array %}{{i}}{% endfor %}{% endfor %}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1]}));
     });
     
     it('test_access_context_from_drop', function() {
-      assert.equal('123', liquid.Template.parse( '{%for a in dummy%}{{ context.loop_pos }}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1,2,3]}));
+      assert.equal('123', liquid.template.parse( '{%for a in dummy%}{{ context.loop_pos }}{% endfor %}'  ).render({context: new ContextDrop, 'dummy': [1,2,3]}));
     });
     
     it('test_enumerable_drop', function() {
-      assert.equal('123', liquid.Template.parse( '{% for c in collection %}{{c}}{% endfor %}').render({collection: new EnumerableDrop}));
+      assert.equal('123', liquid.template.parse( '{% for c in collection %}{{c}}{% endfor %}').render({collection: new EnumerableDrop}));
     });
     
     it('test_enumerable_drop_size', function() {
-      assert.equal('3', liquid.Template.parse( '{{collection.size}}').render({collection: new EnumerableDrop}));
+      assert.equal('3', liquid.template.parse( '{{collection.size}}').render({collection: new EnumerableDrop}));
     });
     
     it('test_empty_string_value_access', function() {
-      assert.equal('', liquid.Template.parse('{{ product[value] }}').render({product: new ProductDrop, 'value': ''}));
+      assert.equal('', liquid.template.parse('{{ product[value] }}').render({product: new ProductDrop, 'value': ''}));
     });
     
     it('test_nil_value_access', function() {
-      assert.equal('', liquid.Template.parse('{{ product[value] }}').render({product: new ProductDrop, 'value': null}));
+      assert.equal('', liquid.template.parse('{{ product[value] }}').render({product: new ProductDrop, 'value': null}));
     });
 
   });
@@ -385,16 +385,16 @@ define('crypto', require('crypto'));
     
     it('test_missing_endtag_parse_time_error', function() {
       assert_raise(function() {
-        var template = liquid.Template.parse(' {% for a in b %} ... ')
+        var template = liquid.template.parse(' {% for a in b %} ... ')
       });
     });
     
     it('test_unrecognized_operator', function() {
       assert_nothing_raised(function() {
-        var template = liquid.Template.parse(' {% if 1 =! 2 %}ok{% endif %} ')
+        var template = liquid.template.parse(' {% if 1 =! 2 %}ok{% endif %} ')
         assert.equal(' Liquid error: Unknown operator =! ', template.render());
         assert.equal(1, template.errors.length);
-        assert.equal(liquid.ArgumentError, template.errors.first.class);
+        assert.equal(liquid.ArgumentError, template.errors.first.type);
       });
     });
 
@@ -481,16 +481,16 @@ define('crypto', require('crypto'));
     });
     
     it('test_local_global', function() {
-      Template.register_filter(MoneyFilter);
+      liquid.template.register_filter(MoneyFilter);
     
-      assert.equal(" 1000$ ", Template.parse("{{1000 | money}}").render(null, null));
-      assert.equal(" 1000$ CAD ", Template.parse("{{1000 | money}}").render(null, {'filters': CanadianMoneyFilter}));
-      assert.equal(" 1000$ CAD ", Template.parse("{{1000 | money}}").render(null, {'filters': [CanadianMoneyFilter]}));
+      assert.equal(" 1000$ ", liquid.template.parse("{{1000 | money}}").render(null, null));
+      assert.equal(" 1000$ CAD ", liquid.template.parse("{{1000 | money}}").render(null, {'filters': CanadianMoneyFilter}));
+      assert.equal(" 1000$ CAD ", liquid.template.parse("{{1000 | money}}").render(null, {'filters': [CanadianMoneyFilter]}));
     });
     
     it('test_local_filter_with_deprecated_syntax', function() {
-      assert.equal(" 1000$ CAD ", Template.parse("{{1000 | money}}").render(null, CanadianMoneyFilter));
-      assert.equal(" 1000$ CAD ", Template.parse("{{1000 | money}}").render(null, [CanadianMoneyFilter]));
+      assert.equal(" 1000$ CAD ", liquid.template.parse("{{1000 | money}}").render(null, CanadianMoneyFilter));
+      assert.equal(" 1000$ CAD ", liquid.template.parse("{{1000 | money}}").render(null, [CanadianMoneyFilter]));
     });
 
   });
@@ -513,35 +513,35 @@ define('crypto', require('crypto'));
     
     it('test_error_with_css', function() {
       var text = ' div { font-weight: bold; } ';
-      var template = Template.parse(text);
+      var template = liquid.template.parse(text);
     
       assert.equal(text, template.render());
-      assert.equal([String], template.root.nodelist.map(function(i) {return i.class;}));
+      assert.equal(["String"], template.root.nodelist.map(function(i) {return i.type;}));
     });
     
     it('test_raise_on_single_close_bracet', function() {
       assert_raise(function() {
-        Template.parse("text {{method} oh nos!");
+        liquid.template.parse("text {{method} oh nos!");
       });
     });
     
     it('test_raise_on_label_and_no_close_bracets', function() {
       assert_raise(function() {
-        Template.parse("TEST {{ ");
+        liquid.template.parse("TEST {{ ");
       });
     });
     
     it('test_raise_on_label_and_no_close_bracets_percent', function() {
       assert_raise(SyntaxError, function() {
-        Template.parse("TEST {% ");
+        liquid.template.parse("TEST {% ");
       });
     });
     
     it('test_error_on_empty_filter', function() {
       assert_nothing_raised(function() {
-        Template.parse("{{test |a|b|}}")
-        Template.parse("{{test}}")
-        Template.parse("{{|test|}}")
+        liquid.template.parse("{{test |a|b|}}")
+        liquid.template.parse("{{test}}")
+        liquid.template.parse("{{|test|}}")
       });
     });
     
@@ -724,7 +724,7 @@ define('crypto', require('crypto'));
       assert_template_result("0", "{{ 'foo' | times:4 }}");
     
       // Ruby v1.9.2-rc1, or higher, backwards compatible Float test
-      assert_match(/(6\.3)|(6\.(0{13})1)/, Template.parse("{{ '2.1' | times:3 }}").render())
+      assert_match(/(6\.3)|(6\.(0{13})1)/, liquid.template.parse("{{ '2.1' | times:3 }}").render())
     
       assert_template_result("6", "{{ '2.1' | times:3 | replace: '.','-' | plus:0}}");
     });
@@ -734,7 +734,7 @@ define('crypto', require('crypto'));
       assert_template_result("4", "{{ 14 | divided_by:3 }}");
     
       // Ruby v1.9.2-rc1, or higher, backwards compatible Float test
-      assert_match(/4\.(6{13,14})7/, Template.parse("{{ 14 | divided_by:'3.0' }}").render())
+      assert_match(/4\.(6{13,14})7/, liquid.template.parse("{{ 14 | divided_by:'3.0' }}").render())
     
       assert_template_result("5", "{{ 15 | divided_by:3 }}");
       assert_template_result("Liquid error: divided by 0", "{{ 5 | divided_by:0 }}");
@@ -771,6 +771,9 @@ define('crypto', require('crypto'));
 
 
   describe('template', function() {
+    //todo:
+    var Template = function() {};
+    Template.prototype.send = function() {};
 
     it('test_tokenize_strings', function() {
       assert.equal([' '], new Template().send('tokenize', ' '));

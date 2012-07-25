@@ -1823,7 +1823,7 @@ define('liquid', function(require, exports, module) {
      * @param {object} options  files:子模版文件代码,用parse编译
      * @return {object}
      */
-    exports.parse = function(text, options) {
+    exports._parse = function(text, options) {
       options = options || {};
       options.tags = options.tags || {};
 
@@ -1985,11 +1985,11 @@ define('liquid', function(require, exports, module) {
      *                               noeval:不执行eval(用于调试)，直接返回 {code, names, includes}
      * @return {function}
      */
-    exports.compile = function(text, options) {
+    exports.parse = function(text, options) {
       options = options || {};
 
       // 编译代码
-      var tpl = exports.parse(text, options);
+      var tpl = exports._parse(text, options);
 
       var script = '(function(locals, filters) { \n'
         + 'filters = filters || {};\n'
@@ -2013,37 +2013,32 @@ define('liquid', function(require, exports, module) {
         + 'return $_buf;\n'
         + '})';
 
-      // 用于调试
+      var parsed = {
+        code:     script,
+        names:    tpl.names,
+        includes: tpl.includes
+      };
+
       if (options.noeval) {
-        return {
-          code:     script,
-          names:    tpl.names,
-          includes: tpl.includes
-        };
+        return parsed;
       }
 
-      try {
-        var fn = eval(script);
+      parsed.compile = function() {
+        try {
+          parsed.compiled = eval(parsed.code);
+        } catch (err) {
+          throw Error('Compile error: ' + err);
+        }
+        return parsed.compiled;
+      };
 
-        // 设置依赖的资源
-        fn.names = tpl.names;         // 变量
-        fn.includes = tpl.includes;   // 子模版
+      parsed.render = function(data, filters) {
+        var fn = parsed.compiled || parsed.compile();
+        return fn(data, filters);
+      };
 
-        // 如果设置了original=true选项，则直接返回原始代码，否则自动封装filters
-        if (options.original)
-          return fn;
+      return parsed;
 
-        // 封装filters
-        var fnWrap = function(d, f) {
-          return fn(d, f || filters);
-        };
-        fnWrap.names = fn.names;
-        fnWrap.includes = fn.includes;
-        return fnWrap;
-      }
-      catch (err) {
-        throw Error('Compile error: ' + err);
-      }
     };
 
     /**
@@ -2055,8 +2050,8 @@ define('liquid', function(require, exports, module) {
      * @return {text}
      */
     exports.render = function(text, data, f) {
-      var fn = exports.compile(text);
-      return fn(data, f);
+      var parsed = exports.parse(text);
+      return parsed.render(data, f);
     };
 
     return exports;
