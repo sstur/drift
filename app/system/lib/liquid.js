@@ -349,7 +349,7 @@ define('liquid', function(require, exports, module) {
     findVariable: function(key) {
       for (var i=0; i < this.scopes.length; i++) {
         var scope = this.scopes[i];
-        if (scope && !!scope[key]) {
+        if (scope && scope[key] != null) {
           var variable = scope[key];
           if (typeof variable == 'function') {
             variable = variable.apply(this);
@@ -407,7 +407,7 @@ define('liquid', function(require, exports, module) {
               object = object[part].apply(part);
               if ('toLiquid' in object) { object = object.toLiquid(); }
             } else {
-              return null;
+              return (object = null);
             }
             if (typeof object == 'object' && ('setContext' in object)) { object.setContext(self); }
           }
@@ -1163,12 +1163,11 @@ define('liquid', function(require, exports, module) {
     },
 
     truncate: function(input, length, string) {
-      if (!input || input == '') { return ''; }
+      if (!input) { return ''; }
       length = length || 50;
       string = string || "...";
 
-      var seg = input.slice(0, length);
-      return seg + string;
+      return (input.length > length) ? input.slice(0, length) + string : input;
     },
 
     truncatewords: function(input, words, string) {

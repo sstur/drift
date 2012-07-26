@@ -138,6 +138,10 @@ define('crypto', require('crypto'));
         'I am the very model of a modern major general, rea...',
         render("{{'I am the very model of a modern major general, really.' | truncate}}")
       );
+      assert.equal(
+        'I am short.',
+        render("{{'I am short.' | truncate}}")
+      );
     },
 
     '{{ string | truncate:2 }}': function() {
