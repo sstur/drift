@@ -387,7 +387,7 @@ define('liquid', function(require, exports, module) {
           var squareMatch = part.match(/^\[(.*)\]$/);
           if (squareMatch) {
             var part = self.resolve(squareMatch[1]);
-            if (typeof object[part] == 'function') { object[part] = object[part].apply(this); }// Array?
+            if (object && typeof object[part] == 'function') { object[part] = object[part].apply(this); }// Array?
             object = object[part];
             if (typeof object == 'object' && ('toLiquid' in object)) { object = object.toLiquid(); }
           } else {

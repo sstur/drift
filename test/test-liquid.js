@@ -395,6 +395,12 @@ define('crypto', require('crypto'));
       assert.equal("TRUE",  render("{% unless 1 < 1 %}TRUE{% else %}FALSE{% endunless %}"));
       assert.equal("FALSE", render("{% unless 1 <= 1 %}TRUE{% else %}FALSE{% endunless %}"));
       assert.equal("FALSE", render("{% unless 1 >= 1 %}TRUE{% else %}FALSE{% endunless %}"));
+    },
+
+    "{{ collection['missing_key'].value }}": function() {
+      // TODO Consider using a Context object directly instead, calling variable on it directly
+      assert.equal("", render("{{ collection['missing_key'].value }}"));
+      assert.equal("", render("{{ collection['missing_key'].value }}", {collection: {}}));
     }
   };
 
