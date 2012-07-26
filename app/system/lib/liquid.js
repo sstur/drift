@@ -18,8 +18,8 @@
  *
  */
 define('liquid', function(require, exports, module) {
+  "use strict";
 
-  var Class = require('class');
   var strftime = require('strftime').strftime;
 
   var Liquid = module.exports = {
@@ -80,6 +80,8 @@ define('liquid', function(require, exports, module) {
 
   var Tag = Liquid.Tag = Class.extend({
 
+    name: 'Tag',
+
     init: function(tagName, markup, tokens) {
       this.tagName = tagName;
       this.markup = markup;
@@ -96,6 +98,8 @@ define('liquid', function(require, exports, module) {
   });
 
   var Block = Liquid.Block = Tag.extend({
+
+    name: 'Block',
 
     init: function(tagName, markup, tokens) {
       this.blockName = tagName;
@@ -178,6 +182,8 @@ define('liquid', function(require, exports, module) {
 
   var Document = Liquid.Document = Block.extend({
 
+    name: 'Document',
+
     init: function(tokens) {
       this.blockDelimiter = [];
       this.parse(tokens);
@@ -188,6 +194,8 @@ define('liquid', function(require, exports, module) {
   });
 
   var Strainer = Liquid.Strainer = Class.extend({
+
+    name: 'Strainer',
 
     init: function(context) {
       this.context = context;
@@ -221,8 +229,10 @@ define('liquid', function(require, exports, module) {
 
   var Context = Liquid.Context = Class.extend({
 
+    name: 'Context',
+
     init: function(assigns, registers, rethrowErrors) {
-      this.scopes = [ assigns ? assigns : {} ];
+      this.scopes = [assigns ? assigns : {}];
       this.registers = registers ? registers : {};
       this.errors = [];
       this.rethrowErrors = rethrowErrors;
@@ -297,7 +307,7 @@ define('liquid', function(require, exports, module) {
         default:
           if ((/^'(.*)'$/).test(key)) {
             // Single quoted strings
-            key = key.slice(1, -1).replace(/\\'/g, "'"); //un-quote and unescape
+            key = key.slice(1, -1).replace(/\\'/g, "'"); //unquote and unescape
             key = '"' + key.replace(/"/g, '\\"') + '"'; //re-quote and escape
             return JSON.parse(key);
           } else
@@ -341,14 +351,14 @@ define('liquid', function(require, exports, module) {
         var scope = this.scopes[i];
         if (scope && !!scope[key]) {
           var variable = scope[key];
-          if (typeof(variable) == 'function') {
+          if (typeof variable == 'function') {
             variable = variable.apply(this);
             scope[key] = variable;
           }
-          if (variable && typeof(variable) == 'object' && ('toLiquid' in variable)) {
+          if (variable && typeof variable == 'object' && ('toLiquid' in variable)) {
             variable = variable.toLiquid();
           }
-          if (variable && typeof(variable) == 'object' && ('setContext' in variable)) {
+          if (variable && typeof variable == 'object' && ('setContext' in variable)) {
             variable.setContext(self);
           }
           return variable;
@@ -377,29 +387,29 @@ define('liquid', function(require, exports, module) {
           var squareMatch = part.match(/^\[(.*)\]$/);
           if (squareMatch) {
             var part = self.resolve(squareMatch[1]);
-            if (typeof(object[part]) == 'function') { object[part] = object[part].apply(this); }// Array?
+            if (typeof object[part] == 'function') { object[part] = object[part].apply(this); }// Array?
             object = object[part];
-            if (typeof(object) == 'object' && ('toLiquid' in object)) { object = object.toLiquid(); }
+            if (typeof object == 'object' && ('toLiquid' in object)) { object = object.toLiquid(); }
           } else {
-            if (object && typeof(object) == 'object' && (part in object)) {
+            if (object && typeof object == 'object' && (part in object)) {
               var res = object[part];
-              if (typeof(res) == 'function') { res = object[part] = res.apply(self) ; }
-              if (typeof(res) == 'object' && ('toLiquid' in res)) { object = res.toLiquid(); }
+              if (typeof res == 'function') { res = object[part] = res.apply(self) ; }
+              if (typeof res == 'object' && ('toLiquid' in res)) { object = res.toLiquid(); }
               else { object = res; }
             } else
             if ((/^\d+$/).test(part)) {
               var pos = parseInt(part, 10);
-              if (typeof(object[pos]) == 'function') { object[pos] = object[pos].apply(self); }
-              if (typeof(object[pos]) == 'object' && typeof(object[pos]) == 'object' && ('toLiquid' in object[pos])) { object = object[pos].toLiquid(); }
+              if (typeof object[pos] == 'function') { object[pos] = object[pos].apply(self); }
+              if (typeof object[pos] == 'object' && typeof object[pos] == 'object' && ('toLiquid' in object[pos])) { object = object[pos].toLiquid(); }
               else { object  = object[pos]; }
             } else
-            if (typeof(object[part]) == 'function' && ~['length', 'size', 'first', 'last'].indexOf(part)) {
+            if (typeof object[part] == 'function' && ~['length', 'size', 'first', 'last'].indexOf(part)) {
               object = object[part].apply(part);
               if ('toLiquid' in object) { object = object.toLiquid(); }
             } else {
               return null;
             }
-            if (typeof(object) == 'object' && ('setContext' in object)) { object.setContext(self); }
+            if (typeof object == 'object' && ('setContext' in object)) { object.setContext(self); }
           }
         });
       }
@@ -409,7 +419,7 @@ define('liquid', function(require, exports, module) {
     addFilters: function(filters) {
       filters = flattenArray(filters);
       filters.forEach(function(f) {
-        if (typeof(f) != 'object') { throw ("Expected object but got: "+ typeof(f)) }
+        if (typeof f != 'object') { throw ("Expected object but got: "+ typeof f) }
         this.strainer.addMethods(f);
       });
     },
@@ -423,6 +433,8 @@ define('liquid', function(require, exports, module) {
   });
 
   var Template = Liquid.Template = Class.extend({
+
+    name: 'Template',
 
     init: function() {
       this.root = null;
@@ -481,8 +493,9 @@ define('liquid', function(require, exports, module) {
 
   Template.tags = {};
 
-  Template.registerTag = function(name, klass) {
-    Template.tags[ name ] = klass;
+  Template.registerTag = function(name, constructor) {
+    Template.tags[name] = constructor;
+    constructor.prototype.type = name;
   };
 
   Template.registerFilter = function(filters) {
@@ -501,6 +514,8 @@ define('liquid', function(require, exports, module) {
   };
 
   var Variable = Liquid.Variable = Class.extend({
+
+    name: 'Variable',
 
     init: function(markup) {
       this.markup = markup;
@@ -547,6 +562,8 @@ define('liquid', function(require, exports, module) {
   });
 
   var Condition = Liquid.Condition = Class.extend({
+
+    name: 'Condition',
 
     init: function(left, operator, right) {
       this.left = left;
@@ -624,6 +641,8 @@ define('liquid', function(require, exports, module) {
 
   var ElseCondition = Liquid.ElseCondition = Condition.extend({
 
+    name: 'ElseCondition',
+
     isElse: true,
 
     evaluate: function(context) {
@@ -637,6 +656,9 @@ define('liquid', function(require, exports, module) {
   });
 
   var Drop = Liquid.Drop = Class.extend({
+
+    name: 'Drop',
+
     setContext: function(context) {
       this.context = context;
     },
@@ -658,6 +680,8 @@ define('liquid', function(require, exports, module) {
 
     tagSyntax: /((?:\(?[\w\-\.\[\]]\)?)+)\s*=\s*((?:"[^"]+"|'[^']+'|[^\s,|]+)+)/,
 
+    name: 'AssignTag',
+
     init: function(tagName, markup, tokens) {
       var parts = markup.match(this.tagSyntax)
       if (parts) {
@@ -676,6 +700,8 @@ define('liquid', function(require, exports, module) {
 
   Template.registerTag('cache', Block.extend({
     tagSyntax: /(\w+)/,
+
+    name: 'CacheTag',
 
     init: function(tagName, markup, tokens) {
       var parts = markup.match(this.tagSyntax)
@@ -697,6 +723,8 @@ define('liquid', function(require, exports, module) {
   Template.registerTag('capture', Block.extend({
     tagSyntax: /(\w+)/,
 
+    name: 'CaptureTag',
+
     init: function(tagName, markup, tokens) {
       var parts = markup.match(this.tagSyntax)
       if (parts) {
@@ -717,6 +745,8 @@ define('liquid', function(require, exports, module) {
 
     tagSyntax     : /("[^"]+"|'[^']+'|[^\s,|]+)/,
     tagWhenSyntax : /("[^"]+"|'[^']+'|[^\s,|]+)(?:(?:\s+or\s+|\s*\,\s*)("[^"]+"|'[^']+'|[^\s,|]+.*))?/,
+
+    name: 'CaseTag',
 
     init: function(tagName, markup, tokens) {
       this.blocks = [];
@@ -789,6 +819,8 @@ define('liquid', function(require, exports, module) {
   }));
 
   Template.registerTag('comment', Block.extend({
+    name: 'CommentTag',
+
     render: function(context) {
       return '';
     }
@@ -798,6 +830,8 @@ define('liquid', function(require, exports, module) {
 
     tagSimpleSyntax: /"[^"]+"|'[^']+'|[^\s,|]+/,
     tagNamedSyntax:  /("[^"]+"|'[^']+'|[^\s,|]+)\s*\:\s*(.*)/,
+
+    name: 'CycleTag',
 
     init: function(tag, markup, tokens) {
       var matches, variables;
@@ -853,6 +887,8 @@ define('liquid', function(require, exports, module) {
   Template.registerTag('for', Block.extend({
     tagSyntax: /(\w+)\s+in\s+((?:\(?[\w\-\.\[\]]\)?)+)/,
 
+    name: 'ForTag',
+
     init: function(tag, markup, tokens) {
       var matches = markup.match(this.tagSyntax);
       if (matches) {
@@ -886,7 +922,7 @@ define('liquid', function(require, exports, module) {
         var offset   = 0,
             limit    = 0,
             rangeEnd = 0,
-            segement = null;
+            segment = null;
 
         if (this.attributes['offset'] == 'continue')
           { offset = context.registers['for'][this.name]; }
@@ -896,7 +932,7 @@ define('liquid', function(require, exports, module) {
         limit = context.get(this.attributes['limit']);
 
         rangeEnd = (limit) ? offset + limit + 1 : collection.length;
-        range = [ offset, rangeEnd - 1 ];
+        range = [offset, rangeEnd - 1];
 
         context.registers['for'][this.name] = rangeEnd;
       }
@@ -930,6 +966,8 @@ define('liquid', function(require, exports, module) {
   Template.registerTag('if', Block.extend({
 
     tagSyntax: /("[^"]+"|'[^']+'|[^\s,|]+)\s*([=!<>a-z_]+)?\s*("[^"]+"|'[^']+'|[^\s,|]+)?/,
+
+    name: 'IfTag',
 
     init: function(tag, markup, tokens) {
       this.nodelist = [];
@@ -993,6 +1031,8 @@ define('liquid', function(require, exports, module) {
 
   Template.registerTag('ifchanged', Block.extend({
 
+    name: 'IfChangedTag',
+
     render: function(context) {
       var self = this,
           output = '';
@@ -1010,6 +1050,8 @@ define('liquid', function(require, exports, module) {
   Template.registerTag('include', Tag.extend({
 
     tagSyntax: /((?:"[^"]+"|'[^']+'|[^\s,|]+)+)(\s+(?:with|for)\s+((?:"[^"]+"|'[^']+'|[^\s,|]+)+))?/,
+
+    name: 'IncludeTag',
 
     init: function(tag, markup, tokens) {
       var matches = (markup || '').match(this.tagSyntax);
@@ -1059,6 +1101,8 @@ define('liquid', function(require, exports, module) {
   }));
 
   Template.registerTag('unless', Template.tags['if'].extend({
+
+    name: 'UnlessTag',
 
     render: function(context) {
       var self = this,
