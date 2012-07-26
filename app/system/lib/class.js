@@ -5,28 +5,32 @@
  * MIT Licensed.
  */
 define('class', function(require, exports, module) {
+  "use strict";
 
-  var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+  var fnTest = /xyz/.test(function() {var xyz;}) ? /\b_super\b/ : /.*/;
+
+  if (Object.defineProperty && Object.keys) {
+    var canDefineProperty = !(Object.keys(Object.defineProperty({}, 'a', {value: 1, enumerable: false})).length);
+  }
+
+  var create = Object.create || function(o) { var F = function() {}; F.prototype = o; return new F(); };
 
   // The base Class implementation (does nothing)
-  function Class() {};
+  function Class() {}
 
   // Create a new Class that inherits from this class
-  Class.extend = function(prop) {
+  Class.extend = function extend(prop) {
     var _super = this.prototype;
 
-    // Instantiate a base class (but only create the instance,
-    // don't run the init constructor)
-    initializing = true;
-    var prototype = new this();
-    initializing = false;
+    // Instantiate a base class without executing the constructor
+    var prototype = create(this.prototype);
 
     // Copy the properties over onto the new prototype
     for (var name in prop) {
       // Check if we're overwriting an existing function
       prototype[name] = typeof prop[name] == "function" &&
         typeof _super[name] == "function" && fnTest.test(prop[name]) ?
-        (function(name, fn){
+        (function(name, fn) {
           return function() {
             var tmp = this._super;
 
@@ -48,18 +52,30 @@ define('class', function(require, exports, module) {
     // The dummy class constructor
     function Class() {
       // All construction is actually done in the init method
-      if ( !initializing && this.init )
+      if ( this.init )
         this.init.apply(this, arguments);
+    }
+
+    //hacky
+    if (typeof prop['name'] == 'string' && prop['name'].match(/^[a-z_\$][\w\$]*$/i)) {
+      Class = new Function('return function ' + prop['name'] + '() { this.init && this.init.apply(this, arguments) }')();
     }
 
     // Populate our constructed prototype object
     Class.prototype = prototype;
 
     // Enforce the constructor to be what we expect
-    Class.prototype.constructor = Class;
+    if (canDefineProperty)
+      Object.defineProperty(prototype, 'constructor', {value: Class, enumerable: false});
+    else
+      Class.prototype.constructor = Class;
 
-    // And make this class extendable
-    Class.extend = arguments.callee;
+    ////setting a constructor's 'name' property makes for better debugging and stack traces
+    //if (typeof prop['name'] == 'string')
+    //  Class.name = prop['name'];
+
+    // And make this class extensible
+    Class.extend = extend;
 
     return Class;
   };
