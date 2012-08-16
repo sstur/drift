@@ -28,35 +28,4 @@ require('should');
 
   });
 
-  describe('define', function() {
-    var executed = false;
-    var fn = function(require, exports) {
-      executed = true;
-      exports.a = 'b';
-    };
-
-    it('should define but not execute', function() {
-      define('one', fn);
-      executed.should.equal(false);
-    });
-
-    it('should execute upon require', function() {
-      define('two', fn);
-      executed.should.equal(false);
-      var two = app.require('two');
-      executed.should.equal(true);
-      two.should.eql({a: 'b'});
-    });
-
-    it('should only execute once', function() {
-      define('three', fn);
-      var three = app.require('three');
-      three.should.eql({a: 'b'});
-      three.c = 'd';
-      three = app.require('three');
-      three.should.eql({a: 'b', c: 'd'});
-    });
-
-  });
-
 })();
