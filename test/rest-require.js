@@ -69,10 +69,10 @@ require('should');
         };
       });
       define('nest/two', function(require, exports, module) {
-        exports.id = 2;
+        exports.name = 'two';
       });
       var one = app.require('nest/one'), two = one.getTwo();
-      two.id.should.equal(2);
+      two.name.should.equal('two');
     });
 
     it('should recursively require', function() {
