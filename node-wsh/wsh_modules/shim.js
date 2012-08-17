@@ -1,9 +1,10 @@
 /*global app, define */
+var console, Buffer;
 (function(require) {
 
   var util = require('util');
 
-  global.console = {
+  console = global.console = {
     log: function() {
       var args = toArray(arguments);
       for (var i = 0; i < args.length; i++) {
@@ -13,7 +14,7 @@
     }
   };
 
-  global.Buffer = require('buffer').Buffer;
+  Buffer = global.Buffer = require('buffer').Buffer;
 
   app.mappath = function(path) {
     var fullpath = global.basePath + 'app\\';
