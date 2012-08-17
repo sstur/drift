@@ -1,12 +1,14 @@
 /*global app, define, describe, it */
-var expect = require('chai').expect;
-
 (function() {
   "use strict";
 
-  var core = require('../app/system/core');
+  var expect = require('chai').expect;
+
+  require('../app/system/core');
 
   describe('define', function() {
+    var require = app.require;
+
     var executed = 0;
     var fn = function(require, exports) {
       executed += 1;
@@ -17,7 +19,7 @@ var expect = require('chai').expect;
       define('thing', function(require, exports, module) {
         expect(module).to.equal(this);
         expect(exports).to.equal(module.exports);
-        expect(require).to.not.equal(app.require);
+        expect(require).to.not.equal(require);
       });
       expect(executed).to.equal(0);
     });
@@ -30,11 +32,11 @@ var expect = require('chai').expect;
     it('should execute once at first require', function() {
       define('two', fn);
       expect(executed).to.equal(0);
-      var two = app.require('two');
+      var two = require('two');
       expect(executed).to.equal(1);
       expect(two).to.eql({a: 'b'});
       two.c = 'd';
-      var three = app.require('two');
+      var three = require('two');
       expect(executed).to.equal(1);
       expect(three).to.eql({a: 'b', c: 'd'});
     });
@@ -42,10 +44,11 @@ var expect = require('chai').expect;
   });
 
   describe('require', function() {
+    var require = app.require;
 
     it('should throw on non-existent module', function() {
       expect(function() {
-        app.require('invalid-module');
+        require('invalid-module');
       }).to.throw(/Module not found/);
     });
 
@@ -58,7 +61,7 @@ var expect = require('chai').expect;
           return oldExports;
         };
       });
-      var thing = app.require('thing');
+      var thing = require('thing');
       expect(thing).to.have.property('getOld');
       expect(thing).to.equal(obj);
       expect(thing).to.not.equal(thing.getOld());
@@ -67,6 +70,7 @@ var expect = require('chai').expect;
   });
 
   describe('namespace, nesting and recursive', function() {
+    var require = app.require;
 
     it('should define nested object', function() {
       define('nest/one', function(require, exports, module) {
@@ -77,7 +81,7 @@ var expect = require('chai').expect;
       define('nest/two', function(require, exports, module) {
         exports.name = 'two';
       });
-      var one = app.require('nest/one'), two = one.getTwo();
+      var one = require('nest/one'), two = one.getTwo();
       expect(two.name).to.equal('two');
     });
 
@@ -88,8 +92,8 @@ var expect = require('chai').expect;
       define('recurse/two', function(require, exports, module) {
         exports.one = require('one');
       });
-      var one = app.require('recurse/one')
-        , two = app.require('recurse/two');
+      var one = require('recurse/one')
+        , two = require('recurse/two');
       expect(one.two).to.equal(two);
       expect(two.one).to.equal(one);
     });

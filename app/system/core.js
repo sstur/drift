@@ -110,11 +110,9 @@ var app, define;
 
   app.route = function(a, b) {
     if (typeof a == 'string' || a instanceof RegExp) {
+      routes.push({route: a, handler: b});
       if (router) {
         router.addRoute(a, b);
-      } else {
-        //cache routes
-        routes.push({route: a, handler: b});
       }
     } else {
       var Router = require('router');

@@ -1,44 +1,109 @@
 /*global app, define, describe, it */
-var expect = require('chai').expect;
-
 (function() {
   "use strict";
 
-  var core = require('../app/system/core')
-    , fs = require('fs');
+  var expect = require('chai').expect;
 
-  describe('app', function() {
+  require('../app/system/core');
+  require('../app/system/lib/globals');
+  require('../app/system/lib/router');
+  require('../app/system/lib/qs');
+  require('../app/system/lib/request');
+  require('../app/system/lib/response');
+  require('../app/system/lib/util');
 
-    it('should be a function', function() {
-      expect(app).to.be.a('function');
+  //shim required modules
+  define('buffer', {Buffer: require('buffer').Buffer});
+  define('inspector', {inspect: function() {}});
+
+  var dummyRequest = function(method, url) {
+    return {
+      getURL: function() { return url },
+      getURLParts: function() { return {path: url, qs: ''} },
+      getMethod: function() { return method }
+    };
+  };
+
+  var dummyResponse = function() {
+    var lines = [];
+    return {
+      status: function(s) { lines.push('STATUS:' + s) },
+      charset: function(s) { lines.push('CHARSET:' + s) },
+      write: function(s) { lines.push('DATA:' + s) },
+      end: function() { lines.push('END') },
+      getData: function() { return lines }
+    };
+  };
+
+  describe('router', function() {
+    var require = app.require;
+
+    it('should add a route', function() {
+      var fn = function() {};
+      app.route('/one', fn);
+      expect(app._routes).to.eql([{route: '/one', handler: fn}]);
     });
 
-    it('should call .fn', function() {
-      app.fn = function() { return Array.prototype.slice.call(arguments).concat(this); };
-      expect(app(1, 's')).to.eql([1, 's', app]);
+    it('should execute route', function() {
+      var count = 0;
+      var fn = function() { count++ };
+      app.route('/two', fn);
+      var req = dummyRequest('GET', '/two'), res = dummyResponse();
+      app.route(req, res);
+      expect(count).to.equal(1);
+      expect(res.getData().join(', ')).to.equal('STATUS:404, DATA:No Route, END');
     });
 
-    it('should handle events', function() {
-      var obj = {}, handler = function(obj) { obj.prop = true; };
-      app.on('foo', handler);
-      expect(app._events).to.eql({foo: [handler]});
-      app.emit('foo', obj);
-      expect(obj).to.eql({prop: true});
-    });
-
-    it('should add event-handling to an object', function() {
-      var obj = {}, count = 0, fn = function(i) { count += i };
-      app.eventify(obj);
-      expect(obj).to.have.property('on').that.is.a('function');
-      expect(obj).to.have.property('emit').that.is.a('function');
-      obj.on('foo', fn);
-      expect(obj._events).to.eql({foo: [fn]});
-      obj.emit('foo', 2);
+    it('should execute multiple route handlers', function() {
+      var count = 0;
+      var fn = function() { count++ };
+      app.route('/three', fn);
+      app.route('/three/:opt?', fn);
+      var req = dummyRequest('GET', '/three'), res = dummyResponse();
+      app.route(req, res);
       expect(count).to.equal(2);
-      //add a second handler for same event
-      obj.on('foo', function() { count++ });
-      obj.emit('foo', 1);
-      expect(count).to.equal(4);
+      expect(res.getData().join(', ')).to.equal('STATUS:404, DATA:No Route, END');
+    });
+
+    it('should stop routing', function() {
+      var count = 0;
+      var fn1 = function() { count++; this.stop() };
+      var fn2 = function() { count++ };
+      app.route('/four', fn1);
+      app.route('/four', fn2);
+      var req = dummyRequest('GET', '/four'), res = dummyResponse();
+      app.route(req, res);
+      expect(count).to.equal(1);
+      expect(res.getData().join(', ')).to.equal('STATUS:404, DATA:No Route, END');
+    });
+
+    it('should match named params', function() {
+      var count = 0;
+      var fn = function(req, res, n) {
+        count += parseInt(n, 10);
+        expect(n).to.equal(req._params.n);
+        expect(n).to.equal(req.params('n'));
+      };
+      app.route('/four/:n/:m?', fn);
+      var req = dummyRequest('GET', '/four/2/a'), res = dummyResponse();
+      app.route(req, res);
+      expect(count).to.equal(2);
+      expect(res.getData().join(', ')).to.equal('STATUS:404, DATA:No Route, END');
+    });
+
+    it('should match regex', function() {
+      var count = 0;
+      var fn = function(req, res, p1, p2) {
+        count++;
+        expect(p1).to.equal('1');
+        expect(p2).to.equal('a');
+        expect(req._params).to.eql({$1: '1', $2: 'a'});
+      };
+      app.route(/\/five\/(\d+)\/([a-z]+)/, fn);
+      var req = dummyRequest('GET', '/five/1/a'), res = dummyResponse();
+      app.route(req, res);
+      expect(count).to.equal(1);
+      expect(res.getData().join(', ')).to.equal('STATUS:404, DATA:No Route, END');
     });
 
   });

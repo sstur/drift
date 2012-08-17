@@ -1,13 +1,13 @@
 /*global app, define, describe, it */
-var expect = require('chai').expect;
-
 (function() {
   "use strict";
 
-  var core = require('../app/system/core')
-    , fs = require('fs');
+  var expect = require('chai').expect;
+
+  require('../app/system/core');
 
   describe('app', function() {
+    var require = app.require;
 
     it('should be a function', function() {
       expect(app).to.be.a('function');

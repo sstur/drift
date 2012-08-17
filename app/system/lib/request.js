@@ -3,10 +3,12 @@ define('request', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');
+  var util = require('util');
 
   function Request(req) {
     this.req = req;
     this._data = {};
+    this._params = {};
   }
 
   Request.prototype = {
@@ -54,8 +56,9 @@ define('request', function(require, exports, module) {
       return (typeof s == 'string') ? (s.toUpperCase() == r) : r;
     },
     params: function(n) {
-      if (!this._params) {
-        this._params = qs.parse(this.url('qs'));
+      if (!this._qsParams) {
+        this._qsParams = qs.parse(this.url('qs'));
+        util.extend(this._params, this._qsParams);
       }
       if (arguments.length) {
         return this._params[n] || '';
