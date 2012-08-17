@@ -1,5 +1,5 @@
 /*global app, define */
-define('router', function(require, exports) {
+define('router', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs')
@@ -8,6 +8,27 @@ define('router', function(require, exports) {
 
   var RE_METHOD = /^([A-Z]+):(.*)/;
   var RE_PLAIN_ROUTE = /^[^:*]+$/;
+
+  function Router(routes) {
+    if (!(this instanceof Router)) {
+      return new Router(routes);
+    }
+    this._routes = [];
+    if (routes) {
+      this.addRoutes(routes);
+    }
+  }
+
+  Router.prototype.addRoute = function(route, handler) {
+    this._routes.push = parseRoute(route, handler);
+  };
+
+  Router.prototype.addRoutes = function(arr) {
+    var router = this;
+    arr.forEach(function(definition) {
+      router.addRoute(definition.route, definition.handler);
+    });
+  };
 
   //Parse the given route, returning a verb (method), regular expression and handler
   var parseRoute = function(route, fn) {
@@ -40,17 +61,10 @@ define('router', function(require, exports) {
     }];
   };
 
-  exports.route = function(req, res, routes) {
-    //todo: this should be done at app.on('ready')
-    if (!routes.parsed) {
-      for (var i = 0; i < routes.length; i++) {
-        var definition = routes[i];
-        routes[i] = parseRoute(definition.route, definition.handler);
-      }
-      routes.parsed = true;
-    }
+  Router.prototype.route = function(req, res) {
     req = new Request(req);
     res = new Response(res);
+    //todo: should this be done via app.emit('request', req, res) ?
     //cross-reference request and response
     req.res = res;
     res.req = req;
@@ -58,33 +72,33 @@ define('router', function(require, exports) {
     req.emit('ready');
     var url = req.url().split('?')[0] //get raw url
       , verb = req.method()
-      , data = {}
+      , routeData = {}
       , stop = false;
-    data.stop = function() {
+    routeData.stop = function() {
       stop = true;
     };
-    req.emit('pre-route', data);
-    routes.each(function(i, arr) {
+    req.emit('pre-route', routeData);
+    this._routes.each(function(i, arr) {
       if (arr[0] && arr[0] != verb) {
         return true; //Continue
       }
       if (typeof arr[1] == 'string') {
         if (url == arr[1]) {
-          arr[2].call(data, req, res);
+          arr[2].call(routeData, req, res);
         }
       } else {
         var matches = arr[1].exec(url);
         if (matches) {
-          arr[2].call(data, req, res, matches.slice(1));
+          arr[2].call(routeData, req, res, matches.slice(1));
         }
       }
       return !stop;
     });
     if (!stop) {
-      req.emit('no-route', data);
+      req.emit('no-route', routeData);
     }
-    req.emit('404', data);
-    var response = data.response || app.cfg('res_404');
+    req.emit('404', routeData);
+    var response = routeData.response || app.cfg('res_404');
     if (response) {
       res.clear(response.type, response.status || '404');
       res.write(response.body);
@@ -94,5 +108,8 @@ define('router', function(require, exports) {
     }
     res.end();
   };
+
+  //export router
+  module.exports = Router;
 
 });

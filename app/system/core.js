@@ -97,23 +97,30 @@ var app, define;
 
 
   /*!
-   * Basic app-level event emitter
+   * App-level event emitter
    */
   app.eventify(app);
 
 
   /*!
-   * Routing provided by seperate module, but routes
+   * Routing provided by separate module, but routes
    * can be added before that module is loaded.
    */
-  var routes = app._routes = [];
+  var router, routes = app._routes = [];
 
   app.route = function(a, b) {
     if (typeof a == 'string' || a instanceof RegExp) {
-      routes.push({route: a, handler: b});
+      if (router) {
+        router.addRoute(a, b);
+      } else {
+        //cache routes
+        routes.push({route: a, handler: b});
+      }
     } else {
-      var router = require('router'), req = a, res = b;
-      return router.route(req, res, routes);
+      var Router = require('router');
+      router = new Router(routes);
+      var req = a, res = b;
+      return router.route(req, res);
     }
   };
 
