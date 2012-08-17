@@ -2,10 +2,9 @@
 
 /*!
  * Global Functions and Variables
- *   platforms not suporting ECMAScript 5 need ES5 shim loaded before this
+ *   platforms not supporting ECMAScript 5 need ES5 shim loaded before this
  *
  * todo: htmlEnc/htmlDec; Date library; deprecate isSet
- * todo: make list of removed functions for importing libraries
  */
 
 var forEach, vartype, isPrimitive, isSet, toArray;
@@ -17,7 +16,7 @@ var forEach, vartype, isPrimitive, isSet, toArray;
    * Shorthand to iterate an array or object
    *   similar to jQuery.each()
    */
-  forEach = function(obj, fn, context) {
+  forEach = global.forEach = function(obj, fn, context) {
     if (arguments.length == 3) {
       fn = fn.bind(context);
     }
@@ -60,7 +59,7 @@ var forEach, vartype, isPrimitive, isSet, toArray;
       return true;
     }
     var type = typeof obj;
-    return (type == 'boolean' || type == 'number' || type == 'string') ? true : false;
+    return (type == 'boolean' || type == 'number' || type == 'string');
   };
 
   Object.isSet = function(obj) {
@@ -243,18 +242,10 @@ var forEach, vartype, isPrimitive, isSet, toArray;
     return new RegExp(reg.source, m);
   };
 
-  //Shorthand Globals
-  vartype = Object.vartype;
-  isPrimitive = Object.isPrimitive;
-  isSet = Object.isSet;
-  toArray = Array.toArray;
-
-  //explicit globals for commonjs platforms
-  if (!global.vartype) {
-    app.setGlobal('vartype', vartype);
-    app.setGlobal('isPrimitive', isPrimitive);
-    app.setGlobal('isSet', isSet);
-    app.setGlobal('toArray', toArray);
-  }
+  //Shorthand
+  vartype = global.vartype = Object.vartype;
+  isPrimitive = global.isPrimitive = Object.isPrimitive;
+  isSet = global.isSet = Object.isSet;
+  toArray = global.toArray = Array.toArray;
 
 })();
