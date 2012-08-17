@@ -3,6 +3,11 @@ req.data('ipaddr')
 fix app.cfg
 Date header is in wsh-server only
 
+don't explicitly set global b/c if wrapped in closure, pass in, otherwise we're in node and it's defined
+
+get rid of global.mappaht
+  real fs paths should not be used within the app fx at all, which makes mappath adapter-specific
+
 common crypto interface (md5)
 
 decide what to do with async->sync methods accepting/returning buffer

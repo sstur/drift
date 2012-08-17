@@ -262,7 +262,7 @@ var app, define;
     }
   })();
 
-  //this may become deprecated
+  //this may become deprecated, since if we compile the app and wrap it in a closure, globals will be n/a
   app.setGlobal = function(name, val) {
     if (globalIsMutable) {
       return global[name] = val;
