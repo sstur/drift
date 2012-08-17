@@ -24,19 +24,7 @@
  MIT License. http://github.com/280north/narwhal/blob/master/README.md
  */
 
-// Module systems magic dance
-(function (definition) {
-  // RequireJS
-  if (typeof define == "function") {
-    define(definition);
-    // YUI3
-  } else if (typeof YUI == "function") {
-    YUI.add("es5", definition);
-    // CommonJS and <script>
-  } else {
-    definition();
-  }
-})(function () {
+(function () {
 
   /**
    * Brings an environment as close to ECMAScript 5 compliance
@@ -1105,4 +1093,4 @@
     }
     return Object(o);
   };
-});
+})();

@@ -6,6 +6,10 @@ app.on('ready', function(require) {
   var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
+    res.end('Hello world!');
+  });
+
+  app.route('/get', function(req, res) {
     var http = require('http');
     //var response = http.get({
     //  url: 'http://sstur.cloudant.com/crittercrawl/_all_docs?limit=100',
@@ -16,16 +20,6 @@ app.on('ready', function(require) {
       headers: {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5'}
     });
     res.end(response.body.toString('utf8'));
-  });
-
-//  app.route('/', function(req, res) {
-//    res.end('Hello world!');
-//  });
-
-  app.route('/get', function(req, res) {
-    var http = require('http');
-    var response = http.get('http://www.google.com/');
-    res.debug(response);
   });
 
 //  app.route('/form-post', function(req, res) {

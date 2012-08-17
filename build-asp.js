@@ -9,7 +9,8 @@
 
   var basePath = __dirname
     , buildPath = join(__dirname, 'app/build');
-  var sourceFiles = [], sourceLines = [];
+  var sourceFiles = []
+    , sourceLines = ['(function(global) {'];
 
   var loadFile = function(dir, file) {
     var path = join(dir, file), fullpath = join(basePath, path);
@@ -60,6 +61,8 @@
 
   //load init script (fires app.ready and notifies us over stdout)
   loadFile('app/system/adapters', 'asp.js');
+
+  sourceLines.push('})({Request: Request, Response: Response, Server: Server, Application: Application})');
 
   //construct buffer including byte-order-mark and source
   var bom = new Buffer('EFBBBF', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);

@@ -1,7 +1,11 @@
 define('nc-api', function(require, exports, module) {
   "use strict";
 
-  var http = require('http');
+  try {
+    var http = require('http');
+  } catch(e) {
+    return;
+  }
 
   var self_ip = '110.174.212.150';
   var api_key = '98df5701e8e8458eabb72469d599414d';

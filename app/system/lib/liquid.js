@@ -20,6 +20,7 @@
 define('liquid', function(require, exports, module) {
   "use strict";
 
+  var Class = require('class');
   var strftime = require('strftime').strftime;
 
   var Liquid = module.exports = {

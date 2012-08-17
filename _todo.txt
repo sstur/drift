@@ -5,8 +5,13 @@ Date header is in wsh-server only
 
 don't explicitly set global b/c if wrapped in closure, pass in, otherwise we're in node and it's defined
 
-get rid of global.mappaht
+get rid of global.mappath
   real fs paths should not be used within the app fx at all, which makes mappath adapter-specific
+
+remove app.data and fix it in adapters:
+  node uses memory (from core.js)
+  iis needs written
+  apache needs localdb
 
 common crypto interface (md5)
 

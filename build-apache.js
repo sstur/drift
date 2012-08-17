@@ -9,7 +9,8 @@
 
   var basePath = __dirname;
   var buildPath = process.argv[2] || join(__dirname, 'apache');
-  var sourceFiles = [], sourceLines = [];
+  var sourceFiles = []
+    , sourceLines = ['(function(global) {'];
 
   var loadFile = function(dir, file) {
     var path = join(dir, file), fullpath = join(basePath, path);
@@ -58,6 +59,8 @@
 
   //load init script (fires app.ready and notifies us over stdout)
   loadFile('app/system/adapters', 'v8cgi.js');
+
+  sourceLines.push('})({})');
 
   //construct buffer including byte-order-mark and source
   var bom = new Buffer('', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
