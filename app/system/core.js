@@ -27,7 +27,7 @@ var app, define;
       definition = function() { this.exports = module; };
     }
     definition.deps = deps;
-    definitions[name] = (typeof definition == 'function') ? definition : function() {};
+    definitions[name] = definition;
   };
 
   //expose definitions
