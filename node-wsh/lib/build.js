@@ -64,7 +64,7 @@
     //load init script (fires app.ready and notifies us over stdout)
     loadFile('node-wsh/init', 'init.js');
 
-    sourceLines.push('})({WScript: WScriptg})');
+    sourceLines.push('})({WScript: WScript})');
 
     //construct buffer including byte-order-mark and source
     var bom = new Buffer('EFBBBF', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
