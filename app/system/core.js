@@ -108,18 +108,36 @@ var app, define;
    */
   var router, routes = app._routes = [];
 
+  //shortcut method for addRoute or routeRequest
   app.route = function(a, b) {
     if (typeof a == 'string' || a instanceof RegExp) {
-      routes.push({route: a, handler: b});
-      if (router) {
-        router.addRoute(a, b);
-      }
+      return app.addRoute(a, b);
     } else {
-      var Router = require('router');
-      router = new Router(routes);
-      var req = a, res = b;
-      return router.route(req, res);
+      return app.routeRequest(a, b);
     }
+  };
+
+  app.addRoute = function(route, handler) {
+    routes.push({route: route, handler: handler});
+    if (router) {
+      router.addRoute(route, handler);
+    }
+  };
+
+  app.routeRequest = function(req, res) {
+    var Router = require('router')
+      , Request = require('request')
+      , Response = require('response');
+    req = new Request(req);
+    res = new Response(res);
+    //cross-reference request and response
+    req.res = res;
+    res.req = req;
+    app.emit('request', req, res);
+    //request is ready to be routed
+    req.emit('ready');
+    router = new Router(routes);
+    return router.route(req, res);
   };
 
 

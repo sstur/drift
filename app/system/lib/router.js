@@ -3,9 +3,7 @@ define('router', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs')
-    , util = require('util')
-    , Request = require('request')
-    , Response = require('response');
+    , util = require('util');
 
   var RE_VERB = /^([A-Z]+):(.*)/;
   var RE_PLAIN_ROUTE = /^[^:*]+$/;
@@ -32,14 +30,6 @@ define('router', function(require, exports, module) {
   };
 
   Router.prototype.route = function(req, res) {
-    req = new Request(req);
-    res = new Response(res);
-    //todo: should this be done via app.emit('request', req, res) ?
-    //cross-reference request and response
-    req.res = res;
-    res.req = req;
-    //request is ready to be routed
-    req.emit('ready');
     var url = req.url().split('?')[0] //get raw url
       , verb = req.method()
       , routeData = {}
@@ -49,17 +39,17 @@ define('router', function(require, exports, module) {
     };
     req.emit('pre-route', routeData);
     this._routes.each(function(i, item) {
-      if (item[0] && item[0] != verb) {
+      if (item.verb && item.verb != verb) {
         return true; //Continue
       }
-      if (typeof item[1] == 'string') {
-        if (url == item[1]) {
-          item[2].call(routeData, req, res);
+      if (typeof item.route == 'string') {
+        if (url == item.route) {
+          item.handler.call(routeData, req, res);
         }
       } else {
-        var matches = item[1].exec(url);
+        var matches = item.route.exec(url);
         if (matches) {
-          item[2].call(routeData, req, res, matches.slice(1));
+          item.handler.call(routeData, req, res, matches.slice(1));
         }
       }
       return !stopRouting;
@@ -80,15 +70,14 @@ define('router', function(require, exports, module) {
   };
 
   //Parse the given route, returning a verb (http method), regular expression and handler
-  //todo: return a parsed object {verb: .., route: .., handler: ..}
   var parseRoute = function(route, fn) {
-    var verb, m, type = typeof route;
+    var parsed = {}, names = [], type = typeof route, m;
     if (type == 'string' && (m = RE_VERB.exec(route))) {
-      verb = m[1];
+      parsed.verb = m[1];
       route = m[2];
     }
-    var names = [];
-    var handler = function(req, res, matches) {
+    parsed.route = (type == 'string' && !route.match(RE_PLAIN_ROUTE)) ? buildRegExp(route, names) : route;
+    parsed.handler = function(req, res, matches) {
       matches = matches || [];
       var params = {}, values = [];
       for (var i = 0; i < matches.length; i++) {
@@ -100,8 +89,7 @@ define('router', function(require, exports, module) {
       util.extend(req._params, params);
       return fn.apply(this, [req, res].concat(values));
     };
-    route = (type == 'string' && !route.match(RE_PLAIN_ROUTE)) ? buildRegExp(route, names) : route;
-    return [verb, route, handler];
+    return parsed;
   };
 
   //Build a regular expression object from a route string, storing param names in the array provided
