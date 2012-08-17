@@ -29,12 +29,13 @@ var expect = require('chai').expect;
     it('should add event-handling to an object', function() {
       var obj = {}, count = 0, fn = function(i) { count += i };
       app.eventify(obj);
-      expect(obj).to.have.property('on');
-      expect(obj).to.have.property('emit');
+      expect(obj).to.have.property('on').that.is.a('function');
+      expect(obj).to.have.property('emit').that.is.a('function');
       obj.on('foo', fn);
       expect(obj._events).to.eql({foo: [fn]});
       obj.emit('foo', 2);
       expect(count).to.equal(2);
+      //add a second handler for same event
       obj.on('foo', function() { count++ });
       obj.emit('foo', 1);
       expect(count).to.equal(4);
