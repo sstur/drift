@@ -1,5 +1,5 @@
 /*global app, define */
-//todo: multiple headers with the same name? (use util.parseHeaders)
+//todo: fix authorization header not being sent
 define('http', function(require, exports) {
   "use strict";
 

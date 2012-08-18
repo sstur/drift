@@ -43,7 +43,10 @@ app.on('ready', function(require) {
 
   app.route('/test-get', function(req, res) {
     var http = require('http'), host = req.header('host');
-    var response = http.get('http://' + host + '/dump');
+    var response = http.get({
+      url: 'http://' + host + '/redir',
+      headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
+    });
     res.clear();
     res.write(response.status + '\r\n');
     res.write(util.inspect(response.headers, false, 4) + '\r\n\r\n');
