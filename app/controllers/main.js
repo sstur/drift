@@ -9,6 +9,27 @@ app.on('ready', function(require) {
     res.end('Hello world!');
   });
 
+  app.route('/dump-request', function(req, res) {
+    var data = {method: req.method(), url: req.url(), headers: req.headers()};
+    res.debug(data);
+  });
+
+  app.route('/nc', function(req, res) {
+    //204 no content
+    res.end('204 No Content', '');
+  });
+
+  app.route('/test-get', function(req, res) {
+    var http = require('http');
+    var response = http.get({
+      url: 'http://platformjs.local/dump-request',
+      headers: {'User-Agent': 'Mozilla/5.0'}
+    });
+    res.end(response.body.toString('utf8'));
+    var data = {status: response.status, headers: response.headers, length: response.body.length};
+    res.debug(data);
+  });
+
   app.route('/get', function(req, res) {
     var http = require('http');
     //var response = http.get({

@@ -1,5 +1,8 @@
 /*global app, define */
 
+//todo: return actual ClientResponse instance; res.data -> res.body; normalize status/statusCode
+//  replace extend with Object.extend
+
 //these use v8cgi require
 var Socket = require("socket").Socket;
 
@@ -256,7 +259,7 @@ define('http', function(require, exports) {
       opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
     }
     var req = new ClientRequest(opts);
-    var res = req.send(false);
+    var res = req.send();
     var data = {statusCode: res.status, headers: res.headers};
     data.body = new Buffer(res.data, 'binary');
     return data;
@@ -280,7 +283,7 @@ define('http', function(require, exports) {
     }
     opts.method = 'POST';
 
-    if (!Buffer.isBuffer(opts.body) || typeof opts.body != 'string') {
+    if (!Buffer.isBuffer(opts.body) && typeof opts.body != 'string') {
       opts.body = qs.stringify(opts.body || {});
       this.addHeader('Content-Type', 'application/x-www-form-urlencoded');
     }
