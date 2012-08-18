@@ -45,7 +45,7 @@ app.on('ready', function(require) {
     var http = require('http'), host = req.header('host');
     var response = http.get({
       url: 'http://' + host + '/redir',
-      headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
+      headers: {'X-Authorization': 'Basic c3N0dXI6djBuMWIw'}
     });
     res.clear();
     res.write(response.status + '\r\n');
