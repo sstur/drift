@@ -3,13 +3,21 @@ app.on('ready', function(require) {
   "use strict";
 
   var fs = require('fs');
+  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
     res.end('Hello world!');
   });
 
-  app.route('/dump-request', function(req, res) {
+  app.route('/redir/:i?', function(req, res, i) {
+    var count = (+i || 0) + 1;
+    fs.log('redirecting ' + count);
+    //redirect 3 times (two intermediary and one final)
+    res.redirect((count < 3) ? '../redir/' + count : '/dump');
+  });
+
+  app.route('/dump', function(req, res) {
     var data = {method: req.method(), url: req.url(), headers: req.headers()};
     res.debug(data);
   });
@@ -19,15 +27,27 @@ app.on('ready', function(require) {
     res.end('204 No Content', '');
   });
 
-  app.route('/test-get', function(req, res) {
+  app.route('/test-get-redir', function(req, res) {
     var http = require('http');
     var response = http.get({
-      url: 'http://platformjs.local/dump-request',
-      headers: {/* 'User-Agent': 'Mozilla/5.0' */}
+      url: 'http://platformjs.local/redir',
+      maxRedirects: 4
     });
-    res.end(response.body.toString('utf8'));
-    var data = {status: response.status, headers: response.headers, length: response.body.length};
-    res.debug(data);
+    res.clear();
+    res.write(response.status + '\r\n');
+    res.write(util.inspect(response.headers, false, 4) + '\r\n\r\n');
+    res.write(response.body.toString('utf8'));
+    res.end();
+  });
+
+  app.route('/test-get', function(req, res) {
+    var http = require('http');
+    var response = http.get('http://platformjs.local/dump');
+    res.clear();
+    res.write(response.status + '\r\n');
+    res.write(util.inspect(response.headers, false, 4) + '\r\n\r\n');
+    res.write(response.body.toString('utf8'));
+    res.end();
   });
 
   app.route('/get', function(req, res) {

@@ -4,7 +4,11 @@ define('http', function(require, exports) {
   "use strict";
 
   var qs = require('qs');
+  var url = require('url');
   var Buffer = require('buffer').Buffer;
+
+  //url helpers
+  var parseUrl = url.parse, resolveUrl = url.resolve;
 
   var headers = [
     "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
@@ -22,11 +26,6 @@ define('http', function(require, exports) {
   function ClientRequest(opts) {
     Object.extend(this, opts);
     this.headers = this.headers || {};
-//    Object.extend(this.headers, {
-//      'Connection': 'close',
-//      'Accept-Charset': 'utf-8',
-//      'Accept-Encoding': 'identity'
-//    });
     this.method = this.method ? this.method.toUpperCase() : 'GET';
   }
 
@@ -36,7 +35,7 @@ define('http', function(require, exports) {
     this.headers[n] = val;
   };
 
-  ClientRequest.prototype.getFullURL = function() {
+  ClientRequest.prototype.getFullUrl = function() {
     return this.protocol + '//' + this.generateHost() + this.path;
   };
 
@@ -52,33 +51,54 @@ define('http', function(require, exports) {
   ClientRequest.prototype.send = function() {
     this.requestCount = (this.requestCount || 0) + 1;
 
-    var xhr = new ActiveXObject('Msxml2.ServerXMLHTTP');
+    var xhr = new ActiveXObject('WinHttp.WinHttpRequest.5.1');
 
-    xhr.open(this.method, this.getFullURL(), false);
-    throw new Error(typeof xhr.removeHeader);
+    xhr.open(this.method, this.getFullUrl(), false);
+    //if we don't add a user-agent activex will do it for us
+    this.headers['User-Agent'] = this.headers['User-Agent'] || 'Mozilla/4.0';
+    //weird ms syntax to set options, will make syntax-checker complain
+    new Function('xhr', 'xhr.option(6) = false')(xhr); //don't follow redirects
     for (var n in this.headers) {
       xhr.setRequestHeader(n, this.headers[n]);
     }
     try {
-      if (this.body) {
-        xhr.send(this.body);
-      } else {
-        xhr.send();
-      }
+      xhr.send(this.body || null);
     } catch(e) {
       throw new Error('Error Requesting: ' + this.path + '; Error: ' + e.description);
     }
 
-    return new ClientResponse(xhr);
+    return this._handleResponse(xhr);
+  };
 
+  ClientRequest.prototype._handleResponse = function(xhr) {
+    var redirectCodes = {'301': 1, '302': 1, '303': 1, '307': 1};
+    var res = new ClientResponse(xhr);
+    var maxRedirects = this.maxRedirects || 0;
+    if (!maxRedirects || this.requestCount >= maxRedirects) {
+      return res;
+    }
+    var code = res.statusCode;
+    if (!(code in redirectCodes)) {
+      return res;
+    }
+    var loc = res.headers['location'];
+    if (!loc) {
+      return res;
+    }
+    if (code == 302 || code == 303) {
+      //302 should not be used for switching to GET, but... http://en.wikipedia.org/wiki/HTTP_302
+      this.method = 'GET';
+    }
+    var newUrl = resolveUrl(this.getFullUrl(), loc);
+    Object.extend(this, parseUrl(newUrl));
+    return this.send();
   };
 
 
   function ClientResponse(xhr) {
-    this.status = '' + xhr.status;
-    var parts = this.status.match(/^([0-9]+) *(.*)$/i);
-    this.statusCode = parseInt(parts[1], 10);
-    this.statusReason = parts[2] || '';
+    this.statusCode = +xhr.status;
+    this.statusReason = '' + xhr.statusText;
+    this.status = this.statusCode + ' ' + this.statusReason;
     this.headers = parseHeaders(xhr.getAllResponseHeaders());
     var responseBody = xhr.responseBody;
     this.body = new Buffer((responseBody == null) ? '' : responseBody);
@@ -98,21 +118,6 @@ define('http', function(require, exports) {
    *
    */
 
-  function parseUrl(url) {
-    var parts = url.match(/^ *((https?):\/\/)?([^:\/]+)(:([0-9]+))?([^\?]*)(\?.*)?$/);
-    var parsed = {
-      protocol: parts[2] ? parts[2].toLowerCase() + ':' : 'http:',
-      hostname: parts[3] ? parts[3].toLowerCase() : '',
-      port: parts[5],
-      pathname: parts[6] || '/',
-      search: parts[7] || ''
-    };
-    parsed.port = parsed.port || (parts[2] == 'https' ? 443 : 80);
-    parsed.host = parsed.hostname + ':' + parsed.port;
-    parsed.path = parsed.pathname + parsed.search;
-    return parsed;
-  }
-
   function parseHeaders(raw) {
     var headers = {}, all = raw.split('\r\n');
     for (var i = 0; i < all.length; i++) {
@@ -129,6 +134,9 @@ define('http', function(require, exports) {
    * Exports
    *
    */
+
+  exports.ClientRequest = ClientRequest;
+  exports.ClientResponse = ClientResponse;
 
   exports.request = function(opts) {
     if (opts.params) {

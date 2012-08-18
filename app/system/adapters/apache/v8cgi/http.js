@@ -11,7 +11,11 @@ define('http', function(require, exports) {
   "use strict";
 
   var qs = require('qs');
+  var url = require('url');
   var Buffer = require('buffer').Buffer;
+
+  //url helpers
+  var parseUrl = url.parse, resolveUrl = url.resolve;
 
   var headers = [
     "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
@@ -42,6 +46,10 @@ define('http', function(require, exports) {
     var key = n.toLowerCase();
     n = headers[key] || n;
     this.headers[n] = val;
+  };
+
+  ClientRequest.prototype.getFullUrl = function() {
+    return this.protocol + '//' + this.generateHost() + this.path;
   };
 
   ClientRequest.prototype.generateHost = function() {
@@ -106,44 +114,25 @@ define('http', function(require, exports) {
   };
 
   ClientRequest.prototype._handleResponse = function(raw) {
-    var redirectCodes = [301, 302, 303, 307];
+    var redirectCodes = {'301': 1, '302': 1, '303': 1, '307': 1};
     var res = new ClientResponse(raw);
-
     var maxRedirects = this.maxRedirects || 0;
-    if (!maxRedirects || this.requestCount > maxRedirects + 1) {
+    if (!maxRedirects || this.requestCount >= maxRedirects) {
       return res;
     }
-
-    var code = res.status;
-    if (redirectCodes.indexOf(code) < 0) {
+    var code = res.statusCode;
+    if (!(code in redirectCodes)) {
       return res;
     }
-
-    var loc = res.getHeader('Location');
+    var loc = res.headers['location'];
     if (!loc) {
       return res;
     }
-
     if (code == 302 || code == 303) {
-      /*
-        302 should not be used for switching to GET, but...
-        see http://en.wikipedia.org/wiki/HTTP_302 ;)
-      */
+      //302 should not be used for switching to GET, but... http://en.wikipedia.org/wiki/HTTP_302
       this.method = 'GET';
     }
-    var oldUrl = this.protocol + '//' + this.host + this.path;
-    var newUrl, i;
-    if (~loc.indexOf('://')) {
-      /* absolute URI, standards compliant */
-      newUrl = loc;
-    } else {
-      if (loc.charAt(0) == '/') {
-        i = oldUrl.indexOf('/', 8);
-      } else {
-        i = oldUrl.lastIndexOf('/') + 1;
-      }
-      newUrl = oldUrl.substring(0, i) + loc;
-    }
+    var newUrl = resolveUrl(this.getFullUrl(), loc);
     Object.extend(this, parseUrl(newUrl));
     return this.send();
   };
@@ -180,11 +169,9 @@ define('http', function(require, exports) {
     var index = 0;
     var num, hex;
     var result = [];
-
     while (index < body.length) {
-      hex = "";
-
-      /* fetch hex number at the beginning of each chunk. this is terminated by \r\n */
+      hex = '';
+      //fetch hex number at the beginning of each chunk. this is terminated by \r\n
       while (index < body.length) {
         num = body.charCodeAt(index);
         if (num == 13) {
@@ -193,20 +180,16 @@ define('http', function(require, exports) {
         hex += String.fromCharCode(num);
         index++;
       }
-
-      /* skip CRLF */
+      //skip CRLF
       index += 2;
-
       var chunkLength = parseInt(hex, 16);
       if (!chunkLength) {
         break;
       }
-
-      /* read the chunk */
+      //read the chunk
       result.push(body.slice(index, index + chunkLength));
       index += chunkLength;
-
-      /* skip CRLF after chunk */
+      //skip CRLF after chunk
       index += 2;
     }
 
@@ -215,20 +198,10 @@ define('http', function(require, exports) {
 
 
 
-  function parseUrl(url) {
-    var parts = url.match(/^ *((https?):\/\/)?([^:\/]+)(:([0-9]+))?([^\?]*)(\?.*)?$/);
-    var parsed = {
-      protocol: parts[2] ? parts[2].toLowerCase() + ':' : 'http:',
-      hostname: parts[3] ? parts[3].toLowerCase() : '',
-      port: parts[5],
-      pathname: parts[6] || '/',
-      search: parts[7] || ''
-    };
-    parsed.port = parsed.port || (parts[2] == 'https' ? 443 : 80);
-    parsed.host = parsed.hostname + ':' + parsed.port;
-    parsed.path = parsed.pathname + parsed.search;
-    return parsed;
-  }
+  /*!
+   * Helper Functions
+   *
+   */
 
   function parseHeaders(raw) {
     var headers = {}, all = raw.split('\r\n');
@@ -241,6 +214,14 @@ define('http', function(require, exports) {
     return headers;
   }
 
+
+  /*!
+   * Exports
+   *
+   */
+
+  exports.ClientRequest = ClientRequest;
+  exports.ClientResponse = ClientResponse;
 
   exports.request = function(opts) {
     if (opts.params) {
