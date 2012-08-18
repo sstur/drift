@@ -31,6 +31,10 @@ define('iis-request', function(require, exports, module) {
       return val || '';
     },
     getMethod: function() {
+      //POST is mis-reported as GET in 404 handler, so we make a best guess based on headers
+      if (this.get('Content-Type') || this.get('Content-Length')) {
+        return 'POST';
+      }
       return this.get('method');
     },
     getURL: function() {
@@ -63,6 +67,7 @@ define('iis-request', function(require, exports, module) {
     },
     getPostData: function() {
       //todo
+      return {fields: {}, files: {}};
     }
   };
 
