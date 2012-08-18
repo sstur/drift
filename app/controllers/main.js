@@ -28,9 +28,9 @@ app.on('ready', function(require) {
   });
 
   app.route('/test-get-redir', function(req, res) {
-    var http = require('http');
+    var http = require('http'), host = req.header('host');
     var response = http.get({
-      url: 'http://platformjs.local/redir',
+      url: 'http://' + host + '/redir',
       maxRedirects: 4
     });
     res.clear();
@@ -41,8 +41,8 @@ app.on('ready', function(require) {
   });
 
   app.route('/test-get', function(req, res) {
-    var http = require('http');
-    var response = http.get('http://platformjs.local/dump');
+    var http = require('http'), host = req.header('host');
+    var response = http.get('http://' + host + '/dump');
     res.clear();
     res.write(response.status + '\r\n');
     res.write(util.inspect(response.headers, false, 4) + '\r\n\r\n');

@@ -2,6 +2,8 @@ fixes:
   route verb
   wsh error
 
+tests for url.parse, url.resolve and url.normalize
+
 move res.debug to system/lib/response
 req.data('ipaddr')
 fix app.cfg
