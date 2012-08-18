@@ -28,11 +28,11 @@ app.on('ready', function(require) {
   });
 
   app.route('/test-get-redir', function(req, res) {
-    var http = require('http'), host = req.header('host');
+    var http = require('http'), host = req.headers('host');
     var response = http.get({
       url: 'http://' + host + '/redir',
       maxRedirects: 4,
-      headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
+      headers: {'Authorization': 'Basic dXI6djBc3N0uMWIw'}
     });
     res.clear();
     res.write(response.status + '\r\n');
@@ -42,10 +42,10 @@ app.on('ready', function(require) {
   });
 
   app.route('/test-get', function(req, res) {
-    var http = require('http'), host = req.header('host');
+    var http = require('http'), host = req.headers('host');
     var response = http.get({
-      url: 'http://' + host + '/redir',
-      headers: {'X-Authorization': 'Basic c3N0dXI6djBuMWIw'}
+      url: 'http://' + host + '/dump',
+      headers: {'Authorization': 'Basic dXI6djBc3N0uMWIw'}
     });
     res.clear();
     res.write(response.status + '\r\n');

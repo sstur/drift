@@ -1,5 +1,4 @@
 /*global app, define */
-//todo: fix authorization header not being sent
 define('http', function(require, exports) {
   "use strict";
 
