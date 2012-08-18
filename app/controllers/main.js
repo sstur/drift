@@ -23,7 +23,7 @@ app.on('ready', function(require) {
     var http = require('http');
     var response = http.get({
       url: 'http://platformjs.local/dump-request',
-      headers: {'User-Agent': 'Mozilla/5.0'}
+      headers: {/* 'User-Agent': 'Mozilla/5.0' */}
     });
     res.end(response.body.toString('utf8'));
     var data = {status: response.status, headers: response.headers, length: response.body.length};

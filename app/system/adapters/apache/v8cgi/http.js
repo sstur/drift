@@ -1,8 +1,5 @@
 /*global app, define */
 
-//todo: return actual ClientResponse instance; res.data -> res.body; normalize status/statusCode
-//  replace extend with Object.extend
-
 //these use v8cgi require
 var Socket = require("socket").Socket;
 
@@ -24,16 +21,16 @@ define('http', function(require, exports) {
     "X-Requested-With", "X-Do-Not-Track", "X-Forwarded-For", "X-ATT-DeviceId", "X-Wap-Profile"];
 
   //index headers by lowercase
-  var allHeaders = {};
-  headers.forEach(function(header) {
-    allHeaders[header.toLowerCase()] = header;
-  });
+  headers = headers.reduce(function(headers, header) {
+    headers[header.toLowerCase()] = header;
+    return headers;
+  }, {});
 
 
   function ClientRequest(opts) {
-    extend(this, opts);
+    Object.extend(this, opts);
     this.headers = this.headers || {};
-    extend(this.headers, {
+    Object.extend(this.headers, {
       'Connection': 'close',
       'Accept-Charset': 'utf-8',
       'Accept-Encoding': 'identity'
@@ -43,7 +40,7 @@ define('http', function(require, exports) {
 
   ClientRequest.prototype.addHeader = function(n, val) {
     var key = n.toLowerCase();
-    n = allHeaders[key] || n;
+    n = headers[key] || n;
     this.headers[n] = val;
   };
 
@@ -147,42 +144,28 @@ define('http', function(require, exports) {
       }
       newUrl = oldUrl.substring(0, i) + loc;
     }
-    extend(this, parseUrl(newUrl));
+    Object.extend(this, parseUrl(newUrl));
     return this.send();
   };
 
 
   function ClientResponse(raw) {
-    this.data = null;
-    this.status = 0;
-    this.statusReason = '';
-    this.headers = {};
-
     var index = raw.indexOf('\r\n\r\n');
-
-    if (index == -1) {
+    if (index < 0) {
       throw new Error('No header-body separator found');
     }
     var head = raw.slice(0, index);
-    var body = raw.slice(index + 4);
     var arr = head.split('\r\n');
-
-    var parts = arr.shift().match(/^ *http\/[^ ]+ *([0-9]+) *(.*)$/i);
-    this.status = parseInt(parts[1], 10);
-    this.statusReason = parts[2] || "";
-
-    for (var i = 0, len = arr.length; i < len; i++) {
-      parts = arr[i].match(/^ *([^: ]+) *: *(.*)$/);
-      if (parts) {
-        this.headers[parts[1].toLowerCase()] = parts[2];
-      }
+    this.status = arr.shift().trim().replace(/^http\/[^ ]+ *$/i, '');
+    var parts = this.status.match(/^([0-9]+) *(.*)$/i);
+    this.statusCode = parseInt(parts[1], 10);
+    this.statusReason = parts[2] || '';
+    this.headers = parseHeaders(head.join('\r\n'));
+    var body = raw.slice(index + 4);
+    if (this.headers['transfer-encoding'] == 'chunked') {
+      body = this._parseChunked(body);
     }
-
-    if (this.getHeader('Transfer-Encoding') == 'chunked') {
-      this.data = this._parseChunked(body);
-    } else {
-      this.data = body;
-    }
+    this.body = new Buffer(body, 'binary');
   }
 
   ClientResponse.prototype.getHeader = function(name) {
@@ -232,12 +215,6 @@ define('http', function(require, exports) {
 
 
 
-  function extend(dest, source) {
-    for (var n in source) {
-      dest[n] = source[n];
-    }
-  }
-
   function parseUrl(url) {
     var parts = url.match(/^ *((https?):\/\/)?([^:\/]+)(:([0-9]+))?([^\?]*)(\?.*)?$/);
     var parsed = {
@@ -253,16 +230,24 @@ define('http', function(require, exports) {
     return parsed;
   }
 
+  function parseHeaders(raw) {
+    var headers = {}, all = raw.split('\r\n');
+    for (var i = 0; i < all.length; i++) {
+      var header = all[i], pos = header.indexOf(':');
+      if (pos < 0) continue;
+      var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
+      headers[key] = headers[key] ? headers[key] + ', ' + val : val;
+    }
+    return headers;
+  }
+
 
   exports.request = function(opts) {
     if (opts.params) {
       opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
     }
     var req = new ClientRequest(opts);
-    var res = req.send();
-    var data = {statusCode: res.status, headers: res.headers};
-    data.body = new Buffer(res.data, 'binary');
-    return data;
+    return req.send();
   };
 
   exports.get = function(opts) {
@@ -271,7 +256,7 @@ define('http', function(require, exports) {
     }
     if (opts.url) {
       var parsed = parseUrl(opts.url);
-      extend(opts, parsed);
+      Object.extend(opts, parsed);
     }
     opts.method = 'GET';
     return exports.request(opts);
@@ -279,7 +264,7 @@ define('http', function(require, exports) {
 
   exports.post = function(opts) {
     if (opts.url) {
-      extend(opts, parseUrl(opts.url));
+      Object.extend(opts, parseUrl(opts.url));
     }
     opts.method = 'POST';
 

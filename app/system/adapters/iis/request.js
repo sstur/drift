@@ -50,13 +50,7 @@ define('iis-request', function(require, exports, module) {
     },
     getHeaders: function() {
       if (!this._headers) {
-        var headers = {}, all = this.get('headers').split('\r\n');
-        for (var i = 0; i < all.length; i++) {
-          var header = all[i], pos = header.indexOf(':');
-          var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
-          headers[key] = headers[key] ? headers[key] + ', ' + val : val;
-        }
-        this._headers = headers;
+        this._headers = parseHeaders(this.get('headers'));
       }
       return this._headers;
     },
@@ -91,6 +85,17 @@ define('iis-request', function(require, exports, module) {
       }
     }
     return obj;
+  }
+
+  function parseHeaders(raw) {
+    var headers = {}, all = raw.split('\r\n');
+    for (var i = 0; i < all.length; i++) {
+      var header = all[i], pos = header.indexOf(':');
+      if (pos < 0) continue;
+      var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
+      headers[key] = headers[key] ? headers[key] + ', ' + val : val;
+    }
+    return headers;
   }
 
   module.exports = Request;

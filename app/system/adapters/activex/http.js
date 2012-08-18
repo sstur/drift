@@ -14,25 +14,25 @@ define('http', function(require, exports) {
     "X-Requested-With", "X-Do-Not-Track", "X-Forwarded-For", "X-ATT-DeviceId", "X-Wap-Profile"];
 
   //index headers by lowercase
-  var allHeaders = {};
-  headers.forEach(function(header) {
-    allHeaders[header.toLowerCase()] = header;
-  });
+  headers = headers.reduce(function(headers, header) {
+    headers[header.toLowerCase()] = header;
+    return headers;
+  }, {});
 
   function ClientRequest(opts) {
     Object.extend(this, opts);
     this.headers = this.headers || {};
-    Object.extend(this.headers, {
-      'Connection': 'close',
-      'Accept-Charset': 'utf-8',
-      'Accept-Encoding': 'identity'
-    });
+//    Object.extend(this.headers, {
+//      'Connection': 'close',
+//      'Accept-Charset': 'utf-8',
+//      'Accept-Encoding': 'identity'
+//    });
     this.method = this.method ? this.method.toUpperCase() : 'GET';
   }
 
   ClientRequest.prototype.addHeader = function(n, val) {
     var key = n.toLowerCase();
-    n = allHeaders[key] || n;
+    n = headers[key] || n;
     this.headers[n] = val;
   };
 
@@ -51,9 +51,9 @@ define('http', function(require, exports) {
 
   ClientRequest.prototype.send = function() {
     //ensure host header is present
-    if (!this.headers.hasOwnProperty('Host')) {
-      this.addHeader('Host', this.generateHost());
-    }
+//    if (!this.headers.hasOwnProperty('Host')) {
+//      this.addHeader('Host', this.generateHost());
+//    }
 
     this.requestCount = (this.requestCount || 0) + 1;
 
@@ -83,19 +83,9 @@ define('http', function(require, exports) {
     var parts = this.status.match(/^([0-9]+) *(.*)$/i);
     this.statusCode = parseInt(parts[1], 10);
     this.statusReason = parts[2] || '';
-    this.headers = {};
-
-    var headers = xhr.getAllResponseHeaders();
-    headers = headers.split(/\r\n|\r|\n/);
-    for (var i = 0, len = headers.length; i < len; i++) {
-      parts = headers[i].match(/^ *([^: ]+) *: *(.*)$/);
-      if (parts) {
-        this.headers[parts[1].toLowerCase()] = parts[2];
-      }
-    }
-
+    this.headers = parseHeaders(xhr.getAllResponseHeaders());
     var responseBody = xhr.responseBody;
-    this.body = new Buffer((typeof responseBody == 'undefined') ? '' : responseBody);
+    this.body = new Buffer((responseBody == null) ? '' : responseBody);
   }
 
   ClientResponse.prototype.getHeader = function(name) {
@@ -105,7 +95,6 @@ define('http', function(require, exports) {
   ClientResponse.prototype.getHeaders = function() {
     return this.headers;
   };
-
 
 
   /*!
@@ -127,6 +116,23 @@ define('http', function(require, exports) {
     parsed.path = parsed.pathname + parsed.search;
     return parsed;
   }
+
+  function parseHeaders(raw) {
+    var headers = {}, all = raw.split('\r\n');
+    for (var i = 0; i < all.length; i++) {
+      var header = all[i], pos = header.indexOf(':');
+      if (pos < 0) continue;
+      var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
+      headers[key] = headers[key] ? headers[key] + ', ' + val : val;
+    }
+    return headers;
+  }
+
+
+  /*!
+   * Exports
+   *
+   */
 
   exports.request = function(opts) {
     if (opts.params) {

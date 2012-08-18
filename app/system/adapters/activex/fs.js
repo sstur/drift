@@ -61,7 +61,7 @@ define('fs', function(require, fs) {
     if (enc == 'utf8') {
       return 'UTF-8'
     } else
-    if (~['utf16', 'utf16be', 'unicode'].indexOf(enc)) {
+    if (enc in {utf16: 1, utf16be: 1, unicode: 1}) {
       return 'UTF-16BE';
     } else
     if (enc == 'utf16le') {

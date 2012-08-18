@@ -25,6 +25,13 @@ remove app.data and fix it in adapters:
   apache needs localdb
 
 common crypto interface (md5)
+consolidate Object.extend and util.extend
+consolidate:
+  parseCookies, parseHeaders, parseUrl (http client)
+  client request headers
+  server response headers
+  qs lib
+  json reviver/replacer
 
 decide what to do with async->sync methods accepting/returning buffer
   normalize to binary string (at Fiber.sync level?)
