@@ -8,6 +8,7 @@ app.on('ready', function(require) {
   });
 
   app.route('POST:/reseller/home/reseller_login', function(req, res) {
+    req.debug(req.post());
     var un = req.post('reseller_username')
       , pw = req.post('reseller_password');
     if (un == 'user' && pw == 'password') {

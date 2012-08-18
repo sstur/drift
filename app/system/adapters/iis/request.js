@@ -2,6 +2,8 @@
 define('iis-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
+  var Buffer = require('buffer').Buffer;
+  var BodyParser = require('body-parser');
 
   var iis = {
     req: global['Request'],
@@ -65,9 +67,18 @@ define('iis-request', function(require, exports, module) {
       }
       return this._cookies;
     },
+    read: function(bytes) {
+      return new Buffer(iis.req.binaryRead(bytes)).toString('binary');
+    },
     getPostData: function() {
-      //todo
-      return {fields: {}, files: {}};
+      var parser = new BodyParser(this.getHeaders(), this.read);
+      //parser.on('file', function(file) {});
+      var err = parser.parse();
+      if (err) {
+        //todo: respond with correct http status
+        throw err;
+      }
+      return parser.parsed;
     }
   };
 
