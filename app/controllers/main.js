@@ -31,7 +31,8 @@ app.on('ready', function(require) {
     var http = require('http'), host = req.header('host');
     var response = http.get({
       url: 'http://' + host + '/redir',
-      maxRedirects: 4
+      maxRedirects: 4,
+      headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
     });
     res.clear();
     res.write(response.status + '\r\n');
