@@ -50,16 +50,12 @@ define('http', function(require, exports) {
   };
 
   ClientRequest.prototype.send = function() {
-    //ensure host header is present
-//    if (!this.headers.hasOwnProperty('Host')) {
-//      this.addHeader('Host', this.generateHost());
-//    }
-
     this.requestCount = (this.requestCount || 0) + 1;
 
     var xhr = new ActiveXObject('Msxml2.ServerXMLHTTP');
 
     xhr.open(this.method, this.getFullURL(), false);
+    throw new Error(typeof xhr.removeHeader);
     for (var n in this.headers) {
       xhr.setRequestHeader(n, this.headers[n]);
     }
