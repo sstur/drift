@@ -54,6 +54,17 @@
       expect(res.getData().join(', ')).to.equal('STATUS:404, DATA:No Route, END');
     });
 
+    it('should execute verb route', function() {
+      var count = 0;
+      var fn = function() { count++ };
+      app.route('POST:/post', fn);
+      app.route('GET:/post', fn);
+      var req = dummyRequest('POST', '/post'), res = dummyResponse();
+      app.route(req, res);
+      expect(count).to.equal(1);
+      expect(res.getData().join(', ')).to.equal('STATUS:404, DATA:No Route, END');
+    });
+
     it('should execute multiple route handlers', function() {
       var count = 0;
       var fn = function() { count++ };
