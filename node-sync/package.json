@@ -1,13 +1,13 @@
 {
-  "author": "sstur",
   "name": "node-sync",
-  "description": "Node Syncronous Web Server using Fibers",
-  "version": "0.1.0",
-  "main": "./sync-server.js",
+  "author": "sstur",
+  "description": "Node Syncronous Web Framework using Fibers",
+  "version": "0.1.2",
+  "main": "sync-server.js",
   "dependencies": {},
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
-    "node": "*"
+    "node": "0.8.x"
   }
 }
