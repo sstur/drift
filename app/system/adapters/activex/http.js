@@ -55,8 +55,8 @@ define('http', function(require, exports) {
     xhr.open(this.method, this.getFullUrl(), false);
     //if we don't add a user-agent activex will do it for us
     this.headers['User-Agent'] = this.headers['User-Agent'] || 'Mozilla/4.0';
-    //weird ms syntax to set options, will make syntax-checker complain
-    new Function('xhr', 'xhr.option(6) = false')(xhr); //don't follow redirects
+    //uses strange syntax to set options; add cc or syntax-checker will complain
+    xhr.option(6)/*@cc_on @if (0) @*/[0]/*@end @*/ = false;
     for (var n in this.headers) {
       xhr.setRequestHeader(n, this.headers[n]);
     }

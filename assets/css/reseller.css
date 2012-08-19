@@ -12,6 +12,9 @@ body, tr, td, table {
 	font: 8pt Verdana, Verdana, Arial, Helvetica, sans-serif;
 	color:#333333;
 }
+td>img {
+  margin-bottom: -2px;
+}
 .bg{
 margin:0;
 padding:0;
