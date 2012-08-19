@@ -10,6 +10,10 @@ app.on('ready', function(require) {
     res.end('Hello world!');
   });
 
+  app.route('/cc', function(req, res) {
+    res.end('is' /*@cc_on @if (0) @*/ + ' not' /*@end @*/ + ' jscript');
+  });
+
   app.route('/redir/:i?', function(req, res, i) {
     var count = (+i || 0) + 1;
     fs.log('redirecting ' + count);
