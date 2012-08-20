@@ -1,8 +1,7 @@
 {
   "name": "node-server",
-  "author": "sstur",
-  "description": "Node Syncronous Web Framework using Fibers",
   "version": "0.1.2",
+  "description": "Node module to serve platformjs web apps",
   "main": "node-server.js",
   "dependencies": {
     "send": "~0.0.4",
@@ -15,7 +14,6 @@
     "expect.js": "~0.1.2",
     "request": "~2.10.0"
   },
-  "engines": {
-    "node": "0.8.x"
-  }
+  "author": "sstur",
+  "license": "BSD"
 }
