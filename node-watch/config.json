@@ -1,0 +1,23 @@
+{
+  "watch": [{
+    "paths": ["app", "assets"],
+    "action": {
+      "type": "copy",
+      "destination": "../_link/platformjs"
+    }
+  }, {
+    "paths": ["app/config", "app/controllers", "app/helpers", "app/system"],
+    "action": {
+      "type": "exec",
+      "command": "node build-asp"
+    }
+  }, {
+    "paths": ["node-server"],
+    "mask": "*.js",
+    "exclude": ["node-server/node_modules"],
+    "action": {
+      "type": "kill",
+      "pidfile": "../server.pid"
+    }
+  }]
+}
