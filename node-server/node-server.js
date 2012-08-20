@@ -45,7 +45,7 @@
   require(join(basePath, 'app/system/core'));
 
   //load async modules into define system as sync
-  loadPath('node-sync/async_modules', function(file, _super) {
+  loadPath('node-server/async_modules', function(file, _super) {
     var name = file.replace(/\.js$/, '');
     define(name, function(require, exports, module) {
       module.exports = Fiber.makeSync(_super);
@@ -53,7 +53,7 @@
   });
 
   //load sync modules
-  loadPath('node-sync/sync_modules');
+  loadPath('node-server/sync_modules');
 
   //load framework modules
   loadPath('app/system/lib');
