@@ -25,9 +25,11 @@
     if (opts.exclude || opts.mask || opts.ignoreUnderscore) {
       var exPaths = Array.isArray(opts.exclude) ? opts.exclude : [];
       exPaths = exPaths.map(function(path) {
+        //ensure one trailing slash
         return path.replace(/\/$/, '') + '/';
       });
       var mask = opts.mask ? maskToRegExp(opts.mask) : false;
+      if (mask) log.push(opts.mask + ' -> ' + mask.toString());
       opts.filter = function(path, stat) {
         //return true to exclude
         var excluded = false;
@@ -41,7 +43,8 @@
             return abort || (dir.indexOf(path) == 0);
           }, false);
         } else {
-          excluded = mask && !mask.test(path)
+          excluded = mask && !mask.test(path);
+          //if (excluded) console.log('(' + mask.toString() + ').test("' + path + '") = ' + !excluded);
         }
         if (excluded) log.push('exclude: ' + path);
         return excluded;
