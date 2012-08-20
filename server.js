@@ -1,6 +1,6 @@
 var http = require('http');
-var utils = require('./node-sync/support/utils');
-var SyncServer = require('./node-sync');
+var utils = require('./node-server/support/utils');
+var SyncServer = require('./node-server');
 
 var server = http.createServer(SyncServer.requestHandler);
 

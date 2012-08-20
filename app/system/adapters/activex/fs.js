@@ -44,7 +44,7 @@ define('fs', function(require, fs) {
     }
     if (!logfile) logfile = 'default';
     var data = args
-      , path = 'logs/' + logfile.replace(/\.log$/, '') + '.log';
+      , path = 'data/logs/' + logfile.replace(/\.log$/, '') + '.log';
     data.forEach(function(line, i) {
       data[i] = (line instanceof Object) ? JSON.stringify(line) : String(line);
     });

@@ -198,7 +198,7 @@
     data.push('');
     data.unshift(new Date().toUTCString());
     data = data.join('\n').replace(/(\r\n|[\r\n])/g, '\r\n');
-    var path = exports.path.join('logs', logfile);
+    var path = exports.path.join('data/logs', logfile);
     exports.writeTextToFile(path, data, callback);
   };
 
