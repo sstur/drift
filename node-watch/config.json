@@ -7,13 +7,13 @@
     }
   }, {
     "paths": ["app/config", "app/controllers", "app/helpers", "app/system"],
+    "exclude": "app/system/adapters/apache",
     "action": {
       "type": "exec",
       "command": "node build-asp"
     }
   }, {
     "paths": ["node-server"],
-    "mask": "*.js",
     "exclude": ["node-server/node_modules"],
     "action": {
       "type": "kill",
