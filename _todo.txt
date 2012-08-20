@@ -1,25 +1,37 @@
-fixes:
-  route verb
-  wsh error
+tests:
+  url.parse
+  url.resolve
+  url.normalize
 
-tests for url.parse, url.resolve and url.normalize
+implement:
+  util.joinPath
 
-move res.debug to system/lib/response
+refactor:
+  sync/async modules to wrappers/
+  use send module instead of connect
+  remove http patches
+
+consolidate:
+  Object.extend and util.extend
+  parseCookies, parseHeaders, parseUrl (http client)
+  client request headers
+  server response headers
+  qs lib
+  json reviver/replacer
+
 req.data('ipaddr')
 fix app.cfg
-Date header is in wsh-server only
+Date header in node-server
 
 iis:
   fs.writeFile
-  http module
   error.asp with line-number translation
 
 apache:
-  mac
   persist app data
 
 get rid of global.mappath
-  real fs paths should not be used within the app fx at all, which makes mappath adapter-specific
+  real fs paths should not be used within app/ at all, which makes mappath adapter-specific
 
 remove app.data and fix it in adapters:
   node uses memory (from core.js)
@@ -27,13 +39,6 @@ remove app.data and fix it in adapters:
   apache needs localdb
 
 common crypto interface (md5)
-consolidate Object.extend and util.extend
-consolidate:
-  parseCookies, parseHeaders, parseUrl (http client)
-  client request headers
-  server response headers
-  qs lib
-  json reviver/replacer
 
 decide what to do with async->sync methods accepting/returning buffer
   normalize to binary string (at Fiber.sync level?)
