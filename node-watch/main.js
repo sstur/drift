@@ -31,13 +31,14 @@
     }
 
     var change = function(err, files) {
+      console.log(['change'].concat([].slice.call(arguments)));
       if (err) {
         if (err.code == 'ENOENT') return;
         console.log(JSON.stringify(err));
         throw err;
       }
       files.forEach(function(file) {
-        if (filter && filter(file)) {
+        if (filter && !filter(file)) {
           console.log('Ignoring changed file: ' + file);
           return;
         }
@@ -46,13 +47,14 @@
     };
 
     var remove = function(err, files) {
+      console.log(['remove'].concat([].slice.call(arguments)));
       if (err) {
         if (err.code == 'ENOENT') return;
         console.log(JSON.stringify(err));
         throw err;
       }
       files.forEach(function(file) {
-        if (filter && filter(file)) {
+        if (filter && !filter(file)) {
           console.log('Ignoring removed file: ' + file);
           return;
         }
