@@ -9,16 +9,36 @@
     var uglifyjs = require('uglify-js');
   } catch(e) {}
 
-  function uglify(code) {
+  function removeStrict(ast) {
+    var pro = uglifyjs.uglify;
+    var w = pro.ast_walker();
+    var handler = function(dir) {
+      if (dir == 'use strict') return ['block'];
+    };
+    //var o = {"string":handler,"num":handler,"name":handler,"toplevel":handler,"block":handler,"splice":handler,"var":handler,"const":handler,"try":handler,"throw":handler,"new":handler,"switch":handler,"break":handler,"continue":handler,"conditional":handler,"assign":handler,"dot":handler,"call":handler,"function":handler,"debugger":handler,"defun":handler,"if":handler,"for":handler,"for-in":handler,"while":handler,"do":handler,"return":handler,"binary":handler,"unary-prefix":handler,"unary-postfix":handler,"sub":handler,"object":handler,"regexp":handler,"array":handler,"stat":handler,"seq":handler,"label":handler,"with":handler,"atom":handler,"directive":handler};
+    ast = w.with_walkers({directive: handler}, function() {
+      return w.walk(ast);
+    });
+    return ast;
+  }
+
+  function uglify(code, mangle) {
     //quick hack to remove strict mode declarations
-    code = code.replace(/^\s*("|')use strict\1;?\s*$/gm, '');
-    var parser = uglifyjs.parser;
-    var processor = uglifyjs.uglify;
-    var ast = parser.parse(code);
-    ast = processor.ast_lift_variables(ast);
-    ast = processor.ast_mangle(ast, {toplevel: true});
-    ast = processor.ast_squeeze(ast);
-    return processor.gen_code(ast, {beautify: true, indent_level: 2, ascii_only: true, inline_script: true});
+    //code = code.replace(/^\s*("|')use strict\1;?\s*$/gm, '');
+    var jsp = uglifyjs.parser;
+    var pro = uglifyjs.uglify;
+    var ast = jsp.parse(code);
+    ast = pro.ast_lift_variables(ast);
+    var opts = {ascii_only: true, inline_script: true};
+    if (mangle) {
+      ast = pro.ast_mangle(ast, {toplevel: true});
+      ast = pro.ast_squeeze(ast);
+    } else {
+      ast = removeStrict(ast);
+      opts.beautify = true;
+      opts.indent_level = 2;
+    }
+    return pro.gen_code(ast, opts);
   }
 
   var REG_NL = /\r\n|\r|\n/g;
@@ -64,6 +84,7 @@
   };
 
   sourceLines.push('(function(global) {');
+  sourceLines.push('"use strict";');
 
   //load framework core (instantiates `app` and `define`)
   loadFile('app/system', 'core.js');
@@ -92,10 +113,11 @@
       console.err('Cannot find module uglify-js.');
       process.exit();
     }
-    sourceLines = [uglify(sourceLines.join('\n'))];
+    var mangle = ('mangle' in opts);
+    sourceLines = [uglify(sourceLines.join('\n'), mangle)];
   } else
   if (opts.e) {
-    //toso: add source-line mapping for error handling
+    //todo: add source-line mapping for error handling
   }
 
   sourceLines.unshift('<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001"%>', '<script runat="server" language="javascript">');
