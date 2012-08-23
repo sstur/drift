@@ -10,7 +10,7 @@
   var basePath = __dirname
     , buildPath = join(__dirname, 'app/build');
   var sourceFiles = []
-    , sourceLines = ['(function(global) {'];
+    , sourceLines = [];
 
   var loadFile = function(dir, file) {
     var path = join(dir, file), fullpath = join(basePath, path);
@@ -42,6 +42,10 @@
     });
   };
 
+  sourceLines.push('<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001"%>');
+  sourceLines.push('<script runat="server" language="javascript">');
+  sourceLines.push('(function(global) {');
+
   //load framework core (instantiates `app` and `define`)
   loadFile('app/system', 'core.js');
 
@@ -63,12 +67,13 @@
   loadFile('app/system/adapters', 'asp.js');
 
   sourceLines.push('})({Request: Request, Response: Response, Server: Server, Application: Application})');
+  sourceLines.push('</script>');
 
   //construct buffer including byte-order-mark and source
   var bom = new Buffer('EFBBBF', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
   var buffer = new Buffer(bom.length + sourceLength);
   bom.copy(buffer);
   buffer.write(source, bom.length, sourceLength, 'utf8');
-  fs.writeFileSync(join(buildPath, 'app.js'), buffer);
+  fs.writeFileSync(join(buildPath, 'app.asp'), buffer);
 
 })();

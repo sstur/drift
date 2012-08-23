@@ -49,8 +49,8 @@ define('iis-request', function(require, exports, module) {
     },
     getURLParts: function() {
       if (!this._url) {
-        var parts = this.getURL().split('?');
-        this._url = {path: qs.unescape(parts[0]), qs: parts[1] || ''};
+        var url = this.getURL(), pos = url.indexOf('?'), search = (pos > 0) ? url.slice(pos) : '';
+        this._url = {path: qs.unescape(search ? url : url.slice(0)), search: search, qs: search.slice(1)};
       }
       return this._url;
     },

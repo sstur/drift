@@ -5,6 +5,8 @@ tests:
 
 implement:
   util.joinPath
+  require('body-parser').processBinaryBody()
+  adapter.request.getURLParts('search')
 
 refactor:
   sync/async modules to wrappers/

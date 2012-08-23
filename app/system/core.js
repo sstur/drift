@@ -108,20 +108,20 @@ var app, define;
   //shortcut method for addRoute or routeRequest
   app.route = function(a, b) {
     if (typeof a == 'string' || a instanceof RegExp) {
-      return app.addRoute(a, b);
+      return addRoute(a, b);
     } else {
-      return app.routeRequest(a, b);
+      return routeRequest(a, b);
     }
   };
 
-  app.addRoute = function(route, handler) {
+  function addRoute(route, handler) {
     routes.push({route: route, handler: handler});
     if (router) {
       router.addRoute(route, handler);
     }
-  };
+  }
 
-  app.routeRequest = function(req, res) {
+  function routeRequest(req, res) {
     var Router = require('router')
       , Request = require('request')
       , Response = require('response');
@@ -135,7 +135,7 @@ var app, define;
     req.emit('ready');
     router = new Router(routes);
     return router.route(req, res);
-  };
+  }
 
 
   /*!
@@ -178,7 +178,6 @@ var app, define;
   /*!
    * Misc app-related functions
    */
-  //overwridden by wsh shim
   //todo: should really be moved elsewhere
   app.mappath = function(path) {
     //global.mappath is expected to be defined by the

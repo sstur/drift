@@ -1,8 +1,7 @@
 /*global Fiber */
 (function() {
   "use strict";
-  var qs = require('./qs')
-    , parseUrl = require('url').parse;
+  var qs = require('./qs');
 
   var COOKIE_SEP = /[;,] */;
 
@@ -19,8 +18,8 @@
     },
     getURLParts: function() {
       if (!this._url) {
-        var parts = parseUrl(this._super.url);
-        this._url = {path: qs.unescape(parts.pathname), qs: parts.search || ''};
+        var url = this._super.url, pos = url.indexOf('?'), search = (pos > 0) ? url.slice(pos) : '';
+        this._url = {path: qs.unescape(search ? url : url.slice(0)), search: search, qs: search.slice(1)};
       }
       return this._url;
     },

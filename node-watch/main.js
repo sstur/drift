@@ -46,14 +46,13 @@
           excluded = mask && !mask.test(path);
           //if (excluded) console.log('(' + mask.toString() + ').test("' + path + '") = ' + !excluded);
         }
-        if (excluded) log.push('exclude: ' + path);
+        console.log(((excluded) ? 'exclude: ' : 'include: ') + path);
         return excluded;
       };
     }
 
     var handler = function(file, curr, prev) {
       if (typeof file == "object" && prev == null && curr == null) {
-//        console.log('fileCount: ' + fileCount + ' for ' + paths.join('; '));
         fileCount += Object.keys(file).length;
         next();
       } else
