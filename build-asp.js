@@ -18,6 +18,8 @@
     return (opts[el.replace(/^-+/, '')] = 1) && opts;
   }, {});
 
+  opts.bom = !('no-bom' in opts);
+
   var sourceFiles = []
     , sourceLines = [];
 
@@ -53,6 +55,8 @@
     }
     var mangle = ('mangle' in opts);
     sourceLines = [uglify(sourceLines.join('\n'), mangle)];
+    //don't need a bom because uglify has escaped all unicode chars
+    opts.bom = false;
   } else
   if (opts.e) {
     //todo: add source-line mapping for error handling
@@ -63,7 +67,9 @@
 
 
   //construct buffer including byte-order-mark and source
-  var bom = new Buffer('EFBBBF', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
+  var bom = opts.bom ? new Buffer('EFBBBF', 'hex') : new Buffer(0)
+    , source = sourceLines.join('\r\n')
+    , sourceLength = Buffer.byteLength(source);
   var buffer = new Buffer(bom.length + sourceLength);
   bom.copy(buffer);
   buffer.write(source, bom.length, sourceLength, 'utf8');
