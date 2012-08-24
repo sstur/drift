@@ -102,6 +102,8 @@
   opts._load.forEach(load);
   sourceLines.push.apply(sourceLines, opts._foot);
 
+  sourceLines = preProcess(sourceLines);
+
   if (opts.m) {
     if (!uglifyjs) {
       console.err('Cannot find module uglify-js.');
@@ -164,6 +166,20 @@
         loadFile(join(dir, item));
       }
     });
+  }
+
+  function preProcess(lines) {
+    var code = lines.join('\n');
+    code = code.replace(/\/\*@(\w+)\{([\s\S]*?)\}@\*\//g, function(all, directive, content) {
+      if (directive == 'add') {
+        return content;
+      } else
+      if (directive == 'remove') {
+        return '';
+      }
+      return all;
+    });
+    return code.split('\n');
   }
 
   function uglify(code, mangle) {

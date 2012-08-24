@@ -11,7 +11,8 @@ app.on('ready', function(require) {
   });
 
   app.route('/cc', function(req, res) {
-    res.end('is' /*@cc_on @if (0) @*/ + ' not' /*@end @*/ + ' jscript');
+    res.write('is' /*@remove{*/ + ' not' /*}@*/ + ' compiled\n');
+    res.end('is' /*@add{ + ' not' }@*/ + ' dev');
   });
 
   app.route('/redir/:i?', function(req, res, i) {
