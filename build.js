@@ -2,8 +2,11 @@
   "use strict";
 
   var fs = require('fs');
-  var join = require('path').join;
+  var path = require('path');
   var Buffer = require('buffer').Buffer;
+
+  var join = path.join;
+  var basename = path.basename;
 
   try {
     var uglifyjs = require('uglify-js');
@@ -11,8 +14,7 @@
 
   var REG_NL = /\r\n|\r|\n/g;
 
-  var basePath = __dirname
-    , buildPath = join(__dirname, 'app/build');
+  var basePath = __dirname;
 
   var opts = process.argv.slice(2).reduce(function(opts, el) {
     return (opts[el.replace(/^-+/, '')] = 1) && opts;
@@ -23,30 +25,76 @@
   var sourceFiles = []
     , sourceLines = [];
 
-  sourceLines.push('(function(global) {');
-  sourceLines.push('"use strict";');
+  //var target = (opts.apache) ? 'apache' : 'iis';
 
-  //load framework core (instantiates `app` and `define`)
-  loadFile('app/system', 'core.js');
+  if (opts.apache) {
+    //build for apache/v8cgi
+    opts._pre = [];
+    opts._head = [
+      '(function(global) {',
+      '"use strict";'
+    ];
+    opts._load = [
+      //load framework core (instantiates `app` and `define`)
+      'app/system/core.js',
+      //load shim/patches
+      'app/system/adapters/shared',
+      //load framework modules
+      'app/system/lib',
+      'app/config',
+      'app/controllers',
+      'app/helpers',
+      //load adapter specific modules
+      'app/system/adapters/apache',
+      //load init (fires app.ready)
+      'app/system/adapters/v8cgi.js'
+    ];
+    opts._foot = [
+      '})({})'
+    ];
+    opts._end = [];
+    opts.bom = false;
+    opts.target = 'apache/app.sjs';
+  } else {
+    //build for iis/asp
+    opts._pre = [
+      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001"%>',
+      '<script runat="server" language="javascript">'
+    ];
+    opts._head = [
+      '(function(global) {',
+      '"use strict";'
+    ];
+    opts._load = [
+      //load framework core (instantiates `app` and `define`)
+      'app/system/core.js',
+      //load shim/patches
+      'app/system/support',
+      'app/system/adapters/shared',
+      'app/system/adapters/activex',
+      //load framework modules
+      'app/system/lib',
+      'app/config',
+      'app/controllers',
+      'app/helpers',
+      //load adapter specific modules
+      'app/system/adapters/iis',
+      //load init (fires app.ready)
+      'app/system/adapters/asp.js'
+    ];
+    opts._foot = [
+      '})({Request: Request, Response: Response, Server: Server, Application: Application})'
+    ];
+    opts._end = [
+      '</script>'
+    ];
+    opts.target = 'app/build/app.asp';
+  }
 
-  //load shim/patches
-  loadPath('app/system/support');
-  loadPath('app/system/adapters/shared');
-  loadPath('app/system/adapters/activex');
 
-  //load framework modules
-  loadPath('app/system/lib');
-  loadPath('app/config');
-  loadPath('app/controllers');
-  loadPath('app/helpers');
-
-  //load adapter specific modules
-  loadPath('app/system/adapters/iis');
-
-  //load init script (fires app.ready)
-  loadFile('app/system/adapters', 'asp.js');
-
-  sourceLines.push('})({Request: Request, Response: Response, Server: Server, Application: Application})');
+  sourceLines.push.apply(sourceLines, opts._head);
+  opts._load.forEach(load);
+  sourceLines.push.apply(sourceLines, opts._foot);
 
   if (opts.m) {
     if (!uglifyjs) {
@@ -62,8 +110,8 @@
     //todo: add source-line mapping for error handling
   }
 
-  sourceLines.unshift('<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001"%>', '<script runat="server" language="javascript">');
-  sourceLines.push('</script>');
+  sourceLines.unshift.apply(sourceLines, opts._pre);
+  sourceLines.push.apply(sourceLines, opts._end);
 
 
   //construct buffer including byte-order-mark and source
@@ -73,13 +121,17 @@
   var buffer = new Buffer(bom.length + sourceLength);
   bom.copy(buffer);
   buffer.write(source, bom.length, sourceLength, 'utf8');
-  fs.writeFileSync(join(buildPath, 'app.asp'), buffer);
+  fs.writeFileSync(join(basePath, opts.target), buffer);
 
 
   //helpers
 
-  function loadFile(dir, file) {
-    var path = join(dir, file), fullpath = join(basePath, path);
+  function load(path) {
+    return (basename(path).match(/\.js$/)) ? loadFile(path) : loadPath(path);
+  }
+
+  function loadFile(path) {
+    var fullpath = join(basePath, path);
     if (!opts.q) console.log('load file', path);
     var filedata = fs.readFileSync(fullpath, 'utf8');
     var lines = filedata.split(REG_NL);
@@ -103,7 +155,7 @@
         loadPath(join(dir, item));
       } else
       if (stat.isFile() && item.match(/\.js$/i)) {
-        loadFile(dir, item);
+        loadFile(join(dir, item));
       }
     });
   }
