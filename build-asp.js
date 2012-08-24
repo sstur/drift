@@ -43,7 +43,7 @@
   //load adapter specific modules
   loadPath('app/system/adapters/iis');
 
-  //load init script (fires app.ready and notifies us over stdout)
+  //load init script (fires app.ready)
   loadFile('app/system/adapters', 'asp.js');
 
   sourceLines.push('})({Request: Request, Response: Response, Server: Server, Application: Application})');

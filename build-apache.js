@@ -57,13 +57,15 @@
   //load adapter specific modules
   loadPath('app/system/adapters/apache');
 
-  //load init script (fires app.ready and notifies us over stdout)
+  //load init script (fires app.ready)
   loadFile('app/system/adapters', 'v8cgi.js');
 
   sourceLines.push('})({})');
 
   //construct buffer including byte-order-mark and source
-  var bom = new Buffer('', 'hex'), source = sourceLines.join('\r\n'), sourceLength = Buffer.byteLength(source);
+  var bom = new Buffer('', 'hex')
+    , source = sourceLines.join('\r\n')
+    , sourceLength = Buffer.byteLength(source);
   var buffer = new Buffer(bom.length + sourceLength);
   bom.copy(buffer);
   buffer.write(source, bom.length, sourceLength, 'utf8');
