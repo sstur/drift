@@ -1,3 +1,9 @@
+/**
+ * Build and optionally uglify/mangle the entire application to
+ * one platform-specific script file.
+ *
+ * todo: jscript conditional comments get removed by uglify
+ */
 (function() {
   "use strict";
 
@@ -19,8 +25,6 @@
   var opts = process.argv.slice(2).reduce(function(opts, el) {
     return (opts[el.replace(/^-+/, '')] = 1) && opts;
   }, {});
-
-  opts.bom = !('no-bom' in opts);
 
   var sourceFiles = []
     , sourceLines = [];
@@ -88,6 +92,8 @@
     opts._end = [
       '</script>'
     ];
+    //include bom unless otherwise specified
+    opts.bom = !('no-bom' in opts);
     opts.target = 'app/build/app.asp';
   }
 
