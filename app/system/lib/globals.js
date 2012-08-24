@@ -1,5 +1,3 @@
-/*global app, define, forEach, vartype, isPrimitive, isSet, toArray */
-
 /*!
  * Global Functions and Variables
  *   platforms not supporting ECMAScript 5 need ES5 shim loaded before this

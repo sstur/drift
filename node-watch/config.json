@@ -1,5 +1,19 @@
 {
   "watch": [{
+    "paths": ["app", "assets"],
+    "action": {
+      "type": "copy",
+      "destination": "../_link/platformjs"
+    }
+  }, {
+    "paths": ["app/config", "app/controllers", "app/helpers", "app/system"],
+    "mask": "*.js",
+    "exclude": ["app/system/adapters/apache"],
+    "action": {
+      "type": "exec",
+      "command": "node build iis"
+    }
+  }, {
     "paths": ["node-server"],
     "mask": "*.js",
     "exclude": ["node-server/node_modules"],
