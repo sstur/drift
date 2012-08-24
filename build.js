@@ -12,7 +12,6 @@
   var Buffer = require('buffer').Buffer;
 
   var join = path.join;
-  var basename = path.basename;
 
   try {
     var uglifyjs = require('uglify-js');
@@ -25,11 +24,6 @@
   var opts = process.argv.slice(2).reduce(function(opts, el) {
     return (opts[el.replace(/^-+/, '')] = 1) && opts;
   }, {});
-
-  var sourceFiles = []
-    , sourceLines = [];
-
-  //var target = (opts.apache) ? 'apache' : 'iis';
 
   if (opts.apache) {
     //build for apache/v8cgi
@@ -97,6 +91,9 @@
     opts.target = 'app/build/app.asp';
   }
 
+  var sourceFiles = []
+    , sourceLines = []
+    , offset = opts._pre.length;
 
   sourceLines.push.apply(sourceLines, opts._head);
   opts._load.forEach(load);
@@ -121,6 +118,7 @@
   sourceLines.unshift.apply(sourceLines, opts._pre);
   sourceLines.push.apply(sourceLines, opts._end);
 
+  console.log(JSON.stringify(sourceFiles));
 
   //construct buffer including byte-order-mark and source
   var bom = opts.bom ? new Buffer('EFBBBF', 'hex') : new Buffer(0)
@@ -145,8 +143,7 @@
     var lines = filedata.split(REG_NL);
     sourceFiles.push({
       path: path,
-      fullpath: fullpath,
-      lineOffset: sourceLines.length,
+      lineOffset: offset + sourceLines.length,
       lineCount: lines.length
     });
     sourceLines = sourceLines.concat(lines);
@@ -172,11 +169,12 @@
     var code = lines.join('\n');
     //replace special comments indicating compiler directives
     code = code.replace(/\/\*@(\w+)\{([\w\W]+?)\}@\*\//g, function(all, directive, content) {
+      var lines = all.split('\n').length;
       if (directive == 'add') {
         return content;
       } else
       if (directive == 'remove') {
-        return '';
+        return new Array(lines).join('\n');
       }
       return all;
     });
