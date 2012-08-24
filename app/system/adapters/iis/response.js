@@ -5,10 +5,6 @@ define('iis-response', function(require, exports, module) {
   var cfg = {
     logging: {response_time: 1}
   };
-  var iis = {
-    req: global['Request'],
-    res: global['Response']
-  };
   var Buffer = require('buffer').Buffer;
 
   var TEXT_CTYPES = /^text\/|\/json$/i;

@@ -5,10 +5,6 @@ define('iis-request', function(require, exports, module) {
   var Buffer = require('buffer').Buffer;
   var BodyParser = require('body-parser');
 
-  var iis = {
-    req: global['Request'],
-    res: global['Response']
-  };
   var varmap = {
     ipaddr: 'REMOTE_ADDR',
     headers: 'ALL_RAW'

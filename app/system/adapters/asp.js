@@ -21,10 +21,8 @@ var console, Buffer;
     }
   };
 
-  var server = global['Server'], application = global['Application'];
-
   //filesystem path including trailing slash
-  var basePath = server.mappath('/') + '\\';
+  var basePath = iis.svr.mappath('/') + '\\';
 
   app.mappath = function(path) {
     var fullpath = basePath + 'app\\';
@@ -35,7 +33,7 @@ var console, Buffer;
   };
 
   app.data = function(n, val) {
-    //todo: application(n) = JSON.stringify(val)
+    //todo: iis.app(n) = JSON.stringify(val)
     return '';
   };
 

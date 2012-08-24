@@ -62,7 +62,7 @@
       '<script runat="server" language="javascript">'
     ];
     opts._head = [
-      '(function(global) {',
+      '(function(global, iis) {',
       '"use strict";'
     ];
     opts._load = [
@@ -83,7 +83,7 @@
       'app/system/adapters/asp.js'
     ];
     opts._foot = [
-      '})({Request: Request, Response: Response, Server: Server, Application: Application})'
+      '})({}, {req: Request, res: Response, svr: Server, app: Application})'
     ];
     opts._end = [
       '</script>'
