@@ -54,7 +54,7 @@
     ];
     opts._end = [];
     opts.bom = false;
-    opts.target = 'apache/app.sjs';
+    opts.target = 'app/build/app.sjs';
   } else {
     //build for iis/asp
     opts._pre = [
