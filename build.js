@@ -135,7 +135,7 @@
   //helpers
 
   function load(path) {
-    return (basename(path).match(/\.js$/)) ? loadFile(path) : loadPath(path);
+    return (path.match(/\.js$/)) ? loadFile(path) : loadPath(path);
   }
 
   function loadFile(path) {
