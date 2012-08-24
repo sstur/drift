@@ -9,9 +9,9 @@ var console, Buffer;
   var Request = require('apache-request');
   var Response = require('apache-response');
 
-  Buffer = global.Buffer = require('buffer').Buffer;
+  Buffer = require('buffer').Buffer;
 
-  console = global.console = {
+  console = {
     _log: [],
     log: function() {
       var args = toArray(arguments);

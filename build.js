@@ -2,7 +2,7 @@
  * Build and optionally uglify/mangle the entire application to
  * one platform-specific script file.
  *
- * todo: jscript conditional comments get removed by uglify
+ * todo: error handling should map error
  */
 (function() {
   "use strict";
@@ -170,7 +170,8 @@
 
   function preProcess(lines) {
     var code = lines.join('\n');
-    code = code.replace(/\/\*@(\w+)\{([\s\S]*?)\}@\*\//g, function(all, directive, content) {
+    //replace special comments indicating compiler directives
+    code = code.replace(/\/\*@(\w+)\{([\w\W]+?)\}@\*\//g, function(all, directive, content) {
       if (directive == 'add') {
         return content;
       } else

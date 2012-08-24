@@ -2,7 +2,7 @@ var app, define;
 (function() {
   "use strict";
 
-  app = global.app = function() {
+  app = function() {
     //allow to be used as a function
     if (typeof app.fn == 'function') {
       return app.fn.apply(app, arguments);
@@ -11,7 +11,7 @@ var app, define;
 
   var require, definitions = {}, loading = {}, cache = {};
 
-  define = global.define = function(name, deps, definition) {
+  define = function(name, deps, definition) {
     if (typeof name != 'string') {
       throw new Error('Invalid module name');
     }
@@ -247,5 +247,11 @@ var app, define;
     }
     return resolved.replace(/^\/|\/$/g, '');
   }
+
+  //export to global (except when compiled)
+  /*@remove{*/
+  global.app = app;
+  global.define = define;
+  /*}@*/
 
 })();

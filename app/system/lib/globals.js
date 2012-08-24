@@ -16,7 +16,7 @@ var forEach, vartype, isPrimitive, isSet, toArray;
    * Shorthand to iterate an array or object
    *   similar to jQuery.each()
    */
-  forEach = global.forEach = function(obj, fn, context) {
+  forEach = function(obj, fn, context) {
     if (arguments.length == 3) {
       fn = fn.bind(context);
     }
@@ -243,9 +243,18 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   };
 
   //Shorthand
-  vartype = global.vartype = Object.vartype;
-  isPrimitive = global.isPrimitive = Object.isPrimitive;
-  isSet = global.isSet = Object.isSet;
-  toArray = global.toArray = Array.toArray;
+  vartype = Object.vartype;
+  isPrimitive = Object.isPrimitive;
+  isSet = Object.isSet;
+  toArray = Array.toArray;
+
+  //export to global (except when compiled)
+  /*@remove{*/
+  global.forEach= forEach;
+  global.vartype = vartype;
+  global.isPrimitive = isPrimitive;
+  global.isSet = isSet;
+  global.toArray = toArray;
+  /*}@*/
 
 })();

@@ -10,11 +10,6 @@ app.on('ready', function(require) {
     res.end('Hello world!');
   });
 
-  app.route('/cc', function(req, res) {
-    res.write('is' /*@remove{*/ + ' not' /*}@*/ + ' compiled\n');
-    res.end('is' /*@add{ + ' not' }@*/ + ' dev');
-  });
-
   app.route('/redir/:i?', function(req, res, i) {
     var count = (+i || 0) + 1;
     fs.log('redirecting ' + count);
@@ -150,6 +145,11 @@ app.on('ready', function(require) {
     };
     var markup = render("<p>{{user | capitalize}}</p>", {user: 'bob'});
     res.end('text/plain', markup);
+  });
+
+  app.route('/cc', function(req, res) {
+    res.write('is' /*@remove{*/ + ' not' /*}@*/ + ' compiled\n');
+    res.end('is' /*@add{ + ' not' }@*/ + ' dev');
   });
 
   app.route('/throw', function(req, res) {
