@@ -27,7 +27,7 @@
 
   if (opts.apache) {
     //build for apache/v8cgi
-    opts._pre = [];
+    opts._pre = [''];
     opts._head = [
       '(function(global) {',
       '"use strict";'
@@ -111,14 +111,16 @@
     //don't need a bom because uglify has escaped all unicode chars
     opts.bom = false;
   } else
-  if (opts.e) {
-    //todo: add source-line mapping for error handling
+  if (opts.apache) {
+    //we intentionally have a blank line for this
+    opts._pre[0] = 'var map = ' + JSON.stringify(sourceFiles) + ';';
+  } else {
+    //for iis the error handling goes in a separate file
+    updateFile({file: 'app/build/err.asp', line: 2, content: 'var map = ' + JSON.stringify(sourceFiles) + ';'});
   }
 
   sourceLines.unshift.apply(sourceLines, opts._pre);
   sourceLines.push.apply(sourceLines, opts._end);
-
-  console.log(JSON.stringify(sourceFiles));
 
   //construct buffer including byte-order-mark and source
   var bom = opts.bom ? new Buffer('EFBBBF', 'hex') : new Buffer(0)
@@ -179,6 +181,14 @@
       return all;
     });
     return code.split('\n');
+  }
+
+  function updateFile(opts) {
+    var path = join(basePath, opts.file);
+    var data = fs.readFileSync(path, 'utf8');
+    var lines = data.split(REG_NL);
+    lines[opts.line] = opts.content;
+    fs.writeFileSync(path, lines.join('\r\n'), 'utf8');
   }
 
   function uglify(code, mangle) {

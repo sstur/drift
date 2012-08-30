@@ -41,9 +41,47 @@ var console, Buffer;
   app.emit('ready', require);
 
   try {
-    app.route(new Request(), new Response());
+    var req = new Request(), res = new Response();
+    app.route(req, res);
   } catch(e) {
-    if (e) throw e;
+    //if e is 0, then the request was handled successfully
+    if (!e) return;
+    if (typeof map == 'undefined') {
+      throw e;
+    } else {
+      handleError(e);
+    }
+  }
+
+
+  function adjustError(line) {
+    var err = {};
+    for (var i = 0; i < map.length; i++) {
+      var source = map[i];
+      if (line < source.lineOffset + source.lineCount) {
+        err.file = source.path;
+        err.line = line - source.lineOffset;
+        break;
+      }
+    }
+    return err;
+  }
+
+  function handleError(err) {
+    var stack = err.stack.split(/\r\n|\r|\n/);
+    stack = stack.map(function(line) {
+      var m = line.match(/^( {4}.*?)\(?\S*\.sjs:(\d+):(\d+)\)?$/);
+      if (m) {
+        var details = adjustError(+m[2]);
+        line = details.file ? m[1] + '(' + details.file + ':' + details.line + ':' + m[3] + ')' : '';
+      }
+      return line;
+    });
+    res.clear();
+    res.write(stack.join('\r\n'));
+    try {
+      res.end();
+    } catch(e) {}
   }
 
 })(app.require);
