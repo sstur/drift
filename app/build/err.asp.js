@@ -20,15 +20,15 @@
   }
 
   function getErrDetails() {
-    var aspError = server.getLastError();
+    var details = server.getLastError();
     var err = {};
     err.path = getURL();
-    err.file = aspError.file;
-    err.type = aspError.category.replace(/Microsoft (\w+)Script/i, 'Script');
-    err.line = aspError.line;
-    err.description = aspError.description;
-    err.code = aspError.number>>16 & 0x1FFF;
-    err.number = aspError.number & 0xFFFF;
+    err.file = details.file;
+    err.type = details.category.replace(/Microsoft (\w+)Script/i, 'Script');
+    err.line = details.line;
+    err.description = details.description;
+    err.code = details.number>>16 & 0x1FFF;
+    err.number = details.number & 0xFFFF;
     err.referer = getItem('HTTP-Referer');
     err.userAgent = getItem('HTTP-User-Agent');
     return err;
@@ -73,8 +73,9 @@
   }
 
   function displayErrorJSON(err) {
-    var out = '{"http_status":"500","error":"' + jsEnc(err.description) + '","details":{"category":"' + err.type + '","file":"' + jsEnc(err.file) + '","line":"' + err.line + '"}}';
+    var out = '{"http_status":"500","error":"' + jsEnc(err.description) + '","details":{"file":"' + jsEnc(err.file) + '","line":"' + err.line + '"}}';
     res.clear();
+    res.status = '200 Server Error';
     res.contentType = 'text/plain';
     res.write(out);
     res.end();
