@@ -152,8 +152,12 @@ app.on('ready', function(require) {
     res.end('is' /*@add{ + ' not' }@*/ + ' dev');
   });
 
+  app.route('/throw/syntax', function(req, res) {
+    new Function('return if;')();
+  });
+
   app.route('/throw', function(req, res) {
-    var err = this.a.b;
+    this.a.b;
   });
 
 });
