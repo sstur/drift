@@ -6,6 +6,7 @@
   displayError(err);
 
   function adjustError(err) {
+    if (typeof map == 'undefined') return;
     var line = err.originalLine = err.line;
     for (var i = 0; i < map.length; i++) {
       var source = map[i];
@@ -16,22 +17,21 @@
       }
     }
     err.report = 'Error at: ' + err.file + ':' + err.line + '\r\n' +  err.description;
-    return err;
   }
 
   function getErrDetails() {
-    var err = server.getLastError();
-    var details = {};
-    details.path = getURL();
-    details.file = err.file;
-    details.type = err.category.replace(/Microsoft (\w+)Script/i, 'Script');
-    details.line = err.line;
-    details.description = err.description;
-    details.code = err.number>>16 & 0x1FFF;
-    details.number = err.number & 0xFFFF;
-    details.referer = getItem('HTTP-Referer');
-    details.userAgent = getItem('HTTP-User-Agent');
-    return details;
+    var aspError = server.getLastError();
+    var err = {};
+    err.path = getURL();
+    err.file = aspError.file;
+    err.type = aspError.category.replace(/Microsoft (\w+)Script/i, 'Script');
+    err.line = aspError.line;
+    err.description = aspError.description;
+    err.code = aspError.number>>16 & 0x1FFF;
+    err.number = aspError.number & 0xFFFF;
+    err.referer = getItem('HTTP-Referer');
+    err.userAgent = getItem('HTTP-User-Agent');
+    return err;
   }
 
   function getURL() {
@@ -44,8 +44,12 @@
   }
 
   function getItem(n) {
-    var val, key = n.replace(/-/g, '_').toUpperCase();
-    return req.serverVariables(key).item() || req.serverVariables('HTTP_' + key).item() || '';
+    var key = n.replace(/-/g, '_').toUpperCase(), val;
+    try {
+      //use a try/catch here because we might not have access to certain parameters
+      val = req.serverVariables(key).item() || req.serverVariables('HTTP_' + key).item();
+    } catch(e) {}
+    return val || '';
   }
 
   function displayError(err) {
@@ -61,6 +65,7 @@
       res.clear();
       res.contentType = 'text/plain';
     } catch(e) {
+      //http headers and possibly partial body might be already sent
       out.unshift('<pre><code>');
     }
     res.write(out.join('\r\n'));
