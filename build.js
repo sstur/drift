@@ -2,7 +2,6 @@
  * Build and optionally uglify/mangle the entire application to
  * one platform-specific script file.
  *
- * todo: error handling should map error
  */
 (function() {
   "use strict";
@@ -108,7 +107,7 @@
     }
     var mangle = ('mangle' in opts);
     sourceLines = [uglify(sourceLines.join('\n'), mangle)];
-    //don't need a bom because uglify has escaped all unicode chars
+    //don't need a bom because uglify has escaped extended chars
     opts.bom = false;
   } else
   if (opts.apache) {

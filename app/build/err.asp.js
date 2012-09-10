@@ -61,13 +61,8 @@
     out.push('Line: ' + err.line);
     out.push('Description:\r\n' + err.description);
     out.push('');
-    try {
-      res.clear();
-      res.contentType = 'text/plain';
-    } catch(e) {
-      //http headers and possibly partial body might be already sent
-      out.unshift('<pre><code>');
-    }
+    res.clear();
+    res.contentType = 'text/plain';
     res.write(out.join('\r\n'));
     res.end();
   }
