@@ -14,4 +14,3 @@ RewriteCond %{REQUEST_URI} !^/assets/
 RewriteRule .* app.sjs [L,NC]
 
 </IfModule>
-
