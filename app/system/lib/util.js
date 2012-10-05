@@ -1,21 +1,40 @@
-/*global app, define */
+/*global app, define, Buffer */
 define('util', function(require, util) {
   "use strict";
 
-  var Buffer = require('buffer').Buffer;
   var inspector = require('inspector');
+
+  var slice = Array.prototype.slice;
 
   util.inspect = inspector.inspect;
 
   util.extend = function() {
     var args = Array.toArray(arguments), dest = args.shift();
-    for (var i = 0; i < args.length; i++) {
-      var obj = args[i];
-      for (var n in obj) {
-        dest[n] = obj[n];
-      }
-    }
+    args.forEach(function(src) {
+      Object.keys(src).forEach(function(key) {
+        dest[key] = src[key];
+      });
+    });
     return dest;
+  };
+
+  util.propagateEvents = function(src, dest, events) {
+    events = (Array.isArray(events)) ? events : String(events).split(' ');
+    for (var i = 0, len = events.length; i < len; i++) {
+      var event = events[i];
+      src.on(event, function() {
+        dest.emit.apply(dest, [event].concat(slice.call(arguments)));
+      });
+    }
+  };
+
+  util.pipe = function(src, dest) {
+    src.on('data', function(data) {
+      dest.write(data);
+    });
+    src.on('end', function() {
+      dest.end();
+    });
   };
 
 
@@ -31,6 +50,8 @@ define('util', function(require, util) {
     return JSON.parse(str, reviver);
   };
 
+  //we require Buffer *after* defining util methods because Buffer will require util
+  var Buffer = require('buffer').Buffer;
 
   var REG_CHARS = /[^\x20-\x7E]/g;
   var REG_CONSTR = /^new Error\(.*\)$/;

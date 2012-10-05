@@ -11,7 +11,9 @@ define('request', function(require, exports, module) {
     this._params = {};
   }
 
-  Request.prototype = {
+  app.eventify(Request.prototype);
+
+  util.extend(Request.prototype, {
     data: function(n, val) {
       var data = this._data;
       if (arguments.length == 2) {
@@ -66,30 +68,31 @@ define('request', function(require, exports, module) {
         return this._params;
       }
     },
-    post: function(n) {
+    getPostData: function() {
       if (!this._postdata) {
+        util.propagateEvents(this.req, this, 'file');
         this._postdata = this.req.getPostData();
       }
+      return this._postdata;
+    },
+    post: function(n) {
+      var postdata = this.getPostData();
       if (arguments.length) {
-        return this._postdata.fields[n.toLowerCase()] || '';
+        return postdata.fields[n.toLowerCase()] || '';
       } else {
-        return this._postdata.fields;
+        return postdata.fields;
       }
     },
     uploads: function(n) {
-      if (!this._postdata) {
-        this._postdata = this.req.getPostData();
-      }
-      if (!this._postdata.files) return null;
+      var postdata = this.getPostData();
+      if (!postdata.files) return null;
       if (arguments.length) {
-        return this._postdata.files[n] || null;
+        return postdata.files[n] || null;
       } else {
-        return this._postdata.files;
+        return postdata.files;
       }
     }
-  };
-
-  app.eventify(Request.prototype);
+  });
 
   module.exports = Request;
 

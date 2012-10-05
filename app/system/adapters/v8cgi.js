@@ -1,5 +1,5 @@
 /*global app, system */
-var console, Buffer;
+var console, Buffer, _require = function(path) { return require(path); };
 (function(require) {
   "use strict";
 

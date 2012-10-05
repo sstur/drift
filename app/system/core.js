@@ -134,6 +134,8 @@ var app, define;
     //request is ready to be routed
     req.emit('ready');
     router = new Router(routes);
+    //todo: send router method, url, args..
+    //todo: check app.cfg to route "virtual paths" -> /?/somepath
     return router.route(req, res);
   }
 

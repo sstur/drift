@@ -2,6 +2,8 @@
 define('session', function(require, exports, module) {
   "use strict";
 
+  var util = require('util');
+
   var RE_TOKEN = /^[0-9a-f]{32}$/i;
 
   var cache = {};
@@ -150,7 +152,7 @@ define('session', function(require, exports, module) {
     this.init();
   }
 
-  Session.prototype = {
+  util.extend(Session.prototype, {
     init: function() {
       this.type = (this.opts.longterm) ? 'longterm' : 'shortterm';
       this.namespace = this.opts.namespace || '';
@@ -199,7 +201,7 @@ define('session', function(require, exports, module) {
         controllers[datastore].save(session, this.namespace, session.namespaces[this.namespace]);
       }
     }
-  };
+  });
 
   module.exports = {
     init: function(req, res, opts) {

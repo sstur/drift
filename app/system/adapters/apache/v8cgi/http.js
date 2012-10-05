@@ -1,17 +1,13 @@
-/*global app, define */
-
-//these use v8cgi require
-var Socket = require("socket").Socket;
-
-var _require = function(path) {
-  return require(path);
-};
-
+/*global app, define, _require */
 define('http', function(require, exports) {
   "use strict";
 
+  //using v8cgi require
+  var Socket = _require("socket").Socket;
+
   var qs = require('qs');
   var url = require('url');
+  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   //url helpers
@@ -32,9 +28,9 @@ define('http', function(require, exports) {
 
 
   function ClientRequest(opts) {
-    Object.extend(this, opts);
+    util.extend(this, opts);
     this.headers = this.headers || {};
-    Object.extend(this.headers, {
+    util.extend(this.headers, {
       'Connection': 'close',
       'Accept-Charset': 'utf-8',
       'Accept-Encoding': 'identity'
@@ -133,7 +129,7 @@ define('http', function(require, exports) {
       this.method = 'GET';
     }
     var newUrl = resolveUrl(this.getFullUrl(), loc);
-    Object.extend(this, parseUrl(newUrl));
+    util.extend(this, parseUrl(newUrl));
     return this.send();
   };
 
@@ -237,7 +233,7 @@ define('http', function(require, exports) {
     }
     if (opts.url) {
       var parsed = parseUrl(opts.url);
-      Object.extend(opts, parsed);
+      util.extend(opts, parsed);
     }
     opts.method = 'GET';
     return exports.request(opts);
@@ -245,15 +241,16 @@ define('http', function(require, exports) {
 
   exports.post = function(opts) {
     if (opts.url) {
-      Object.extend(opts, parseUrl(opts.url));
+      util.extend(opts, parseUrl(opts.url));
     }
     opts.method = 'POST';
+    opts.headers = opts.headers || {};
 
     if (!Buffer.isBuffer(opts.body) && typeof opts.body != 'string') {
       opts.body = qs.stringify(opts.body || {});
-      this.addHeader('Content-Type', 'application/x-www-form-urlencoded');
+      opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
-    this.addHeader('Content-Length', opts.body.length);
+    opts.headers['Content-Length'] = opts.body.length;
 
     return exports.request(opts);
   };

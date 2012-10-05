@@ -894,6 +894,7 @@ define('md5', function(require, exports, module) {
    * Normalize CryptoJS interface to work with Buffer
    */
 
+  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   function MD5() {
@@ -906,7 +907,7 @@ define('md5', function(require, exports, module) {
     return new MD5();
   };
 
-  MD5.prototype = {
+  util.extend(MD5.prototype, {
     update: function() {
       var buffer = Buffer.apply(null, arguments);
       this.hasher.update(CryptoJS.enc.Latin1.parse(buffer._raw));
@@ -917,7 +918,7 @@ define('md5', function(require, exports, module) {
       var buffer = new Buffer(rawString, 'binary');
       return buffer.toString(enc || 'binary');
     }
-  };
+  });
 
 
 });

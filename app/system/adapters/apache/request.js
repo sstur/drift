@@ -3,6 +3,7 @@ define('apache-request', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');
+  var util = require('util');
   var Buffer = require('buffer').Buffer;
   var BodyParser = require('body-parser');
 
@@ -21,7 +22,9 @@ define('apache-request', function(require, exports, module) {
     this._super = apache;
   }
 
-  Request.prototype = {
+  app.eventify(Request.prototype);
+
+  util.extend(Request.prototype, {
     get: function(n) {
       var key = n.replace(/-/g, '_').toUpperCase();
       return system.env[varmap[n]] || system.env[key] || system.env['HTTP_' + key] || '';
@@ -65,7 +68,7 @@ define('apache-request', function(require, exports, module) {
     },
     getPostData: function() {
       var parser = new BodyParser(this.getHeaders(), this.read);
-      //parser.on('file', function(file) {});
+      util.propagateEvents(parser, this, 'file');
       var err = parser.parse();
       if (err) {
         //todo: respond with correct http status
@@ -73,7 +76,7 @@ define('apache-request', function(require, exports, module) {
       }
       return parser.parsed;
     }
-  };
+  });
 
   //Helpers
   function parseCookies(str) {

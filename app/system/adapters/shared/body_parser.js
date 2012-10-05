@@ -4,6 +4,7 @@ define('body-parser', function(require, exports, module) {
 
   var qs = require('qs');
   var md5 = require('md5');
+  var Buffer = require('buffer').Buffer;
 
   //var log = app._log = [];
 
@@ -90,6 +91,9 @@ define('body-parser', function(require, exports, module) {
         //log.push('endHeader: ' + endHeader);
         if (endHeader > 0) {
           currentPart = new Part(buffer.slice(boundary1.length + 2, endHeader));
+          if (currentPart.type == 'file') {
+            this.emit('file', currentPart);
+          }
           //log.push('new part: ' + currentPart.headers['content-disposition']);
           buffer = buffer.slice(endHeader + 4);
         } else {
@@ -103,7 +107,7 @@ define('body-parser', function(require, exports, module) {
         if (endBody >= 0) {
           //part of buffer belongs to current item
           currentPart.write(buffer.slice(0, endBody));
-          this._processMultipartItem(currentPart);
+          this._finalizePart(currentPart);
           buffer = buffer.slice(endBody + 2);
           currentPart = null;
         } else {
@@ -120,27 +124,12 @@ define('body-parser', function(require, exports, module) {
     }
   };
 
-  BodyParser.prototype._processMultipartItem = function(part) {
-    var headers = part.headers, m;
-    var cdisp = headers['content-disposition'] || '';
-    var ctype = headers['content-type'] || '';
-    m = cdisp.match(/\bname="(.*?)"/i);
-    var fieldName = m && m[1] || 'file';
-    m = cdisp.match(/\bfilename="(.*?)"/i);
-    var fileName = m && m[1] || '';
+  BodyParser.prototype._finalizePart = function(part) {
+    part.end();
     if (part.type == 'file') {
-      if (!fileName) return;
-      var file = {
-        headers: headers,
-        contentType: ctype,
-        fieldName: fieldName,
-        fileName: fileName,
-        md5: part.hash.digest('hex')
-      };
-      this.parsed.files[fieldName] = file;
+      this.parsed.files[part.fieldName] = part;
     } else {
-      //todo: decode (try utf8, fallback)
-      this.parsed.fields[fieldName] = part.data.join('');
+      this.parsed.fields[part.fieldName] = part.fieldValue;
     }
   };
 
@@ -150,19 +139,52 @@ define('body-parser', function(require, exports, module) {
     this.headers = parseHeaders(head);
     var contentDisp = this.headers['content-disposition'] || '';
     this.type = (contentDisp.match(/\bfilename=/)) ? 'file' : 'field';
-    this.data = [];
+    this._chunks = [];
     if (this.type == 'file') {
-      this.hash = md5.create();
+      this._initFile();
     }
   }
 
+  app.eventify(Part.prototype);
+
+  Part.prototype._initFile = function() {
+    this.guid = getGuid();
+    this._hash = md5.create();
+    this.contentType = this.headers['content-type'] || '';
+    var cd = this.headers['content-disposition'] || '';
+    this.fieldName = (cd.match(/\bname="(.*?)"/i) || [])[1] || 'file';
+    this.fileName = (cd.match(/\bfilename="(.*?)"/i) || [])[1] || this.guid;
+  };
+
+  //to make Part a valid ReadStream
+  Part.prototype.setEncoding = function(enc) {
+    //output encoding
+    this._encoding = enc;
+  };
+
+  //to make Part a valid WriteStream
   Part.prototype.write = function(data) {
-    //log.push('body data: ' + JSON.stringify(data));
+    if (this._finished) return; //todo: throw?
     if (this.type == 'file') {
-      //todo: actually write to disk
-      this.hash.update(data, 'binary');
+      this._hash.update(data, 'binary');
+      if (this._events['data']) {
+        var enc = this._encoding, _data = new Buffer(data, 'binary');
+        this.emit('data', enc ? _data.toString(enc) : _data);
+      }
     } else {
-      this.data.push(data);
+      this._chunks.push(data);
+    }
+  };
+
+  Part.prototype.end = function() {
+    if (this._finished) return;
+    this._finished = true;
+    if (this.type == 'file') {
+      this.md5 = this._hash.digest('hex');
+      this.emit('end');
+    } else {
+      var data = new Buffer(this._chunks.join(''), 'binary');
+      this.fieldValue = data.toString('utf8');
     }
   };
 
@@ -177,6 +199,12 @@ define('body-parser', function(require, exports, module) {
   //}
 
 
+
+  function getGuid() {
+    return new Array(33).join(' ').replace(/ /g, function() {
+      return Math.floor(Math.random() * 16).toString(16);
+    });
+  }
 
   function parseHeaders(raw) {
     var headers = {}, all = raw.split('\r\n');

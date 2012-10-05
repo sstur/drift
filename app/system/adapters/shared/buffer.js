@@ -1,6 +1,9 @@
-var _super = (typeof require != 'undefined') && require('binary').Buffer;
+/*global app, define, _require */
 define('buffer', function(require, exports) {
   "use strict";
+
+  var util = require('util');
+  var _super = (typeof _require != 'undefined') && _require('binary').Buffer;
 
   //patch for environments supporting CommonJS Binary/F
   if (_super) {
@@ -69,7 +72,7 @@ define('buffer', function(require, exports) {
     return new Buffer(string, encoding).length;
   };
 
-  Buffer.prototype = {
+  util.extend(Buffer.prototype, {
     get: function(index) {
       return this._raw.charCodeAt(index);
     },
@@ -112,7 +115,7 @@ define('buffer', function(require, exports) {
     toJSON: function() {
       return '<Buffer ' + rawToHex(this._raw) + '>';
     }
-  };
+  });
 
   // Helper functions
 

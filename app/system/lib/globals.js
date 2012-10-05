@@ -25,21 +25,6 @@ var forEach, vartype, isPrimitive, isSet, toArray;
     }
   };
 
-  //Append properties from one or more objects into the first (overwriting)
-  Object.extend = function() {
-    var args = Array.toArray(arguments), ret = args.shift();
-    for (var i = 0; i < args.length; i++) {
-      var obj = args[i];
-      for (var n in obj) {
-        ret[n] = obj[n];
-      }
-    }
-    return ret;
-  };
-
-  //alias (should be deprecated)
-  Object.append = Object.extend;
-
   Object.each = function(obj, fn) {
     var i = 0;
     for (var n in obj) {

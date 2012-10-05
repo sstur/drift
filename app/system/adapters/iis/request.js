@@ -2,6 +2,7 @@
 define('iis-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
+  var util = require('util');
   var Buffer = require('buffer').Buffer;
   var BodyParser = require('body-parser');
 
@@ -17,8 +18,10 @@ define('iis-request', function(require, exports, module) {
     this._super = iis.req;
   }
 
-  Request.prototype = {
-    get: function(n) {
+  app.eventify(Request.prototype);
+
+  util.extend(Request.prototype, {
+    _get: function(n) {
       var val, key = n.replace(/-/g, '_').toUpperCase();
       if (varmap[n]) {
         val = iis.req.serverVariables(varmap[n]).item();
@@ -30,16 +33,16 @@ define('iis-request', function(require, exports, module) {
     },
     getMethod: function() {
       //POST is mis-reported as GET in 404 handler, so we make a best guess based on headers
-      if (this.get('Content-Type') || this.get('Content-Length')) {
+      if (this._get('Content-Type') || +this._get('Content-Length')) {
         return 'POST';
       }
-      return this.get('method');
+      return this._get('method');
     },
     getURL: function() {
-      var url = this.get('X-Rewrite-URL') || this.get('X-Original-URL');
+      var url = this._get('X-Rewrite-URL') || this._get('X-Original-URL');
       if (!url) {
         //when using 404 handler instead of rewrites
-        url = this.get('Query-String').match(REG_URL).pop() || '/';
+        url = this._get('Query-String').match(REG_URL).pop() || '/';
       }
       return url;
     },
@@ -52,7 +55,7 @@ define('iis-request', function(require, exports, module) {
     },
     getHeaders: function() {
       if (!this._headers) {
-        this._headers = parseHeaders(this.get('headers'));
+        this._headers = parseHeaders(this._get('headers'));
       }
       return this._headers;
     },
@@ -68,7 +71,7 @@ define('iis-request', function(require, exports, module) {
     },
     getPostData: function() {
       var parser = new BodyParser(this.getHeaders(), this.read);
-      //parser.on('file', function(file) {});
+      util.propagateEvents(parser, this, 'file');
       var err = parser.parse();
       if (err) {
         //todo: respond with correct http status
@@ -76,7 +79,7 @@ define('iis-request', function(require, exports, module) {
       }
       return parser.parsed;
     }
-  };
+  });
 
   //Helpers
   function parseCookies(str) {

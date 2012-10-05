@@ -12,7 +12,7 @@ define('response', function(require, exports, module) {
     this.res = res;
   }
 
-  Response.prototype = {
+  util.extend(Response.prototype, {
     headers: function() {
       this.res.headers.apply(this.res, arguments);
     },
@@ -104,7 +104,7 @@ define('response', function(require, exports, module) {
         this.res.end();
       }
     }
-  };
+  });
 
   module.exports = Response;
 

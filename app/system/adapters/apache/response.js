@@ -1,10 +1,12 @@
-/*global app, define, apache, system */
+/*global app, define, apache */
 define('apache-response', function(require, exports, module) {
   "use strict";
 
   var cfg = {
     logging: {response_time: 1}
   };
+  var fs = require('fs');
+  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   var TEXT_CTYPES = /^text\/|\/json$/i;
@@ -25,6 +27,13 @@ define('apache-response', function(require, exports, module) {
     allHeaders[header.toLowerCase()] = header;
   });
 
+  var getCharset = function(charset, contentType) {
+    charset = charset || 'utf-8';
+    if (TEXT_CTYPES.test(contentType)) {
+      return charset.toUpperCase();
+    }
+  };
+
   var buildContentType = function(charset, contentType) {
     //contentType may already have charset
     contentType = contentType.split(';')[0];
@@ -37,7 +46,7 @@ define('apache-response', function(require, exports, module) {
     this.clear();
   }
 
-  Response.prototype = {
+  util.extend(Response.prototype, {
     headers: function(n, val) {
       var headers = this.response.headers;
       if (arguments.length == 0) {
@@ -116,8 +125,8 @@ define('apache-response', function(require, exports, module) {
     write: function(data) {
       this.response.body.push(data);
     },
-    end: function() {
-      var req = this.request, res = this.response;
+    _sendHeaders: function() {
+      var res = this.response;
       var cookies = res.cookies;
       for (var n in cookies) {
         this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
@@ -130,34 +139,36 @@ define('apache-response', function(require, exports, module) {
       for (var n in res.headers) {
         apache.header(n, res.headers[n]);
       }
-      var parts = res.body;
+    },
+    _sendChunk: function(data) {
+      if (Buffer.isBuffer(data)) {
+        apache.write(data.toBin());
+      } else {
+        apache.write(String(data));
+      }
+    },
+    end: function() {
+      this._sendHeaders();
+      var parts = this.response.body;
       for (var i = 0; i < parts.length; i++) {
-        var data = parts[i];
-        if (Buffer.isBuffer(data)) {
-          apache.write(data.toBin());
-        } else {
-          apache.write(String(data));
-        }
+        this._sendChunk(parts[i]);
       }
       throw 0;
     },
     sendFile: function(opts) {
-      var res = this.response;
       if (Object.isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
-      if (!opts.ctype) {
-        opts.ctype = this.headers('content-type');
+      if (opts.ctype) {
+        this.headers('Content-Type', opts.ctype);
       }
-      opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
-      if (!opts.name) {
-        opts.name = opts.file.split('/').pop();
-      }
-      opts.fullpath = app.mappath(opts.file);
-      //todo: x-sendfile or fs.read
-      throw 0;
+      var name = opts.name || opts.file.split('/').pop();
+      //todo: escape name
+      var cdisp = (opts.attachment ? 'attachment; ' : '') + 'name="' + name + '"';
+      this.headers('Content-Disposition', cdisp);
+      this.sendStream(fs.createReadStream(opts.file));
     }
-  };
+  });
 
   module.exports = Response;
 });
