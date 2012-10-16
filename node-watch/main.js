@@ -14,6 +14,18 @@
   var config = fs.readFileSync(join(__dirname, 'config.json'), 'utf8');
   config = JSON.parse(config);
 
+  function itemCreated(file, stat) {
+    console.log('created:', file);
+  }
+
+  function itemRemoved(file, stat) {
+    console.log('removed:', file);
+  }
+
+  function itemChanged(file, newStat, oldStat) {
+    console.log('changed:', file);
+  }
+
   config.watch.forEach(function(opts) {
     opts.ignoreDotFiles = (opts.ignoreDotFiles !== false);
     opts.ignoreUnderscore = (opts.ignoreUnderscore !== false);
@@ -51,21 +63,6 @@
       };
     }
 
-    var handler = function(file, curr, prev) {
-      if (typeof file == "object" && prev == null && curr == null) {
-        fileCount += Object.keys(file).length;
-        next();
-      } else
-      if (prev == null) {
-        console.log('created:', file);
-      } else
-      if (curr.nlink == 0) {
-        console.log('removed:', file);
-      } else {
-        console.log('changed:', file);
-      }
-    };
-
     var done = function() {
       log.forEach(function(line) { console.log(line) });
       console.log('Watching ' + fileCount + ' items.');
@@ -75,7 +72,15 @@
     paths.forEach(function(path) {
       path = (path.charAt(0) == '.') ? path : './' + path;
       log.push('watch path: ' + path);
-      watch.watchTree(path, opts, handler);
+      watch.createMonitor(path, opts, function(monitor) {
+        monitor.path = path;
+        monitor.opts = opts;
+        monitor.on('created', itemCreated);
+        monitor.on('removed', itemRemoved);
+        monitor.on('changed', itemChanged);
+        fileCount += Object.keys(monitor.files).length;
+        next();
+      });
     });
 
   });

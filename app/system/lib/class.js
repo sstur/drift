@@ -9,7 +9,8 @@ define('class', function(require, exports, module) {
 
   var fnTest = /xyz/.test(function() {var xyz;}) ? /\b_super\b/ : /.*/;
 
-  var beget = Object.create || function(o) { var F = function() {}; F.prototype = o; return new F(); };
+  var F = function() {};
+  var create = Object.create || function(o) { F.prototype = o; return new F(); };
 
   // The base Class implementation (does nothing)
   function Class() {}
@@ -19,7 +20,7 @@ define('class', function(require, exports, module) {
     var _super = this.prototype;
 
     // Instantiate a base class without executing the constructor
-    var prototype = beget(this.prototype);
+    var prototype = create(this.prototype);
 
     // Copy the properties over onto the new prototype
     for (var name in prop) {
@@ -46,22 +47,27 @@ define('class', function(require, exports, module) {
     }
 
     // The dummy class constructor
+    // All construction is actually done in the init method
     function Class() {
-      // All construction is actually done in the init method
       this.init && this.init.apply(this, arguments);
     }
 
     //hacky: a constructor with a 'name' property makes for better debugging and stack traces
     if (typeof prop['name'] == 'string' && prop['name'].match(/^[a-z_\$][\w\$]*$/i)) {
-      Class = new Function('return function ' + prop['name'] + '() { this.init && this.init.apply(this, arguments) }')();
+      Class = new Function('return function ' + prop['name'] + '() { this.init && this.init.apply(this, arguments); }')();
     }
 
     // Populate our constructed prototype object
     Class.prototype = prototype;
 
-    // Enforce the constructor to be what we expect
+    // Force the constructor to be what is generally expected
     if (Object.defineProperty)
-      Object.defineProperty(prototype, 'constructor', {value: Class, enumerable: false});
+      Object.defineProperty(prototype, 'constructor', {
+        value: Class,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      });
     else
       Class.prototype.constructor = Class;
 

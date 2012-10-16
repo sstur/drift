@@ -18,6 +18,18 @@ define('util', function(require, util) {
     return dest;
   };
 
+  util.inherits = function(ctor, parent) {
+    ctor.super_ = parent;
+    ctor.prototype = Object.create(parent.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+
   util.propagateEvents = function(src, dest, events) {
     events = (Array.isArray(events)) ? events : String(events).split(' ');
     for (var i = 0, len = events.length; i < len; i++) {
