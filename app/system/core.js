@@ -122,7 +122,8 @@ var app, define;
   }
 
   function routeRequest(req, res) {
-    var Router = require('router')
+    var util = require('util')
+      , Router = require('router')
       , Request = require('request')
       , Response = require('response');
     req = new Request(req);
@@ -132,7 +133,6 @@ var app, define;
     res.req = req;
     app.emit('request', req, res);
     router = new Router(routes);
-    //todo: check app.cfg to route "virtual paths" -> ?/somepath
     var method = req.method()
       , url = app.cfg('url/virtual_path') ? req.url('qs') : req.url();
     url = url.split('?')[0]; //strip query from raw (encoded) url
