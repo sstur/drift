@@ -133,8 +133,7 @@ var app, define;
     res.req = req;
     app.emit('request', req, res);
     router = new Router(routes);
-    var method = req.method()
-      , url = app.cfg('url/virtual_path') ? req.url('qs') : req.url();
+    var method = req.method(), url = req.url();
     url = url.split('?')[0]; //strip query from raw (encoded) url
     util.propagateEvents(router, req, 'pre-route match-route no-route');
     //todo: move to request lib?
