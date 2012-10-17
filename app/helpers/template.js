@@ -1,11 +1,11 @@
+/*global app, define */
 app.on('ready', function(require) {
 
   var fs = require('fs')
-    , config = require('config')
     , Liquid = require('liquid')
     , Response = require('response');
 
-  var defaults = config.template_defaults || {};
+  var defaults = app.cfg('template_defaults') || {};
 
   //var cache = {};
   var REG_TAG = /\{%\s*(?:assign)\s+(.*?)\s*%\}/;

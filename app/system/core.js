@@ -134,9 +134,20 @@ var app, define;
     //request is ready to be routed
     req.emit('ready');
     router = new Router(routes);
-    //todo: send router method, url, args..
-    //todo: check app.cfg to route "virtual paths" -> /?/somepath
-    return router.route(req, res);
+    //todo: check app.cfg to route "virtual paths" -> ?/somepath
+    var method = req.method()
+      , url = req.url().split('?')[0]; //raw (encoded) url path
+    util.propagateEvents(router, req, 'pre-route match-route no-route');
+    //todo: move to request lib?
+    req.on('no-route', function(routeData) {
+      var response = routeData.response || app.cfg('res_404');
+      if (response) {
+        res.end(response.status || '404', response.type, response.body);
+      } else {
+        res.end('404', 'No Route');
+      }
+    });
+    return router.route(method, url, req, res);
   }
 
 
@@ -144,9 +155,10 @@ var app, define;
    * Global configuration
    * todo: recursive combine, xpath
    */
-  var config = {};
+  var config;
 
   app.cfg = function(data) {
+    config = config || require('config');
     if (typeof data == 'string') {
       var val = config[data];
       //todo: xpath
@@ -154,7 +166,7 @@ var app, define;
     } else {
       data = data || {};
       for (var n in data) {
-        //todo deep merge
+        //todo deep merge?
         config[n] = data[n];
       }
     }

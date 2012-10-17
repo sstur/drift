@@ -17,6 +17,7 @@ define('router', function(require, exports, module) {
       this.addRoutes(routes);
     }
   }
+  app.eventify(Router.prototype);
 
   Router.prototype.addRoute = function(route, handler) {
     this._routes.push(parseRoute(route, handler));
@@ -29,51 +30,41 @@ define('router', function(require, exports, module) {
     });
   };
 
-  Router.prototype.route = function(req, res) {
-    var url = req.url().split('?')[0] //get raw url
-      , verb = req.method()
+  Router.prototype.route = function(method, url) {
+    var router = this
       , routeData = {}
+      , routeArgs = Array.prototype.slice.call(arguments, 2)
       , stopRouting = false;
     routeData.stop = function() {
       stopRouting = true;
     };
-    req.emit('pre-route', routeData);
+    this.emit('pre-route', routeData);
     this._routes.each(function(i, item) {
-      if (item.verb && item.verb != verb) {
+      if (item.method && item.method != method) {
         return true; //Continue
       }
       if (typeof item.route == 'string') {
         if (url == item.route) {
-          item.handler.call(routeData, req, res);
+          item.handler.apply(routeData, routeArgs);
         }
       } else {
         var matches = item.route.exec(url);
         if (matches) {
-          item.handler.call(routeData, req, res, matches.slice(1));
+          matches = matches.slice(1);
+          router.emit('match-route', matches); //so we can modify req.params
+          item.handler.call(routeData, routeArgs.concat([matches]));
         }
       }
       return !stopRouting;
     });
-    if (!stopRouting) {
-      req.emit('no-route', routeData);
-    }
-    req.emit('404', routeData);
-    var response = routeData.response || app.cfg('res_404');
-    if (response) {
-      res.clear(response.type, response.status || '404');
-      res.write(response.body);
-    } else {
-      res.status(404);
-      res.write('No Route');
-    }
-    res.end();
+    this.emit('no-route', routeData);
   };
 
-  //Parse the given route, returning a verb (http method), regular expression and handler
+  //Parse the given route, returning http-method, regular expression and handler
   var parseRoute = function(route, fn) {
     var parsed = {}, names = [], type = typeof route, m;
     if (type == 'string' && (m = RE_VERB.exec(route))) {
-      parsed.verb = m[1];
+      parsed.method = m[1];
       route = m[2];
     }
     parsed.route = (type == 'string' && !route.match(RE_PLAIN_ROUTE)) ? buildRegExp(route, names) : route;
