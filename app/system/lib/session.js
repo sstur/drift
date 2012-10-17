@@ -6,16 +6,15 @@ define('session', function(require, exports, module) {
 
   var RE_TOKEN = /^[0-9a-f]{32}$/i;
 
-  var cache = {};
-  var datastore = (app.cfg('session/default_datastore') == 'database') ? 'database' : 'memory';
+  var storetype = (app.cfg('session/default_datastore') == 'database') ? 'database' : 'memory';
 
   function getCookieName(type) {
     return (type == 'longterm') ? 'LTSID' : 'STSID';
   }
 
   function generateSessionToken() {
-    var token = '';
-    for (var i = 0; i < 32; i++) {
+    var token = new Date().valueOf().toString(16);
+    for (var i = 0; i < 21; i++) {
       token += Math.floor(Math.random() * 16).toString(16);
     }
     return token;
@@ -23,9 +22,6 @@ define('session', function(require, exports, module) {
 
   function getSessionObject(inst) {
     var type = inst.type, req = inst.req, res = inst.res;
-    if (cache[type]) {
-      return cache[type];
-    }
     var key = getCookieName(type);
     var token = req.cookies(key);
     token = RE_TOKEN.test(token) ? token : null;
@@ -37,9 +33,9 @@ define('session', function(require, exports, module) {
         res.cookies(key, token);
       }
     }
-    var session = cache[type] = {token: token};
+    var session = {token: token};
     req.on('end', function() {
-      controllers[datastore].saveAll(session);
+      controllers[storetype].saveAll(session);
     });
     return session;
   }
@@ -165,7 +161,7 @@ define('session', function(require, exports, module) {
     },
     load: function() {
       var session = getSessionObject(this);
-      return controllers[datastore].load(session, this);
+      return controllers[storetype].load(session, this);
     },
     getData: function() {
       var session = getSessionObject(this);
@@ -198,7 +194,7 @@ define('session', function(require, exports, module) {
     flush: function() {
       var session = getSessionObject(this);
       if (session.namespaces && session.namespaces[this.namespace]) {
-        controllers[datastore].save(session, this.namespace, session.namespaces[this.namespace]);
+        controllers[storetype].save(session, this.namespace, session.namespaces[this.namespace]);
       }
     }
   });
