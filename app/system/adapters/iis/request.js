@@ -40,16 +40,19 @@ define('iis-request', function(require, exports, module) {
     },
     getURL: function() {
       var url = this._get('X-Rewrite-URL') || this._get('X-Original-URL');
-      if (!url) {
-        //when using 404 handler instead of rewrites
+      if (app.cfg('virtual_url') || !url) {
+        //url path embedded in query (like iis 404 handler)
         url = this._get('Query-String').match(REG_URL).pop() || '/';
       }
+      //todo: for iis 7+, do we need to account for: ?/path&param=val
       return url;
     },
     getURLParts: function() {
       if (!this._url) {
-        var url = this.getURL(), pos = url.indexOf('?'), search = (pos > 0) ? url.slice(pos) : '';
-        this._url = {path: qs.unescape(search ? url : url.slice(0)), search: search, qs: search.slice(1)};
+        var url = this.getURL()
+          , pos = url.indexOf('?')
+          , search = (pos > 0) ? url.slice(pos) : '';
+        this._url = {path: qs.unescape(search ? url.slice(0, pos) : url), search: search, qs: search.slice(1)};
       }
       return this._url;
     },

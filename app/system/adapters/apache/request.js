@@ -38,7 +38,7 @@ define('apache-request', function(require, exports, module) {
     getURLParts: function() {
       if (!this._url) {
         var url = this.getURL(), pos = url.indexOf('?'), search = (pos > 0) ? url.slice(pos) : '';
-        this._url = {path: qs.unescape(search ? url : url.slice(0)), search: search, qs: search.slice(1)};
+        this._url = {path: qs.unescape(search ? url.slice(0, pos) : url), search: search, qs: search.slice(1)};
       }
       return this._url;
     },

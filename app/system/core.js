@@ -131,12 +131,11 @@ var app, define;
     req.res = res;
     res.req = req;
     app.emit('request', req, res);
-    //request is ready to be routed
-    req.emit('ready');
     router = new Router(routes);
     //todo: check app.cfg to route "virtual paths" -> ?/somepath
     var method = req.method()
-      , url = req.url().split('?')[0]; //raw (encoded) url path
+      , url = app.cfg('url/virtual_path') ? req.url('qs') : req.url();
+    url = url.split('?')[0]; //strip query from raw (encoded) url
     util.propagateEvents(router, req, 'pre-route match-route no-route');
     //todo: move to request lib?
     req.on('no-route', function(routeData) {
