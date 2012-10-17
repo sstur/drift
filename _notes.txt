@@ -1,4 +1,4 @@
-node build && cp app/build/*.asp /Volumes/inetpub/projects/platformjs/app/build/
+node build && cp app/build/*.asp /Volumes/inetpub/wwwroot/platformjs.com/app/build/
 
 Backwards-incompatible changes:
   removed param-collection

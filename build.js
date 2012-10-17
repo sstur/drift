@@ -18,7 +18,7 @@
 
   var REG_NL = /\r\n|\r|\n/g;
 
-  var basePath = __dirname;
+  var basePath = process.cwd();
 
   var opts = process.argv.slice(2).reduce(function(opts, el) {
     return (opts[el.replace(/^-+/, '')] = 1) && opts;
@@ -115,7 +115,12 @@
     opts._pre[0] = 'var map = ' + JSON.stringify(sourceFiles) + ';';
   } else {
     //for iis the error handling goes in a separate file
-    updateFile({file: 'app/build/err.asp', line: 2, content: 'var map = ' + JSON.stringify(sourceFiles) + ';'});
+    var errfile = [
+      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001"%>',
+      '<script runat="server" language="javascript">var map = ' + JSON.stringify(sourceFiles) + ';<\/script>',
+      '<script runat="server" language="javascript" src="err.asp.js"><\/script>'
+    ];
+    fs.writeFileSync(join(basePath, 'app/build/err.asp'), errfile.join('\r\n'), 'utf8');
   }
 
   sourceLines.unshift.apply(sourceLines, opts._pre);
@@ -180,14 +185,6 @@
       return all;
     });
     return code.split('\n');
-  }
-
-  function updateFile(opts) {
-    var path = join(basePath, opts.file);
-    var data = fs.readFileSync(path, 'utf8');
-    var lines = data.split(REG_NL);
-    lines[opts.line] = opts.content;
-    fs.writeFileSync(path, lines.join('\r\n'), 'utf8');
   }
 
   function uglify(code, mangle) {
