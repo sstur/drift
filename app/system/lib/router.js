@@ -89,7 +89,7 @@ define('router', function(require, exports, module) {
   //Build a regular expression object from a route string, storing param names in the array provided
   var buildRegExp = function(route, names) {
     var str = route.concat('/?').replace(/\/\(/g, '(?:/'), index = 0;
-    str = str.replace(/(\/)?(\.)?:([\w]+)(\?)?/g, function(_, slash, format, key, optional) {
+    str = str.replace(/(\/)?(\.)?:([\w-]+)(\?)?/g, function(_, slash, format, key, optional) {
       names[index++] = key;
       slash = slash || '';
       return '' + (optional ? '' : slash) + '(?:' + (optional ? slash : '') + (format || '') + '([^/]+))' + (optional || '');
