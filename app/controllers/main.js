@@ -22,9 +22,14 @@ app.on('ready', function(require) {
     res.debug(data);
   });
 
-  app.route('/nc', function(req, res) {
-    //204 no content
-    res.end('204 No Content', '');
+  app.route('/test/:id', function(req, res, id) {
+    var qs = require('qs');
+    res.debug(qs.parse('a=1&&b=2&c&=3&c=' + id, {flatten: false}));
+
+  });
+
+  app.route('/:one/:two', function(req, res) {
+    res.end({params: req.params(), args: Array.prototype.slice.call(arguments, 2)});
   });
 
   app.route('/test-get-redir', function(req, res) {
@@ -99,12 +104,6 @@ app.on('ready', function(require) {
     res.end('image/gif', buffer);
   });
 
-  app.route('/test/:id', function(req, res, id) {
-    var qs = require('qs');
-    res.debug(qs.parse('a=1&&b=2&c&=3&c=' + id, {flatten: false}));
-
-  });
-
   app.route('/readfile', function(req, res) {
     var fs = require('fs');
     var text = fs.readTextFile('../assets/test.txt');
@@ -152,7 +151,7 @@ app.on('ready', function(require) {
     res.end('is' /*@add{ + ' not' }@*/ + ' dev');
   });
 
-  app.route('/throw/syntax', function(req, res) {
+  app.route('/throw-syntax', function(req, res) {
     new Function('return if;')();
   });
 
