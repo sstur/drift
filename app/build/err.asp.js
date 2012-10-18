@@ -24,7 +24,7 @@
     var err = {};
     err.path = getURL();
     err.file = details.file;
-    err.type = details.category.replace(/Microsoft (\w+)Script/i, 'Script');
+    err.type = details.category.replace(/(\w+ )?(\w+)Script/i, 'Script');
     err.line = details.line;
     err.description = details.description;
     err.code = details.number>>16 & 0x1FFF;
