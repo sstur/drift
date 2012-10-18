@@ -63,9 +63,9 @@ var forEach, vartype, isPrimitive, isSet, toArray;
 
   Object.values = function(obj) {
     var arr = [];
-    for (var n in obj) {
-      arr.push(obj[n]);
-    }
+    Object.keys(obj).forEach(function(key) {
+      arr.push(obj[key]);
+    });
     return arr;
   };
 
@@ -75,12 +75,10 @@ var forEach, vartype, isPrimitive, isSet, toArray;
       return list.exists(Object.vartype(obj));
     }
     var type = (obj === null) ? 'null' : typeof obj;
-    if (obj && obj.hasOwnProperty) {
-      return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
-    }
-    return (type == 'object') ? 'unknown' : type;
+    return (type == 'object') ? Object.prototype.toString.call(obj).slice(8, -1).toLowerCase() : type;
   };
 
+  //similar to forEach but it can be aborted by returning false and the argument order is reversed
   Array.prototype.each = function(fn) {
     var arr = this, len = arr.length;
     for (var i = 0; i < len; i++) {
