@@ -83,6 +83,7 @@ define('router', function(require, exports, module) {
       var name = names[i] || '$' + (i + 1);
       params[name] = qs.unescape(matches[i]);
     }
+    return params;
   }
 
   //Build a regular expression object from a route string, storing param names in the array provided
