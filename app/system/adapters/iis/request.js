@@ -32,7 +32,7 @@ define('iis-request', function(require, exports, module) {
       return val || '';
     },
     getMethod: function() {
-      //POST is mis-reported as GET in 404 handler, so we make a best guess based on headers
+      //POST is mis-reported as GET when iis is doing 404 redirect, so we make a best guess based on headers
       if (this._get('Content-Type') || +this._get('Content-Length')) {
         return 'POST';
       }

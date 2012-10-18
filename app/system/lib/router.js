@@ -45,14 +45,14 @@ define('router', function(require, exports, module) {
       }
       if (typeof item.route == 'string') {
         if (url == item.route) {
-          item.handler.apply(routeData, routeArgs);
+          item.handler(routeData, routeArgs);
         }
       } else {
         var matches = item.route.exec(url);
         if (matches) {
           matches = matches.slice(1);
-          router.emit('match-route', matches); //so we can modify req.params
-          item.handler.call(routeData, routeArgs.concat([matches]));
+          router.emit('match-route', matches); //so we can modify req._params
+          item.handler(routeData, routeArgs, matches);
         }
       }
       return !stopRouting;
@@ -68,7 +68,7 @@ define('router', function(require, exports, module) {
       route = m[2];
     }
     parsed.route = (type == 'string' && !route.match(RE_PLAIN_ROUTE)) ? buildRegExp(route, names) : route;
-    parsed.handler = function(req, res, matches) {
+    parsed.handler = function(routeData, routeArgs, matches) {
       matches = matches || [];
       var params = {}, values = [];
       for (var i = 0; i < matches.length; i++) {
@@ -77,8 +77,8 @@ define('router', function(require, exports, module) {
         params[name] = value;
         values.push(value);
       }
-      util.extend(req._params, params);
-      return fn.apply(this, [req, res].concat(values));
+      //util.extend(req._params, params);
+      return fn.apply(routeData, routeArgs.concat(values));
     };
     return parsed;
   };

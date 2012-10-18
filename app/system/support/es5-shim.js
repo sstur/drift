@@ -686,7 +686,6 @@
     // XXX global assignment won't work in embeddings that use
     // an alternate object for the context.
     Date = (function(NativeDate) {
-      (function() {return this})().NativeDate = NativeDate;
       // Date.length === 7
       function Date(Y, M, D, h, m, s, ms) {
         var length = arguments.length;
