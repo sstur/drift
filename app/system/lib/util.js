@@ -32,12 +32,11 @@ define('util', function(require, util) {
 
   util.propagateEvents = function(src, dest, events) {
     events = (Array.isArray(events)) ? events : String(events).split(' ');
-    for (var i = 0, len = events.length; i < len; i++) {
-      var event = events[i];
+    events.forEach(function(event) {
       src.on(event, function() {
         dest.emit.apply(dest, [event].concat(slice.call(arguments)));
       });
-    }
+    });
   };
 
   util.pipe = function(src, dest) {
