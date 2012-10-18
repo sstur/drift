@@ -26,9 +26,9 @@
     Function.prototype.bind = function bind(that) { // .length is 1
       // 1. Let Target be the this value.
       var target = this;
-      // 2. If IsCallable(Target) is false, throw a TypeError exception.
+      // 2. If IsCallable(Target) is false, throw a Error exception.
       if (typeof target != "function") {
-        throw new TypeError("Function.prototype.bind called on incompatible " + target);
+        throw new Error("Function.prototype.bind called on incompatible " + target);
       }
       // 3. Let A be a new (possibly empty) internal list of all of the
       //   argument values provided after thisArg (arg1, arg2 etc), in order.
@@ -53,7 +53,7 @@
           // 1. Let target be the value of F's [[TargetFunction]]
           //   internal property.
           // 2. If target has no [[Construct]] internal method, a
-          //   TypeError exception is thrown.
+          //   Error exception is thrown.
           // 3. Let boundArgs be the value of F's [[BoundArgs]] internal
           //   property.
           // 4. Let args be a new list containing the same values as the
@@ -228,7 +228,7 @@
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
-        throw new TypeError(); // TODO message
+        throw new Error(); // TODO message
       }
 
       while (++i < length) {
@@ -257,7 +257,7 @@
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
-        throw new TypeError(fun + " is not a function");
+        throw new Error(fun + " is not a function");
       }
 
       for (var i = 0; i < length; i++) {
@@ -284,7 +284,7 @@
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
-        throw new TypeError(fun + " is not a function");
+        throw new Error(fun + " is not a function");
       }
 
       for (var i = 0; i < length; i++) {
@@ -313,7 +313,7 @@
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
-        throw new TypeError(fun + " is not a function");
+        throw new Error(fun + " is not a function");
       }
 
       for (var i = 0; i < length; i++) {
@@ -339,7 +339,7 @@
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
-        throw new TypeError(fun + " is not a function");
+        throw new Error(fun + " is not a function");
       }
 
       for (var i = 0; i < length; i++) {
@@ -364,12 +364,12 @@
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
-        throw new TypeError(fun + " is not a function");
+        throw new Error(fun + " is not a function");
       }
 
       // no value to return if no initial value and an empty array
       if (!length && arguments.length == 1) {
-        throw new TypeError("reduce of empty array with no initial value");
+        throw new Error("reduce of empty array with no initial value");
       }
 
       var i = 0;
@@ -385,7 +385,7 @@
 
           // if array contains no values, no initial value to return
           if (++i >= length) {
-            throw new TypeError("reduce of empty array with no initial value");
+            throw new Error("reduce of empty array with no initial value");
           }
         } while (true);
       }
@@ -413,12 +413,12 @@
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
-        throw new TypeError(fun + " is not a function");
+        throw new Error(fun + " is not a function");
       }
 
       // no value to return if no initial value, empty array
       if (!length && arguments.length == 1) {
-        throw new TypeError("reduceRight of empty array with no initial value");
+        throw new Error("reduceRight of empty array with no initial value");
       }
 
       var result, i = length - 1;
@@ -433,7 +433,7 @@
 
           // if array contains no values, no initial value to return
           if (--i < 0) {
-            throw new TypeError("reduceRight of empty array with no initial value");
+            throw new Error("reduceRight of empty array with no initial value");
           }
         } while (true);
       }
@@ -537,7 +537,7 @@
         (typeof object != "object" && typeof object != "function") ||
           object === null
         ) {
-        throw new TypeError("Object.keys called on a non-object");
+        throw new Error("Object.keys called on a non-object");
       }
 
       var keys = [];
@@ -585,7 +585,7 @@
     Date.prototype.toISOString = function toISOString() {
       var result, length, value, year, month;
       if (!isFinite(this)) {
-        throw new RangeError("Date.prototype.toISOString called on non-finite value.");
+        throw new Error("Date.prototype.toISOString called on non-finite value.");
       }
 
       year = this.getUTCFullYear();
@@ -659,9 +659,9 @@
       // 4. Let toISO be the result of calling the [[Get]] internal method of
       // O with argument "toISOString".
       toISO = o.toISOString;
-      // 5. If IsCallable(toISO) is false, throw a TypeError exception.
+      // 5. If IsCallable(toISO) is false, throw a Error exception.
       if (typeof toISO != "function") {
-        throw new TypeError("toISOString property is not callable");
+        throw new Error("toISOString property is not callable");
       }
       // 6. Return the result of calling the [[Call]] internal method of
       //  toISO with O as the this value and an empty argument list.
@@ -884,7 +884,7 @@
       trimEndRegexp = new RegExp(ws + ws + "*$");
     String.prototype.trim = function trim() {
       if (this === undefined || this === null) {
-        throw new TypeError("can't convert "+this+" to object");
+        throw new Error("can't convert "+this+" to object");
       }
       return String(this)
         .replace(trimBeginRegexp, "")
@@ -941,14 +941,14 @@
         return val;
       }
     }
-    throw new TypeError();
+    throw new Error();
   }
 
   // ES5 9.9
   // http://es5.github.com/#x9.9
   var toObject = function (o) {
     if (o == null) { // this matches both null and undefined
-      throw new TypeError("can't convert "+o+" to object");
+      throw new Error("can't convert "+o+" to object");
     }
     return Object(o);
   };
@@ -976,7 +976,7 @@
 
     Object.getOwnPropertyDescriptor = function getOwnPropertyDescriptor(object, property) {
       if ((typeof object != "object" && typeof object != "function") || object === null) {
-        throw new TypeError(ERR_NON_OBJECT + object);
+        throw new Error(ERR_NON_OBJECT + object);
       }
       // If object does not owns property return undefined immediately.
       if (!owns(object, property)) {
@@ -1090,7 +1090,7 @@
           // Use `typeof` tho, b/c in old IE, DOM elements are not `instanceof Object`
           // like they are in modern browsers. Using `Object.create` on DOM elements
           // is...err...probably inappropriate, but the native version allows for it.
-          throw new TypeError("Object prototype may only be an Object or null"); // same msg as Chrome
+          throw new Error("Object prototype may only be an Object or null"); // same msg as Chrome
         }
         Type.prototype = prototype;
         object = new Type();
@@ -1149,10 +1149,10 @@
 
     Object.defineProperty = function defineProperty(object, property, descriptor) {
       if ((typeof object != "object" && typeof object != "function") || object === null) {
-        throw new TypeError(ERR_NON_OBJECT_TARGET + object);
+        throw new Error(ERR_NON_OBJECT_TARGET + object);
       }
       if ((typeof descriptor != "object" && typeof descriptor != "function") || descriptor === null) {
-        throw new TypeError(ERR_NON_OBJECT_DESCRIPTOR + descriptor);
+        throw new Error(ERR_NON_OBJECT_DESCRIPTOR + descriptor);
       }
       // make a valiant attempt to use the real defineProperty
       // for I8's DOM elements.
@@ -1175,7 +1175,7 @@
          !(owns(descriptor, "enumerable") ? descriptor.enumerable : true) ||
          !(owns(descriptor, "configurable") ? descriptor.configurable : true)
          )
-         throw new RangeError(
+         throw new Error(
          "This implementation of Object.defineProperty does not " +
          "support configurable, enumerable, or writable."
          );
@@ -1201,7 +1201,7 @@
         }
       } else {
         if (!supportsAccessors) {
-          throw new TypeError(ERR_ACCESSORS_NOT_SUPPORTED);
+          throw new Error(ERR_ACCESSORS_NOT_SUPPORTED);
         }
         // If we got that far then getters and setters can be defined !!
         if (owns(descriptor, "get")) {
@@ -1296,9 +1296,9 @@
   // http://es5.github.com/#x15.2.3.13
   if (!Object.isExtensible) {
     Object.isExtensible = function isExtensible(object) {
-      // 1. If Type(O) is not Object throw a TypeError exception.
+      // 1. If Type(O) is not Object throw a Error exception.
       if (Object(object) !== object) {
-        throw new TypeError(); // TODO message
+        throw new Error(); // TODO message
       }
       // 2. Return the Boolean value of the [[Extensible]] internal property of O.
       var name = '';
