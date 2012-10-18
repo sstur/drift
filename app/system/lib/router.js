@@ -51,8 +51,8 @@ define('router', function(require, exports, module) {
         var matches = item.route.exec(url);
         if (matches) {
           var params = getNamedParams(matches.slice(1), item.paramNames);
-          //util.extend(req._params, params);
-          router.emit('match-route', params); //so we can modify req._params
+          //so we can append route params to req params
+          router.emit('match-route', params);
           item.handler(routeData, routeArgs, params);
         }
       }

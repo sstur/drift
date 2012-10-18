@@ -137,10 +137,9 @@ var app, define;
     url = url.split('?')[0]; //strip query from raw (encoded) url
     util.propagateEvents(router, req, 'pre-route match-route no-route');
     //todo: fix this, it's kind of hacky
-    var oldParams;
-    req.on('match-route', function(params, route) {
-      oldParams = oldParams || req.params();
-      req._params = util.extend({}, oldParams, params || {});
+    var qsParams = req.params();
+    req.on('match-route', function(params) {
+      req._params = util.extend({}, qsParams, params || {});
     });
     //todo: move to request lib?
     req.on('no-route', function(routeData) {
