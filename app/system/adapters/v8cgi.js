@@ -27,7 +27,7 @@ var console, Buffer, _require = function(path) { return require(path); };
   if (basePath.slice(-1) != sep) basePath += sep;
 
   app.mappath = function(path) {
-    var fullpath = basePath + 'app' + sep;
+    var fullpath = basePath;
     fullpath = fullpath + String(path).replace(/\//g, sep);
     fullpath = fullpath.split(sep + sep).join(sep);
     return (fullpath.slice(-1) == sep) ? fullpath.slice(0, -1) : fullpath;

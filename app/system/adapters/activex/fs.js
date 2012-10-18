@@ -100,6 +100,7 @@ define('fs', function(require, fs) {
 
 
   fs.createReadStream = function(file, opts) {
+    opts = opts || {};
     return (opts.encoding) ? new TextReadStream(file, opts) : new FileReadStream(file, opts);
   };
 

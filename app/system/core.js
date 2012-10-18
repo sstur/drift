@@ -192,18 +192,6 @@ var app, define;
   };
 
 
-  /*!
-   * Misc app-related functions
-   */
-  //todo: should really be moved elsewhere
-  app.mappath = function(path) {
-    //global.mappath is expected to be defined by the
-    //  server/environment specific adapter
-    var mappath = global.mappath; //wtf?
-    return mappath('app/' + path);
-  };
-
-
   //module loader helpers
 
   function loadModule(name) {

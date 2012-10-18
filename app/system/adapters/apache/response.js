@@ -159,9 +159,7 @@ define('apache-response', function(require, exports, module) {
       if (Object.isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
-      if (opts.ctype) {
-        this.headers('Content-Type', opts.ctype);
-      }
+      this.headers('Content-Type', opts.ctype || 'application/octet-stream');
       var name = opts.name || opts.file.split('/').pop();
       //todo: escape name
       var cdisp = (opts.attachment ? 'attachment; ' : '') + 'name="' + name + '"';

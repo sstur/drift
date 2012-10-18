@@ -25,7 +25,7 @@ var console, Buffer;
   var basePath = iis.svr.mappath('/') + '\\';
 
   app.mappath = function(path) {
-    var fullpath = basePath + 'app\\';
+    var fullpath = basePath;
     fullpath = fullpath + String(path).replace(/\//g, '\\');
     fullpath = fullpath.replace(/[\\]+/g, '\\');
     fullpath = fullpath.replace(/\\$/g, '');
