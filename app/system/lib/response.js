@@ -33,7 +33,7 @@ define('response', function(require, exports, module) {
       if (type.match(/\/json$/) && !(/XMLHttpRequest/i).test(this.req.headers('x-requested-with'))) {
         type = 'text/plain'
       }
-      this.res.headers('Content-Type', type);
+      this.headers('Content-Type', type);
     },
     clear: function(type, status) {
       this.res.clear();
@@ -41,10 +41,12 @@ define('response', function(require, exports, module) {
         this.contentType(type);
       }
       if (status) {
-        this.res.status(status);
+        this.status(status);
       }
     },
     write: function(data) {
+      //don't write anything for head requests
+      if (this.req && this.req.method('head')) return;
       if (isPrimitive(data)) {
         this.res.write(String(data));
       } else
@@ -59,7 +61,7 @@ define('response', function(require, exports, module) {
       var args = toArray(arguments);
       if (args.length) {
         if (args.length > 1 && RE_STATUS.test(args[0])) {
-          this.res.status(args.shift());
+          this.status(args.shift());
         }
         if (args.length > 1 && RE_CTYPE.test(args[0])) {
           this.contentType(args.shift());
@@ -85,23 +87,23 @@ define('response', function(require, exports, module) {
         this.html_redirect(url);
       }
       if (type == '301') {
-        this.res.status('301 Moved Permanently');
+        this.status('301 Moved Permanently');
       } else
       if (type == '303') {
-        this.res.status('303 See Other');
+        this.status('303 See Other');
       } else {
-        this.res.status('302 Moved');
+        this.status('302 Moved');
       }
-      this.res.headers('Location', url);
-      this.res.end();
+      this.headers('Location', url);
+      this.end();
     },
     html_redirect: function(url) {
       var tmpl = require('tmpl')
         , markup = app.cfg('html_redir');
       if (tmpl && markup) {
-        this.res.clear('text/html');
-        this.res.write(tmpl.renderContent(markup, {redir: url}));
-        this.res.end();
+        this.clear('text/html');
+        this.write(tmpl.renderContent(markup, {redir: url}));
+        this.end();
       }
     }
   });
