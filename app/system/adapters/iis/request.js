@@ -32,11 +32,12 @@ define('iis-request', function(require, exports, module) {
       return val || '';
     },
     getMethod: function() {
-      //POST is mis-reported as GET when iis is doing 404 redirect, so we make a best guess based on headers
-      if (this._get('Content-Type') || +this._get('Content-Length')) {
-        return 'POST';
+      var method = this._get('method');
+      //POST is mis-reported as GET in 404 handler, so we make a best guess based on headers
+      if (method == 'GET' && (this._get('Content-Type') || +this._get('Content-Length'))) {
+        method = 'POST';
       }
-      return this._get('method');
+      return method;
     },
     getURL: function() {
       var url = this._get('X-Rewrite-URL') || this._get('X-Original-URL');

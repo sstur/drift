@@ -5,6 +5,8 @@ define('request', function(require, exports, module) {
   var qs = require('qs');
   var util = require('util');
 
+  var HTTP_METHODS = {GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1};
+
   function Request(req) {
     this.req = req;
     this._data = {};
@@ -54,8 +56,10 @@ define('request', function(require, exports, module) {
       }
     },
     method: function(s) {
-      var r = this.req.getMethod();
-      return (typeof s == 'string') ? (s.toUpperCase() == r) : r;
+      //enable method override (for methods like PUT/DELETE that are often unsupported)
+      var method = (this.headers('X-HTTP-Method-Override') || this.params('_method')).toUpperCase();
+      method = (method in HTTP_METHODS) ? method : this.req.getMethod();
+      return (typeof s == 'string') ? (s.toUpperCase() == method) : method;
     },
     params: function(n) {
       if (!this._qsParams) {
@@ -91,9 +95,6 @@ define('request', function(require, exports, module) {
       } else {
         return postdata.files;
       }
-    },
-    isAjax: function() {
-      return (this.headers('x-requested-with').toLowerCase() == 'xmlhttprequest');
     }
   });
 

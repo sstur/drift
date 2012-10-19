@@ -1,3 +1,10 @@
+re-implement Node mappath
+non-source outside of app/ (including build?)
+Session file store (2012-10-19-13a76ac2bcc019dce0e054b26485d8f9.json)
+Support for build.conf
+
+
+
 tests:
   url.parse
   url.resolve
