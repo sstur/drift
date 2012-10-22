@@ -14,7 +14,14 @@ define('fs', function(require, fs) {
     var stream = this._stream = new ActiveXObject('ADODB.Stream');
     stream.type = 1;
     stream.open();
-    stream.loadFromFile(app.mappath(file));
+    try {
+      stream.loadFromFile(app.mappath(file));
+    } catch(e) {
+      if (e.description.match(/could not be opened/i)) {
+        e.code = 'ENOENT';
+      }
+      throw e;
+    }
     this._bytesRead = 0;
     this._bytesTotal = stream.size;
   }
@@ -49,7 +56,14 @@ define('fs', function(require, fs) {
     stream.open();
     stream.type = 2;
     this.setEncoding(opts.encoding);
-    stream.loadFromFile(app.mappath(file));
+    try {
+      stream.loadFromFile(app.mappath(file));
+    } catch(e) {
+      if (e.description.match(/could not be opened/i)) {
+        e.code = 'ENOENT';
+      }
+      throw e;
+    }
   }
   app.eventify(TextReadStream.prototype);
 
@@ -110,24 +124,14 @@ define('fs', function(require, fs) {
 
 
   fs.readTextFile = function(file, enc) {
-    enc = parseEnc(enc);
-    if (enc == 'UTF-8' || enc == 'UTF-16BE') {
-      return new TextReadStream(file, {encoding: enc}).readAll();
-    } else {
-      var tristate = (enc == 'UTF-16LE') ? -1 : 0;
-      var stream = fso.openTextFile(app.mappath(file), 1, tristate);
-      var text = stream.readAll();
-      stream.close();
-      return text;
-    }
+    return new TextReadStream(file, {encoding: enc}).readAll();
   };
 
   fs.writeTextToFile = function(file, text, opts) {
     opts = opts || {};
     //default is to append
     opts.append = (opts.append !== false);
-    opts.encoding = opts.encoding || 'utf8';
-    var stream = fs.createWriteStream(file, opts);
+    var stream = new FileWriteStream(file, opts);
     stream.write(text);
     stream.end();
   };

@@ -1,3 +1,4 @@
+/*global app */
 var console, Buffer;
 (function(require) {
   "use strict";
@@ -28,6 +29,7 @@ var console, Buffer;
     var fullpath = basePath;
     fullpath = fullpath + String(path).replace(/\//g, '\\');
     fullpath = fullpath.replace(/[\\]+/g, '\\');
+    fullpath = fullpath.replace(/^\\/g, '\\\\');
     fullpath = fullpath.replace(/\\$/g, '');
     return fullpath;
   };
