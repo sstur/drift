@@ -83,9 +83,9 @@ define('response', function(require, exports, module) {
       this.end();
     },
     redirect: function(url, type) {
-      if (type == 'html') {
-        this.html_redirect(url);
-      }
+      //if (type == 'html') {
+      //  this.html_redirect(url);
+      //}
       if (type == '301') {
         this.status('301 Moved Permanently');
       } else
@@ -96,15 +96,15 @@ define('response', function(require, exports, module) {
       }
       this.headers('Location', url);
       this.end();
-    },
-    html_redirect: function(url) {
-      var tmpl = require('tmpl')
-        , markup = app.cfg('html_redir');
-      if (tmpl && markup) {
-        this.clear('text/html');
-        this.write(tmpl.renderContent(markup, {redir: url}));
-        this.end();
-      }
+    //},
+    //html_redirect: function(url) {
+    //  var tmpl = require('tmpl')
+    //    , markup = app.cfg('html_redir');
+    //  if (tmpl && markup) {
+    //    this.clear('text/html');
+    //    this.write(tmpl.renderContent(markup, {redir: url}));
+    //    this.end();
+    //  }
     }
   });
 

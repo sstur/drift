@@ -903,6 +903,12 @@ define('md5', function(require, exports, module) {
 
   module.exports = MD5;
 
+  MD5.hash = function(data, enc) {
+    var md5 = new MD5();
+    md5.update.apply(md5, arguments);
+    return md5.digest();
+  };
+
   MD5.create = function() {
     return new MD5();
   };
@@ -916,7 +922,7 @@ define('md5', function(require, exports, module) {
       var wordArray = this.hasher.finalize();
       var rawString = wordArray.toString(CryptoJS.enc.Latin1);
       var buffer = new Buffer(rawString, 'binary');
-      return buffer.toString(enc || 'binary');
+      return (enc) ? buffer.toString(enc) : buffer;
     }
   });
 

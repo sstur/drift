@@ -49,6 +49,43 @@ define('util', function(require, util) {
   };
 
 
+  util.htmlEnc = function(str, /**Boolean=true*/ attr) {
+    str = String(str);
+    str = str.replace(/&/g, '&amp;');
+    str = str.replace(/>/g, '&gt;');
+    str = str.replace(/</g, '&lt;');
+    if (attr !== false) {
+      str = str.replace(/"/g, '&quot;');
+    }
+    str = str.replace(/\u00a0/g, '&nbsp;');
+    return str;
+  };
+
+  var REG_ENT_DEC = /&#(\d+);/g;
+  var REG_ENT_HEX = /&#x((?:[\dA-F]{2}){1,2});/ig;
+  var REG_ENT_OTHER = /&([a-z]+);/ig;
+
+  util.htmlDec = function(str) {
+    str = String(str);
+    str = str.replace(REG_ENT_DEC, function(ent, n) {
+      var i = parseInt(n, 10);
+      return (i < 65536) ? String.fromCharCode(i) : ent;
+    });
+    str = str.replace(REG_ENT_HEX, function(ent, n) {
+      return String.fromCharCode(parseInt(n, 16));
+    });
+    //optionally specify entities in config
+    var entities = app.cfg('html_entities') ||
+      {amp: '&', gt: '>', lt: '<', quot: '"', apos: '\'', nbsp: '\u00a0'};
+    str = str.replace(REG_ENT_OTHER, function(ent, n) {
+      var c = entities[n.toLowerCase()];
+      return c || ent;
+    });
+    return str;
+  };
+
+
+
   //extended JSON.stringify to handle special cases (Error, Date, Buffer)
   util.stringify = function(obj) {
     var str = JSON.stringify(obj, replacer);
