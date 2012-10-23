@@ -95,6 +95,9 @@ define('request', function(require, exports, module) {
       } else {
         return postdata.files;
       }
+    },
+    isAjax: function() {
+      return (this.headers('x-requested-with').toLowerCase() == 'xmlhttprequest');
     }
   });
 
