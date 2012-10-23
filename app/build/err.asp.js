@@ -3,7 +3,11 @@
 
   var err = getErrDetails();
   adjustError(err);
-  displayError(err);
+  if (getItem('X-Requested-With').toLowerCase() == 'xmlhttprequest') {
+    displayErrorJSON(err);
+  } else {
+    displayError(err);
+  }
 
   function adjustError(err) {
     if (typeof map == 'undefined') return;
@@ -53,22 +57,28 @@
   }
 
   function displayError(err) {
-    var out = [];
-    out.push('500 Server Error');
-    out.push('Date/Time: ' + new Date().toUTCString());
-    out.push('Requested Resource: ' + err.path);
-    out.push('File: ' + err.file);
-    out.push('Line: ' + err.line);
-    out.push('Description:\r\n' + err.description);
-    out.push('');
+    var out = [
+      '500 Server Error',
+      'Date/Time: ' + new Date().toUTCString(),
+      'Requested Resource: ' + err.path,
+      'File: ' + err.file,
+      'Line: ' + err.line,
+      'Description:\r\n' + err.description,
+      ''
+    ].join('\r\n');
     res.clear();
     res.contentType = 'text/plain';
-    res.write(out.join('\r\n'));
+    res.write(out);
     res.end();
   }
 
   function displayErrorJSON(err) {
-    var out = '{"http_status":"500","error":"' + jsEnc(err.description) + '","details":{"file":"' + jsEnc(err.file) + '","line":"' + err.line + '"}}';
+    var out = [
+      '{"http_status": "500"',
+      ',"error": "' + jsEnc(err.description) + '"',
+      ',"details": {"file": "' + jsEnc(err.file) + '", "line": "' + err.line + '"}}',
+      ''
+    ].join('\r\n');
     res.clear();
     res.status = '200 Server Error';
     res.contentType = 'text/plain';
