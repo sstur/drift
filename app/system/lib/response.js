@@ -83,9 +83,9 @@ define('response', function(require, exports, module) {
       this.end();
     },
     redirect: function(url, type) {
-      //if (type == 'html') {
-      //  this.html_redirect(url);
-      //}
+      if (type == 'html') {
+        this.htmlRedirect(url);
+      }
       if (type == '301') {
         this.status('301 Moved Permanently');
       } else
@@ -96,17 +96,23 @@ define('response', function(require, exports, module) {
       }
       this.headers('Location', url);
       this.end();
-    //},
-    //html_redirect: function(url) {
-    //  var tmpl = require('tmpl')
-    //    , markup = app.cfg('html_redir');
-    //  if (tmpl && markup) {
-    //    this.clear('text/html');
-    //    this.write(tmpl.renderContent(markup, {redir: url}));
-    //    this.end();
-    //  }
+    },
+    htmlRedirect: function(url) {
+      var html = htmlRedirect.replace(/URL/g, util.htmlEnc(url));
+      this.end('text/html', html);
     }
   });
+
+  var htmlRedirect = [
+    '<html>',
+    '<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=URL"/></head>',
+    '<body onload="location.replace(document.getElementsByTagName(\'meta\')[0].content.slice(6))">',
+    '<noscript><p>If you are not redirected, <a href="URL">Click Here</a></p></noscript>',
+    //add padding to prevent "friendly" error messages in certain browsers
+    new Array(15).join('<' + '!-- PADDING --' + '>'),
+    '</body>',
+    '</html>'
+  ].join('\r\n');
 
   module.exports = Response;
 
