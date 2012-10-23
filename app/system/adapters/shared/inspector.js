@@ -6,13 +6,10 @@ define('inspector', function(require, exports) {
    * in the best way possible given the different types.
    *
    * @param {Object} obj The object to print out.
-   * @param {Boolean} showHidden Flag that shows hidden (not enumerable)
-   *    properties of objects.
    * @param {Number} depth Depth in which to descend in object. Default is 2.
    */
-  function inspect(obj, showHidden, depth) {
+  function inspect(obj, depth) {
     var ctx = {
-      showHidden: showHidden,
       seen: [],
       stylize: stylizeNoColor
     };
@@ -37,6 +34,10 @@ define('inspector', function(require, exports) {
       return value.inspect(recurseTimes);
     }
 
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toUTCString.call(value), 'date');
+    }
+
     if (value && typeof value.valueOf == 'function') {
       value = value.valueOf();
     }
@@ -48,8 +49,7 @@ define('inspector', function(require, exports) {
     }
 
     // Look up the keys of the object.
-    var visibleKeys = Object.keys(value);
-    var keys = ctx.showHidden ? Object.getOwnPropertyNames(value) : visibleKeys;
+    var keys = Object.keys(value);
 
     // Some type of object without properties can be shortcutted.
     if (keys.length === 0) {
@@ -59,9 +59,6 @@ define('inspector', function(require, exports) {
       }
       if (isRegExp(value)) {
         return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-      }
-      if (isDate(value)) {
-        return ctx.stylize(Date.prototype.toUTCString.call(value), 'date');
       }
       if (isError(value)) {
         return formatError(value);
@@ -113,10 +110,10 @@ define('inspector', function(require, exports) {
 
     var output;
     if (array) {
-      output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+      output = formatArray(ctx, value, recurseTimes, keys, keys);
     } else {
       output = keys.map(function(key) {
-        return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+        return formatProperty(ctx, value, recurseTimes, keys, key, array);
       });
     }
 
@@ -155,27 +152,25 @@ define('inspector', function(require, exports) {
   }
 
 
-  function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  function formatArray(ctx, value, recurseTimes, keys) {
     var output = [];
     for (var i = 0, l = value.length; i < l; ++i) {
       if (Object.prototype.hasOwnProperty.call(value, String(i))) {
-        output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-            String(i), true));
+        output.push(formatProperty(ctx, value, recurseTimes, keys, String(i), true));
       } else {
         output.push('');
       }
     }
     keys.forEach(function(key) {
       if (!key.match(/^\d+$/)) {
-        output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-            key, true));
+        output.push(formatProperty(ctx, value, recurseTimes, keys, key, true));
       }
     });
     return output;
   }
 
 
-  function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  function formatProperty(ctx, value, recurseTimes, keys, key, array) {
     var name, str, desc;
     desc = Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
     if (desc.get) {
@@ -189,7 +184,7 @@ define('inspector', function(require, exports) {
         str = ctx.stylize('[Setter]', 'special');
       }
     }
-    if (visibleKeys.indexOf(key) < 0) {
+    if (keys.indexOf(key) < 0) {
       name = '[' + key + ']';
     }
     if (!str) {

@@ -157,6 +157,60 @@ define('fs', function(require, fs) {
     fs.writeTextToFile(path, data + '\r\n');
   };
 
+  fs.readdir = function(path) {
+    var items = [];
+    var obj = fso.getFolder(app.mappath(path));
+    enumerate(obj.subFolders, function(i, item) {
+      items.push(item.name);
+    });
+    enumerate(obj.files, function(i, item) {
+      items.push(item.name);
+    });
+    return items;
+  };
+
+  fs.stat = function(path, deep) {
+    var obj, stat = {};
+    if (typeof path == 'string') {
+      try {
+        obj = fso.getFolder(app.mappath(path));
+      } catch(e) {
+        obj = fso.getFile(app.mappath(path));
+      }
+    } else {
+      //passed a fso object (called recursively)
+      obj = path;
+    }
+    stat.name = obj.name;
+    stat.dateCreated = new Date(obj.dateCreated);
+    stat.dateLastAccessed = new Date(obj.dateLastAccessed);
+    stat.dateLastModified = new Date(obj.dateLastModified);
+    if (obj.type.toLowerCase() == 'file folder') {
+      stat.type = 'directory';
+      if (deep) {
+        var size = stat.size = 0;
+        stat._subdirs = [];
+        enumerate(obj.subFolders, function(i, item) {
+          var _stat = fs.stat(item, deep);
+          size += _stat.size;
+          stat._subdirs.push(_stat);
+        });
+        stat._files = [];
+        enumerate(obj.files, function(i, item) {
+          var _stat = fs.stat(item, deep);
+          size += _stat.size;
+          stat._files.push(_stat);
+        });
+        stat.children = stat._subdirs.concat(stat._files);
+        stat.size = size;
+      }
+    } else {
+      stat.type = 'file';
+      stat.size = obj.size;
+    }
+    return stat;
+  };
+
 
   //helpers
 
@@ -190,6 +244,13 @@ define('fs', function(require, fs) {
       enc = 'UTF-8';
     }
     return enc;
+  }
+
+  function enumerate(col, fn) {
+    var i = 0;
+    for(var e = new Enumerator(col); !e.atEnd(); e.moveNext()) {
+      if (fn.call(col, i++, e.item()) === false) break;
+    }
   }
 
 });

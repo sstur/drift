@@ -79,7 +79,7 @@ define('response', function(require, exports, module) {
     },
     debug: function(data) {
       this.clear();
-      this.write(util.inspect(data, false, 4));
+      this.write(util.inspect(data, 4));
       this.end();
     },
     redirect: function(url, type) {
