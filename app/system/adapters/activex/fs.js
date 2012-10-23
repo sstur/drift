@@ -18,7 +18,9 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.description.match(/could not be opened/i)) {
-        e.code = 'ENOENT';
+        var description = 'ENOENT, no such file or directory "' + file + '"';
+        //normalize error and re-throw
+        try { throw new Error(description) } catch(e) { e.code = 'ENOENT'; e.errno = 34; throw e }
       }
       throw e;
     }
@@ -60,7 +62,9 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.description.match(/could not be opened/i)) {
-        e.code = 'ENOENT';
+        var description = 'ENOENT, no such file or directory "' + file + '"';
+        //normalize error and re-throw
+        try { throw new Error(description) } catch(e) { e.code = 'ENOENT'; e.errno = 34; throw e }
       }
       throw e;
     }
