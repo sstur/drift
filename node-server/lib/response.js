@@ -141,10 +141,10 @@
       if (Object.isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
-      if (!opts.ctype) {
-        opts.ctype = this.headers('content-type');
+      if (!opts.contentType) {
+        opts.contentType = 'application/octet-stream';
       }
-      opts.ctype = buildContentType(opts.charset || res.charset, opts.ctype);
+      opts.contentType = buildContentType(opts.charset || res.charset, opts.contentType);
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
@@ -153,7 +153,7 @@
       Fiber.current.abort(function() {
         httpRes.sendFile({
           path: opts.fullpath,
-          contentType: opts.ctype,
+          contentType: opts.contentType,
           attachment: !!opts.attachment,
           filename: opts.name
         });
