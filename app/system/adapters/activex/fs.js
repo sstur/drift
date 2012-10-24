@@ -5,7 +5,7 @@ define('fs', function(require, fs) {
   var util = require('util');
   var Buffer = require('buffer').Buffer;
 
-  var fso = new ActiveXObject('Scripting.FileSystemObject');
+  var FSO = new ActiveXObject('Scripting.FileSystemObject');
 
   function FileReadStream(file, opts) {
     this.file = file;
@@ -18,9 +18,7 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.description.match(/could not be opened/i)) {
-        var description = 'ENOENT, no such file or directory "' + file + '"';
-        //normalize error and re-throw
-        try { throw new Error(description) } catch(e) { e.code = 'ENOENT'; e.errno = 34; throw e }
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
       }
       throw e;
     }
@@ -62,9 +60,7 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.description.match(/could not be opened/i)) {
-        var description = 'ENOENT, no such file or directory "' + file + '"';
-        //normalize error and re-throw
-        try { throw new Error(description) } catch(e) { e.code = 'ENOENT'; e.errno = 34; throw e }
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
       }
       throw e;
     }
@@ -97,7 +93,7 @@ define('fs', function(require, fs) {
     opts = this.opts = opts || {};
     opts.encoding = opts.encoding || 'utf8';
     var mode = (opts.append) ? 8 : 2;
-    this._stream = fso.openTextFile(app.mappath(file), mode, -1, 0);
+    this._stream = FSO.openTextFile(app.mappath(file), mode, -1, 0);
   }
 
   util.extend(FileWriteStream.prototype, {
@@ -150,7 +146,7 @@ define('fs', function(require, fs) {
     }
     if (!logfile) logfile = 'default';
     var data = args
-      , path = 'data/logs/' + logfile.replace(/\.log$/, '') + '.log';
+      , path = 'data/logs/' + logfile.replace(/\.log$/, '') + '._log';
     data.forEach(function(line, i) {
       data[i] = (line instanceof Object) ? JSON.stringify(line) : String(line);
     });
@@ -161,59 +157,85 @@ define('fs', function(require, fs) {
     fs.writeTextToFile(path, data + '\r\n');
   };
 
+
   fs.readdir = function(path) {
     var items = [];
-    var obj = fso.getFolder(app.mappath(path));
-    enumerate(obj.subFolders, function(i, item) {
-      items.push(item.name);
-    });
-    enumerate(obj.files, function(i, item) {
-      items.push(item.name);
+    var fso = (typeof path == 'string') ? getFileOrFolder(path) : path;
+    walkChildren(fso, function(child) {
+      items.push(child.name);
     });
     return items;
   };
 
+  /**
+   * Walks a directory in a depth-first fashion calling fn for
+   * each subdirectory and file and passing the "prefix" that
+   * can be append to path to get the child's path.
+   */
+  fs.walk = function(path, fn) {
+    var fso = (typeof path == 'string') ? getFileOrFolder(path) : path;
+    walkChildren(fso, function walker(child, prefix) {
+      var stat = statFSO(child);
+      prefix = prefix || '';
+      if (stat.type == 'directory') {
+        walkChildren(child, walker, prefix + stat.name + '/');
+      }
+      fn(stat, prefix);
+    });
+  };
+
+  /**
+   * A high level stat of a file-system object. If `deep` then
+   * directories get a non-zero `size` property and a
+   * `children` array containing deep stat of contents.
+   */
   fs.stat = function(path, deep) {
-    var obj, stat = {};
-    if (typeof path == 'string') {
-      try {
-        obj = fso.getFolder(app.mappath(path));
-      } catch(e) {
-        obj = fso.getFile(app.mappath(path));
-      }
-    } else {
-      //passed a fso object (called recursively)
-      obj = path;
-    }
-    stat.name = obj.name;
-    stat.dateCreated = new Date(obj.dateCreated);
-    stat.dateLastAccessed = new Date(obj.dateLastAccessed);
-    stat.dateLastModified = new Date(obj.dateLastModified);
-    if (obj.type.toLowerCase() == 'file folder') {
-      stat.type = 'directory';
-      if (deep) {
-        var size = stat.size = 0;
-        stat._subdirs = [];
-        enumerate(obj.subFolders, function(i, item) {
-          var _stat = fs.stat(item, deep);
-          size += _stat.size;
-          stat._subdirs.push(_stat);
-        });
-        stat._files = [];
-        enumerate(obj.files, function(i, item) {
-          var _stat = fs.stat(item, deep);
-          size += _stat.size;
-          stat._files.push(_stat);
-        });
-        stat.children = stat._subdirs.concat(stat._files);
-        stat.size = size;
-      }
-    } else {
-      stat.type = 'file';
-      stat.size = obj.size;
+    var fso = (typeof path == 'string') ? getFileOrFolder(path) : path;
+    var stat = statFSO(fso);
+    if (deep && stat.type == 'directory') {
+      stat.children = [];
+      walkChildren(fso, function(child) {
+        var childStat = fs.stat(child, deep);
+        stat.size += childStat.size;
+        stat.children.push(childStat);
+      });
     }
     return stat;
   };
+
+  /**
+   * Creates a 'stat' object from a file-system object.
+   */
+  function statFSO(fso) {
+    var stat = {};
+    stat.name = fso.name;
+    stat.dateCreated = new Date(fso.dateCreated);
+    stat.dateLastAccessed = new Date(fso.dateLastAccessed);
+    stat.dateLastModified = new Date(fso.dateLastModified);
+    if (fso.type.toLowerCase() == 'file folder') {
+      stat.type = 'directory';
+      stat.size = 0;
+    } else {
+      stat.type = 'file';
+      stat.size = fso.size;
+    }
+    return stat;
+  }
+
+  /**
+   * Walk children of a file-system object, folders first,
+   * calling fn on each object with any additional args
+   * passed to walkChildren.
+   */
+  function walkChildren(fso, fn) {
+    var args = toArray(arguments).slice(2);
+    enumerate(fso.subFolders, function(i, item) {
+      fn.apply(null, [item].concat(args));
+    });
+    enumerate(fso.files, function(i, item) {
+      fn.apply(null, [item].concat(args));
+    });
+  }
 
 
   //helpers
@@ -250,11 +272,27 @@ define('fs', function(require, fs) {
     return enc;
   }
 
+  function getFileOrFolder(path) {
+    try {
+      return FSO.getFolder(app.mappath(path));
+    } catch(e) {
+      try {
+        return FSO.getFile(app.mappath(path));
+      } catch(e) {
+        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT', errno: 34});
+      }
+    }
+  }
+
   function enumerate(col, fn) {
     var i = 0;
     for(var e = new Enumerator(col); !e.atEnd(); e.moveNext()) {
       if (fn.call(col, i++, e.item()) === false) break;
     }
+  }
+
+  function eNoEnt(path) {
+    return 'ENOENT, no such file or directory "' + path + '"';
   }
 
 });
