@@ -55,7 +55,7 @@
   } else {
     //build for iis/asp
     opts._pre = [
-      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001"%>',
+      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
       '<script runat="server" language="javascript">'
     ];
     opts._head = [
@@ -116,7 +116,7 @@
   } else {
     //for iis the error handling goes in a separate file
     var errfile = [
-      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001"%>',
+      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
       '<script runat="server" language="javascript">var map = ' + JSON.stringify(sourceFiles) + ';<\/script>',
       '<script runat="server" language="javascript" src="err.asp.js"><\/script>'
     ];
