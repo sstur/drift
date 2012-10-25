@@ -1,4 +1,4 @@
-ErrorDocument 403 /app.sjs
+ErrorDocument 403 /app/build/app.sjs
 
 <IfModule dir_module>
     DirectorySlash Off

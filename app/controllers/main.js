@@ -61,29 +61,12 @@ app.on('ready', function(require) {
 
   app.route('/get', function(req, res) {
     var http = require('http');
-    //var response = http.get({
-    //  url: 'http://sstur.cloudant.com/crittercrawl/_all_docs?limit=100',
-    //  headers: {'Authorization': 'Basic c3N0dXI6djBuMWIw'}
-    //});
     var response = http.get({
       url: 'https://www.google.com/',
       headers: {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5'}
     });
     res.end(response.body.toString('utf8'));
   });
-
-//  app.route('/form-post', function(req, res) {
-//    var headers = req.headers();
-//    for (var n in headers) {
-//      res.write(n + ': ' + headers[n] + '\r\n');
-//    }
-//    res.write('\r\n');
-//    var len = +headers['content-length'] || 0;
-//    var buffer = req.req.read(len);
-//    var text = buffer.toString('binary');
-//    text = JSON.stringify(text).slice(1, -1).replace(/\\"/g, '"');
-//    res.end(text);
-//  });
 
   app.route('/form-post', function(req, res) {
     var fields = req.post(), files = req.uploads();
@@ -106,7 +89,7 @@ app.on('ready', function(require) {
 
   app.route('/readfile', function(req, res) {
     var fs = require('fs');
-    var text = fs.readTextFile('../assets/test.txt');
+    var text = fs.readTextFile('assets/test.txt');
     res.end(text);
   });
 
@@ -117,7 +100,6 @@ app.on('ready', function(require) {
   });
 
   app.route('/sendfile', function(req, res) {
-    //res.sendFile('../assets/test.txt');
     res.sendFile({file: 'data/temp/57772a58475eab182229d8b329c3cad3', contentType: 'image/jpeg', name: 'image.jpg'});
 
   });

@@ -1,4 +1,9 @@
+var path = require('path');
 var http = require('http');
+
+//this is used by the modules below
+global.basePath = path.dirname(process.argv[1]);
+
 var utils = require('./node-server/support/utils');
 var SyncServer = require('./node-server');
 

@@ -148,7 +148,7 @@
       if (!opts.name) {
         opts.name = opts.file.split('/').pop();
       }
-      opts.fullpath = global.mappath('app/' + opts.file);
+      opts.fullpath = global.mappath(opts.file);
       console.log('sendfile: ' + opts.fullpath);
       Fiber.current.abort(function() {
         httpRes.sendFile({

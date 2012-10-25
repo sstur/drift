@@ -11,7 +11,7 @@
     , basename = path.basename
     , normalize = path.normalize
     , mime = require('mime')
-    , utils = require('./http_utils')
+    , utils = require('./http-utils')
     , inspect = require('util').inspect
     , Buffer = require('buffer').Buffer;
 

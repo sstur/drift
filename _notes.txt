@@ -3,5 +3,3 @@ node build && cp app/build/*.asp /Volumes/inetpub/wwwroot/platformjs.com/app/bui
 Backwards-incompatible changes:
   removed param-collection
   Date.now()
-
-server.vars('ipaddr')

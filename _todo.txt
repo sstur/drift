@@ -2,11 +2,10 @@ Support uploads with Transfer-Encoding: chunked
 If request includes Content-Length or Transfer-Encoding, then it must contain Content-Type field
 
 re-implement Node mappath
-non-source outside of app/ (including build?)
+move build outside of app/ ?
+  data and views moved
 Session file store (2012-10-19-13a76ac2bcc019dce0e054b26485d8f9.json)
-Support for build.conf
-
-
+Support for build.conf or build.json
 
 tests:
   url.parse
@@ -24,7 +23,6 @@ refactor:
   remove http patches
 
 consolidate:
-  Object.extend and util.extend
   parseCookies, parseHeaders, parseUrl (http client)
   client request headers
   server response headers
@@ -35,15 +33,9 @@ req.data('ipaddr')
 fix app.cfg
 Date header in node-server
 
-iis:
-  fs.writeFile
-  error.asp with line-number translation
-
-apache:
-  persist app data
 
 get rid of global.mappath
-  real fs paths should not be used within app/ at all, which makes mappath adapter-specific
+  this is adapter-specific and should be attached to app
 
 remove app.data and fix it in adapters:
   node uses memory (from core.js)
@@ -57,5 +49,4 @@ decide what to do with async->sync methods accepting/returning buffer
   ditch buffer abstraction
 
 possibly:
-  rename uploaded file based on original filename
   fiber-safe fs write/append

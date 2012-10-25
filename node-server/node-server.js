@@ -8,13 +8,14 @@
   var fs = require('fs')
     , join = require('path').join
     , Fiber = require('./lib/sync-fiber')
-    , RequestBody = require('./lib/request_body');
+    , RequestBody = require('./lib/request-body');
 
   var Request = require('./lib/request.js');
   var Response = require('./lib/response.js');
 
   //set paths as global variables
-  var basePath = global.basePath = join(__dirname, '..');
+  var basePath = global.basePath || join(__dirname, '..');
+
   //should mappath be global?
   var mappath = global.mappath = function(path) {
     return join(basePath, path);
@@ -43,6 +44,7 @@
 
   //load framework core (instantiates `app` and `define`)
   require(join(basePath, 'app/system/core'));
+  app.mappath = mappath;
 
   //load async modules into define system as sync
   loadPath('node-server/async_modules', function(file, _super) {

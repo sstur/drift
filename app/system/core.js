@@ -11,7 +11,7 @@ var app, define;
 
   var require, definitions = {}, loading = {}, cache = {};
 
-  define = function(name, deps, definition) {
+  define = app.define = function(name, deps, definition) {
     if (typeof name != 'string') {
       throw new Error('Invalid module name');
     }
@@ -253,7 +253,7 @@ var app, define;
     return resolved.replace(/^\/|\/$/g, '');
   }
 
-  //export to global (except when compiled)
+  //export to global (but not when compiled)
   /*@remove{*/
   global.app = app;
   global.define = define;
