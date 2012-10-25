@@ -1,3 +1,0 @@
-res.sendFile
-req.getPostData
-save build info for error reporting

@@ -1,4 +1,4 @@
-(function(req, res, server) {
+(function(req, res, server, map) {
   "use strict";
 
   var err = getErrDetails();
@@ -10,7 +10,7 @@
   }
 
   function adjustError(err) {
-    if (typeof map == 'undefined') return;
+    if (!map || !map.length) return;
     var line = err.originalLine = err.line;
     for (var i = 0; i < map.length; i++) {
       var source = map[i];
@@ -97,4 +97,4 @@
     return str;
   }
 
-})(Request, Response, Server);
+})(Request, Response, Server, [/*SRCMAP*/]);

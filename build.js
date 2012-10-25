@@ -115,10 +115,12 @@
     opts._pre[0] = 'var map = ' + JSON.stringify(sourceFiles) + ';';
   } else {
     //for iis the error handling goes in a separate file
+    var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/_error.js'), 'utf8');
     var errfile = [
       '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
-      '<script runat="server" language="javascript">var map = ' + JSON.stringify(sourceFiles) + ';<\/script>',
-      '<script runat="server" language="javascript" src="err.asp.js"><\/script>'
+      '<script runat="server" language="javascript">',
+      errhandler.replace('[/*SRCMAP*/]', JSON.stringify(sourceFiles)),
+      '<\/script>'
     ];
     fs.writeFileSync(join(basePath, 'app/build/err.asp'), errfile.join('\r\n'), 'utf8');
   }

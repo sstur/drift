@@ -292,7 +292,7 @@ define('fs', function(require, fs) {
   }
 
   function eNoEnt(path) {
-    return 'ENOENT, no such file or directory "' + path + '"';
+    return "ENOENT, no such file or directory '" + path + "'";
   }
 
 });
