@@ -2,7 +2,7 @@
 define('email', function(require, exports) {
   "use strict";
 
-  var REG_EMAIL = /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
+  var REG_EMAIL = /^[\w!#$%&'*+\/=?^`{|}~-]+(\.[\w!#$%&'*+\/=?^`{|}~-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 
   exports.isEmail = function(str) {
     return !!String(str).match(REG_EMAIL);
