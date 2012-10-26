@@ -2,6 +2,7 @@
 define('adapter-response', function(require, exports, module) {
   "use strict";
 
+  //todo: move this to app/config
   var cfg = {
     logging: {response_time: 1}
   };

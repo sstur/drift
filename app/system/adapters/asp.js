@@ -35,9 +35,18 @@ var console, Buffer;
   };
 
   app.data = function(n, val) {
-    //todo: iis.app(n) = JSON.stringify(val)
-    return '';
+    if (arguments.length == 2) {
+      setProperty(iis.app, 'JSON:' + n, (val == null) ? '' : util.stringify(val));
+      return val;
+    } else {
+      val = iis.app('JSON:' + n);
+      return (val) ? util.parse(val) : '';
+    }
   };
+
+  function setProperty(obj, name, value) {
+    obj(name)/*@remove{*/[0]/*}@*/ = value;
+  }
 
   app.emit('ready', require);
 

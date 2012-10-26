@@ -1,5 +1,4 @@
 /*global app, define */
-//todo: this.req becomes this._super
 define('request', function(require, exports, module) {
   "use strict";
 
@@ -9,38 +8,25 @@ define('request', function(require, exports, module) {
   var HTTP_METHODS = {GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1};
 
   function Request(req) {
-    this.req = req;
-    this._data = {};
+    this._super = req;
     this._params = {};
   }
 
   app.eventify(Request.prototype);
 
   util.extend(Request.prototype, {
-    //exposes a simple way to attache data to the req object
-    //todo: should this be removed?
-    data: function(n, val) {
-      var data = this._data;
-      if (arguments.length == 2) {
-        (val == null) ? delete data[n] : data[n] = val;
-        return val;
-      } else {
-        val = data[n];
-        return (val == null) ? '' : val;
-      }
-    },
     url: function(part) {
       if (part) {
-        if (!this.url_parts) this.url_parts = this.req.getURLParts();
+        if (!this.url_parts) this.url_parts = this._super.getURLParts();
         return this.url_parts[part];
       } else {
-        if (!this._url) this._url = this.req.getURL();
+        if (!this._url) this._url = this._super.getURL();
         return this._url;
       }
     },
     headers: function(n) {
       if (!this._headers) {
-        this._headers = this.req.getHeaders();
+        this._headers = this._super.getHeaders();
       }
       if (arguments.length) {
         return this._headers[n.toLowerCase()] || '';
@@ -50,7 +36,7 @@ define('request', function(require, exports, module) {
     },
     cookies: function(n) {
       if (!this._cookies) {
-        this._cookies = this.req.getCookies();
+        this._cookies = this._super.getCookies();
       }
       if (arguments.length) {
         return this._cookies[n] || '';
@@ -61,14 +47,12 @@ define('request', function(require, exports, module) {
     method: function(s) {
       //method override (for methods like PUT/DELETE that may be unsupported at the server level)
       var method = (this.headers('X-HTTP-Method-Override') || this.params('_method')).toUpperCase();
-      method = (method in HTTP_METHODS) ? method : this.req.getMethod();
+      method = (method in HTTP_METHODS) ? method : this._super.getMethod();
       return (typeof s == 'string') ? (s.toUpperCase() == method) : method;
     },
-    //todo: remove req._qsParams and just use _params
     params: function(n) {
-      if (!this._qsParams) {
-        this._qsParams = qs.parse(this.url('qs'));
-        util.extend(this._params, this._qsParams);
+      if (!this._params) {
+        this._params = qs.parse(this.url('qs'));
       }
       if (arguments.length) {
         return this._params[n] || '';
@@ -78,8 +62,8 @@ define('request', function(require, exports, module) {
     },
     getPostData: function() {
       if (!this._postdata) {
-        util.propagateEvents(this.req, this, 'file');
-        this._postdata = this.req.getPostData();
+        util.propagateEvents(this._super, this, 'file');
+        this._postdata = this._super.getPostData();
       }
       return this._postdata;
     },

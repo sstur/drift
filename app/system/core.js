@@ -121,13 +121,13 @@ var app, define;
     }
   }
 
-  function routeRequest(req, res) {
+  function routeRequest(adapterReq, adapterRes) {
     var util = require('util')
       , Router = require('router')
       , Request = require('request')
       , Response = require('response');
-    req = new Request(req);
-    res = new Response(res);
+    var req = new Request(adapterReq);
+    var res = new Response(adapterRes);
     //cross-reference request and response
     req.res = res;
     res.req = req;
@@ -136,11 +136,6 @@ var app, define;
     var method = req.method(), url = req.url();
     url = url.split('?')[0]; //strip query from raw (encoded) url
     util.propagateEvents(router, req, 'pre-route match-route no-route');
-    //todo: fix this, it's kind of hacky
-    var qsParams = req.params();
-    req.on('match-route', function(params) {
-      req._params = util.extend({}, qsParams, params || {});
-    });
     //todo: move to request lib?
     req.on('no-route', function(routeData) {
       var response = routeData.response || app.cfg('res_404');
@@ -172,22 +167,6 @@ var app, define;
         //todo deep merge?
         config[n] = data[n];
       }
-    }
-  };
-
-
-  /*!
-   * Application data (in-memory)
-   * todo: move elsewhere; this is adapter/environment specific
-   */
-  var data = app._data = {};
-  app.data = function(n, val) {
-    if (arguments.length == 2) {
-      (val == null) ? delete data[n] : data[n] = val;
-      return val;
-    } else {
-      val = data[n];
-      return (val == null) ? '' : val;
     }
   };
 

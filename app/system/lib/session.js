@@ -144,7 +144,7 @@ define('session', function(require, exports, module) {
   function Session(req, res, opts) {
     this.req = req;
     this.res = res;
-    this.opts = opts;
+    this.opts = opts || {};
     this.init();
   }
 

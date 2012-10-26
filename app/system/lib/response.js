@@ -9,34 +9,34 @@ define('response', function(require, exports, module) {
   var RE_STATUS = /^\d{3}\b/;
 
   function Response(res) {
-    this.res = res;
+    this._super = res;
   }
 
   util.extend(Response.prototype, {
     headers: function() {
-      this.res.headers.apply(this.res, arguments);
+      this._super.headers.apply(this._super, arguments);
     },
     cookies: function() {
-      this.res.cookies.apply(this.res, arguments);
+      this._super.cookies.apply(this._super, arguments);
     },
     charset: function() {
-      this.res.charset.apply(this.res, arguments);
+      this._super.charset.apply(this._super, arguments);
     },
     status: function() {
-      this.res.status.apply(this.res, arguments);
+      this._super.status.apply(this._super, arguments);
     },
     sendFile: function() {
-      this.res.sendFile.apply(this.res, arguments);
+      this._super.sendFile.apply(this._super, arguments);
     },
     contentType: function(type) {
       //hack to override application/json -> text/plain when not an xhr request
-      if (type.match(/\/json$/) && !(/XMLHttpRequest/i).test(this.req.headers('x-requested-with'))) {
+      if (type == 'application/json' && !this.req.isAjax()) {
         type = 'text/plain'
       }
       this.headers('Content-Type', type);
     },
     clear: function(type, status) {
-      this.res.clear();
+      this._super.clear();
       if (type) {
         this.contentType(type);
       }
@@ -46,15 +46,15 @@ define('response', function(require, exports, module) {
     },
     write: function(data) {
       //don't write anything for head requests
-      if (this.req && this.req.method('head')) return;
+      if (this.req.method('head')) return;
       if (isPrimitive(data)) {
-        this.res.write(String(data));
+        this._super.write(String(data));
       } else
       if (Buffer.isBuffer(data)) {
-        this.res.write(data);
+        this._super.write(data);
       } else {
         //stringify returns undefined in some cases
-        this.res.write(JSON.stringify(data) || '');
+        this._super.write(JSON.stringify(data) || '');
       }
     },
     end: function() {
@@ -71,7 +71,7 @@ define('response', function(require, exports, module) {
         }
       }
       this.req.emit('end');
-      this.res.end();
+      this._super.end();
     },
     die: function() {
       this.clear();
