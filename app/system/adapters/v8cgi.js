@@ -6,8 +6,8 @@ var console, Buffer, _require = function(path) { return require(path); };
   app.__init = Date.now();
 
   var util = require('util');
-  var Request = require('apache-request');
-  var Response = require('apache-response');
+  var Request = require('adapter-request');
+  var Response = require('adapter-response');
 
   Buffer = require('buffer').Buffer;
 

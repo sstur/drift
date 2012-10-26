@@ -1,5 +1,5 @@
 /*global app, define, iis */
-define('iis-response', function(require, exports, module) {
+define('adapter-response', function(require, exports, module) {
   "use strict";
 
   var cfg = {

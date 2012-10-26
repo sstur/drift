@@ -19,8 +19,6 @@
   var REG_NL = /\r\n|\r|\n/g;
 
   var basePath = path.dirname(process.argv[1]);
-  console.log(basePath);
-  process.exit();
 
   var opts = process.argv.slice(2).reduce(function(opts, el) {
     return (opts[el.replace(/^-+/, '')] = 1) && opts;

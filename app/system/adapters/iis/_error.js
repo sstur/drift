@@ -59,7 +59,7 @@
   function displayError(err) {
     var out = [
       '500 Server Error',
-      'Date/Time: ' + new Date().toUTCString(),
+      'Date/Time: ' + new Date().toUTCString().slice(5, -3) + 'UTC',
       'Requested Resource: ' + err.path,
       'File: ' + err.file,
       'Line: ' + err.line,

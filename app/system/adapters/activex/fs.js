@@ -160,7 +160,7 @@ define('fs', function(require, fs) {
 
   fs.readdir = function(path) {
     var items = [];
-    var fso = (typeof path == 'string') ? getFileOrFolder(path) : path;
+    var fso = (typeof path == 'string') ? getFileOrDir(path) : path;
     walkChildren(fso, function(child) {
       items.push(child.name);
     });
@@ -170,10 +170,10 @@ define('fs', function(require, fs) {
   /**
    * Walks a directory in a depth-first fashion calling fn for
    * each subdirectory and file and passing the "prefix" that
-   * can be append to path to get the child's path.
+   * can be appended to path to get the child's path.
    */
   fs.walk = function(path, fn) {
-    var fso = (typeof path == 'string') ? getFileOrFolder(path) : path;
+    var fso = (typeof path == 'string') ? getFileOrDir(path) : path;
     walkChildren(fso, function walker(child, prefix) {
       var stat = statFSO(child);
       prefix = prefix || '';
@@ -185,12 +185,12 @@ define('fs', function(require, fs) {
   };
 
   /**
-   * A high level stat of a file-system object. If `deep` then
+   * Produce a stat of a file-system object. If `deep` then
    * directories get a non-zero `size` property and a
-   * `children` array containing deep stat of contents.
+   * `children` array containing deep stat of each child.
    */
   fs.stat = function(path, deep) {
-    var fso = (typeof path == 'string') ? getFileOrFolder(path) : path;
+    var fso = (typeof path == 'string') ? getFileOrDir(path) : path;
     var stat = statFSO(fso);
     if (deep && stat.type == 'directory') {
       stat.children = [];
@@ -272,7 +272,7 @@ define('fs', function(require, fs) {
     return enc;
   }
 
-  function getFileOrFolder(path) {
+  function getFileOrDir(path) {
     try {
       return FSO.getFolder(app.mappath(path));
     } catch(e) {

@@ -26,9 +26,10 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   };
 
   Object.each = function(obj, fn) {
-    var i = 0;
-    for (var n in obj) {
-      if (fn.call(obj, n, obj[n], (i++)) === false) break;
+    var keys = Object.keys(obj), len = keys.length;
+    for (var i = 0; i < len; i++) {
+      var n = keys[i];
+      if (fn.call(obj, n, obj[n], i) === false) break;
     }
     return obj;
   };

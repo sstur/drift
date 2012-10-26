@@ -1,5 +1,5 @@
 /*global app, define, apache, system */
-define('apache-request', function(require, exports, module) {
+define('adapter-request', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');

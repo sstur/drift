@@ -1,4 +1,4 @@
-/*global app */
+/*global app, iis */
 var console, Buffer;
 (function(require) {
   "use strict";
@@ -6,8 +6,8 @@ var console, Buffer;
   app.__init = Date.now();
 
   var util = require('util');
-  var Request = require('iis-request');
-  var Response = require('iis-response');
+  var Request = require('adapter-request');
+  var Response = require('adapter-response');
 
   Buffer = require('buffer').Buffer;
 

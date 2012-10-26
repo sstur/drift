@@ -1,5 +1,5 @@
-/*global app, define */
-define('iis-request', function(require, exports, module) {
+/*global app, define, iis */
+define('adapter-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
   var util = require('util');
@@ -42,10 +42,9 @@ define('iis-request', function(require, exports, module) {
     getURL: function() {
       var url = this._get('X-Rewrite-URL') || this._get('X-Original-URL');
       if (app.cfg('virtual_url') || !url) {
-        //url path embedded in query (like iis 404 handler)
+        //url path embedded in query
         url = this._get('Query-String').match(REG_URL).pop() || '/';
       }
-      //todo: for iis 7+, do we need to account for: ?/path&param=val
       return url;
     },
     getURLParts: function() {
