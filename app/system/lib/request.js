@@ -1,4 +1,5 @@
 /*global app, define */
+//todo: this.req becomes this._super
 define('request', function(require, exports, module) {
   "use strict";
 
@@ -16,6 +17,8 @@ define('request', function(require, exports, module) {
   app.eventify(Request.prototype);
 
   util.extend(Request.prototype, {
+    //exposes a simple way to attache data to the req object
+    //todo: should this be removed?
     data: function(n, val) {
       var data = this._data;
       if (arguments.length == 2) {
@@ -56,11 +59,12 @@ define('request', function(require, exports, module) {
       }
     },
     method: function(s) {
-      //enable method override (for methods like PUT/DELETE that are often unsupported)
+      //method override (for methods like PUT/DELETE that may be unsupported at the server level)
       var method = (this.headers('X-HTTP-Method-Override') || this.params('_method')).toUpperCase();
       method = (method in HTTP_METHODS) ? method : this.req.getMethod();
       return (typeof s == 'string') ? (s.toUpperCase() == method) : method;
     },
+    //todo: remove req._qsParams and just use _params
     params: function(n) {
       if (!this._qsParams) {
         this._qsParams = qs.parse(this.url('qs'));

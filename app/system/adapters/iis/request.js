@@ -1,4 +1,5 @@
 /*global app, define, iis */
+//todo: possibly move getCookies and getPostData to higher-level request lib
 define('adapter-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
