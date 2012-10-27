@@ -50,7 +50,7 @@ define('router', function(require, exports, module) {
       } else {
         var matches = item.route.exec(url);
         if (matches) {
-          var params = routeData.params = getNamedParams(matches.slice(1), item.paramNames);
+          var params = getNamedParams(matches.slice(1), item.paramNames);
           router.emit('match-route', routeData, params);
           item.handler(routeData, routeArgs, params);
         }

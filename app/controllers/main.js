@@ -29,7 +29,7 @@ app.on('ready', function(require) {
   });
 
   app.route('/:one/:two', function(req, res) {
-    res.end({params: req.params(), args: Array.prototype.slice.call(arguments, 2)});
+    res.end({params: this.params, args: Array.prototype.slice.call(arguments, 2)});
   });
 
   app.route('/test-get-redir', function(req, res) {
