@@ -3,12 +3,16 @@
  * one platform-specific script file.
  *
  */
+/*global process, require, module, exports, __filename, __dirname */
 (function() {
   "use strict";
 
   var fs = require('fs');
   var path = require('path');
   var Buffer = require('buffer').Buffer;
+
+  //framework files beginning with these chars are excluded
+  var EXCLUDE = {'_': 1, '.': 1, '!': 1};
 
   var join = path.join;
 
@@ -161,7 +165,7 @@
     var path = join(basePath, dir);
     var items = fs.readdirSync(path);
     items.forEach(function(item) {
-      if (item.charAt(0) == '_') return;
+      if (item.charAt(0) in EXCLUDE) return;
       var fullpath = join(path, item)
         , stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
