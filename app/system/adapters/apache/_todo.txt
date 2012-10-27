@@ -1,7 +1,0 @@
-res.sendFile
-persist app data
-
-modules:
-  filesystem
-  smtp lib
-  localdb
