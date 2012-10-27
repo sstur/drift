@@ -38,7 +38,9 @@ define('body-parser', function(require, exports, module) {
       //case 'application/octet-stream':
       //  return this.processBinaryBody();
     }
-    return new Error(415);
+    var error = new Error('Unsupported Media Type');
+    error.statusCode = 415;
+    return error;
   };
 
   BodyParser.prototype.processFormBody = function() {
@@ -53,7 +55,7 @@ define('body-parser', function(require, exports, module) {
       //todo: decode (try utf8, fallback)
       this.parsed.fields = JSON.parse(body);
     } catch(e) {
-      return new Error('500 Invalid JSON Body');
+      return new Error('Invalid JSON Body');
     }
   };
 
@@ -61,7 +63,7 @@ define('body-parser', function(require, exports, module) {
     var boundary = this._headers['content-type'], pos = boundary.indexOf('=');
     boundary = boundary.slice(pos + 1);
     if (!boundary) {
-      return new Error('500 Invalid Boundary');
+      return new Error('Invalid Boundary');
     }
     var boundary1 = '--' + boundary;
     var boundary2 = '\r\n--' + boundary;
@@ -85,7 +87,7 @@ define('body-parser', function(require, exports, module) {
       if (!currentPart) {
         //header state
         if (buffer.length > MAX_HEADER_SIZE) {
-          return new Error('500 Multipart header size exceeds limit');
+          return new Error('Multipart header size exceeds limit');
         }
         var endHeader = buffer.indexOf('\r\n\r\n');
         //log.push('endHeader: ' + endHeader);

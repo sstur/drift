@@ -62,7 +62,12 @@ define('request', function(require, exports, module) {
     getPostData: function() {
       if (!this._postdata) {
         util.propagateEvents(this._super, this, 'file');
-        this._postdata = this._super.getPostData();
+        var result = this._super.getPostData();
+        if (result instanceof Error) {
+          var statusCode = result.statusCode || 400; //400 Bad Request
+          this.res.die(statusCode, {error: 'Unable to parse request body: ' + result.description});
+        }
+        this._postdata = result;
       }
       return this._postdata;
     },

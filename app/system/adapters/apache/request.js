@@ -71,8 +71,7 @@ define('adapter-request', function(require, exports, module) {
       util.propagateEvents(parser, this, 'file');
       var err = parser.parse();
       if (err) {
-        //todo: respond with correct http status
-        throw err;
+        return err;
       }
       return parser.parsed;
     }
