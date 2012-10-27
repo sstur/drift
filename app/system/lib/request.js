@@ -65,7 +65,7 @@ define('request', function(require, exports, module) {
         var result = this._super.getPostData();
         if (result instanceof Error) {
           var statusCode = result.statusCode || 400; //400 Bad Request
-          this.res.die(statusCode, {error: 'Unable to parse request body: ' + result.description});
+          this.res.die(statusCode, {error: 'Unable to parse request body; ' + result.description});
         }
         this._postdata = result;
       }

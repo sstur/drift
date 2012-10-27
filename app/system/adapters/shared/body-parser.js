@@ -12,9 +12,10 @@ define('body-parser', function(require, exports, module) {
   var MAX_HEADER_SIZE = 1024;
   var MAX_BUFFER_SIZE = 4096;
 
-  function BodyParser(headers, read) {
+  function BodyParser(headers, reader) {
     this._headers = headers;
-    this._read = read;
+    this._reader = reader;
+    this.bytesRead = 0;
     this.parsed = {files: {}, fields: {}}
   }
   module.exports = BodyParser;
@@ -22,11 +23,14 @@ define('body-parser', function(require, exports, module) {
   app.eventify(BodyParser.prototype);
 
   BodyParser.prototype.parse = function() {
+    var error;
     this.type = this._headers['content-type'] || '';
     this.type = this.type.toLowerCase().split(';')[0];
     this.length = parseInt(this._headers['content-length'], 10);
     if (!this.length) {
-      return;
+      error = new Error('Length Required');
+      error.statusCode = 411;
+      return error;
     }
     switch(this.type) {
       case 'application/x-www-form-urlencoded':
@@ -35,10 +39,10 @@ define('body-parser', function(require, exports, module) {
         return this.processJSONBody();
       case 'multipart/form-data':
         return this.processMultiPartBody();
-      //case 'application/octet-stream':
-      //  return this.processBinaryBody();
+      case 'application/octet-stream':
+        return this.processBinaryBody();
     }
-    var error = new Error('Unsupported Media Type');
+    error = new Error('Unsupported Media Type');
     error.statusCode = 415;
     return error;
   };
@@ -59,6 +63,17 @@ define('body-parser', function(require, exports, module) {
     }
   };
 
+  BodyParser.prototype.processBinaryBody = function() {
+    var headers = this._headers;
+    var currentPart = new Part(headers, {fileName: headers['x-file-name'] || 'upload'});
+    this.emit('file', currentPart);
+    var chunk;
+    while ((chunk = this._read())) {
+      currentPart.write(chunk);
+    }
+    this._finalizePart(currentPart)
+  };
+
   BodyParser.prototype.processMultiPartBody = function() {
     var boundary = this._headers['content-type'], pos = boundary.indexOf('=');
     boundary = boundary.slice(pos + 1);
@@ -67,8 +82,7 @@ define('body-parser', function(require, exports, module) {
     }
     var boundary1 = '--' + boundary;
     var boundary2 = '\r\n--' + boundary;
-    var length = +this._headers['content-length'] || 0;
-    //log.push('content-length: ' + length);
+    var length = this.length;
     var buffer = '', read = 0, currentPart, nomatch;
     while (1) {
       if (nomatch || buffer.length == 0) {
@@ -126,6 +140,13 @@ define('body-parser', function(require, exports, module) {
     }
   };
 
+  BodyParser.prototype._read = function(bytes) {
+    var chunk = this._reader(bytes || BUFFER_SIZE);
+    this.bytesRead += chunk.length;
+    //todo: emit progress?
+    return chunk;
+  };
+
   BodyParser.prototype._finalizePart = function(part) {
     part.end();
     if (part.type == 'file') {
@@ -137,25 +158,24 @@ define('body-parser', function(require, exports, module) {
 
 
 
-  function Part(head) {
-    this.headers = parseHeaders(head);
-    var contentDisp = this.headers['content-disposition'] || '';
-    this.type = (contentDisp.match(/\bfilename=/)) ? 'file' : 'field';
+  function Part(head, file) {
+    this.headers = (typeof head == 'string') ? parseHeaders(head) : head;
     this._chunks = [];
-    if (this.type == 'file') {
-      this._initFile();
+    file = file || parseFileHeaders(this.headers);
+    this.type = (file) ? 'file' : 'field';
+    if (file) {
+      this._initFile(file);
     }
   }
 
   app.eventify(Part.prototype);
 
-  Part.prototype._initFile = function() {
+  Part.prototype._initFile = function(file) {
     this.guid = getGuid();
     this._hash = md5.create();
-    this.contentType = this.headers['content-type'] || '';
-    var cd = this.headers['content-disposition'] || '';
-    this.fieldName = (cd.match(/\bname="(.*?)"/i) || [])[1] || 'file';
-    this.fileName = (cd.match(/\bfilename="(.*?)"/i) || [])[1] || this.guid;
+    this.fieldName = file.name;
+    this.fileName = file.fileName;
+    this.contentType = file.contentType;
   };
 
   //to make Part a valid ReadStream
@@ -192,16 +212,6 @@ define('body-parser', function(require, exports, module) {
 
 
 
-  //function truncate(str, len) {
-  //  if (str.length > len) {
-  //    var snip = len / 2 - 2;
-  //    str = str.slice(0, snip) + '...' + str.slice(0 - snip);
-  //  }
-  //  return str;
-  //}
-
-
-
   function getGuid() {
     return new Array(33).join(' ').replace(/ /g, function() {
       return Math.floor(Math.random() * 16).toString(16);
@@ -217,6 +227,16 @@ define('body-parser', function(require, exports, module) {
       headers[key] = headers[key] ? headers[key] + ', ' + val : val;
     }
     return headers;
+  }
+
+  function parseFileHeaders(headers) {
+    var contentDisp = headers['content-disposition'] || '';
+    var file = {};
+    file.name = (contentDisp.match(/\bname="(.*?)"/i) || [])[1] || 'file';
+    file.fileName = (contentDisp.match(/\bfilename="(.*?)"/i) || [])[1];
+    //todo: default to application/octet-stream ?
+    file.contentType = headers['content-type'] || '';
+    return (file.filename) ? file : null;
   }
 
 });
