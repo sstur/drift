@@ -64,9 +64,9 @@ define('adapter-request', function(require, exports, module) {
       return this._cookies;
     },
     read: function(bytes) {
-      return new Buffer(apache.read(bytes)).toString('binary');
+      return new Buffer(apache.read(bytes));
     },
-    getPostData: function() {
+    parseReqBody: function() {
       var parser = new BodyParser(this.getHeaders(), this.read);
       util.propagateEvents(parser, this, 'file');
       var err = parser.parse();

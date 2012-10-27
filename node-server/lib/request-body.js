@@ -155,10 +155,10 @@
     var req = this.req, res = this.res, opts = this.opts, self = this;
     var uploadDir = global.mappath(savePath);
     var mimeType = req.headers['x-content-type'] || 'application/octet-stream';
-    var fileName = req.headers['x-file-name'] || 'upload';
+    var fileName = req.headers['x-filename'] || 'upload';
     var fileSize = 0;
     var fileHash = crypto.createHash('md5');
-    var fieldName = req.headers['x-field-name'] || 'upload';
+    var fieldName = req.headers['x-name'] || 'file';
     var filePath = join(uploadDir, generateName());
     var outStream = fs.createWriteStream(filePath);
     outStream.on('error', function(err) {

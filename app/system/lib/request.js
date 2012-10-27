@@ -6,6 +6,7 @@ define('request', function(require, exports, module) {
   var util = require('util');
 
   var HTTP_METHODS = {GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1};
+  var BODY_ALLOWED = {POST: 1, PUT: 1};
 
   function Request(req) {
     this._super = req;
@@ -59,33 +60,33 @@ define('request', function(require, exports, module) {
         return this._params;
       }
     },
-    getPostData: function() {
-      if (!this._postdata) {
+    _parseReqBody: function() {
+      if (!this._body && this.method() in BODY_ALLOWED) {
         util.propagateEvents(this._super, this, 'file');
-        var result = this._super.getPostData();
+        var result = this._super.parseReqBody();
         if (result instanceof Error) {
           var statusCode = result.statusCode || 400; //400 Bad Request
           this.res.die(statusCode, {error: 'Unable to parse request body; ' + result.description});
         }
-        this._postdata = result;
+        this._body = result;
       }
-      return this._postdata;
+      return this._body || (this._body = {files: {}, fields: {}});
     },
     post: function(n) {
-      var postdata = this.getPostData();
+      var parsed = this._parseReqBody();
       if (arguments.length) {
-        return postdata.fields[n.toLowerCase()] || '';
+        return parsed.fields[n.toLowerCase()] || '';
       } else {
-        return postdata.fields;
+        return parsed.fields;
       }
     },
     uploads: function(n) {
-      var postdata = this.getPostData();
-      if (!postdata.files) return null;
+      var parsed = this._parseReqBody();
+      if (!parsed.files) return null;
       if (arguments.length) {
-        return postdata.files[n] || null;
+        return parsed.files[n] || null;
       } else {
-        return postdata.files;
+        return parsed.files;
       }
     },
     isAjax: function() {

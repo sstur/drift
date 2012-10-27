@@ -4,6 +4,7 @@ define('body-parser', function(require, exports, module) {
 
   var qs = require('qs');
   var md5 = require('md5');
+  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   //var log = app._log = [];
@@ -12,9 +13,9 @@ define('body-parser', function(require, exports, module) {
   var MAX_HEADER_SIZE = 1024;
   var MAX_BUFFER_SIZE = 4096;
 
-  function BodyParser(headers, reader) {
+  function BodyParser(headers, read) {
     this._headers = headers;
-    this._reader = reader;
+    this._binaryRead = read;
     this.bytesRead = 0;
     this.parsed = {files: {}, fields: {}}
   }
@@ -27,10 +28,11 @@ define('body-parser', function(require, exports, module) {
     this.type = this._headers['content-type'] || '';
     this.type = this.type.toLowerCase().split(';')[0];
     this.length = parseInt(this._headers['content-length'], 10);
-    if (!this.length) {
-      error = new Error('Length Required');
-      error.statusCode = 411;
-      return error;
+    if (isNaN(this.length)) {
+      return util.extend(new Error('Length Required'), {statusCode: 411});
+    } else
+    if (this.length === 0) {
+      return; //nothing to parse
     }
     switch(this.type) {
       case 'application/x-www-form-urlencoded':
@@ -42,36 +44,40 @@ define('body-parser', function(require, exports, module) {
       case 'application/octet-stream':
         return this.processBinaryBody();
     }
-    error = new Error('Unsupported Media Type');
-    error.statusCode = 415;
-    return error;
+    return util.extend(new Error('Unsupported Media Type'), {statusCode: 415});
   };
 
   BodyParser.prototype.processFormBody = function() {
-    var body = this._read(Math.min(this.length, MAX_BUFFER_SIZE));
-    //todo: decode
+    var body = this._read(MAX_BUFFER_SIZE);
+    body = new Buffer(body, 'binary').toString('utf8');
     this.parsed.fields = qs.parse(body);
   };
 
   BodyParser.prototype.processJSONBody = function() {
-    var body = this._read(Math.min(this.length, MAX_BUFFER_SIZE));
+    var body = this._read(MAX_BUFFER_SIZE);
+    body = new Buffer(body, 'binary').toString('utf8');
     try {
-      //todo: decode (try utf8, fallback)
-      this.parsed.fields = JSON.parse(body);
+      var parsed = JSON.parse(body);
     } catch(e) {
       return new Error('Invalid JSON Body');
     }
+    //ensure parsed is not null or a primitive
+    this.parsed.fields = (parsed === Object(parsed)) ? parsed : {'': parsed};
   };
 
   BodyParser.prototype.processBinaryBody = function() {
     var headers = this._headers;
-    var currentPart = new Part(headers, {fileName: headers['x-file-name'] || 'upload'});
-    this.emit('file', currentPart);
+    var part = new Part(headers, {
+      name: headers['x-name'] || 'file',
+      fileName: headers['x-filename'] || 'upload',
+      contentType: headers['x-content-type'] || 'application/octet-stream'
+    });
+    this.emit('file', part);
     var chunk;
-    while ((chunk = this._read())) {
-      currentPart.write(chunk);
+    while ((chunk = this._read(BUFFER_SIZE))) {
+      part.write(chunk);
     }
-    this._finalizePart(currentPart)
+    this._finalizePart(part)
   };
 
   BodyParser.prototype.processMultiPartBody = function() {
@@ -82,17 +88,14 @@ define('body-parser', function(require, exports, module) {
     }
     var boundary1 = '--' + boundary;
     var boundary2 = '\r\n--' + boundary;
-    var length = this.length;
-    var buffer = '', read = 0, currentPart, nomatch;
+    var buffer = '', currentPart, nomatch;
     while (1) {
       if (nomatch || buffer.length == 0) {
         //read more data or else we're done
-        if (read < length) {
-          var data = this._read(Math.min(BUFFER_SIZE, length - read));
+        var data = this._read(BUFFER_SIZE);
+        if (data) {
           buffer += data;
-          read += data.length;
           nomatch = false;
-          //log.push('read: ' + data.length + '; total: ' + read);
         } else {
           return;
         }
@@ -141,18 +144,20 @@ define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype._read = function(bytes) {
-    var chunk = this._reader(bytes || BUFFER_SIZE);
+    bytes = bytes || BUFFER_SIZE;
+    var left = this.length - this.bytesRead;
+    var chunk = this._binaryRead(Math.min(bytes, left));
     this.bytesRead += chunk.length;
     //todo: emit progress?
-    return chunk;
+    return chunk.toString('binary');
   };
 
   BodyParser.prototype._finalizePart = function(part) {
     part.end();
     if (part.type == 'file') {
-      this.parsed.files[part.fieldName] = part;
+      this.parsed.files[part.name] = part;
     } else {
-      this.parsed.fields[part.fieldName] = part.fieldValue;
+      this.parsed.fields[part.name] = part.value;
     }
   };
 
@@ -173,9 +178,7 @@ define('body-parser', function(require, exports, module) {
   Part.prototype._initFile = function(file) {
     this.guid = getGuid();
     this._hash = md5.create();
-    this.fieldName = file.name;
-    this.fileName = file.fileName;
-    this.contentType = file.contentType;
+    util.extend(this, file);
   };
 
   //to make Part a valid ReadStream
@@ -189,7 +192,7 @@ define('body-parser', function(require, exports, module) {
     if (this._finished) return; //todo: throw?
     if (this.type == 'file') {
       this._hash.update(data, 'binary');
-      if (this._events['data']) {
+      if (this._events && this._events['data']) {
         var enc = this._encoding, _data = new Buffer(data, 'binary');
         this.emit('data', enc ? _data.toString(enc) : _data);
       }
@@ -206,7 +209,7 @@ define('body-parser', function(require, exports, module) {
       this.emit('end');
     } else {
       var data = new Buffer(this._chunks.join(''), 'binary');
-      this.fieldValue = data.toString('utf8');
+      this.value = data.toString('utf8');
     }
   };
 
@@ -234,9 +237,8 @@ define('body-parser', function(require, exports, module) {
     var file = {};
     file.name = (contentDisp.match(/\bname="(.*?)"/i) || [])[1] || 'file';
     file.fileName = (contentDisp.match(/\bfilename="(.*?)"/i) || [])[1];
-    //todo: default to application/octet-stream ?
-    file.contentType = headers['content-type'] || '';
-    return (file.filename) ? file : null;
+    file.contentType = headers['content-type'] || 'application/octet-stream';
+    return (file.fileName) ? file : null;
   }
 
 });

@@ -35,8 +35,8 @@ function init() {
 
     xhr.open("POST", form.action, true);
     xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    xhr.setRequestHeader("X-Field-Name", input.name);
-    xhr.setRequestHeader("X-File-Name", encodeURIComponent(name));
+    xhr.setRequestHeader("X-Name", input.name);
+    xhr.setRequestHeader("X-Filename", encodeURIComponent(name));
     xhr.setRequestHeader("X-Content-Type", file.type);
     xhr.setRequestHeader("X-Last-Modified", lastModified.toUTCString());
     xhr.setRequestHeader("Content-Type", "application/octet-stream");

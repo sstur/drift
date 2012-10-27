@@ -1,5 +1,5 @@
 /*global app, define, iis */
-//todo: possibly move getCookies and getPostData to higher-level request lib
+//todo: possibly move getCookies to higher-level request lib
 define('adapter-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
@@ -71,9 +71,14 @@ define('adapter-request', function(require, exports, module) {
       return this._cookies;
     },
     read: function(bytes) {
-      return new Buffer(iis.req.binaryRead(bytes)).toString('binary');
+      try {
+        var bin = iis.req.binaryRead(bytes);
+      } catch(e) {
+        throw new Error('Could not read ' + bytes + ' bytes from request body');
+      }
+      return new Buffer(bin);
     },
-    getPostData: function() {
+    parseReqBody: function() {
       var parser = new BodyParser(this.getHeaders(), this.read);
       util.propagateEvents(parser, this, 'file');
       var err = parser.parse();

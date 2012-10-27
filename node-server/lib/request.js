@@ -34,7 +34,7 @@
       }
       return this._cookies;
     },
-    getPostData: function() {
+    parseReqBody: function() {
       var req = this._super;
       if (!req.body || !req.body.getParsed) {
         throw new Error('Request body parser not loaded');
