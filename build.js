@@ -119,7 +119,7 @@
     opts._pre[0] = 'var map = ' + JSON.stringify(sourceFiles) + ';';
   } else {
     //for iis the error handling goes in a separate file
-    var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/_error.js'), 'utf8');
+    var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/!error.js'), 'utf8');
     var errfile = [
       '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
       '<script runat="server" language="javascript">',
