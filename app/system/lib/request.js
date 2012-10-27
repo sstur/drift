@@ -9,7 +9,6 @@ define('request', function(require, exports, module) {
 
   function Request(req) {
     this._super = req;
-    this._params = {};
   }
 
   app.eventify(Request.prototype);
