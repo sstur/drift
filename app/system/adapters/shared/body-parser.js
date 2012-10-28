@@ -9,7 +9,7 @@ define('body-parser', function(require, exports, module) {
 
   //var log = app._log = [];
 
-  var BUFFER_SIZE = 1024;
+  var BUFFER_SIZE = 4;
   var MAX_HEADER_SIZE = 1024;
   var MAX_BUFFER_SIZE = 4096;
 
@@ -48,14 +48,12 @@ define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype.processFormBody = function() {
-    var body = this._read(MAX_BUFFER_SIZE);
-    body = new Buffer(body, 'binary').toString('utf8');
+    var body = this._read(MAX_BUFFER_SIZE, 'utf8');
     this.parsed.fields = qs.parse(body);
   };
 
   BodyParser.prototype.processJSONBody = function() {
-    var body = this._read(MAX_BUFFER_SIZE);
-    body = new Buffer(body, 'binary').toString('utf8');
+    var body = this._read(MAX_BUFFER_SIZE, 'utf8');
     try {
       var parsed = JSON.parse(body);
     } catch(e) {
@@ -74,7 +72,7 @@ define('body-parser', function(require, exports, module) {
     });
     this.emit('file', part);
     var chunk;
-    while ((chunk = this._read(BUFFER_SIZE))) {
+    while ((chunk = this._read(BUFFER_SIZE)) && chunk.length) {
       part.write(chunk);
     }
     this._finalizePart(part)
@@ -92,7 +90,7 @@ define('body-parser', function(require, exports, module) {
     while (1) {
       if (nomatch || buffer.length == 0) {
         //read more data or else we're done
-        var data = this._read(BUFFER_SIZE);
+        var data = this._read(BUFFER_SIZE, 'binary');
         if (data) {
           buffer += data;
           nomatch = false;
@@ -125,14 +123,14 @@ define('body-parser', function(require, exports, module) {
         //log.push('endBody: ' + endBody);
         if (endBody >= 0) {
           //part of buffer belongs to current item
-          currentPart.write(buffer.slice(0, endBody));
+          currentPart.write(new Buffer(buffer.slice(0, endBody), 'binary'));
           this._finalizePart(currentPart);
           buffer = buffer.slice(endBody + 2);
           currentPart = null;
         } else {
           //buffer contains data and possibly partial boundary
           if (buffer.length > boundary2.length) {
-            currentPart.write(buffer.slice(0, buffer.length - boundary2.length));
+            currentPart.write(new Buffer(buffer.slice(0, buffer.length - boundary2.length), 'binary'));
             buffer = buffer.slice(0 - boundary2.length);
           } else {
             //log.push('nomatch');
@@ -143,13 +141,13 @@ define('body-parser', function(require, exports, module) {
     }
   };
 
-  BodyParser.prototype._read = function(bytes) {
+  BodyParser.prototype._read = function(bytes, enc) {
     bytes = bytes || BUFFER_SIZE;
     var left = this.length - this.bytesRead;
     var chunk = this._binaryRead(Math.min(bytes, left));
     this.bytesRead += chunk.length;
     //todo: emit progress?
-    return chunk.toString('binary');
+    return (enc) ? chunk.toString(enc) : chunk;
   };
 
   BodyParser.prototype._finalizePart = function(part) {
@@ -178,6 +176,7 @@ define('body-parser', function(require, exports, module) {
   Part.prototype._initFile = function(file) {
     this.guid = getGuid();
     this._hash = md5.create();
+    this.length = 0;
     util.extend(this, file);
   };
 
@@ -190,14 +189,15 @@ define('body-parser', function(require, exports, module) {
   //to make Part a valid WriteStream
   Part.prototype.write = function(data) {
     if (this._finished) return; //todo: throw?
+    this.length += data.length;
     if (this.type == 'file') {
-      this._hash.update(data, 'binary');
+      this._hash.update(data);
       if (this._events && this._events['data']) {
-        var enc = this._encoding, _data = new Buffer(data, 'binary');
-        this.emit('data', enc ? _data.toString(enc) : _data);
+        var enc = this._encoding;
+        this.emit('data', (enc) ? data.toString(enc) : data);
       }
     } else {
-      this._chunks.push(data);
+      this._chunks.push(data.toString('binary'));
     }
   };
 
@@ -206,11 +206,13 @@ define('body-parser', function(require, exports, module) {
     this._finished = true;
     if (this.type == 'file') {
       this.md5 = this._hash.digest('hex');
+      delete this._hash;
       this.emit('end');
     } else {
       var data = new Buffer(this._chunks.join(''), 'binary');
       this.value = data.toString('utf8');
     }
+    delete this._chunks;
   };
 
 

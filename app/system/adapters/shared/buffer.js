@@ -56,7 +56,12 @@ define('buffer', function(require, exports) {
     } else
     if (type == 'unknown') {
       //ado binary
-      this._raw = adoToRaw(subject);
+      try {
+        this._raw = adoToRaw(subject);
+      } catch(e) {
+        //throw new Error('Cannot create Buffer; invalid input argument');
+        this._raw = '';
+      }
     } else {
       throw new Error('Invalid parameters to construct Buffer')
     }
