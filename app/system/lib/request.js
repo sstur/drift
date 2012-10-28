@@ -62,7 +62,7 @@ define('request', function(require, exports, module) {
     },
     _parseReqBody: function() {
       if (!this._body && this.method() in BODY_ALLOWED) {
-        util.propagateEvents(this._super, this, 'file');
+        util.propagateEvents(this._super, this, 'file upload-progress');
         var result = this._super.parseReqBody();
         if (result instanceof Error) {
           var statusCode = result.statusCode || 400; //400 Bad Request

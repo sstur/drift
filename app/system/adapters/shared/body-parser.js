@@ -9,7 +9,7 @@ define('body-parser', function(require, exports, module) {
 
   //var log = app._log = [];
 
-  var BUFFER_SIZE = 4;
+  var CHUNK_SIZE = 1024;
   var MAX_HEADER_SIZE = 1024;
   var MAX_BUFFER_SIZE = 4096;
 
@@ -72,7 +72,7 @@ define('body-parser', function(require, exports, module) {
     });
     this.emit('file', part);
     var chunk;
-    while ((chunk = this._read(BUFFER_SIZE)) && chunk.length) {
+    while ((chunk = this._read(CHUNK_SIZE)) && chunk.length) {
       part.write(chunk);
     }
     this._finalizePart(part)
@@ -90,7 +90,7 @@ define('body-parser', function(require, exports, module) {
     while (1) {
       if (nomatch || buffer.length == 0) {
         //read more data or else we're done
-        var data = this._read(BUFFER_SIZE, 'binary');
+        var data = this._read(CHUNK_SIZE, 'binary');
         if (data) {
           buffer += data;
           nomatch = false;
@@ -142,11 +142,11 @@ define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype._read = function(bytes, enc) {
-    bytes = bytes || BUFFER_SIZE;
+    bytes = bytes || CHUNK_SIZE;
     var left = this.length - this.bytesRead;
     var chunk = this._binaryRead(Math.min(bytes, left));
     this.bytesRead += chunk.length;
-    //todo: emit progress?
+    this.emit('upload-progress', this.bytesRead, this.length);
     return (enc) ? chunk.toString(enc) : chunk;
   };
 
@@ -188,7 +188,7 @@ define('body-parser', function(require, exports, module) {
 
   //to make Part a valid WriteStream
   Part.prototype.write = function(data) {
-    if (this._finished) return; //todo: throw?
+    if (this._finished) return;
     this.length += data.length;
     if (this.type == 'file') {
       this._hash.update(data);

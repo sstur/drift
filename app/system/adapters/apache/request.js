@@ -68,7 +68,7 @@ define('adapter-request', function(require, exports, module) {
     },
     parseReqBody: function() {
       var parser = new BodyParser(this.getHeaders(), this.read);
-      util.propagateEvents(parser, this, 'file');
+      util.propagateEvents(parser, this, 'file upload-progress');
       var err = parser.parse();
       if (err) {
         return err;
