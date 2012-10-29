@@ -4,37 +4,34 @@ var JSON;
 
   JSON = {};
 
-  function f(n) {
-    // Format integers to have at least two digits.
+  // Format integers to have at least two digits
+  function f2(n) {
     return n < 10 ? '0' + n : n;
   }
 
-  //Added by Simon
-  //Format milliseconds to have at least three digits
+  //Format numbers to have at least three digits
   function f3(n) {
     return ('000' + n).slice(-3);
   }
 
-  if (typeof Date.prototype.toJSON !== 'function') {
+  var toString = Object.prototype.toString;
 
-    Date.prototype.toJSON = function(key) {
+  var REPLACERS = {
+    Date: function(key) {
       var val = this.valueOf();
       return isFinite(val) ?
         this.getUTCFullYear() + '-' +
-        f(this.getUTCMonth() + 1) + '-' +
-        f(this.getUTCDate())  + 'T' +
-        f(this.getUTCHours()) + ':' +
-        f(this.getUTCMinutes()) + ':' +
-        f(this.getUTCSeconds()) + '.' +
-        f3(val % 1000) + 'Z' : null;
-    };
-
-    String.prototype.toJSON    =
-      Number.prototype.toJSON  =
-      Boolean.prototype.toJSON = function(key) {
-        return this.valueOf();
-      };
-  }
+          f2(this.getUTCMonth() + 1) + '-' +
+          f2(this.getUTCDate())  + 'T' +
+          f2(this.getUTCHours()) + ':' +
+          f2(this.getUTCMinutes()) + ':' +
+          f2(this.getUTCSeconds()) + '.' +
+          f3(val % 1000) + 'Z' : null;
+    },
+    String: String.prototype.valueOf,
+    Number: Number.prototype.valueOf,
+    Boolean: Boolean.prototype.valueOf
+  };
 
   var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
     escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
@@ -63,8 +60,7 @@ var JSON;
     escapable.lastIndex = 0;
     return escapable.test(string) ? '"' + string.replace(escapable, function(a) {
       var c = meta[a];
-      return typeof c === 'string' ? c :
-        '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+      return typeof c === 'string' ? c : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
     }) + '"' : '"' + string + '"';
   }
 
@@ -79,13 +75,16 @@ var JSON;
       length,
       mind = gap,
       partial,
-      value = holder[key];
+      value = holder[key],
+      toJSON;
 
     // If the value has a toJSON method, call it to obtain a replacement value.
 
-    if (value && typeof value === 'object' &&
-        typeof value.toJSON === 'function') {
-      value = value.toJSON(key);
+    if (value && typeof value === 'object') {
+      toJSON = value.toJSON || REPLACERS[toString.call(value).slice(8, -1)];
+      if (typeof toJSON === 'function') {
+        value = toJSON.call(value, key);
+      }
     }
 
     // If we were called with a replacer function, then call the replacer to
@@ -128,12 +127,6 @@ var JSON;
         return 'null';
       }
 
-      // Added by Simon. Allows proper encoding of dates created in another global context
-      var type = Object.prototype.toString.apply(value);
-      if (type === '[object Date]') {
-        return quote(Date.prototype.toJSON.call(value));
-      }
-
       // Make an array to hold the partial results of stringifying this object value.
 
       gap += indent;
@@ -142,7 +135,7 @@ var JSON;
 
       // Is the value an array?
 
-      if (type === '[object Array]') {
+      if (toString.call(value) === '[object Array]') {
 
         // The value is an array. Stringify every element. Use null as a placeholder
         // for non-JSON values.
