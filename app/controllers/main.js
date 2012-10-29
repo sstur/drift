@@ -10,6 +10,10 @@ app.on('ready', function(require) {
     res.end('Hello world!');
   });
 
+  app.route('/json', function(req, res) {
+    res.end(JSON.stringify([new Date, new String(1), new Boolean(0), new Number(2)]));
+  });
+
   app.route('/redir/:i?', function(req, res, i) {
     var count = (+i || 0) + 1;
     fs.log('redirecting ' + count);

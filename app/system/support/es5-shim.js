@@ -550,7 +550,7 @@
       if (hasDontEnumBug) {
         for (var i = 0, ii = dontEnumsLength; i < ii; i++) {
           var dontEnum = dontEnums[i];
-          //added by Simon to exclude constructor property on Func.prototype that should be non-enumerable
+          //exclude constructor property in cases where it *should* be non-enumerable (fn.prototype)
           if (dontEnum == 'constructor' && object.constructor && object.constructor.prototype === object) {
             continue;
           }
