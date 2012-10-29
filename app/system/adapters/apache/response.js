@@ -2,6 +2,7 @@
 define('adapter-response', function(require, exports, module) {
   "use strict";
 
+  //todo: move this to app/config
   var cfg = {
     logging: {response_time: 1}
   };
@@ -11,28 +12,21 @@ define('adapter-response', function(require, exports, module) {
 
   var TEXT_CTYPES = /^text\/|\/json$/i;
 
-  var headers = ['Accept-Ranges', 'Age', 'Allow', 'Cache-Control', 'Connection', 'Content-Encoding', 'Content-Language',
+  var knownHeaders = ['Accept-Ranges', 'Age', 'Allow', 'Cache-Control', 'Connection', 'Content-Encoding', 'Content-Language',
     'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Disposition', 'Content-Range', 'Content-Type', 'Date',
     'ETag', 'Expires', 'Last-Modified', 'Link', 'Location', 'P3P', 'Pragma', 'Proxy-Authenticate', 'Refresh',
     'Retry-After', 'Server', 'Set-Cookie', 'Strict-Transport-Security', 'Trailer', 'Transfer-Encoding', 'Vary', 'Via',
     'Warning', 'WWW-Authenticate', 'X-Frame-Options', 'X-XSS-Protection', 'X-Content-Type-Options', 'X-Forwarded-Proto',
     'Front-End-Https', 'X-Powered-By', 'X-UA-Compatible'];
 
+  //index headers by lowercase
+  knownHeaders = knownHeaders.reduce(function(headers, header) {
+    headers[header.toLowerCase()] = header;
+    return headers;
+  }, {});
+
   //headers that allow multiple
   var allowMulti = {'Set-Cookie': 1};
-
-  //index headers by lowercase
-  var allHeaders = {};
-  headers.forEach(function(header) {
-    allHeaders[header.toLowerCase()] = header;
-  });
-
-  var getCharset = function(charset, contentType) {
-    charset = charset || 'utf-8';
-    if (TEXT_CTYPES.test(contentType)) {
-      return charset.toUpperCase();
-    }
-  };
 
   var buildContentType = function(charset, contentType) {
     //contentType may already have charset
@@ -53,7 +47,7 @@ define('adapter-response', function(require, exports, module) {
         return headers;
       }
       n = (n == null) ? '' : String(n);
-      var key = allHeaders[n.toLowerCase()] || n;
+      var key = knownHeaders[n.toLowerCase()] || n;
       if (arguments.length == 1) {
         val = headers[key];
         return (val && val.join) ? val.join('; ') : val;
@@ -83,20 +77,6 @@ define('adapter-response', function(require, exports, module) {
       var cookie = (typeof val == 'string') ? {value: val} : val;
       cookie.name = n;
       cookies[n] = cookie;
-    },
-    serializeCookie: function(cookie) {
-      var out = [];
-      out.push(cookie.name + '=' + encodeURIComponent(cookie.value));
-      if (cookie.domain)
-        out.push('Domain=' + cookie.domain);
-      out.push('Path=' + (cookie.path || '/'));
-      if (cookie.expires)
-        out.push('Expires=' + cookie.expires.toGMTString());
-      if (cookie.httpOnly)
-        out.push('HttpOnly');
-      if (cookie.secure)
-        out.push('Secure');
-      return out.join('; ');
     },
     charset: function(charset) {
       if (arguments.length) {
@@ -129,7 +109,7 @@ define('adapter-response', function(require, exports, module) {
       var res = this.response;
       var cookies = res.cookies;
       for (var n in cookies) {
-        this.headers('Set-Cookie', this.serializeCookie(cookies[n]));
+        this.headers('Set-Cookie', serializeCookie(cookies[n]));
       }
       if (cfg.logging && cfg.logging.response_time && app.__init) {
         this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
@@ -167,6 +147,21 @@ define('adapter-response', function(require, exports, module) {
       this.sendStream(fs.createReadStream(opts.file));
     }
   });
+
+  function serializeCookie(cookie) {
+    var out = [];
+    out.push(cookie.name + '=' + encodeURIComponent(cookie.value));
+    if (cookie.domain)
+      out.push('Domain=' + cookie.domain);
+    out.push('Path=' + (cookie.path || '/'));
+    if (cookie.expires)
+      out.push('Expires=' + cookie.expires.toGMTString());
+    if (cookie.httpOnly)
+      out.push('HttpOnly');
+    if (cookie.secure)
+      out.push('Secure');
+    return out.join('; ');
+  }
 
   module.exports = Response;
 });

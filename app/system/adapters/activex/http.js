@@ -10,7 +10,7 @@ define('http', function(require, exports) {
   //url helpers
   var parseUrl = url.parse, resolveUrl = url.resolve;
 
-  var headers = [
+  var knownHeaders = [
     "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
     "Cache-Control", "Connection", "Cookie", "Content-Length", "Content-MD5", "Content-Type", "Date", "Expect", "From",
     "Host", "If-Match", "If-Modified-Since", "If-None-Match", "If-Range", "If-Unmodified-Since", "Max-Forwards",
@@ -18,7 +18,7 @@ define('http', function(require, exports) {
     "X-Requested-With", "X-Do-Not-Track", "X-Forwarded-For", "X-ATT-DeviceId", "X-Wap-Profile"];
 
   //index headers by lowercase
-  headers = headers.reduce(function(headers, header) {
+  knownHeaders = knownHeaders.reduce(function(headers, header) {
     headers[header.toLowerCase()] = header;
     return headers;
   }, {});
@@ -31,7 +31,7 @@ define('http', function(require, exports) {
 
   ClientRequest.prototype.addHeader = function(n, val) {
     var key = n.toLowerCase();
-    n = headers[key] || n;
+    n = knownHeaders[key] || n;
     this.headers[n] = val;
   };
 
