@@ -16,7 +16,9 @@ app.on('ready', function(require) {
   });
 
   app.route('/test/json', function(req, res) {
-    res.end(JSON.stringify([new Date, new String(1), new Boolean(0), new Number(2)]));
+    var fields = req.post();
+    var data = JSON.parse(fields.data);
+    res.end(data);
   });
 
 });
