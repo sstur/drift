@@ -11,6 +11,7 @@ define('util', function(require, util) {
   util.extend = function() {
     var args = Array.toArray(arguments), dest = args.shift();
     args.forEach(function(src) {
+      if (!src) return;
       Object.keys(src).forEach(function(key) {
         dest[key] = src[key];
       });

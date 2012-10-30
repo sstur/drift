@@ -2,6 +2,7 @@
 app.on('ready', function(require) {
 
   var fs = require('fs')
+    , util = require('util')
     , Liquid = require('liquid')
     , Response = require('response');
 
@@ -43,8 +44,8 @@ app.on('ready', function(require) {
   };
 
   Response.prototype.send = function(path, data) {
-    var rendered = Liquid.renderTemplate(path, Object.extend({}, defaults, data));
-    this.end('text/html', rendered);
+    var html = Liquid.renderTemplate(path, util.extend({}, defaults, data));
+    this.end('text/html', html);
   };
 
 });
