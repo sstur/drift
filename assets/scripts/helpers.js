@@ -58,8 +58,7 @@ jQuery(function($) {
   helpers.clearCookies = function() {
     var cookies = document.cookie.split(';');
     cookies.forEach(function(cookie) {
-      cookie = cookie.trim();
-      var name = cookie.split('=')[0];
+      var name = cookie.trim().split('=')[0];
       $.removeCookie(name);
     });
   };

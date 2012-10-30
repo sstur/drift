@@ -8,7 +8,7 @@ app.on('ready', function(require) {
 
   app.route('/test/cookie/:name/:value', function(req, res, name, value) {
     res.cookies(name, value);
-    res.end('set cookie: ' + name);
+    res.end({success: true});
   });
 
   app.route('/test/cookies', function(req, res) {

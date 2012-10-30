@@ -6,12 +6,25 @@ jQuery(function($) {
 
   describe('Cookie Handling', function() {
 
-    it('test editor init', function(done) {
+    it('test empty cookies', function(done) {
       helpers.clearCookies();
       helpers.get('/test/cookies', function(err, data) {
         if (err) return done(err);
         expect(data).to.eql({});
         done();
+      });
+    });
+
+    it('test set cookie', function(done) {
+      helpers.clearCookies();
+      helpers.get('/test/cookie/one/two', function(err, data) {
+        if (err) return done(err);
+        expect(data).to.eql({success: true});
+        helpers.get('/test/cookies', function(err, data) {
+          if (err) return done(err);
+          expect(data).to.eql({one: 'two'});
+          done();
+        });
       });
     });
 
