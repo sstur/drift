@@ -8,7 +8,10 @@ app.on('ready', function(require) {
 
   app.route('/', function(req, res) {
     res.send('tests');
-    //res.end('Hello world!');
+  });
+
+  app.route('/favicon.ico', function(req, res) {
+    res.redirect('/assets/favicon.ico', 301);
   });
 
   //app.route('/redir/:i?', function(req, res, i) {
@@ -132,14 +135,6 @@ app.on('ready', function(require) {
   //  var result = db.fetchAll('select * from test');
   //  console.log('finished query');
   //  res.die(result);
-  //});
-
-  //app.route('/throw-syntax', function(req, res) {
-  //  new Function('return if;')();
-  //});
-
-  //app.route('/throw', function(req, res) {
-  //  this.a.b;
   //});
 
 });
