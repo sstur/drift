@@ -7,11 +7,8 @@ app.on('ready', function(require) {
   var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
-    res.end('Hello world!');
-  });
-
-  app.route('/json', function(req, res) {
-    res.end(JSON.stringify([new Date, new String(1), new Boolean(0), new Number(2)]));
+    res.send('tests');
+    //res.end('Hello world!');
   });
 
   app.route('/redir/:i?', function(req, res, i) {
@@ -24,12 +21,6 @@ app.on('ready', function(require) {
   app.route('/dump', function(req, res) {
     var data = {method: req.method(), url: req.url(), headers: req.headers()};
     res.debug(data);
-  });
-
-  app.route('/test/:id', function(req, res, id) {
-    var qs = require('qs');
-    res.debug(qs.parse('a=1&&b=2&c&=3&c=' + id, {flatten: false}));
-
   });
 
   app.route('/:one/:two', function(req, res) {
@@ -112,24 +103,6 @@ app.on('ready', function(require) {
     var fs = require('fs');
     fs.log('test');
     res.end('done');
-  });
-
-  app.route('/cookie/:name/:value', function(req, res, name, value) {
-    res.cookies(name, value);
-    res.end('set cookie: ' + name);
-  });
-
-  app.route('/cookies', function(req, res) {
-    res.end(req.cookies());
-  });
-
-  app.route('/liquid', function(req, res) {
-    var Liquid = require('liquid');
-    var render = function(src, ctx) {
-      return Liquid.parse(src).renderWithErrors(ctx);
-    };
-    var markup = render("<p>{{user | capitalize}}</p>", {user: 'bob'});
-    res.end('text/plain', markup);
   });
 
   app.route('/cc', function(req, res) {

@@ -1,5 +1,17 @@
 /*global app, define */
+
 //Helpers for Cross-origin resource sharing
+
+app.on('ready', function(require) {
+  var Request = require('request');
+
+  var _isAjax = Request.prototype.isAjax;
+  Request.prototype.isAjax = function() {
+    return (_isAjax.call(this) || !!this.headers('origin'));
+  };
+
+});
+
 app.on('request', function(req, res) {
   "use strict";
 
@@ -12,11 +24,5 @@ app.on('request', function(req, res) {
       req._headers['content-type'] = contentType;
     }
   }
-
-  var _isAjax = req.isAjax;
-  req.isAjax = function() {
-    return (_isAjax.call(this) || !!this.headers('origin'));
-  };
-
 
 });
