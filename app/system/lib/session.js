@@ -60,7 +60,7 @@ define('session', function(require, exports, module) {
       },
       'saveAll': function(session) {
         var self = controllers.memory;
-        forEach(session.namespaces, function(namespace, data) {
+        forEach(session.namespaces || {}, function(namespace, data) {
           self.save(session, namespace, data);
         });
       },
@@ -178,9 +178,12 @@ define('session', function(require, exports, module) {
       if (arguments.length == 2) {
         (val == null) ? delete data[n] : data[n] = val;
         return val;
-      } else {
+      } else
+      if (arguments.length == 1) {
         val = data[n];
         return (val == null) ? '' : val;
+      } else {
+        return util.extend({}, data);
       }
     },
     clear: function() {
@@ -207,7 +210,7 @@ define('session', function(require, exports, module) {
       }
       if (vartype(opts, 'array')) {
         opts.each(function(i, opt) {
-          var m = opt.match(/^([\w-]+)(?:[:=]([^\s]+))?$/);
+          var m = opt.match(/^([\w-]+)(?:[:=](\S+))?$/);
           if (m && m[2]) {
             options[m[1]] = m[2];
           } else {
@@ -216,7 +219,7 @@ define('session', function(require, exports, module) {
         });
       } else
       if (vartype(opts, 'object')) {
-        Object.append(options, opts);
+        util.extend(options, opts);
       }
       var session = new Session(req, res, options);
       var accessor = function() {

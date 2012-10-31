@@ -18,7 +18,6 @@ jQuery(function($) {
       dataType: opts.type || 'json',
       success: function(data, textStatus, xhr) {
         //textStatus: "success", "notmodified"
-        console.log({request: url, textStatus: textStatus});
         callback(null, data);
       },
       error: function(xhr, textStatus, ex) {
@@ -41,7 +40,7 @@ jQuery(function($) {
         if (textStatus == 'parsererror') {
           error = new Error('Unable to parse HTTP Response: ' + xhr.status + ' ' + xhr.statusText);
         }
-        console.log('Error: ', error);
+        //console.log('Error: ', error);
         callback(error);
       }
     });

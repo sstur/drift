@@ -48,5 +48,33 @@ jQuery(function($) {
 
   });
 
+  describe('Session Handling', function() {
+
+    it('test empty session', function(done) {
+      helpers.clearCookies();
+      helpers.get('/test/session', function(err, data) {
+        if (err) return done(err);
+        //todo: test xhr.headers['set-cookie']
+        expect(data).to.eql({});
+        done();
+      });
+    });
+
+    it('test set session', function(done) {
+      helpers.clearCookies();
+      helpers.get('/test/session/user/123', function(err, data) {
+        if (err) return done(err);
+        //todo: test xhr.headers['set-cookie']
+        expect(data).to.eql({success: true});
+        helpers.get('/test/session', function(err, data) {
+          if (err) return done(err);
+          expect(data).to.eql({user: '123'});
+          done();
+        });
+      });
+    });
+
+  });
+
   mocha.run();
 });
