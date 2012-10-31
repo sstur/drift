@@ -54,7 +54,7 @@ jQuery(function($) {
       helpers.clearCookies();
       helpers.get('/test/session', function(err, data) {
         if (err) return done(err);
-        //todo: test xhr.headers['set-cookie']
+        //console.log(this.getAllResponseHeaders());
         expect(data).to.eql({});
         done();
       });
@@ -64,7 +64,6 @@ jQuery(function($) {
       helpers.clearCookies();
       helpers.get('/test/session/user/123', function(err, data) {
         if (err) return done(err);
-        //todo: test xhr.headers['set-cookie']
         expect(data).to.eql({success: true});
         helpers.get('/test/session', function(err, data) {
           if (err) return done(err);

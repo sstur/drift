@@ -4425,7 +4425,9 @@ exports.slug = function(str){
 exports.clean = function(str) {
   str = str
     .replace(/^function *\(.*\) *{/, '')
-    .replace(/\s+\}$/, '');
+    .replace(/\s+\}$/, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/(^}|\n)\s*\n$/g, '$1');
 
   var spaces = str.match(/^\n?( *)/)[1].length
     , re = new RegExp('^ {' + spaces + '}', 'gm');

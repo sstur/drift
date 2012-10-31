@@ -18,7 +18,7 @@ jQuery(function($) {
       dataType: opts.type || 'json',
       success: function(data, textStatus, xhr) {
         //textStatus: "success", "notmodified"
-        callback(null, data);
+        callback.call(xhr, null, data);
       },
       error: function(xhr, textStatus, ex) {
         //textStatus: "error", "timeout", "abort", or "parsererror"
@@ -41,7 +41,7 @@ jQuery(function($) {
           error = new Error('Unable to parse HTTP Response: ' + xhr.status + ' ' + xhr.statusText);
         }
         //console.log('Error: ', error);
-        callback(error);
+        callback.call(xhr, error);
       }
     });
   };
