@@ -34,4 +34,13 @@ app.on('ready', function(require) {
     res.end(session());
   });
 
+  app.route('/test/sendfile', function(req, res) {
+    res.sendFile({
+      file: 'assets/testfile.txt',
+      contentType: 'text/plain',
+      attachment: 1,
+      name: 'a`~!@#$%^&*()_+-={}|[]\\:";\'><?,/.txt'
+    });
+  });
+
 });

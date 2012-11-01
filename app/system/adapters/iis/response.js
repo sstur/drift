@@ -167,7 +167,7 @@ define('adapter-response', function(require, exports, module) {
       if (opts.attachment) cdisp.push('attachment');
       if (opts.name) {
         var name = (typeof opts.name == 'string') ? opts.name : opts.file.split('/').pop();
-        cdisp.push('name="' + util.stripFilename(name) + '"');
+        cdisp.push('filename="' + util.stripFilename(name) + '"');
       }
       if (cdisp.length) {
         this.headers('Content-Disposition', cdisp.join('; '));
