@@ -146,9 +146,9 @@ define('fs', function(require, fs) {
     }
     if (!logfile) logfile = 'default';
     var data = args
-      , path = 'data/logs/' + logfile.replace(/\.log$/, '') + '._log';
+      , path = 'data/logs/' + logfile.replace(/\.log$/i, '') + '.log';
     data.forEach(function(line, i) {
-      data[i] = (line instanceof Object) ? JSON.stringify(line) : String(line);
+      data[i] = (isPrimitive(line)) ? String(line) : util.stringify(line);
     });
     data.unshift(new Date().toUTCString());
     data.push('');

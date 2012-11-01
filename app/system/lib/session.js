@@ -183,7 +183,7 @@ define('session', function(require, exports, module) {
         val = data[n];
         return (val == null) ? '' : val;
       } else {
-        return util.extend({}, data);
+        return data;
       }
     },
     clear: function() {
