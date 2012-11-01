@@ -101,7 +101,7 @@ define('fs', function(require, fs) {
       this.opts.encoding = enc;
     },
     write: function(data, enc) {
-      if (this._finished) return; //todo: throw?
+      if (this._finished) return;
       var bin = (Buffer.isBuffer(data)) ? data : new Buffer(data, enc || this.opts.encoding);
       this._stream.write(encodeBin(bin.toString('binary')));
     },

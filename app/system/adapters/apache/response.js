@@ -140,10 +140,15 @@ define('adapter-response', function(require, exports, module) {
         opts = {file: String(opts)};
       }
       this.headers('Content-Type', opts.contentType || 'application/octet-stream');
-      var name = opts.name || opts.file.split('/').pop();
-      //todo: escape name
-      var cdisp = (opts.attachment ? 'attachment; ' : '') + 'name="' + name + '"';
-      this.headers('Content-Disposition', cdisp);
+      var cdisp = [];
+      if (opts.attachment) cdisp.push('attachment');
+      if (opts.name) {
+        var name = (typeof opts.name == 'string') ? opts.name : opts.file.split('/').pop();
+        cdisp.push('name="' + util.stripFilename(name) + '"');
+      }
+      if (cdisp.length) {
+        this.headers('Content-Disposition', cdisp.join('; '));
+      }
       this.sendStream(fs.createReadStream(opts.file));
     }
   });

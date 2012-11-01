@@ -216,7 +216,7 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   };
 
   RegExp.escape = function(str) {
-    return String(str).replace(/([.?*+^$[\]\\(){}-])/g, '\\$1');
+    return String(str).replace(/([.?*+^$\[\]\\(){}-])/g, '\\$1');
   };
 
   RegExp.copyAsGlobal = function(reg) {

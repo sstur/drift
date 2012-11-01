@@ -50,6 +50,25 @@ define('util', function(require, util) {
   };
 
 
+  //strip a filename to be safe in Content-Disposition header
+  // according to rfc5987 extended chars can be encoded using:
+  // "filename*=UTF-8''" + encodeURIComponent(filename)
+  // but support is not consistent
+  util.stripFilename = function(filename, ch) {
+    ch = ch || '';
+    var safe = String(filename);
+    //control characters
+    safe = safe.replace(/[\x00-\x1F]/g, ch);
+    //these are generally unsafe at the OS level
+    safe = safe.replace(/[\\\/:*?<>|&]/g, ch);
+    //these have special meaning in headers
+    safe = safe.replace(/[%",]/g, ch);
+    //non-ascii / extended characters
+    safe = safe.replace(/[\u007E-\uFFFF]/g, ch);
+    return safe;
+  };
+
+
   util.htmlEnc = function(str, /**Boolean=true*/ attr) {
     str = String(str);
     str = str.replace(/&/g, '&amp;');
