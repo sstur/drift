@@ -53,15 +53,14 @@ define('util', function(require, util) {
   //decode a header (e.g. Content-Disposition) accounting for
   // various encodings such as: field*=UTF-8'en'a%20b
   util.decodeHeaderValue = function(str) {
-    var obj = {}, i;
-    while ((i = firstMatch(str, '=', ';')) >= 0) {
-      var sep = str.charAt(i), name = str.substr(0, i), value = '';
-      str = str.slice(i + 1).trim();
+    var obj = {}, match;
+    while (str && (match = str.match(/^(.*?)([=;]|$)/))) {
+      var name = match[1], sep = match[2], value = '';
+      str = str.slice(name.length + 1).trim();
       if (sep == '=') {
-        //use regexp to allow quoted strings containing ";"
-        var match = str.match(/^(".*?"|[^;]*)(;|$)/);
-        value = match[1];
-        str = str.slice(match[0].length);
+        //allow quoted strings containing ";"
+        value = str.match(/^(".*?"|[^;]*)(;|$)/)[1];
+        str = str.slice(value.length + 1).trim();
       }
       if (name.slice(-1) == '*') {
         name = name.slice(0, -1);
@@ -71,7 +70,6 @@ define('util', function(require, util) {
       value = value.replace(/(%[0-9a-f]{2})+/ig, urlDec);
       obj[name] = value;
     }
-    if (str) obj[str] = '';
     return obj;
   };
 
@@ -182,14 +180,6 @@ define('util', function(require, util) {
 
   function encodeChars(ch) {
     return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
-  }
-
-  function firstMatch(str) {
-    var values = [], pos;
-    for (var i = 1; i < arguments.length; i++) {
-      if ((pos = str.indexOf(arguments[i])) >= 0) values.push(pos);
-    }
-    return values.length ? Math.min.apply(Math, values) : -1;
   }
 
   function urlDec(s) {
