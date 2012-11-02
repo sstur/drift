@@ -24,9 +24,6 @@ define('body-parser', function(require, exports, module) {
   app.eventify(BodyParser.prototype);
 
   BodyParser.prototype.parse = function() {
-    var error;
-    this.type = this._headers['content-type'] || '';
-    this.type = this.type.toLowerCase().split(';')[0];
     this.length = parseInt(this._headers['content-length'], 10);
     if (isNaN(this.length)) {
       return util.extend(new Error('Length Required'), {statusCode: 411});
@@ -34,17 +31,23 @@ define('body-parser', function(require, exports, module) {
     if (this.length === 0) {
       return; //nothing to parse
     }
+    this.type = this._headers['content-type'] || '';
+    this.type = this.type.toLowerCase().split(';')[0];
+    if (!this.type) {
+      return util.extend(new Error('Content-Type Required'), {statusCode: 415});
+    }
     switch(this.type) {
       case 'application/x-www-form-urlencoded':
         return this.processFormBody();
       case 'application/json':
         return this.processJSONBody();
       case 'multipart/form-data':
+        //todo: support nested multipart with multipart/mixed
+        //todo: support Content-Transfer-Encoding of parts
         return this.processMultiPartBody();
-      case 'application/octet-stream':
+      default:
         return this.processBinaryBody();
     }
-    return util.extend(new Error('Unsupported Media Type'), {statusCode: 415});
   };
 
   BodyParser.prototype.processFormBody = function() {
@@ -65,10 +68,12 @@ define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.processBinaryBody = function() {
     var headers = this._headers;
+    var contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
     var part = new Part(headers, {
-      name: headers['x-name'] || 'file',
-      fileName: headers['x-filename'] || 'upload',
-      contentType: headers['x-content-type'] || 'application/octet-stream'
+      name: contentDisp.name || headers['x-name'] || 'file',
+      fileName: contentDisp.filename || headers['x-filename'] || 'upload',
+      //todo: support content-description?
+      contentType: headers['x-content-type'] || this.type
     });
     this.emit('file', part);
     var chunk;
@@ -162,7 +167,7 @@ define('body-parser', function(require, exports, module) {
 
 
   function Part(head, file) {
-    this.headers = (typeof head == 'string') ? parseHeaders(head) : head;
+    this.headers = (typeof head == 'string') ? util.parseHeaders(head) : head;
     this._chunks = [];
     file = file || parseFileHeaders(this.headers);
     this.type = (file) ? 'file' : 'field';
@@ -223,24 +228,15 @@ define('body-parser', function(require, exports, module) {
     });
   }
 
-  function parseHeaders(raw) {
-    var headers = {}, all = raw.split('\r\n');
-    for (var i = 0; i < all.length; i++) {
-      var header = all[i], pos = header.indexOf(':');
-      if (pos < 0) continue;
-      var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
-      headers[key] = headers[key] ? headers[key] + ', ' + val : val;
-    }
-    return headers;
-  }
-
   function parseFileHeaders(headers) {
-    var contentDisp = headers['content-disposition'] || '';
-    var file = {};
-    file.name = (contentDisp.match(/\bname="(.*?)"/i) || [])[1] || 'file';
-    file.fileName = (contentDisp.match(/\bfilename="(.*?)"/i) || [])[1];
-    file.contentType = headers['content-type'] || 'application/octet-stream';
-    return (file.fileName) ? file : null;
+    var file, contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
+    if ('filename' in contentDisp) {
+      file = {};
+      file.name = contentDisp.name || 'file';
+      file.fileName = contentDisp.filename || 'upload';
+      file.contentType = headers['content-type'] || 'application/octet-stream';
+    }
+    return file;
   }
 
 });

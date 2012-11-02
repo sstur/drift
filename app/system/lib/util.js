@@ -50,9 +50,21 @@ define('util', function(require, util) {
   };
 
 
-  //decode a header (e.g. Content-Disposition) accounting for
-  // various formats such as: field*=UTF-8'en'a%20b
-  util.decodeHeaderValue = function(str) {
+  //parse a set of HTTP headers
+  util.parseHeaders = function(raw) {
+    var headers = {}, all = raw.split('\r\n');
+    for (var i = 0; i < all.length; i++) {
+      var header = all[i], pos = header.indexOf(':');
+      if (pos < 0) continue;
+      var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
+      headers[key] = headers[key] ? headers[key] + ', ' + val : val;
+    }
+    return headers;
+  };
+
+  //parse a header value (e.g. Content-Disposition) accounting for
+  // various formats such as rfc5987: field*=UTF-8'en'a%20b
+  util.parseHeaderValue = function(str) {
     //replace quoted strings with encoded contents
     str = String(str).replace(/"(.*?)"/g, function(_, s) {
       return encodeURIComponent(s);
