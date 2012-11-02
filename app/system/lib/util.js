@@ -51,26 +51,23 @@ define('util', function(require, util) {
 
 
   //decode a header (e.g. Content-Disposition) accounting for
-  // various encodings such as: field*=UTF-8'en'a%20b
+  // various formats such as: field*=UTF-8'en'a%20b
   util.decodeHeaderValue = function(str) {
-    var obj = {}, match;
-    while (str && (match = str.match(/^(.*?)([=;]|$)/))) {
-      var name = match[1], sep = match[2], value = '';
-      str = str.slice(name.length + 1).trim();
-      if (sep == '=') {
-        //allow quoted strings containing ";"
-        value = str.match(/^(".*?"|[^;]*)(;|$)/)[1];
-        str = str.slice(value.length + 1).trim();
-      }
+    //replace quoted strings with encoded contents
+    str = String(str).replace(/"(.*?)"/g, function(_, s) {
+      return encodeURIComponent(s);
+    });
+    return str.split(';').reduce(function(obj, pair) {
+      var split = pair.trim().split('=');
+      var name = split[0], value = split[1] || '';
       if (name.slice(-1) == '*') {
         name = name.slice(0, -1);
         value = value.replace(/^[\w-]+'.*?'/, '');
       }
-      value = value.replace(/^"(.*)"$/, '$1');
       value = value.replace(/(%[0-9a-f]{2})+/ig, urlDec);
-      obj[name] = value;
-    }
-    return obj;
+      if (name) obj[name] = urlDec(value);
+      return obj
+    }, {});
   };
 
 
