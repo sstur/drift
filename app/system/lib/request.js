@@ -16,64 +16,47 @@ define('request', function(require, exports, module) {
 
   util.extend(Request.prototype, {
     url: function(part) {
+      var url = this._url || (this._url = parseURL(this._super.getURL()));
       if (part) {
-        if (!this.url_parts) this.url_parts = this._super.getURLParts();
-        return this.url_parts[part];
+        return url[part];
       } else {
-        if (!this._url) this._url = this._super.getURL();
-        return this._url;
-      }
-    },
-    headers: function(n) {
-      if (!this._headers) {
-        this._headers = this._super.getHeaders();
-      }
-      if (arguments.length) {
-        return this._headers[n.toLowerCase()] || '';
-      } else {
-        return this._headers;
-      }
-    },
-    cookies: function(n) {
-      if (!this._cookies) {
-        this._cookies = this._super.getCookies();
-      }
-      if (arguments.length) {
-        return this._cookies[n] || '';
-      } else {
-        return this._cookies;
+        return url.full;
       }
     },
     method: function(s) {
-      //method override (for methods like PUT/DELETE that may be unsupported at the server level)
-      var method = (this.headers('X-HTTP-Method-Override') || this.params('_method')).toUpperCase();
-      method = (method in HTTP_METHODS) ? method : this._super.getMethod();
-      return (typeof s == 'string') ? (s.toUpperCase() == method) : method;
+      if (!this._method) {
+        //method override (for JSONP and platforms that don't support PUT/DELETE)
+        this._method = (this.headers('X-HTTP-Method-Override') || this.params('_method')).toUpperCase();
+        this._method = (this._method in HTTP_METHODS) ? this._method : this._super.getMethod();
+      }
+      return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
+    },
+    headers: function(n) {
+      var headers = this._headers || (this._headers = this._super.getHeaders());
+      if (arguments.length) {
+        return headers[n.toLowerCase()] || '';
+      } else {
+        return headers;
+      }
+    },
+    cookies: function(n) {
+      var cookies = this._cookies || (this._cookies = parseCookies(this.headers('cookie')));
+      if (arguments.length) {
+        return cookies[n] || '';
+      } else {
+        return cookies;
+      }
     },
     params: function(n) {
-      if (!this._params) {
-        this._params = qs.parse(this.url('qs'));
-      }
+      var params = this._params || (this._params = qs.parse(this.url('qs')));
       if (arguments.length) {
-        return this._params[n] || '';
+        return params[n] || '';
       } else {
-        return this._params;
+        return params;
       }
-    },
-    _parseReqBody: function() {
-      if (!this._body && this.method() in BODY_ALLOWED) {
-        util.propagateEvents(this._super, this, 'file upload-progress');
-        var result = this._super.parseReqBody();
-        if (result instanceof Error) {
-          var statusCode = result.statusCode || 400; //400 Bad Request
-          this.res.die(statusCode, {error: 'Unable to parse request body; ' + result.description});
-        }
-        this._body = result;
-      }
-      return this._body || (this._body = {files: {}, fields: {}});
     },
     post: function(n) {
-      var parsed = this._parseReqBody();
+      var parsed = this._body || (this._body = parseReqBody(this));
       if (arguments.length) {
         return parsed.fields[n.toLowerCase()] || '';
       } else {
@@ -81,7 +64,7 @@ define('request', function(require, exports, module) {
       }
     },
     uploads: function(n) {
-      var parsed = this._parseReqBody();
+      var parsed = this._body || (this._body = parseReqBody(this));
       if (!parsed.files) return null;
       if (arguments.length) {
         return parsed.files[n] || null;
@@ -93,6 +76,57 @@ define('request', function(require, exports, module) {
       return (this.headers('x-requested-with').toLowerCase() == 'xmlhttprequest');
     }
   });
+
+  //Helpers
+
+  var REG_COOKIE_SEP = /[;,] */;
+
+  function parseURL(url) {
+    var pos = url.indexOf('?')
+      , search = (pos > 0) ? url.slice(pos) : '';
+    return {
+      full: url,
+      path: qs.unescape(search ? url.slice(0, pos) : url),
+      search: search,
+      qs: search.slice(1)
+    };
+  }
+
+  function parseReqBody(req) {
+    var body = {files: {}, fields: {}};
+    //todo: check method in parser?
+    if (req.method() in BODY_ALLOWED) {
+      //passing req, ensures body-parser events propogate to request
+      //todo: use try/catch
+      var result = req._super.parseReqBody(req);
+      if (result instanceof Error) {
+        var statusCode = result.statusCode || 400; //400 Bad Request
+        req.res.die(statusCode, {error: 'Unable to parse request body; ' + result.description});
+      }
+      body = result;
+    }
+    return body;
+  }
+
+  function parseCookies(str) {
+    str = (str == null) ? '' : String(str);
+    var obj = {}, split = str.split(REG_COOKIE_SEP);
+    for (var i = 0, len = split.length; i < len; i++) {
+      var part = split[i], pos = part.indexOf('=');
+      if (pos < 0) {
+        pos = part.length;
+      }
+      var key = part.slice(0, pos).trim(), val = part.slice(pos + 1).trim();
+      if (!key) continue;
+      // quoted values
+      if (val[0] == '"') val = val.slice(1, -1);
+      // only assign once
+      if (!obj.hasOwnProperty(key)) {
+        obj[key] = qs.unescape(val);
+      }
+    }
+    return obj;
+  }
 
   module.exports = Request;
 

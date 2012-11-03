@@ -10,6 +10,8 @@ define('http', function(require, exports) {
   //url helpers
   var parseUrl = url.parse, resolveUrl = url.resolve;
 
+  var BODY_ALLOWED = {POST: 1, PUT: 1};
+
   var knownHeaders = [
     "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
     "Cache-Control", "Connection", "Cookie", "Content-Length", "Content-MD5", "Content-Type", "Date", "Expect", "From",
@@ -24,9 +26,18 @@ define('http', function(require, exports) {
   }, {});
 
   function ClientRequest(opts) {
-    util.extend(this, opts);
-    this.headers = this.headers || {};
-    this.method = this.method ? this.method.toUpperCase() : 'GET';
+    var self = this;
+    util.extend(self, opts);
+    self.headers = {};
+    var headers = opts.headers || {};
+    Object.keys(headers).forEach(function(name) {
+      self.addHeader(name, headers[name]);
+    });
+    self.method = self.method ? self.method.toUpperCase() : 'GET';
+    //default content type
+    if (opts.method in BODY_ALLOWED && !self.headers['Content-Type']) {
+      self.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
   }
 
   ClientRequest.prototype.addHeader = function(n, val) {
@@ -153,8 +164,7 @@ define('http', function(require, exports) {
       opts = {url: opts};
     }
     if (opts.url) {
-      var parsed = parseUrl(opts.url);
-      util.extend(opts, parsed);
+      util.extend(opts, parseUrl(opts.url));
     }
     opts.method = 'GET';
     return exports.request(opts);

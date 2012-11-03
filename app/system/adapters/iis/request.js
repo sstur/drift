@@ -1,5 +1,4 @@
 /*global app, define, iis */
-//todo: possibly move getCookies to higher-level request lib
 define('adapter-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
@@ -7,29 +6,16 @@ define('adapter-request', function(require, exports, module) {
   var Buffer = require('buffer').Buffer;
   var BodyParser = require('body-parser');
 
-  var varmap = {
-    ipaddr: 'REMOTE_ADDR',
-    headers: 'ALL_RAW'
-  };
-
   var REG_URL = /^([^:\/]+:\/\/)?([^\/]*)(.*)$/;
-  var REG_COOKIE_SEP = /[;,] */;
 
   function Request() {
     this._super = iis.req;
   }
 
-  app.eventify(Request.prototype);
-
   util.extend(Request.prototype, {
     _get: function(n) {
       var val, key = n.replace(/-/g, '_').toUpperCase();
-      if (varmap[n]) {
-        val = iis.req.serverVariables(varmap[n]).item();
-      }
-      if (!val) {
-        val = iis.req.serverVariables(key).item() || iis.req.serverVariables('HTTP_' + key).item();
-      }
+      val = this._super.serverVariables(key).item() || this._super.serverVariables('HTTP_' + key).item();
       return val || '';
     },
     getMethod: function() {
@@ -48,39 +34,27 @@ define('adapter-request', function(require, exports, module) {
       }
       return url;
     },
-    getURLParts: function() {
-      if (!this._url) {
-        var url = this.getURL()
-          , pos = url.indexOf('?')
-          , search = (pos > 0) ? url.slice(pos) : '';
-        this._url = {path: qs.unescape(search ? url.slice(0, pos) : url), search: search, qs: search.slice(1)};
-      }
-      return this._url;
-    },
     getHeaders: function() {
       if (!this._headers) {
-        this._headers = parseHeaders(this._get('headers'));
+        this._headers = parseHeaders(this._get('all-raw'));
       }
       return this._headers;
     },
-    getCookies: function() {
-      if (!this._cookies) {
-        var headers = this.getHeaders();
-        this._cookies = parseCookies(headers.cookie);
-      }
-      return this._cookies;
+    getRemoteHost: function() {
+      return this._get('remote-addr');
     },
-    read: function(bytes) {
+    _read: function(bytes) {
       try {
-        var bin = iis.req.binaryRead(bytes);
+        var bin = this._super.binaryRead(bytes);
       } catch(e) {
         throw new Error('Could not read ' + bytes + ' bytes from request body');
       }
       return new Buffer(bin);
     },
-    parseReqBody: function() {
-      var parser = new BodyParser(this.getHeaders(), this.read);
-      util.propagateEvents(parser, this, 'file upload-progress');
+    parseReqBody: function(emitter) {
+      var parser = new BodyParser(this.getHeaders(), this._read);
+      util.propagateEvents(parser, emitter, 'file upload-progress');
+      //todo: use try/catch
       var err = parser.parse();
       if (err) {
         return err;
@@ -88,27 +62,6 @@ define('adapter-request', function(require, exports, module) {
       return parser.parsed;
     }
   });
-
-  //Helpers
-  function parseCookies(str) {
-    str = (str == null) ? '' : String(str);
-    var obj = {}, split = str.split(REG_COOKIE_SEP);
-    for (var i = 0, len = split.length; i < len; i++) {
-      var part = split[i], pos = part.indexOf('=');
-      if (pos < 0) {
-        pos = part.length;
-      }
-      var key = part.slice(0, pos).trim(), val = part.slice(pos + 1).trim();
-      if (!key) continue;
-      // quoted values
-      if (val[0] == '"') val = val.slice(1, -1);
-      // only assign once
-      if (!obj.hasOwnProperty(key)) {
-        obj[key] = qs.unescape(val);
-      }
-    }
-    return obj;
-  }
 
   function parseHeaders(raw) {
     var headers = {}, all = raw.split('\r\n');

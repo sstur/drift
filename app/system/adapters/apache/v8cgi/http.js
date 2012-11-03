@@ -28,14 +28,23 @@ define('http', function(require, exports) {
 
 
   function ClientRequest(opts) {
-    util.extend(this, opts);
-    this.headers = this.headers || {};
-    util.extend(this.headers, {
+    var self = this;
+    util.extend(self, opts);
+    //default headers
+    self.headers = {
       'Connection': 'close',
       'Accept-Charset': 'utf-8',
       'Accept-Encoding': 'identity'
+    };
+    var headers = opts.headers || {};
+    Object.keys(headers).forEach(function(name) {
+      self.addHeader(name, headers[name]);
     });
-    this.method = this.method ? this.method.toUpperCase() : 'GET';
+    self.method = self.method ? self.method.toUpperCase() : 'GET';
+    //default content type
+    if (opts.method in BODY_ALLOWED && !self.headers['Content-Type']) {
+      self.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
   }
 
   ClientRequest.prototype.addHeader = function(n, val) {
@@ -232,8 +241,7 @@ define('http', function(require, exports) {
       opts = {url: opts};
     }
     if (opts.url) {
-      var parsed = parseUrl(opts.url);
-      util.extend(opts, parsed);
+      util.extend(opts, parseUrl(opts.url));
     }
     opts.method = 'GET';
     return exports.request(opts);

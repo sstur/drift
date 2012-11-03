@@ -1,10 +1,10 @@
-/*global global, require, module, exports, app */
+/*global global, require, app, adapter */
 var fs = require('fs');
-
-(function(exports) {
+adapter.define('fs', function(require, exports) {
+  "use strict";
   var slice = Array.prototype.slice;
 
-  //module.exports = exports = {
+  //this.exports = exports = {
   //  stat: fs.stat.bind(fs),
   //  open: fs.open.bind(fs),
   //  write: fs.write.bind(fs),
@@ -223,4 +223,4 @@ var fs = require('fs');
     });
   }
 
-})(exports);
+});

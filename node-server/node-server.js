@@ -11,10 +11,6 @@
     //todo: body-parser should be in adapters and conform to it's counterpart in app/system/adapters/shared
     , BodyParser = require('./lib/body-parser');
 
-  //todo: move to adapters?
-  var Request = require('./lib/request');
-  var Response = require('./lib/response');
-
   //set paths as global variables
   var basePath = global.basePath || join(__dirname, '..');
 
@@ -51,18 +47,19 @@
   require(join(basePath, 'app/system/core'));
   app.mappath = mappath;
 
-  //TODO: fix these
+  //global object to hold some adapter stuff
+  var adapter = global.adapter = {};
 
-  //load async modules into app module system as sync
-  loadPathSync('node-server/adapters', function(file, _super) {
-    var name = file.replace(/\.js$/, '');
-    app.define(name, function(require, exports, module) {
-      module.exports = Fiber.fiberizeModule(_super);
+  //like app.define but fiberizes async methods upon instantiation
+  adapter.define = function(name, definition) {
+    app.define(name, function() {
+      definition.apply(this, arguments);
+      this.exports = Fiber.fiberizeModule(this.exports);
     });
-  });
+  };
 
-  //load sync-style adapters
-  //loadPathSync('node-server/adapters/define');
+  //load node adapter modules
+  loadPathSync('node-server/adapters');
 
   //load framework modules
   loadPathSync('app/system/lib');
@@ -75,6 +72,8 @@
 
   //this function only runs within a fiber
   var syncHandler = function(http) {
+    var Request = app.require('adapter-request');
+    var Response = app.require('adapter-response');
     var req = new Request(http.req)
       , res = new Response(http.res);
     sleep(100); //for debugging
@@ -96,16 +95,18 @@
     req.res = res;
     res.req = req;
     //debugging: ignore favicon request
-    if (req.url.match(/\/favicon\.ico$/i)) {
+    if (req.url.toLowerCase() == '/favicon.ico') {
       res.writeHead(404);
       res.end();
       return;
     }
     //request body must be parsed before nextTick
+    //todo: this should be handled via read-stream buffering
     req.body = new BodyParser(req, res);
     //req.body.on('file', function() {})
     req.body.parse();
     //attempt to serve static file
+    //todo: move to static module
     res.tryStaticPath('assets/', function() {
       console.log('fibers created: ' + Fiber.fibersCreated);
       var fiber = Fiber(syncHandler);
