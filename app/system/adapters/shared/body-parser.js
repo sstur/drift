@@ -42,8 +42,8 @@ define('body-parser', function(require, exports, module) {
       case 'application/json':
         return this.processJSONBody();
       case 'multipart/form-data':
-        //todo: support nested multipart with multipart/mixed
-        //todo: support Content-Transfer-Encoding of parts
+        //note: nested multipart with multipart/mixed not supported
+        //note: "Content-Transfer-Encoding: base64" in parts is ignored
         return this.processMultiPartBody();
       default:
         return this.processBinaryBody();
@@ -71,9 +71,8 @@ define('body-parser', function(require, exports, module) {
     var contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
     var part = new Part(headers, {
       name: contentDisp.name || headers['x-name'] || 'file',
-      fileName: contentDisp.filename || headers['x-filename'] || 'upload',
-      //todo: support content-description?
-      contentType: headers['x-content-type'] || this.type
+      fileName: contentDisp.filename || headers['x-file-name'] || 'upload',
+      contentType: headers['content-description'] || headers['x-content-type'] || this.type
     });
     this.emit('file', part);
     var chunk;

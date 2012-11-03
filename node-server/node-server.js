@@ -1,4 +1,4 @@
-/*global app */
+/*global global, require, app */
 (function() {
   "use strict";
 
@@ -16,21 +16,24 @@
   //set paths as global variables
   var basePath = global.basePath || join(__dirname, '..');
 
-  //should mappath be global?
+  //mappath must be global to be used inside modules like BodyParser
   var mappath = global.mappath = function(path) {
     return join(basePath, path);
   };
 
-  //helpers for app and framework
-  var loadPath = function(dir, callback) {
+  //framework files beginning with these chars are excluded
+  var EXCLUDE = {'_': 1, '.': 1, '!': 1};
+
+  //helper for loading framework files
+  var loadPathSync = function(dir, callback) {
     var path = join(basePath, dir);
     var files = fs.readdirSync(path);
     files.forEach(function(file) {
-      if (file.charAt(0) == '_') return;
+      if (file.charAt(0) in EXCLUDE) return;
       var fullpath = join(path, file)
         , stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
-        loadPath(join(dir, file));
+        loadPathSync(join(dir, file));
       } else
       if (stat.isFile() && file.match(/\.js$/i)) {
         console.log('load file', join(dir, file));
@@ -42,26 +45,26 @@
     });
   };
 
-  //load framework core (instantiates `app` and `define`)
+  //load framework core (instantiates `app`)
   require(join(basePath, 'app/system/core'));
   app.mappath = mappath;
 
-  //load async modules into define system as sync
-  loadPath('node-server/async_modules', function(file, _super) {
+  //load async modules into app module system as sync
+  loadPathSync('node-server/async_modules', function(file, _super) {
     var name = file.replace(/\.js$/, '');
-    define(name, function(require, exports, module) {
+    app.define(name, function(require, exports, module) {
       module.exports = Fiber.makeSync(_super);
     });
   });
 
   //load sync modules
-  loadPath('node-server/sync_modules');
+  loadPathSync('node-server/sync_modules');
 
   //load framework modules
-  loadPath('app/system/lib');
-  loadPath('app/config');
-  loadPath('app/controllers');
-  loadPath('app/helpers');
+  loadPathSync('app/system/lib');
+  loadPathSync('app/config');
+  loadPathSync('app/controllers');
+  loadPathSync('app/helpers');
 
   //all modules loaded
   app.emit('ready', app.require);
@@ -84,7 +87,7 @@
     Fiber.yield();
   };
 
-  exports.requestHandler = function (req, res) {
+  exports.requestHandler = function(req, res) {
     //cross-reference request and response
     req.res = res;
     res.req = req;
@@ -94,8 +97,10 @@
       res.end();
       return;
     }
-    //instantiate request body parser
+    //request body must be parsed before nextTick
     req.body = new RequestBody(req, res);
+    //req.body.on('file', function() {})
+    req.body.parse();
     //attempt to serve static file
     res.tryStaticPath('assets/', function() {
       console.log('fibers created: ' + Fiber.fibersCreated);

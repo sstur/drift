@@ -67,7 +67,7 @@ define('util', function(require, util) {
   util.parseHeaderValue = function(str) {
     //replace quoted strings with encoded contents
     str = String(str).replace(/"(.*?)"/g, function(_, s) {
-      return encodeURIComponent(s);
+      return encodeURIComponent(pctDec(s));
     });
     return str.split(';').reduce(function(obj, pair) {
       var split = pair.trim().split('=');
@@ -76,8 +76,7 @@ define('util', function(require, util) {
         name = name.slice(0, -1);
         value = value.replace(/^[\w-]+'.*?'/, '');
       }
-      value = value.replace(/(%[0-9a-f]{2})+/ig, urlDec);
-      if (name) obj[name] = urlDec(value);
+      if (name) obj[name] = pctDec(value);
       return obj
     }, {});
   };
@@ -191,14 +190,15 @@ define('util', function(require, util) {
     return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
   }
 
-  function urlDec(s) {
-    try {
-      return decodeURIComponent(s);
-    } catch(e) {}
-    try {
-      return unescape(s);
-    } catch(e) {}
-    return s;
+  //percent-decode (similar to qs.decode or urlDecode)
+  function pctDec(s) {
+    return s.replace(/(%[0-9a-f]{2})+/ig, function(s) {
+      try {
+        return decodeURIComponent(s);
+      } catch(e) {
+        return unescape(s);
+      }
+    });
   }
 
 

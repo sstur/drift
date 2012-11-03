@@ -1,10 +1,11 @@
+/*global global, require, module */
+//todo: extend, parseHeaderValue
 (function() {
   "use strict";
 
   var qs = require('./qs');
   var fs = require('fs');
-  var path = require('path');
-  var join = path.join;
+  var path = require('path'), join = path.join;
   var basename = path.basename;
   var crypto = require('crypto');
   var formidable = require('formidable');
@@ -17,22 +18,43 @@
     this.req = req;
     this.res = res;
     this.opts = opts || {};
-    this.init();
+    this.files = {};
+    this.fields = {};
+    this.on('end', function() {
+      this._finished = true;
+    });
   };
 
   RequestBody.prototype = Object.create(EventEmitter.prototype);
 
-  RequestBody.prototype.init = function() {
-    var req = this.req, res = this.res;
-    if (req.method == 'GET' || req.method == 'HEAD') {
-      this.files = {};
-      this.fields = {};
-      this._finished = true;
+  //todo: this should take a method, headers and readStream
+  //  in place of responseStream, it should emit errors
+  RequestBody.prototype.parse = function() {
+    var req = this.req, res = this.res, headers = req.headers;
+    if (req.method !== 'POST' && req.method !== 'PUT') {
+      //nothing to parse
+      this.emit('end');
       return;
     }
-    var type = req.headers['content-type'] || '';
-    type = type.toLowerCase().split(';')[0];
-    switch(type) {
+    this.length = parseInt(headers['content-length'], 10);
+    if (isNaN(this.length)) {
+      //todo: this.emit('error', '411 Length Required')
+      res.httpError(411);
+      return;
+    } else
+    if (this.length === 0) {
+      //nothing to parse
+      this.emit('end');
+      return;
+    }
+    this.type = headers['content-type'] || '';
+    this.type = this.type.toLowerCase().split(';')[0];
+    if (!this.type) {
+      //todo: this.emit('error', '415 Content-Type Required')
+      res.httpError(415);
+      return;
+    }
+    switch(this.type) {
       case 'application/x-www-form-urlencoded':
         this.processFormBody();
         break;
@@ -42,20 +64,17 @@
       case 'multipart/form-data':
         this.processMultiPartBody();
         break;
-      case 'application/octet-stream':
-        this.processBinaryBody();
-        break;
       default:
-        res.httpError(415);
-        break;
+        this.processBinaryBody();
     }
   };
 
+  //todo: this should be moved to adapter: req.parseReqBody() [async wrapped]
   RequestBody.prototype.getParsed = function(callback) {
+    var self = this;
     if (this._finished) {
-      callback(null, {fields: this.fields, files: this.files});
+      callback(null, {fields: self.fields, files: self.files});
     } else {
-      var self = this;
       this.on('end', function() {
         callback(null, {fields: self.fields, files: self.files});
       });
@@ -85,9 +104,7 @@
       if (err) {
         return res.sendError(err);
       }
-      self.files = {};
-      self.fields = qs.parse(body);
-      self._finished = true;
+      extend(self.fields, qs.parse(body));
       self.emit('end');
     });
   };
@@ -104,9 +121,7 @@
       if (typeof fields != 'object') {
         fields = {data: fields};
       }
-      self.files = {};
-      self.fields = fields;
-      self._finished = true;
+      extend(self.fields, fields);
       self.emit('end');
     });
 
@@ -129,12 +144,11 @@
       });
     });
     form.parse(req, function(err, fields, files) {
-      self.files = {};
-      for (var n in files) {
+      Object.keys(files).forEach(function(n) {
         var file = files[n];
         if (file.size == 0) {
           fs.unlink(file.path);
-          continue;
+          return;
         }
         self.files[n] = {
           path: savePath + '/' +  basename(file.path),
@@ -144,43 +158,39 @@
           hash: file.hash,
           fieldName: n
         }
-      }
-      self.fields = fields;
-      self._finished = true;
+      });
+      extend(self.fields, fields);
       self.emit('end');
     });
   };
 
   RequestBody.prototype.processBinaryBody = function() {
-    var req = this.req, res = this.res, opts = this.opts, self = this;
-    var uploadDir = global.mappath(savePath);
-    var mimeType = req.headers['x-content-type'] || 'application/octet-stream';
-    var fileName = req.headers['x-filename'] || 'upload';
-    var fileSize = 0;
-    var fileHash = crypto.createHash('md5');
-    var fieldName = req.headers['x-name'] || 'file';
-    var filePath = join(uploadDir, generateName());
-    var outStream = fs.createWriteStream(filePath);
+    var self = this, req = self.req, headers = req.headers;
+    var contentDisp = parseHeaderValue(headers['content-disposition'] || '');
+    var fieldName = contentDisp.name || headers['x-name'] || 'file';
+
+    var file = self.files[fieldName] = {size: 0, fieldName: fieldName};
+    file.name = contentDisp.filename || headers['x-file-name'] || 'upload';
+    file.type = headers['content-description'] || headers['x-content-type'] || self.type;
+    file.path = join(global.mappath(savePath), generateName());
+
+    var hash = crypto.createHash('md5');
+
+    //todo: self.emit('file', file)
+    var outStream = fs.createWriteStream(file.path);
     outStream.on('error', function(err) {
+      //todo: self.emit('error', err);
       console.log('write stream error', err);
     });
     req.pipe(outStream);
     req.on('data', function(data) {
-      fileHash.update(data);
-      fileSize += data.length;
+      hash.update(data);
+      file.size += data.length;
+      //todo: file.emit('data', data)
     });
     req.on('end', function() {
-      self.files = {};
-      self.files[fieldName] = {
-        path: savePath + '/' +  basename(filePath),
-        name: fileName,
-        type: mimeType,
-        size: fileSize,
-        hash: fileHash.digest('hex'),
-        fieldName: fieldName
-      };
-      self.fields = {};
-      self._finished = true;
+      file.hash = hash.digest('hex');
+      //todo: file.emit('end')
       self.emit('end');
     });
   };
