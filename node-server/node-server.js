@@ -10,8 +10,8 @@
     , Fiber = require('./lib/sync-fiber')
     , RequestBody = require('./lib/request-body');
 
-  var Request = require('./lib/request.js');
-  var Response = require('./lib/response.js');
+  var Request = require('./lib/request');
+  var Response = require('./lib/response');
 
   //set paths as global variables
   var basePath = global.basePath || join(__dirname, '..');

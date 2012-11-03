@@ -5,12 +5,12 @@
     , req = http.IncomingMessage.prototype
     , res = http.ServerResponse.prototype
     , fs = require('fs')
-    , qs = require('../lib/qs.js')
+    , qs = require('../lib/qs')
     , path = require('path')
     , join = path.join
     , basename = path.basename
     , normalize = path.normalize
-    , mime = require('mime')
+    , mime = require('../lib/mime')
     , utils = require('./http-utils')
     , inspect = require('util').inspect
     , Buffer = require('buffer').Buffer;
