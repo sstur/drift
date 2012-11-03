@@ -7,29 +7,120 @@ define('response', function(require, exports, module) {
     logging: {response_time: 1}
   };
 
-  var util = require('util')
-    , Buffer = require('buffer').Buffer;
+  var fs = require('fs');
+  var util = require('util');
+  var Buffer = require('buffer').Buffer;
 
   var RE_CTYPE = /^[\w-]+\/[\w-]+$/;
   var RE_STATUS = /^\d{3}\b/;
+  var TEXT_CTYPES = /^text\/|\/json$/i;
+
+  var knownHeaders = ['Accept-Ranges', 'Age', 'Allow', 'Cache-Control', 'Connection', 'Content-Encoding', 'Content-Language',
+    'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Disposition', 'Content-Range', 'Content-Type', 'Date',
+    'ETag', 'Expires', 'Last-Modified', 'Link', 'Location', 'P3P', 'Pragma', 'Proxy-Authenticate', 'Refresh',
+    'Retry-After', 'Server', 'Set-Cookie', 'Strict-Transport-Security', 'Trailer', 'Transfer-Encoding', 'Vary', 'Via',
+    'Warning', 'WWW-Authenticate', 'X-Frame-Options', 'X-XSS-Protection', 'X-Content-Type-Options', 'X-Forwarded-Proto',
+    'Front-End-Https', 'X-Powered-By', 'X-UA-Compatible'];
+
+  //index headers by lowercase
+  knownHeaders = knownHeaders.reduce(function(headers, header) {
+    headers[header.toLowerCase()] = header;
+    return headers;
+  }, {});
+
+  //headers that allow multiple
+  var allowMulti = {'Set-Cookie': 1};
+
+  var buildContentType = function(charset, contentType) {
+    //contentType may already have charset
+    contentType = contentType.split(';')[0];
+    charset = charset && charset.toUpperCase();
+    return (charset && TEXT_CTYPES.test(contentType)) ? contentType + '; charset=' + charset : contentType;
+  };
+
+  var getCharset = function(charset, contentType) {
+    charset = charset || 'utf-8';
+    if (TEXT_CTYPES.test(contentType)) {
+      return charset.toUpperCase();
+    }
+  };
+
 
   function Response(res) {
     this._super = res;
     this._cookies = {};
+    this._clear();
   }
 
   util.extend(Response.prototype, {
-    headers: function() {
-      this._super.headers.apply(this._super, arguments);
+    clear: function(type, status) {
+      //reset response buffer
+      this.response = {
+        status: status || '200 OK',
+        headers: {'Content-Type': type || 'text/plain'},
+        charset: 'utf-8',
+        body: []
+      };
     },
-    charset: function() {
-      this._super.charset.apply(this._super, arguments);
+
+    //these methods manipulate the response buffer
+    status: function(status) {
+      if (arguments.length) {
+        return this.response.status = status;
+      } else {
+        return this.response.status;
+      }
     },
-    status: function() {
-      this._super.status.apply(this._super, arguments);
+    charset: function(charset) {
+      if (arguments.length) {
+        return this.response.charset = charset;
+      } else {
+        return this.response.charset;
+      }
     },
-    sendFile: function() {
-      this._super.sendFile.apply(this._super, arguments);
+    headers: function(n, val) {
+      var headers = this.response.headers;
+      if (arguments.length == 0) {
+        return headers;
+      }
+      n = (n == null) ? '' : String(n);
+      var key = knownHeaders[n.toLowerCase()] || n;
+      if (arguments.length == 1) {
+        val = headers[key];
+        //some header values are saved as an array
+        return (val && val.join) ? val.join('; ') : val;
+      } else
+      if (val === null) {
+        return (delete headers[key]);
+      } else
+      if (allowMulti[key]) {
+        headers[key] ? headers[key].push(val) : headers[key] = [val];
+      } else {
+        headers[key] = val;
+      }
+    },
+    write: function(data) {
+      //don't write anything for head requests
+      if (this.req.method('head')) return;
+      if (isPrimitive(data)) {
+        this.response.body.push(String(data));
+      } else
+      if (Buffer.isBuffer(data)) {
+        this.response.body.push(data);
+      } else {
+        //stringify returns undefined in some cases
+        this.response.body.push(JSON.stringify(data) || '');
+      }
+    },
+
+    //these use the functions above to manipulate the response buffer
+    contentType: function(type) {
+      //hack to override application/json -> text/plain when not an xhr request
+      //todo: should we check accepts header instead of x-requested-with
+      if (type == 'application/json' && !this.req.isAjax()) {
+        type = 'text/plain'
+      }
+      this.headers('Content-Type', type);
     },
     cookies: function(n, val) {
       //cookies are a case-sensitive collection that will be serialized into
@@ -48,44 +139,21 @@ define('response', function(require, exports, module) {
       cookie.name = n;
       cookies[n] = cookie;
     },
-    contentType: function(type) {
-      //hack to override application/json -> text/plain when not an xhr request
-      if (type == 'application/json' && !this.req.isAjax()) {
-        type = 'text/plain'
-      }
-      this.headers('Content-Type', type);
-    },
-    clear: function(type, status) {
-      this._super.clear();
-      if (type) {
-        this.contentType(type);
-      }
-      if (status) {
-        this.status(status);
-      }
-    },
-    write: function(data) {
-      //don't write anything for head requests
-      if (this.req.method('head')) return;
-      if (isPrimitive(data)) {
-        this._super.write(String(data));
-      } else
-      if (Buffer.isBuffer(data)) {
-        this._super.write(data);
-      } else {
-        //stringify returns undefined in some cases
-        this._super.write(JSON.stringify(data) || '');
-      }
+
+    //these methods interface with the adapter (_super)
+    sendStream: function(readStream) {
+      this.req.emit('end');
+      //commit the buffered headers
+      var _super = this._super, response = this.response;
+      _super.writeHead(response.status, response.headers);
+      //this._super.buffer = false;
+      readStream.on('data', function(data) {
+        _super.write(data);
+      });
+      readStream.read();
+      _super.end();
     },
     end: function() {
-      if (cfg.logging && cfg.logging.response_time && app.__init) {
-        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
-      }
-      var cookies = this._cookies;
-      for (var n in cookies) {
-        this.headers('Set-Cookie', serializeCookie(cookies[n]));
-      }
-
       var args = toArray(arguments);
       if (args.length) {
         if (args.length > 1 && RE_STATUS.test(args[0])) {
@@ -98,9 +166,24 @@ define('response', function(require, exports, module) {
           this.write(args[i]);
         }
       }
+      var cookies = this._cookies;
+      for (var n in cookies) {
+        this.headers('Set-Cookie', serializeCookie(cookies[n]));
+      }
+      if (cfg.logging && cfg.logging.response_time && app.__init) {
+        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
+      }
       this.req.emit('end');
-      this._super.end();
+      //commit the buffered response
+      var _super = this._super, response = this.response;
+      _super.writeHead(response.status, response.headers);
+      response.body.forEach(function(chunk) {
+        _super.write(chunk);
+      });
+      _super.end();
     },
+
+    //these build on the methods above
     die: function() {
       this.clear();
       this.end.apply(this, arguments);
@@ -109,6 +192,22 @@ define('response', function(require, exports, module) {
       this.clear();
       this.write(util.inspect(data, 4));
       this.end();
+    },
+    sendFile: function(opts) {
+      if (Object.isPrimitive(opts)) {
+        opts = {file: String(opts)};
+      }
+      this.headers('Content-Type', opts.contentType || 'application/octet-stream');
+      var cdisp = [];
+      if (opts.attachment) cdisp.push('attachment');
+      if (opts.name) {
+        var name = (typeof opts.name == 'string') ? opts.name : opts.file.split('/').pop();
+        cdisp.push('filename="' + util.stripFilename(name, '~', {'"': '', ',': ''}) + '"');
+      }
+      if (cdisp.length) {
+        this.headers('Content-Disposition', cdisp.join('; '));
+      }
+      this.sendStream(fs.createReadStream(opts.file));
     },
     redirect: function(url, type) {
       if (type == 'html') {
