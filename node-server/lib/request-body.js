@@ -11,7 +11,8 @@
   var formidable = require('formidable');
   var EventEmitter = require('events').EventEmitter;
 
-  var savePath = 'app/data/temp';
+  //todo: deal with autoUpload
+  var savePath = global.config && global.config.autoUploadPath ||'data/temp';
 
   var RequestBody = function(req, res, opts) {
     EventEmitter.call(this);
@@ -151,7 +152,7 @@
           return;
         }
         self.files[n] = {
-          path: savePath + '/' +  basename(file.path),
+          path: join(form.uploadDir, basename(file.path)),
           name: file.name,
           type: file.type,
           size: file.size,

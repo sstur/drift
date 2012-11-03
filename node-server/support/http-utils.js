@@ -10,8 +10,8 @@
    * @api private
    */
   exports.modified = function(req, res, headers) {
-    var headers = headers || res._headers || {}
-      , modifiedSince = req.headers['if-modified-since']
+    headers = headers || res._headers || {}
+    var modifiedSince = req.headers['if-modified-since']
       , lastModified = headers['last-modified']
       , noneMatch = req.headers['if-none-match']
       , etag = headers['etag'];
@@ -42,8 +42,8 @@
    * @param {ServerResponse} res
    * @api private
    */
-  exports.removeContentHeaders = function(res){
-    Object.keys(res._headers).forEach(function(field){
+  exports.removeContentHeaders = function(res) {
+    Object.keys(res._headers).forEach(function(field) {
       if (0 == field.indexOf('content')) {
         res.removeHeader(field);
       }
@@ -83,11 +83,11 @@
    * @return {Array}
    * @api private
    */
-  exports.parseRange = function(size, str){
+  exports.parseRange = function(size, str) {
     var valid = true;
-    var arr = str.substr(6).split(',').map(function(range){
-      var range = range.split('-')
-        , start = parseInt(range[0], 10)
+    var arr = str.substr(6).split(',').map(function(range) {
+      range = range.split('-');
+      var start = parseInt(range[0], 10)
         , end = parseInt(range[1], 10);
 
       // -500
@@ -100,10 +100,8 @@
       }
 
       // Invalid
-      if (isNaN(start)
-        || isNaN(end)
-        || start > end
-        || start < 0) valid = false;
+      if (isNaN(start) || isNaN(end) || start > end || start < 0)
+        valid = false;
 
       return {
         start: start,

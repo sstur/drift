@@ -1,12 +1,14 @@
-(function() {
+/*global global, require, module, exports, app */
+//todo: extend
+var url = require('url')
+  , http = require('http')
+  , https = require('https')
+  , Buffer = require('buffer').Buffer;
+
+var qs = require('../lib/qs');
+
+(function(exports) {
   "use strict";
-
-  var url = require('url')
-    , http = require('http')
-    , https = require('https')
-    , Buffer = require('buffer').Buffer;
-
-  var qs = require('../lib/qs');
 
   var headers = [
     "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
@@ -21,7 +23,7 @@
     allHeaders[header.toLowerCase()] = header;
   });
 
-  exports.request = function(opts, callback) {
+  var request = exports.request_ = function(opts, callback) {
     var _super = (opts.protocol == 'https:') ? https : http;
     var req = _super.request(opts, function(res) {
       var body = [], length = 0;
@@ -71,7 +73,7 @@
     return req;
   };
 
-  exports.get = function(opts, callback) {
+  exports.get_ = function(opts, callback) {
     if (typeof opts == 'string') {
       opts = {url: opts};
     }
@@ -82,10 +84,10 @@
       opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
     }
     opts.method = 'GET';
-    return exports.request(opts, callback);
+    return request(opts, callback);
   };
 
-  exports.post = function(opts, callback) {
+  exports.post_ = function(opts, callback) {
     if (opts.url) {
       extend(opts, url.parse(opts.url));
     }
@@ -93,16 +95,8 @@
       opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
     }
     opts.method = 'POST';
-    return exports.request(opts, callback);
+    return request(opts, callback);
   };
 
 
-  //helpers
-
-  var extend = function(dest, source) {
-    for (var n in source) {
-      dest[n] = source[n];
-    }
-  };
-
-})();
+})(exports);

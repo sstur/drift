@@ -1,6 +1,7 @@
-(function() {
-  var fs = require('fs');
+/*global global, require, module, exports, app */
+var fs = require('fs');
 
+(function(exports) {
   var slice = Array.prototype.slice;
 
   //module.exports = exports = {
@@ -40,7 +41,6 @@
     path = path.replace(RE_TRAILING_SLASH, '');
     return path;
   };
-  exports.path.join.sync = true;
 
   /*
    * Get the directory part of a path
@@ -49,7 +49,6 @@
   exports.path.parent = function(path) {
     return path.replace(RE_TAIL, '');
   };
-  exports.path.parent.sync = true;
 
   /*
    * Get the file part of a path
@@ -58,7 +57,6 @@
   exports.path.member = function(path) {
     return path.replace(RE_HEAD, '');
   };
-  exports.path.member.sync = true;
 
 
   //escape unsafe characters in a filename
@@ -67,27 +65,26 @@
       return encodeURIComponent(char);
     });
   };
-  exports.escape.sync = true;
 
 
-  exports.isFile = function(path, callback) {
+  var isFile = exports.isFile_ = function(path, callback) {
     fs.stat(path, function(err, stat) {
       callback(null, !err && stat.isFile());
     });
   };
 
-  exports.isDir = function(path, callback) {
+  var isDir = exports.isDir_ = function(path, callback) {
     fs.stat(path, function(err, stat) {
       callback(null, !err && stat.isDirectory());
     });
   };
 
-  exports.readFile = function(file, callback) {
+  var readFile = exports.readFile_ = function(file, callback) {
     file = mappath(file);
     fs.readFile(file, callback);
   };
 
-  exports.readTextFile = function(file, enc, callback) {
+  var readTextFile = exports.readTextFile_ = function(file, enc, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
     enc = (typeof enc == 'string') ? enc : 'utf8';
@@ -95,7 +92,7 @@
     fs.readFile(file, enc, callback);
   };
 
-  exports.writeFile = function(path, data, opts, callback) {
+  var writeFile = exports.writeFile_ = function(path, data, opts, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
     opts = (opts && typeof opts == 'object') ? opts : {};
@@ -112,13 +109,13 @@
     });
   };
 
-  exports.writeTextToFile = function(file, text, opts, callback) {
+  var writeTextToFile = exports.writeTextToFile_ = function(file, text, opts, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
-    exports.writeFile(file, String(text), opts, callback);
+    writeFile(file, String(text), opts, callback);
   };
 
-  exports.copyFile = function(file, dest, callback) {
+  var copyFile = exports.copyFile_ = function(file, dest, callback) {
     file = mappath(file);
     dest = mappath(dest);
     fs.stat(file, function(err, stat) {
@@ -132,12 +129,12 @@
         if (stat.isDirectory()) {
           dest = exports.path.join(dest, exports.path.member(file));
         }
-        copyFile(file, dest, callback);
+        _copyFile(file, dest, callback);
       });
     });
   };
 
-  exports.moveFile = function(file, dest, callback) {
+  var moveFile = exports.moveFile_ = function(file, dest, callback) {
     file = mappath(file);
     dest = mappath(dest);
     fs.stat(file, function(err, stat) {
@@ -156,18 +153,13 @@
     });
   };
 
-  exports.deleteFile = function(file, callback) {
-    file = mappath(file);
-    fs.unlink(file, callback);
-  };
-
-  exports.deleteFile = function(file, callback) {
+  var deleteFile = exports.deleteFile_ = function(file, callback) {
     file = mappath(file);
     fs.unlink(file, callback);
   };
 
   //todo: recursive
-  exports.createDir = function(path, recurse, callback) {
+  var createDir = exports.createDir_ = function(path, recurse, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
     recurse = (recurse === true);
@@ -176,7 +168,7 @@
   };
 
   //todo: recursive
-  exports.removeDir = function(file, recurse, callback) {
+  var removeDir = exports.removeDir_ = function(file, recurse, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
     recurse = (recurse === true);
@@ -184,7 +176,7 @@
     fs.rmdir(file, callback);
   };
 
-  exports.log = function(data, logfile, callback) {
+  var log = exports.log_ = function(data, logfile, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
     if (args.length > 1) {
@@ -199,14 +191,14 @@
     data.unshift(new Date().toUTCString());
     data = data.join('\n').replace(/(\r\n|[\r\n])/g, '\r\n');
     var path = exports.path.join('data/logs', logfile);
-    exports.writeTextToFile(path, data, callback);
+    writeTextToFile(path, data, callback);
   };
 
 
 
   //helpers
 
-  function copyFile(sourcePath, destPath, callback) {
+  function _copyFile(sourcePath, destPath, callback) {
     var source = fs.createReadStream(sourcePath);
     var dest = fs.createWriteStream(destPath);
     source.on('error', callback);
@@ -231,4 +223,4 @@
     });
   }
 
-})();
+})(exports);

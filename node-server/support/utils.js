@@ -31,7 +31,7 @@ exports.open = function open(target, callback) {
       break;
     default:
       // use Portlands xdg-open everywhere else
-      opener = path.join(__dirname, '../vendor/xdg-open');
+      opener = path.join(__dirname, '../bin/xdg-open');
       break;
   }
   return exec(opener + ' "' + escape(target) + '"', callback);
