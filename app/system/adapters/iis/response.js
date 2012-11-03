@@ -2,10 +2,6 @@
 define('adapter-response', function(require, exports, module) {
   "use strict";
 
-  //todo: move this to app/config
-  var cfg = {
-    logging: {response_time: 1}
-  };
   var fs = require('fs');
   var util = require('util');
   var Buffer = require('buffer').Buffer;
@@ -36,6 +32,7 @@ define('adapter-response', function(require, exports, module) {
   };
 
   function Response() {
+    this._super = iis.res;
     //init response buffer
     this.clear();
   }
@@ -61,23 +58,6 @@ define('adapter-response', function(require, exports, module) {
         headers[key] = val;
       }
     },
-    cookies: function(n, val) {
-      //cookies are a case-sensitive collection that will be serialized into
-      // Set-Cookie header(s) when response is sent
-      var cookies = this.response.cookies;
-      if (arguments.length == 0) {
-        return cookies;
-      }
-      if (arguments.length == 1) {
-        return cookies[n];
-      } else
-      if (val === null) {
-        return (delete cookies[n]);
-      }
-      var cookie = (typeof val == 'string') ? {value: val} : val;
-      cookie.name = n;
-      cookies[n] = cookie;
-    },
     charset: function(charset) {
       if (arguments.length) {
         return this.response.charset = charset;
@@ -97,7 +77,6 @@ define('adapter-response', function(require, exports, module) {
       this.response = {
         status: '200 OK',
         headers: {'Content-Type': 'text/plain'},
-        cookies: {},
         charset: 'utf-8',
         body: []
       };
@@ -106,57 +85,50 @@ define('adapter-response', function(require, exports, module) {
       this.response.body.push(data);
     },
     _sendHeaders: function() {
-      var res = this.response;
-      var cookies = res.cookies;
-      for (var n in cookies) {
-        this.headers('Set-Cookie', serializeCookie(cookies[n]));
-      }
-      if (cfg.logging && cfg.logging.response_time && app.__init) {
-        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
-      }
-      iis.res.status = res.status;
+      var res = this.response, _super = this._super;
+      _super.status = res.status;
       var charset = getCharset(res.charset, res.headers['Content-Type']);
       if (charset) {
-        iis.res.charset = charset;
+        _super.charset = charset;
       }
-      iis.res.contentType = res.headers['Content-Type'];
+      _super.contentType = res.headers['Content-Type'];
       forEach(res.headers, function(n, val) {
         switch (n.toLowerCase()) {
           case 'content-type':
             break;
           case 'cache-control':
-            iis.res.cacheControl = String(val);
+            _super.cacheControl = String(val);
             break;
           default:
-            iis.res.addHeader(n, val);
+            _super.addHeader(n, val);
         }
       });
     },
     _sendChunk: function(data) {
       if (Buffer.isBuffer(data)) {
-        iis.res.binaryWrite(data.toBin());
+        this._super.binaryWrite(data.toBin());
       } else {
-        iis.res.write(String(data));
+        this._super.write(String(data));
       }
     },
     end: function() {
       this._sendHeaders();
-      iis.res.buffer = false;
+      this._super.buffer = false;
       var parts = this.response.body;
       for (var i = 0; i < parts.length; i++) {
         this._sendChunk(parts[i]);
       }
-      iis.res.end();
+      this._super.end();
     },
     sendStream: function(readStream) {
       this._sendHeaders();
-      iis.res.buffer = false;
+      this._super.buffer = false;
       var res = this;
       readStream.on('data', function(data) {
         res._sendChunk(data);
       });
       readStream.read();
-      iis.res.end();
+      this._super.end();
     },
     sendFile: function(opts) {
       if (Object.isPrimitive(opts)) {
@@ -175,21 +147,6 @@ define('adapter-response', function(require, exports, module) {
       this.sendStream(fs.createReadStream(opts.file));
     }
   });
-
-  function serializeCookie(cookie) {
-    var out = [];
-    out.push(cookie.name + '=' + encodeURIComponent(cookie.value));
-    if (cookie.domain)
-      out.push('Domain=' + cookie.domain);
-    out.push('Path=' + (cookie.path || '/'));
-    if (cookie.expires)
-      out.push('Expires=' + cookie.expires.toGMTString());
-    if (cookie.httpOnly)
-      out.push('HttpOnly');
-    if (cookie.secure)
-      out.push('Secure');
-    return out.join('; ');
-  }
 
   module.exports = Response;
 });

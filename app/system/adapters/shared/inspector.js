@@ -1,8 +1,9 @@
+/*global app, define */
 define('inspector', function(require, exports) {
   "use strict";
 
   /**
-   * Echos the value of a value. Trys to print the value out
+   * Echos the value of a value. Tries to print the value out
    * in the best way possible given the different types.
    *
    * @param {Object} obj The object to print out.
@@ -253,28 +254,23 @@ define('inspector', function(require, exports) {
   // NOTE: These type checking functions intentionally don't use `instanceof`
   // because it is fragile and can be easily faked with `Object.create()`.
   function isArray(ar) {
-    return Array.isArray(ar) ||
-           (typeof ar === 'object' && objectToString(ar) === '[object Array]');
+    return Array.isArray(ar) || (typeof ar === 'object' && objectToString(ar) === '[object Array]');
   }
-  exports.isArray = isArray;
 
 
   function isRegExp(re) {
     return typeof re === 'object' && objectToString(re) === '[object RegExp]';
   }
-  exports.isRegExp = isRegExp;
 
 
   function isDate(d) {
     return typeof d === 'object' && objectToString(d) === '[object Date]';
   }
-  exports.isDate = isDate;
 
 
   function isError(e) {
     return typeof e === 'object' && objectToString(e) === '[object Error]';
   }
-  exports.isError = isError;
 
 
   function objectToString(o) {

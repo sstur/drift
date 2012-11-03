@@ -6,7 +6,7 @@ adapter.define('http', function(require, exports) {
   var qs = require('qs');
   var url = require('url');
   var util = require('util');
-  var Buffer = require('buffer');
+  var Buffer = require('buffer').Buffer;
 
   //url helpers
   var parseUrl = url.parse, resolveUrl = url.resolve;

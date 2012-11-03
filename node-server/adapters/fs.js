@@ -2,6 +2,9 @@
 var fs = require('fs');
 adapter.define('fs', function(require, exports) {
   "use strict";
+
+  var Buffer = require('buffer').Buffer;
+
   var slice = Array.prototype.slice;
 
   //this.exports = exports = {

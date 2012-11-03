@@ -1,5 +1,5 @@
 /*global global, require, app, adapter */
-adapter.define('adapter-request', function(require, exports, module) {
+app.define('adapter-request', function(require, exports, module) {
   "use strict";
 
   function Request(nodeReq) {

@@ -2,6 +2,11 @@
 define('response', function(require, exports, module) {
   "use strict";
 
+  //todo: move this to app/config
+  var cfg = {
+    logging: {response_time: 1}
+  };
+
   var util = require('util')
     , Buffer = require('buffer').Buffer;
 
@@ -10,14 +15,12 @@ define('response', function(require, exports, module) {
 
   function Response(res) {
     this._super = res;
+    this._cookies = {};
   }
 
   util.extend(Response.prototype, {
     headers: function() {
       this._super.headers.apply(this._super, arguments);
-    },
-    cookies: function() {
-      this._super.cookies.apply(this._super, arguments);
     },
     charset: function() {
       this._super.charset.apply(this._super, arguments);
@@ -27,6 +30,23 @@ define('response', function(require, exports, module) {
     },
     sendFile: function() {
       this._super.sendFile.apply(this._super, arguments);
+    },
+    cookies: function(n, val) {
+      //cookies are a case-sensitive collection that will be serialized into
+      // Set-Cookie header(s) when response is sent
+      var cookies = this._cookies;
+      if (arguments.length == 0) {
+        return cookies;
+      }
+      if (arguments.length == 1) {
+        return cookies[n];
+      } else
+      if (val === null) {
+        return (delete cookies[n]);
+      }
+      var cookie = (typeof val == 'string') ? {value: val} : val;
+      cookie.name = n;
+      cookies[n] = cookie;
     },
     contentType: function(type) {
       //hack to override application/json -> text/plain when not an xhr request
@@ -58,6 +78,14 @@ define('response', function(require, exports, module) {
       }
     },
     end: function() {
+      if (cfg.logging && cfg.logging.response_time && app.__init) {
+        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
+      }
+      var cookies = this._cookies;
+      for (var n in cookies) {
+        this.headers('Set-Cookie', serializeCookie(cookies[n]));
+      }
+
       var args = toArray(arguments);
       if (args.length) {
         if (args.length > 1 && RE_STATUS.test(args[0])) {
@@ -113,6 +141,21 @@ define('response', function(require, exports, module) {
     '</body>',
     '</html>'
   ].join('\r\n');
+
+  function serializeCookie(cookie) {
+    var out = [];
+    out.push(cookie.name + '=' + encodeURIComponent(cookie.value));
+    if (cookie.domain)
+      out.push('Domain=' + cookie.domain);
+    out.push('Path=' + (cookie.path || '/'));
+    if (cookie.expires)
+      out.push('Expires=' + cookie.expires.toGMTString());
+    if (cookie.httpOnly)
+      out.push('HttpOnly');
+    if (cookie.secure)
+      out.push('Secure');
+    return out.join('; ');
+  }
 
   module.exports = Response;
 
