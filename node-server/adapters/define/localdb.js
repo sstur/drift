@@ -1,7 +1,6 @@
-/*global app, define */
+/*global global, require, module, exports, app, Fiber */
 
-var Fiber = global.Fiber
-  , sync = Fiber.sync;
+var sync = Fiber.fiberize;
 
 var dbi = require('node-dbi')
   , DBWrapper = dbi.DBWrapper
@@ -20,7 +19,7 @@ for (var n in proto) {
  * Local (file-based) relational db adapter
  *  - uses sqlite3 with node-dbi adapter
  */
-define('localdb', function(require, exports, module) {
+app.define('localdb', function(require, exports, module) {
   "use strict";
 
   //  'CREATE TABLE {tableName} ( ',

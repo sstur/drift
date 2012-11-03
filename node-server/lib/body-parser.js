@@ -1,5 +1,6 @@
 /*global global, require, module */
 //todo: extend, parseHeaderValue
+//todo: generateName conform to getGUID
 (function() {
   "use strict";
 
@@ -14,7 +15,7 @@
   //todo: deal with autoUpload
   var savePath = global.config && global.config.autoUploadPath ||'data/temp';
 
-  var RequestBody = function(req, res, opts) {
+  var BodyParser = function(req, res, opts) {
     EventEmitter.call(this);
     this.req = req;
     this.res = res;
@@ -26,11 +27,11 @@
     });
   };
 
-  RequestBody.prototype = Object.create(EventEmitter.prototype);
+  BodyParser.prototype = Object.create(EventEmitter.prototype);
 
   //todo: this should take a method, headers and readStream
   //  in place of responseStream, it should emit errors
-  RequestBody.prototype.parse = function() {
+  BodyParser.prototype.parse = function() {
     var req = this.req, res = this.res, headers = req.headers;
     if (req.method !== 'POST' && req.method !== 'PUT') {
       //nothing to parse
@@ -71,7 +72,7 @@
   };
 
   //todo: this should be moved to adapter: req.parseReqBody() [async wrapped]
-  RequestBody.prototype.getParsed = function(callback) {
+  BodyParser.prototype.getParsed = function(callback) {
     var self = this;
     if (this._finished) {
       callback(null, {fields: self.fields, files: self.files});
@@ -82,7 +83,7 @@
     }
   };
 
-  RequestBody.prototype.bufferReqBody = function(callback) {
+  BodyParser.prototype.bufferReqBody = function(callback) {
     var req = this.req, res = this.res, opts = this.opts, self = this;
     var body = [], size = 0, maxSize = opts.maxSize || 1048576; //1MB
     req.on('data', function(data) {
@@ -99,7 +100,7 @@
     });
   };
 
-  RequestBody.prototype.processFormBody = function() {
+  BodyParser.prototype.processFormBody = function() {
     var req = this.req, res = this.res, opts = this.opts, self = this;
     this.bufferReqBody(function(err, body) {
       if (err) {
@@ -110,7 +111,7 @@
     });
   };
 
-  RequestBody.prototype.processJSONBody = function() {
+  BodyParser.prototype.processJSONBody = function() {
     var req = this.req, res = this.res, opts = this.opts, self = this;
     this.bufferReqBody(function(err, body) {
       var fields = {};
@@ -128,7 +129,7 @@
 
   };
 
-  RequestBody.prototype.processMultiPartBody = function() {
+  BodyParser.prototype.processMultiPartBody = function() {
     var req = this.req, res = this.res, opts = this.opts, self = this;
     var form = new formidable.IncomingForm();
     form.uploadDir = global.mappath(savePath);
@@ -165,7 +166,7 @@
     });
   };
 
-  RequestBody.prototype.processBinaryBody = function() {
+  BodyParser.prototype.processBinaryBody = function() {
     var self = this, req = self.req, headers = req.headers;
     var contentDisp = parseHeaderValue(headers['content-disposition'] || '');
     var fieldName = contentDisp.name || headers['x-name'] || 'file';
@@ -204,6 +205,6 @@
     return name;
   }
 
-  module.exports = RequestBody;
+  module.exports = BodyParser;
 
 })();

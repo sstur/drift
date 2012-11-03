@@ -1,7 +1,7 @@
-/*global Fiber */
+/*global require, module, exports, Fiber */
+var qs = require('./qs');
 (function() {
   "use strict";
-  var qs = require('./qs');
 
   var COOKIE_SEP = /[;,] */;
 
@@ -39,6 +39,7 @@
       if (!req.body || !req.body.getParsed) {
         throw new Error('Request body parser not loaded');
       }
+      //todo: fix
       return Fiber.sync(req.body.getParsed, req.body)();
     }
   };

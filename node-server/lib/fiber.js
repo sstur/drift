@@ -1,10 +1,10 @@
+/*global global, process, require, module, exports */
 (function() {
   "use strict";
 
-  require('fibers');
-  var Fiber = global.Fiber;
+  var Fiber = require('fibers');
 
-  //patch fiber.run() to better handle exceptions
+  //patch fiber.run() to send errors to fiber.onError()
   var _run = Fiber.prototype.run;
   Fiber.prototype.run = function() {
     try {
@@ -28,11 +28,11 @@
   };
 
   /**
-   * Fiber.sync() turns any asynchronous function to synchronous one
+   * Fiber.fiberize() turns an asynchronous function to a fiberized one
    * It receives function, context object and then arguments.
    *
    */
-  Fiber.sync = function(fn, obj /* arguments */) {
+  Fiber.fiberize = function(fn, obj /* arguments */) {
     var dynamicBinding = (arguments.length == 1);
 
     var bindArgs = Array.prototype.slice.call(arguments, 2);
@@ -85,20 +85,22 @@
     };
   };
 
-  Fiber.makeSync = function(module, methodNames) {
+  /**
+   * Fiber.fiberizeModule() turns a specially written asynchronous module into
+   * a fiberized one. Methods with names ending in _ are considered to be async.
+   *
+   */
+  Fiber.fiberizeModule = function(module, methodNames) {
     var exports = {};
-    if (typeof module == 'string') {
-      module = require(module);
-    }
-    methodNames = methodNames ? methodNames.split(' ') : Object.keys(module);
-    for (var i = 0; i < methodNames.length; i++) {
-      var methodName = methodNames[i];
-      if (methodName.charAt(0) == '_') continue;
+    methodNames = (typeof methodNames == 'string') ? methodNames.split(' ') : Object.keys(module);
+    methodNames.forEach(function(methodName) {
+      //exclude "private" methods
+      if (methodName.charAt(0) == '_') return;
       var method = module[methodName];
       if (typeof method == 'function') {
-        exports[methodName] = method.sync ? method.bind(module) : Fiber.sync(method, module);
+        exports[methodName] = (methodName.slice(-1) == '_') ? Fiber.fiberize(method, module) : method.bind(module);
       }
-    }
+    });
     return exports;
   };
 

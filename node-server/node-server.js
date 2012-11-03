@@ -1,4 +1,4 @@
-/*global global, require, app */
+ /*global global, require, app */
 (function() {
   "use strict";
 
@@ -7,9 +7,11 @@
 
   var fs = require('fs')
     , join = require('path').join
-    , Fiber = require('./lib/sync-fiber')
-    , RequestBody = require('./lib/request-body');
+    , Fiber = require('./lib/fiber')
+    //todo: body-parser should be in adapters and conform to it's counterpart in app/system/adapters/shared
+    , BodyParser = require('./lib/body-parser');
 
+  //todo: move to adapters?
   var Request = require('./lib/request');
   var Response = require('./lib/response');
 
@@ -49,16 +51,18 @@
   require(join(basePath, 'app/system/core'));
   app.mappath = mappath;
 
+  //TODO: fix these
+
   //load async modules into app module system as sync
-  loadPathSync('node-server/async_modules', function(file, _super) {
+  loadPathSync('node-server/adapters', function(file, _super) {
     var name = file.replace(/\.js$/, '');
     app.define(name, function(require, exports, module) {
-      module.exports = Fiber.makeSync(_super);
+      module.exports = Fiber.fiberizeModule(_super);
     });
   });
 
-  //load sync modules
-  loadPathSync('node-server/sync_modules');
+  //load sync-style adapters
+  //loadPathSync('node-server/adapters/define');
 
   //load framework modules
   loadPathSync('app/system/lib');
@@ -98,7 +102,7 @@
       return;
     }
     //request body must be parsed before nextTick
-    req.body = new RequestBody(req, res);
+    req.body = new BodyParser(req, res);
     //req.body.on('file', function() {})
     req.body.parse();
     //attempt to serve static file

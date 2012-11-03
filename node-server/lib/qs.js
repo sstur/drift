@@ -3,7 +3,6 @@
 
   var SEP = /[&\?]/;
   var CHARS = /[^\w!$'()*,-.\/:;@[\\\]^{|}~]+/g;
-  var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   var qs = module.exports = {
     escape: function(s) {

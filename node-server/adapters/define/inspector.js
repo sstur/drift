@@ -1,5 +1,6 @@
+/*global global, require, module, exports, app */
 var _super = require('util');
-define('inspector', function(require, exports) {
+app.define('inspector', function(require, exports) {
   "use strict";
 
   exports.inspect = _super.inspect;
