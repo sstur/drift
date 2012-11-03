@@ -5,31 +5,34 @@ define('adapter-response', function(require, exports, module) {
   var util = require('util');
   var Buffer = require('buffer').Buffer;
 
+  var CHARSET = /\bcharset=([\w-]+)/i;
+
   function Response() {
     this._super = iis.res;
   }
 
   util.extend(Response.prototype, {
-    writeHead: function() {
-      var res = this.response, _super = this._super;
-      _super.status = res.status;
-      var charset = getCharset(res.charset, res.headers['Content-Type']);
+    writeHead: function(status, headers) {
+      var _super = this._super;
+      _super.status = status;
+      var charset = CHARSET.exec(headers['Content-Type']);
       if (charset) {
-        _super.charset = charset;
+        _super.charset = charset[1];
       }
-      _super.contentType = res.headers['Content-Type'];
-      forEach(res.headers, function(n, val) {
+      forEach(headers, function(n, val) {
+        val = (val == null) ? '' : String(val);
         switch (n.toLowerCase()) {
           case 'content-type':
+            _super.contentType = val;
             break;
           case 'cache-control':
-            _super.cacheControl = String(val);
+            _super.cacheControl = val;
             break;
           default:
             _super.addHeader(n, val);
         }
       });
-      this._super.buffer = false;
+      _super.buffer = false;
     },
     write: function(data) {
       if (Buffer.isBuffer(data)) {

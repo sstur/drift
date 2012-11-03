@@ -38,13 +38,6 @@ define('response', function(require, exports, module) {
     return (charset && TEXT_CTYPES.test(contentType)) ? contentType + '; charset=' + charset : contentType;
   };
 
-  var getCharset = function(charset, contentType) {
-    charset = charset || 'utf-8';
-    if (TEXT_CTYPES.test(contentType)) {
-      return charset.toUpperCase();
-    }
-  };
-
 
   function Response(res) {
     this._super = res;
@@ -141,17 +134,31 @@ define('response', function(require, exports, module) {
     },
 
     //these methods interface with the adapter (_super)
-    sendStream: function(readStream) {
+    _writeHead: function() {
+      var cookies = this._cookies;
+      for (var n in cookies) {
+        this.headers('Set-Cookie', serializeCookie(cookies[n]));
+      }
+      //todo: append charset to content-type
+      if (cfg.logging && cfg.logging.response_time && app.__init) {
+        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
+      }
       this.req.emit('end');
-      //commit the buffered headers
-      var _super = this._super, response = this.response;
-      _super.writeHead(response.status, response.headers);
-      //this._super.buffer = false;
-      readStream.on('data', function(data) {
-        _super.write(data);
-      });
-      readStream.read();
-      _super.end();
+      this._super.writeHead(this.response.status, this.response.headers);
+    },
+    _streamFile: function(file) {
+      this._writeHead();
+      var _super = this._super;
+      if (_super.streamFile) {
+        _super.streamFile(file);
+      } else {
+        var readStream = fs.createReadStream(file);
+        readStream.on('data', function(data) {
+          _super.write(data);
+        });
+        readStream.read();
+        _super.end();
+      }
     },
     end: function() {
       var args = toArray(arguments);
@@ -166,18 +173,10 @@ define('response', function(require, exports, module) {
           this.write(args[i]);
         }
       }
-      var cookies = this._cookies;
-      for (var n in cookies) {
-        this.headers('Set-Cookie', serializeCookie(cookies[n]));
-      }
-      if (cfg.logging && cfg.logging.response_time && app.__init) {
-        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
-      }
-      this.req.emit('end');
-      //commit the buffered response
-      var _super = this._super, response = this.response;
-      _super.writeHead(response.status, response.headers);
-      response.body.forEach(function(chunk) {
+      this._writeHead();
+      //write the buffered response
+      var _super = this._super;
+      this.response.body.forEach(function(chunk) {
         _super.write(chunk);
       });
       _super.end();
@@ -197,17 +196,19 @@ define('response', function(require, exports, module) {
       if (Object.isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
+      //todo: conditionally lookup mime-type
       this.headers('Content-Type', opts.contentType || 'application/octet-stream');
-      var cdisp = [];
-      if (opts.attachment) cdisp.push('attachment');
+      //todo: lookup file size for content-length
+      var contentDisp = [];
+      if (opts.attachment) contentDisp.push('attachment');
       if (opts.name) {
         var name = (typeof opts.name == 'string') ? opts.name : opts.file.split('/').pop();
-        cdisp.push('filename="' + util.stripFilename(name, '~', {'"': '', ',': ''}) + '"');
+        contentDisp.push('filename="' + util.stripFilename(name, '~', {'"': '', ',': ''}) + '"');
       }
-      if (cdisp.length) {
-        this.headers('Content-Disposition', cdisp.join('; '));
+      if (contentDisp.length) {
+        this.headers('Content-Disposition', contentDisp.join('; '));
       }
-      this.sendStream(fs.createReadStream(opts.file));
+      this._streamFile(opts.file);
     },
     redirect: function(url, type) {
       if (type == 'html') {

@@ -11,11 +11,11 @@ define('adapter-response', function(require, exports, module) {
 
   util.extend(Response.prototype, {
     writeHead: function(status, headers) {
-      this._super.header('Status', status);
-      //headers['Content-Type'] = buildContentType(charset, headers['Content-Type']);
-      for (var n in headers) {
-        this._super.header(n, headers[n]);
-      }
+      var _super = this._super;
+      _super.header('Status', status);
+      forEach(headers, function(n, val) {
+        _super.header(n, val);
+      });
     },
     write: function(data) {
       this._super.write((Buffer.isBuffer(data)) ? data.toBin() : String(data));
