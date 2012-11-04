@@ -95,6 +95,8 @@
     methodNames.forEach(function(methodName) {
       //exclude "private" methods
       if (methodName.charAt(0) == '_') return;
+      //exclude "super_" created by util.inherits
+      if (methodName == 'super_') return;
       var method = module[methodName];
       if (typeof method == 'function') {
         if (methodName.slice(-1) == '_') {
@@ -102,11 +104,16 @@
           methodName = methodName.slice(0, -1);
           module[methodName] = Fiber.fiberize(method, module)
         } else
+        //constructors that are exported like `exports.ClassName = ClassName`
         if (method.name && method.prototype) {
           fiberizeModule(method.prototype);
         }
       }
     });
+    //constructors that are exported like `module.exports = ClassName`
+    if (typeof module == 'function' && module.name && module.prototype) {
+      fiberizeModule(module.prototype);
+    }
     return module;
   };
 

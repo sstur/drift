@@ -89,7 +89,6 @@
   };
 
   exports.requestHandler = function(req, res) {
-    console.log(req.allHeaders);
     //cross-reference request and response
     req.res = res;
     res.req = req;

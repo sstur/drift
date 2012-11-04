@@ -74,13 +74,15 @@
 
   function displayErrorJSON(err) {
     var out = [
-      '{"http_status": "500"',
+      '{"_status": "500"',
       ',"error": "' + jsEnc(err.message) + '"',
       ',"details": {"file": "' + jsEnc(err.file) + '", "line": "' + err.line + '"}}',
       ''
     ].join('\r\n');
     res.clear();
-    res.status = '200 Server Error';
+    //todo: jsonp should wrap JSON and send 200
+    //res.status = '200 Server Error';
+    res.status = '500 Server Error';
     res.contentType = 'text/plain';
     res.write(out);
     res.end();

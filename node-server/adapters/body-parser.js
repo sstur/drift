@@ -14,7 +14,7 @@ adapter.define('body-parser', function(require, exports, module) {
 
   var join = path.join, basename = path.basename;
 
-  var BodyParser = function(readStream, headers, opts) {
+  function BodyParser(readStream, headers, opts) {
     EventEmitter.call(this);
     this.readStream = readStream;
     this.headers = headers;
@@ -27,7 +27,7 @@ adapter.define('body-parser', function(require, exports, module) {
     this.on('end', function() {
       this._finished = true;
     });
-  };
+  }
 
   util.inherits(BodyParser, EventEmitter);
 
@@ -39,6 +39,7 @@ adapter.define('body-parser', function(require, exports, module) {
     this.on('end', function() {
       callback(null, this.parsed);
     });
+    console.log('bound wrong?', this === BodyParser.prototype);
     //process based on headers
     var headers = this.headers;
     this.length = parseInt(headers['content-length'], 10);

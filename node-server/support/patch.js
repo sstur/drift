@@ -50,7 +50,7 @@
   //Send an http error (40x, except 404)
   res.httpError = function(code) {
     var req = this.req, res = this;
-    console.log('send: http ' + code);
+    console.log('send: http status ' + code);
     if (!res.headerSent) {
       var headers = {'Content-Type': 'text/plain'};
       res.writeHead(code, null, headers);
@@ -63,10 +63,29 @@
   res.sendError = function(err) {
     var req = this.req, res = this;
     console.log(err.stack || err.toString());
+    var TRACE = /\s*(.*?)\s*(?:\((.*?):(\d+):(\d+)\))?$/;
     if (!res.headerSent) {
-      var headers = {'Content-Type': 'text/plain'};
-      res.writeHead(500, 'Internal Error', headers);
-      res.write(err.stack || inspect(err));
+      var status = 500, headers = {'Content-Type': 'text/plain'}, body;
+      if (isAjax(req)) {
+        //status = 200;
+        var stack = err.stack ? err.stack.split('\n').slice(1) : [];
+        stack = stack.map(function(line) {
+          var match = line.match(TRACE);
+          return {call: match[1].replace('at ', ''), file: match[2] || '', line: match[3] || '', pos: match[4] || ''};
+        });
+        var details = {
+          _status: '500',
+          error: err.message || '',
+          details: stack.shift()
+        };
+        details.details.stack = stack;
+        //todo: jsonp should wrap JSON and send 200
+        body = JSON.stringify(details, null, 2);
+      } else {
+        body = err.stack || inspect(err);
+      }
+      res.writeHead(status, 'Internal Error', headers);
+      res.write(body + '\n');
     }
     res.end();
   };
@@ -174,13 +193,14 @@
       }
 
       // mime/content-type
-      var contentType = opts.contentType || mimeByExt[extname(opts.path)] || 'application/octet-stream';
       if (!res.getHeader('Content-Type')) {
+        var fileExt = extname(opts.path).slice(1).toLowerCase();
+        var contentType = opts.contentType || mimeByExt[fileExt] || 'application/octet-stream';
         //opts.charset === false disables charset completely
-        if (opts.charset !== false) {
-          var charset = opts.charset || mimeTypes.charsets.lookup(contentType);
-          if (charset) contentType += '; charset=' + charset;
-        }
+        //if (opts.charset !== false) {
+        //  var charset = opts.charset || mimeTypes.charsets.lookup(contentType);
+        //  if (charset) contentType += '; charset=' + charset;
+        //}
         res.setHeader('Content-Type', contentType);
       }
 
@@ -254,6 +274,11 @@
    * Helpers
    *
    */
+
+  function isAjax(req) {
+    return false;
+    //return (req.headers['x-requested-with'] || '').toLowerCase() == 'xmlhttprequest';
+  }
 
   function urlJoin() {
     var path = join.apply(null, arguments);
