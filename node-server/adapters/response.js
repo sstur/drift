@@ -14,10 +14,13 @@ app.define('adapter-response', function(require, exports, module) {
 
   Response.prototype = {
     writeHead: function(status, headers) {
-      var statusParts = STATUS_PARTS.exec(status);
-      var statusCode = statusParts[1] || '200'
-        , reasonPhrase = statusParts[2] || '';
-      this._super.writeHead(statusCode, reasonPhrase, headers); //hacky
+      var parts = STATUS_PARTS.exec(status);
+      var statusCode = parts[1] || '200', reasonPhrase = parts[2];
+      if (reasonPhrase) {
+        this._super.writeHead(statusCode, reasonPhrase, headers);
+      } else {
+        this._super.writeHead(statusCode, headers);
+      }
     },
     write: function(chunk) {
       this._super.write(Buffer.isBuffer(chunk) ? chunk : new Buffer(chunk));
@@ -26,9 +29,9 @@ app.define('adapter-response', function(require, exports, module) {
       this._super.end();
       Fiber.current.abort();
     },
-    streamFile: function(opts) {
+    streamFile: function(path) {
       var _super = this._super;
-      var fullpath = global.mappath(opts.file);
+      var fullpath = global.mappath(path);
       console.log('stream file: ' + fullpath);
       this.writeHead();
       Fiber.current.abort(function() {

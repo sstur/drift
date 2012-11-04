@@ -90,18 +90,24 @@
    * a fiberized one. Methods with names ending in _ are considered to be async.
    *
    */
-  Fiber.fiberizeModule = function(module, methodNames) {
-    var exports = {};
+  Fiber.fiberizeModule = function fiberizeModule(module, methodNames) {
     methodNames = (typeof methodNames == 'string') ? methodNames.split(' ') : Object.keys(module);
     methodNames.forEach(function(methodName) {
       //exclude "private" methods
       if (methodName.charAt(0) == '_') return;
       var method = module[methodName];
       if (typeof method == 'function') {
-        exports[methodName] = (methodName.slice(-1) == '_') ? Fiber.fiberize(method, module) : method.bind(module);
+        if (methodName.slice(-1) == '_') {
+          delete module[methodName];
+          methodName = methodName.slice(0, -1);
+          module[methodName] = Fiber.fiberize(method, module)
+        } else
+        if (method.name && method.prototype) {
+          fiberizeModule(method.prototype);
+        }
       }
     });
-    return exports;
+    return module;
   };
 
   module.exports = Fiber;

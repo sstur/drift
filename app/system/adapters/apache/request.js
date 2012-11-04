@@ -50,12 +50,7 @@ define('adapter-request', function(require, exports, module) {
     parseReqBody: function(emitter) {
       var parser = new BodyParser(this.getHeaders(), this._read);
       util.propagateEvents(parser, emitter, 'file upload-progress');
-      //todo: use try/catch
-      var err = parser.parse();
-      if (err) {
-        return err;
-      }
-      return parser.parsed;
+      return parser.parse();
     }
   });
 

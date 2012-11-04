@@ -22,6 +22,21 @@ define('response', function(require, exports, module) {
     'Warning', 'WWW-Authenticate', 'X-Frame-Options', 'X-XSS-Protection', 'X-Content-Type-Options', 'X-Forwarded-Proto',
     'Front-End-Https', 'X-Powered-By', 'X-UA-Compatible'];
 
+  //todo: use these if statusReason not specified
+  var statusCodes = {100: 'Continue', 101: 'Switching Protocols', 102: 'Processing', 200: 'OK', 201: 'Created',
+    202: 'Accepted', 203: 'Non-Authoritative Information', 204: 'No Content', 205: 'Reset Content', 206: 'Partial Content',
+    207: 'Multi-Status', 300: 'Multiple Choices', 301: 'Moved Permanently', 302: 'Moved Temporarily', 303: 'See Other',
+    304: 'Not Modified', 305: 'Use Proxy', 307: 'Temporary Redirect', 400: 'Bad Request', 401: 'Unauthorized',
+    402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 405: 'Method Not Allowed', 406: 'Not Acceptable',
+    407: 'Proxy Authentication Required', 408: 'Request Time-out', 409: 'Conflict', 410: 'Gone', 411: 'Length Required',
+    412: 'Precondition Failed', 413: 'Request Entity Too Large', 414: 'Request-URI Too Large', 415: 'Unsupported Media Type',
+    416: 'Requested Range Not Satisfiable', 417: 'Expectation Failed', 422: 'Unprocessable Entity', 423: 'Locked',
+    424: 'Failed Dependency', 425: 'Unordered Collection', 426: 'Upgrade Required', 428: 'Precondition Required',
+    429: 'Too Many Requests', 431: 'Request Header Fields Too Large', 500: 'Internal Server Error', 501: 'Not Implemented',
+    502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Time-out', 505: 'HTTP Version not supported',
+    506: 'Variant Also Negotiates', 507: 'Insufficient Storage', 509: 'Bandwidth Limit Exceeded', 510: 'Not Extended',
+    511: 'Network Authentication Required'};
+
   //index headers by lowercase
   knownHeaders = knownHeaders.reduce(function(headers, header) {
     headers[header.toLowerCase()] = header;
@@ -31,18 +46,10 @@ define('response', function(require, exports, module) {
   //headers that allow multiple
   var allowMulti = {'Set-Cookie': 1};
 
-  var buildContentType = function(charset, contentType) {
-    //contentType may already have charset
-    contentType = contentType.split(';')[0];
-    charset = charset && charset.toUpperCase();
-    return (charset && TEXT_CTYPES.test(contentType)) ? contentType + '; charset=' + charset : contentType;
-  };
-
 
   function Response(res) {
     this._super = res;
-    this._cookies = {};
-    this._clear();
+    this.clear();
   }
 
   util.extend(Response.prototype, {
@@ -52,6 +59,7 @@ define('response', function(require, exports, module) {
         status: status || '200 OK',
         headers: {'Content-Type': type || 'text/plain'},
         charset: 'utf-8',
+        cookies: {},
         body: []
       };
     },
@@ -118,7 +126,7 @@ define('response', function(require, exports, module) {
     cookies: function(n, val) {
       //cookies are a case-sensitive collection that will be serialized into
       // Set-Cookie header(s) when response is sent
-      var cookies = this._cookies;
+      var cookies = this.response.cookies;
       if (arguments.length == 0) {
         return cookies;
       }
@@ -135,24 +143,26 @@ define('response', function(require, exports, module) {
 
     //these methods interface with the adapter (_super)
     _writeHead: function() {
-      var cookies = this._cookies;
+      var cookies = this.response.cookies;
       for (var n in cookies) {
         this.headers('Set-Cookie', serializeCookie(cookies[n]));
       }
-      //todo: append charset to content-type
+      var headers = this.response.headers;
+      headers['Content-Type'] = buildContentType(this.response.charset, headers['Content-Type']);
       if (cfg.logging && cfg.logging.response_time && app.__init) {
         this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
       }
       this.req.emit('end');
       this._super.writeHead(this.response.status, this.response.headers);
     },
-    _streamFile: function(file) {
+    _streamFile: function(path) {
       this._writeHead();
       var _super = this._super;
       if (_super.streamFile) {
-        _super.streamFile(file);
+        //allow the adapter to do things like X-Sendfile or X-Accel-Redirect
+        _super.streamFile(path);
       } else {
-        var readStream = fs.createReadStream(file);
+        var readStream = fs.createReadStream(path);
         readStream.on('data', function(data) {
           _super.write(data);
         });
@@ -196,9 +206,9 @@ define('response', function(require, exports, module) {
       if (Object.isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
-      //todo: conditionally lookup mime-type
+      //todo: stat the file for content-length and throw if not exists
+      //todo: use file extention to lookup mime-type if not specified
       this.headers('Content-Type', opts.contentType || 'application/octet-stream');
-      //todo: lookup file size for content-length
       var contentDisp = [];
       if (opts.attachment) contentDisp.push('attachment');
       if (opts.name) {
@@ -255,6 +265,13 @@ define('response', function(require, exports, module) {
     if (cookie.secure)
       out.push('Secure');
     return out.join('; ');
+  }
+
+  function buildContentType(charset, contentType) {
+    //contentType may already have charset
+    contentType = contentType.split(';')[0];
+    charset = charset ? charset.toUpperCase() : '';
+    return (charset && TEXT_CTYPES.test(contentType)) ? contentType + '; charset=' + charset : contentType;
   }
 
   module.exports = Response;

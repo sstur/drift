@@ -93,19 +93,21 @@ define('request', function(require, exports, module) {
   }
 
   function parseReqBody(req) {
-    var body = {files: {}, fields: {}};
-    //todo: check method in parser?
     if (req.method() in BODY_ALLOWED) {
-      //passing req, ensures body-parser events propogate to request
-      //todo: use try/catch
       var result = req._super.parseReqBody(req);
-      if (result instanceof Error) {
-        var statusCode = result.statusCode || 400; //400 Bad Request
-        req.res.die(statusCode, {error: 'Unable to parse request body; ' + result.description});
-      }
-      body = result;
+      //try {
+      //  //passing req, ensures body-parser events propagate to request
+      //  var result = req._super.parseReqBody(req);
+      //} catch(e) {
+      //  if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
+      //    req.res.die(e);
+      //  } else {
+      //    req.res.die(400, {error: 'Unable to parse request body; ' + e.description});
+      //  }
+      //}
+      return result;
     }
-    return body;
+    return {files: {}, fields: {}};
   }
 
   function parseCookies(str) {

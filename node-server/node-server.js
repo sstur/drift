@@ -7,14 +7,12 @@
 
   var fs = require('fs')
     , join = require('path').join
-    , Fiber = require('./lib/fiber')
-    //todo: body-parser should be in adapters and conform to it's counterpart in app/system/adapters/shared
-    , BodyParser = require('./lib/body-parser');
+    , Fiber = require('./lib/fiber');
 
   //set paths as global variables
   var basePath = global.basePath || join(__dirname, '..');
 
-  //mappath must be global to be used inside modules like BodyParser
+  //mappath must be global to be used inside modules
   var mappath = global.mappath = function(path) {
     return join(basePath, path);
   };
@@ -100,13 +98,7 @@
       res.end();
       return;
     }
-    //request body must be parsed before nextTick
-    //todo: this should be handled via read-stream buffering
-    req.body = new BodyParser(req, res);
-    //req.body.on('file', function() {})
-    req.body.parse();
     //attempt to serve static file
-    //todo: move to static module
     res.tryStaticPath('assets/', function() {
       console.log('fibers created: ' + Fiber.fibersCreated);
       var fiber = Fiber(syncHandler);

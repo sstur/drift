@@ -2,8 +2,14 @@
 app.define('adapter-request', function(require, exports, module) {
   "use strict";
 
-  function Request(nodeReq) {
-    this._super = nodeReq;
+  var util = require('util');
+  var BodyParser = require('body-parser');
+
+  function Request(req) {
+    //node's incoming http request instance
+    this._super = req;
+    //pause so that we can use the body parser later
+    req.pause();
   }
 
   Request.prototype = {
@@ -19,13 +25,14 @@ app.define('adapter-request', function(require, exports, module) {
     getRemoteHost: function() {
       return this._super.connection.remoteAddress;
     },
-    parseReqBody: function() {
-      //todo: fix
-      //var req = this._super;
-      //if (!req.body || !req.body.getParsed) {
-      //  throw new Error('Request body parser not loaded');
-      //}
-      //return Fiber.sync(req.body.getParsed, req.body)();
+    parseReqBody: function(emitter) {
+      var req = this._super, res = this.res;
+      var opts = {
+        autoSavePath: app.cfg('auto_save_uploads')
+      };
+      var parser = new BodyParser(req, req.headers, opts);
+      util.propagateEvents(parser, emitter, 'file upload-progress');
+      return parser.parse();
     }
   };
 

@@ -26,33 +26,38 @@ define('body-parser', function(require, exports, module) {
   BodyParser.prototype.parse = function() {
     this.length = parseInt(this._headers['content-length'], 10);
     if (isNaN(this.length)) {
-      return util.extend(new Error('Length Required'), {statusCode: 411});
+      throw '411 Length Required';
     } else
     if (this.length === 0) {
-      return; //nothing to parse
+      //nothing to parse
+      return this.parsed;
     }
     this.type = this._headers['content-type'] || '';
     this.type = this.type.toLowerCase().split(';')[0];
     if (!this.type) {
-      return util.extend(new Error('Content-Type Required'), {statusCode: 415});
+      throw '415 Content-Type Required';
     }
     switch(this.type) {
       case 'application/x-www-form-urlencoded':
-        return this.processFormBody();
+        this.processFormBody();
+        break;
       case 'application/json':
-        return this.processJSONBody();
+        this.processJSONBody();
+        break;
       case 'multipart/form-data':
         //note: nested multipart with multipart/mixed not supported
         //note: "Content-Transfer-Encoding: base64" in parts is ignored
-        return this.processMultiPartBody();
+        this.processMultiPartBody();
+        break;
       default:
-        return this.processBinaryBody();
+        this.processBinaryBody();
     }
+    return this.parsed;
   };
 
   BodyParser.prototype.processFormBody = function() {
     var body = this._read(MAX_BUFFER_SIZE, 'utf8');
-    this.parsed.fields = qs.parse(body);
+    util.extend(this.parsed.fields, qs.parse(body));
   };
 
   BodyParser.prototype.processJSONBody = function() {
@@ -60,10 +65,13 @@ define('body-parser', function(require, exports, module) {
     try {
       var parsed = JSON.parse(body);
     } catch(e) {
-      return new Error('Invalid JSON Body');
+      throw new Error('Invalid JSON Body');
     }
     //ensure parsed is not null or a primitive
-    this.parsed.fields = (parsed === Object(parsed)) ? parsed : {'': parsed};
+    if (parsed !== Object(parsed)) {
+      parsed = {'': parsed};
+    }
+    util.extend(this.parsed.fields, parsed);
   };
 
   BodyParser.prototype.processBinaryBody = function() {
@@ -86,7 +94,7 @@ define('body-parser', function(require, exports, module) {
     var boundary = this._headers['content-type'], pos = boundary.indexOf('=');
     boundary = boundary.slice(pos + 1);
     if (!boundary) {
-      return new Error('Invalid Boundary');
+      throw new Error('Invalid Boundary');
     }
     var boundary1 = '--' + boundary;
     var boundary2 = '\r\n--' + boundary;
@@ -106,7 +114,7 @@ define('body-parser', function(require, exports, module) {
       if (!currentPart) {
         //header state
         if (buffer.length > MAX_HEADER_SIZE) {
-          return new Error('Multipart header size exceeds limit');
+          throw new Error('Multipart header size exceeds limit');
         }
         var endHeader = buffer.indexOf('\r\n\r\n');
         //log.push('endHeader: ' + endHeader);
@@ -221,12 +229,6 @@ define('body-parser', function(require, exports, module) {
 
 
 
-  function getGuid() {
-    return new Array(33).join(' ').replace(/ /g, function() {
-      return Math.floor(Math.random() * 16).toString(16);
-    });
-  }
-
   function parseFileHeaders(headers) {
     var file, contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
     if ('filename' in contentDisp) {
@@ -236,6 +238,14 @@ define('body-parser', function(require, exports, module) {
       file.contentType = headers['content-type'] || 'application/octet-stream';
     }
     return file;
+  }
+
+  function getGuid() {
+    var chars = '';
+    for (var i = 0; i < 32; i++) {
+      chars += Math.floor(Math.random() * 16).toString(16);
+    }
+    return chars;
   }
 
 });
