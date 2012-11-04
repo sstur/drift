@@ -5,15 +5,21 @@
     , req = http.IncomingMessage.prototype
     , res = http.ServerResponse.prototype
     , fs = require('fs')
-    , qs = require('../lib/qs')
+    , qs = require('querystring')
     , path = require('path')
-    , join = path.join
-    , basename = path.basename
-    , normalize = path.normalize
-    , mime = require('../lib/mime')
+    , mimeTypes = require('../lib/mime')
     , utils = require('./http-utils')
     , inspect = require('util').inspect
     , Buffer = require('buffer').Buffer;
+
+  var join = path.join, basename = path.basename, extname = path.extname, normalize = path.normalize;
+
+  var mimeByExt = Object.keys(mimeTypes).reduce(function(obj, type) {
+    mimeTypes[type].split(' ').forEach(function(ext) {
+      obj[ext] = type;
+    });
+    return obj;
+  }, {});
 
   var INVALID_CHARS = /[^\w\d!@#$()_\-+={}[],;']/g;
 
@@ -168,11 +174,11 @@
       }
 
       // mime/content-type
-      var contentType = opts.contentType || mime.lookup(opts.path);
+      var contentType = opts.contentType || mimeByExt[extname(opts.path)] || 'application/octet-stream';
       if (!res.getHeader('Content-Type')) {
         //opts.charset === false disables charset completely
         if (opts.charset !== false) {
-          var charset = opts.charset || mime.charsets.lookup(contentType);
+          var charset = opts.charset || mimeTypes.charsets.lookup(contentType);
           if (charset) contentType += '; charset=' + charset;
         }
         res.setHeader('Content-Type', contentType);

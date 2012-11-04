@@ -4,7 +4,7 @@ var path = require('path');
 var crypto = require('crypto');
 var formidable = require('formidable');
 var EventEmitter = require('events').EventEmitter;
-adapter.define(function(require, exports, module) {
+adapter.define('body-parser', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');
@@ -29,7 +29,7 @@ adapter.define(function(require, exports, module) {
     });
   };
 
-  util.inherits(BodyParser.prototype, EventEmitter.prototype);
+  util.inherits(BodyParser, EventEmitter);
 
   BodyParser.prototype.parse_ = function(callback) {
     //enable callback syntax
