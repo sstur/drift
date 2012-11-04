@@ -39,7 +39,6 @@ adapter.define('body-parser', function(require, exports, module) {
     this.on('end', function() {
       callback(null, this.parsed);
     });
-    console.log('bound wrong?', this === BodyParser.prototype);
     //process based on headers
     var headers = this.headers;
     this.length = parseInt(headers['content-length'], 10);
@@ -71,6 +70,8 @@ adapter.define('body-parser', function(require, exports, module) {
       default:
         this.processBinaryBody();
     }
+    //todo: try/catch?
+    this.readStream.resume();
   };
 
   BodyParser.prototype.bufferReqBody = function(callback) {

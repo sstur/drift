@@ -102,7 +102,7 @@
         if (methodName.slice(-1) == '_') {
           delete module[methodName];
           methodName = methodName.slice(0, -1);
-          module[methodName] = Fiber.fiberize(method, module)
+          module[methodName] = Fiber.fiberize(method)
         } else
         //constructors that are exported like `exports.ClassName = ClassName`
         if (method.name && method.prototype) {
