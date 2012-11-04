@@ -45,6 +45,18 @@
   require(join(basePath, 'app/system/core'));
   app.mappath = mappath;
 
+  //in-memory application data
+  var data = {};
+  app.data = function(n, val) {
+    if (arguments.length == 2) {
+      (val == null) ? delete data[n] : data[n] = val;
+      return val;
+    } else {
+      val = data[n];
+      return (val == null) ? '' : val;
+    }
+  };
+
   //global object to hold some adapter stuff
   var adapter = global.adapter = {};
 
