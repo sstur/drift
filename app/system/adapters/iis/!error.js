@@ -20,7 +20,7 @@
         break;
       }
     }
-    err.report = 'Error at: ' + err.file + ':' + err.line + '\r\n' +  err.description;
+    err.report = 'Error at: ' + err.file + ':' + err.line + '\r\n' +  err.message;
   }
 
   function getErrDetails() {
@@ -30,7 +30,7 @@
     err.file = details.file;
     err.type = details.category.replace(/(\w+ )?(\w+)Script/i, 'Script');
     err.line = details.line;
-    err.description = details.description;
+    err.message = details.message;
     err.code = details.number>>16 & 0x1FFF;
     err.number = details.number & 0xFFFF;
     err.referer = getItem('HTTP-Referer');
@@ -63,7 +63,7 @@
       'Requested Resource: ' + err.path,
       'File: ' + err.file,
       'Line: ' + err.line,
-      'Description:\r\n' + err.description,
+      'Message:\r\n' + err.message,
       ''
     ].join('\r\n');
     res.clear();
@@ -75,7 +75,7 @@
   function displayErrorJSON(err) {
     var out = [
       '{"http_status": "500"',
-      ',"error": "' + jsEnc(err.description) + '"',
+      ',"error": "' + jsEnc(err.message) + '"',
       ',"details": {"file": "' + jsEnc(err.file) + '", "line": "' + err.line + '"}}',
       ''
     ].join('\r\n');

@@ -17,7 +17,7 @@ define('fs', function(require, fs) {
     try {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
-      if (e.description.match(/could not be opened/i)) {
+      if (e.message.match(/could not be opened/i)) {
         throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
       }
       throw e;
@@ -59,7 +59,7 @@ define('fs', function(require, fs) {
     try {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
-      if (e.description.match(/could not be opened/i)) {
+      if (e.message.match(/could not be opened/i)) {
         throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
       }
       throw e;

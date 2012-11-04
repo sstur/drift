@@ -37,7 +37,7 @@ define('email', function(require, exports) {
     try {
       cdo.send();
     } catch (e) {
-      throw new Error('Error Sending Email: ' + e.description);
+      throw new Error('Error Sending Email: ' + e.message);
     }
   };
 

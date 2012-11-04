@@ -77,7 +77,7 @@ define('http', function(require, exports) {
     try {
       xhr.send(this.body || null);
     } catch(e) {
-      throw new Error('Error Requesting: ' + this.path + '; Error: ' + e.description);
+      throw new Error('Error Requesting: ' + this.path + '; Error: ' + e.message);
     }
 
     return this._handleResponse(xhr);

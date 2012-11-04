@@ -428,7 +428,7 @@ define('liquid', function(require, exports, module) {
     handleError: function(err) {
       this.errors.push(err);
       if (this.rethrowErrors) { throw err; }
-      return "Liquid error: " + (err.message ? err.message : (err.description ? err.description : err));
+      return "Liquid error: " + (err.message ? err.message : (err.message ? err.message : err));
     }
 
   });

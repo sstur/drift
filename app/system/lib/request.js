@@ -102,7 +102,7 @@ define('request', function(require, exports, module) {
       //  if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
       //    req.res.die(e);
       //  } else {
-      //    req.res.die(400, {error: 'Unable to parse request body; ' + e.description});
+      //    req.res.die(400, {error: 'Unable to parse request body; ' + e.message});
       //  }
       //}
       return result;
