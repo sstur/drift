@@ -7,6 +7,8 @@ app.on('ready', function(require) {
 
   var _isAjax = Request.prototype.isAjax;
   Request.prototype.isAjax = function() {
+    //IE 8/9 XDomainRequest does not allow adding headers like
+    // X-Requested-With, but adds Origin
     return (_isAjax.call(this) || !!this.headers('origin'));
   };
 
@@ -17,7 +19,7 @@ app.on('request', function(req, res) {
 
   var TYPES = {'application/x-www-form-urlencoded': 1, 'application/json': 1};
 
-  //fix for IE < 10 using XDomainRequest which will POST only text/plain
+  //fix for IE 8/9 using XDomainRequest which will POST only text/plain
   if (req.method('post') && req.headers('content-type') == 'text/plain') {
     var contentType = req.params('content-type');
     if (contentType in TYPES) {

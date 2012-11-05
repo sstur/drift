@@ -39,7 +39,7 @@ app.on('ready', function(require) {
       file: 'assets/testfile.txt',
       contentType: 'text/plain',
       attachment: 1,
-      name: 'a`~!@#$%^&*()_+-={}|[]\\:";\'><?,/.txt'
+      filename: 'a`~!@#$%^&*()_+-={}|[]\\:";\'><?,/.txt'
     });
   });
 

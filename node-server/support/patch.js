@@ -1,3 +1,4 @@
+/*global global, require */
 (function() {
   "use strict";
 
@@ -21,7 +22,8 @@
     return obj;
   }, {});
 
-  var INVALID_CHARS = /[^\w\d!@#$()_\-+={}[],;']/g;
+  //var INVALID_CHARS = /[\x00-\x1F\\\/:*?<>|&%",\u007E-\uFFFF]/g;
+  var INVALID_CHARS = /[^\w\d!#$'()+,\-;=@\[\]^`{}~]/g;
 
   //Patch buffer to serialize nicely to JSON
   Buffer.prototype.toJSON = function() {
@@ -107,11 +109,11 @@
 
     if (!opts.path) throw new Error('path required');
 
-    var get = ('GET' == req.method)
-      , head = ('HEAD' == req.method);
+    var isGet = ('GET' == req.method)
+      , isHead = ('HEAD' == req.method);
 
     // ignore non-GET requests
-    if (opts.getOnly && !get && !head) {
+    if (opts.getOnly && !isGet && !isHead) {
       return fallback();
     }
 
@@ -204,16 +206,15 @@
         res.setHeader('Content-Type', contentType);
       }
 
-      var contentDisposition = [];
+      var contentDisp = [];
       if (opts.attachment) {
-        contentDisposition.push('attachment');
+        contentDisp.push('attachment');
       }
       if (opts.filename) {
-        var filename = opts.filename.replace(/"/g, "'");
-        contentDisposition.push('filename="' + fsEscape(filename) + '"');
+        contentDisp.push('filename="' + stripFilename(opts.filename) + '"');
       }
-      if (contentDisposition.length) {
-        res.setHeader('Content-Disposition', contentDisposition.join('; '));
+      if (contentDisp.length) {
+        res.setHeader('Content-Disposition', contentDisp.join('; '));
       }
 
       // conditional GET support
@@ -276,6 +277,7 @@
    */
 
   function isAjax(req) {
+    //todo: check accepts, x-requested-with, and qs (jsonp/callback)
     return false;
     //return (req.headers['x-requested-with'] || '').toLowerCase() == 'xmlhttprequest';
   }
@@ -285,8 +287,9 @@
     return path.replace(/\\/g, '/');
   }
 
-  function fsEscape(filename) {
-    filename = filename || '';
+  //simplified version of util.stripFilename()
+  function stripFilename(filename) {
+    filename = String(filename);
     return filename.replace(INVALID_CHARS, function(c) {
       return encodeURIComponent(c);
     });

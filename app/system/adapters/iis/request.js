@@ -40,7 +40,7 @@ define('adapter-request', function(require, exports, module) {
       }
       return this._headers;
     },
-    getRemoteHost: function() {
+    getRemoteAddress: function() {
       return this._get('remote-addr');
     },
     _read: function(bytes) {

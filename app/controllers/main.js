@@ -98,7 +98,7 @@ app.on('ready', function(require) {
   //});
 
   //app.route('/sendfile', function(req, res) {
-  //  res.sendFile({file: 'data/temp/57772a58475eab182229d8b329c3cad3', contentType: 'image/jpeg', name: 'image.jpg'});
+  //  res.sendFile({file: 'data/temp/57772a58475eab182229d8b329c3cad3', contentType: 'image/jpeg', filename: 'image.jpg'});
 
   //});
 

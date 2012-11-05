@@ -1,4 +1,4 @@
- /*global global, require, app */
+ /*global global, process, require, app */
 (function() {
   "use strict";
 
@@ -9,52 +9,26 @@
     , join = require('path').join
     , Fiber = require('./lib/fiber');
 
-  //set paths as global variables
-  var basePath = global.basePath || join(__dirname, '..');
-
-  //mappath must be global to be used inside modules
-  var mappath = global.mappath = function(path) {
-    return join(basePath, path);
-  };
-
   //framework files beginning with these chars are excluded
-  var EXCLUDE = {'_': 1, '.': 1, '!': 1};
+  var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
 
-  //helper for loading framework files
-  var loadPathSync = function(dir, callback) {
-    var path = join(basePath, dir);
-    var files = fs.readdirSync(path);
-    files.forEach(function(file) {
-      if (file.charAt(0) in EXCLUDE) return;
-      var fullpath = join(path, file)
-        , stat = fs.statSync(fullpath);
-      if (stat.isDirectory()) {
-        loadPathSync(join(dir, file));
-      } else
-      if (stat.isFile() && file.match(/\.js$/i)) {
-        console.log('load file', join(dir, file));
-        var module = require(fullpath);
-        if (callback) {
-          callback(file, module);
-        }
-      }
-    });
-  };
+  //used in modules and app.mappath
+  var basePath = global.basePath || join(process.argv[1], '..');
 
   //load framework core (instantiates `app`)
   require(join(basePath, 'app/system/core'));
-  app.mappath = mappath;
+
+  app.mappath = global.mappath = mappath;
 
   //in-memory application data
   var data = {};
   app.data = function(n, val) {
     if (arguments.length == 2) {
       (val == null) ? delete data[n] : data[n] = val;
-      return val;
     } else {
       val = data[n];
-      return (val == null) ? '' : val;
     }
+    return val;
   };
 
   //global object to hold some adapter stuff
@@ -64,7 +38,7 @@
   adapter.define = function(name, definition) {
     app.define(name, function() {
       definition.apply(this, arguments);
-      this.exports = Fiber.fiberizeModule(this.exports);
+      Fiber.fiberizeModule(this.exports);
     });
   };
 
@@ -118,5 +92,33 @@
       fiber.run({req: req, res: res});
     });
   };
+
+
+  //helpers
+
+  function mappath(path) {
+    return join(basePath, path);
+  }
+
+  //helper for loading framework files
+  function loadPathSync(dir, callback) {
+    var path = join(basePath, dir);
+    var files = fs.readdirSync(path);
+    files.forEach(function(file) {
+      if (file.charAt(0) in EXCLUDE_FILES) return;
+      var fullpath = join(path, file)
+        , stat = fs.statSync(fullpath);
+      if (stat.isDirectory()) {
+        loadPathSync(join(dir, file));
+      } else
+      if (stat.isFile() && file.match(/\.js$/i)) {
+        console.log('load file', join(dir, file));
+        var module = require(fullpath);
+        if (callback) {
+          callback(file, module);
+        }
+      }
+    });
+  }
 
 })();

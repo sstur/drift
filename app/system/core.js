@@ -158,17 +158,15 @@ var app, define;
    * todo: recursive combine, xpath
    */
   var config;
-
   app.cfg = function(data) {
     config = config || require('config');
     if (typeof data == 'string') {
-      var val = config[data];
       //todo: xpath
-      return (val == null) ? '' : val;
+      return config[data];
     } else {
       data = data || {};
+      //todo deep merge?
       for (var n in data) {
-        //todo deep merge?
         config[n] = data[n];
       }
     }

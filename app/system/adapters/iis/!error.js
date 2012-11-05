@@ -3,7 +3,7 @@
 
   var err = getErrDetails();
   adjustError(err);
-  if (getItem('X-Requested-With').toLowerCase() == 'xmlhttprequest') {
+  if (isAjax()) {
     displayErrorJSON(err);
   } else {
     displayError(err);
@@ -86,6 +86,12 @@
     res.contentType = 'text/plain';
     res.write(out);
     res.end();
+  }
+
+  function isAjax() {
+    //todo: check accepts, x-requested-with, and qs (jsonp/callback)
+    // if (getItem('X-Requested-With').toLowerCase() == 'xmlhttprequest')
+    return false;
   }
 
   function jsEnc(str) {

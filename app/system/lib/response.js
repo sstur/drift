@@ -211,9 +211,11 @@ define('response', function(require, exports, module) {
       this.headers('Content-Type', opts.contentType || 'application/octet-stream');
       var contentDisp = [];
       if (opts.attachment) contentDisp.push('attachment');
-      if (opts.name) {
-        var name = (typeof opts.name == 'string') ? opts.name : opts.file.split('/').pop();
-        contentDisp.push('filename="' + util.stripFilename(name, '~', {'"': '', ',': ''}) + '"');
+      if (opts.filename) {
+        var filename = (typeof opts.filename == 'string') ? opts.filename : opts.file.split('/').pop();
+        //strip double-quote and comma, replacing other invalid chars with ~
+        filename = util.stripFilename(filename, '~', {'"': '', ',': ''});
+        contentDisp.push('filename="' + filename + '"');
       }
       if (contentDisp.length) {
         this.headers('Content-Disposition', contentDisp.join('; '));

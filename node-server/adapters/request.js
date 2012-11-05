@@ -22,7 +22,7 @@ app.define('adapter-request', function(require, exports, module) {
     getHeaders: function() {
       return this._super.headers;
     },
-    getRemoteHost: function() {
+    getRemoteAddress: function() {
       return this._super.connection.remoteAddress;
     },
     parseReqBody: function(emitter) {
