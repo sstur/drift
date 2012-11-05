@@ -136,27 +136,6 @@ define('fs', function(require, fs) {
     stream.end();
   };
 
-  fs.log = function() {
-    var logfile, args = toArray(arguments), logLevel = 1;
-    if (typeof args[0] == 'number' && args[0] > 0 && +args[0] == args[0]) {
-      logLevel = args.shift();
-    }
-    if (args.length > 1) {
-      logfile = args.pop();
-    }
-    if (!logfile) logfile = 'default';
-    var data = args
-      , path = 'data/logs/' + logfile.replace(/\.log$/i, '') + '.log';
-    data.forEach(function(line, i) {
-      data[i] = (isPrimitive(line)) ? String(line) : util.stringify(line);
-    });
-    data.unshift(new Date().toUTCString());
-    data.push('');
-    data = data.join('\n');
-    data = data.replace(/(\r\n|[\r\n])+/g, '\r\n');
-    fs.writeTextToFile(path, data + '\r\n');
-  };
-
 
   fs.readdir = function(path) {
     var items = [];

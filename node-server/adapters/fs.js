@@ -3,9 +3,12 @@ var fs = require('fs');
 adapter.define('fs', function(require, exports) {
   "use strict";
 
+  var path = require('path');
   var Buffer = require('buffer').Buffer;
 
   var slice = Array.prototype.slice;
+  var join = path.join;
+  var basename = path.basename;
 
   //this.exports = exports = {
   //  stat: fs.stat.bind(fs),
@@ -18,81 +21,29 @@ adapter.define('fs', function(require, exports) {
   //convenient access to mappath
   var mappath = app.mappath;
 
-  var RE_HEAD = /^(.*)\//
-    , RE_TAIL = /\/([^\/]*)$/
-    , RE_SLASHES = /\/+/g
-    , RE_DOTSLASH = /\/.\//g
-    , RE_DOTDOTSLASH = /[^\/]+\/\.\.\//g
-    , RE_TRAILING_SLASH = /\/$/;
-
-  //Path Resolution Functions
-  exports.path = {};
-
-  /*
-   * Join one or more paths
-   * path.join('assets/', 'scripts', 'file.js')
-   */
-  exports.path.join = function() {
-    var a = [], args = slice.call(arguments);
-    args.forEach(function(s, i) {
-      if (s) a.push(s);
-    });
-    var path = a.join('/');
-    path = path.replace(RE_SLASHES, '/');
-    path = path.replace(RE_DOTSLASH, '/');
-    path = path.replace(RE_DOTDOTSLASH, '');
-    path = path.replace(RE_TRAILING_SLASH, '');
-    return path;
-  };
-
-  /*
-   * Get the directory part of a path
-   * /data/file.txt -> /data/
-   */
-  exports.path.parent = function(path) {
-    return path.replace(RE_TAIL, '');
-  };
-
-  /*
-   * Get the file part of a path
-   * /data/file.txt -> file.txt
-   */
-  exports.path.member = function(path) {
-    return path.replace(RE_HEAD, '');
-  };
-
-
-  //escape unsafe characters in a filename
-  exports.escape = function(filename) {
-    return String(filename).replace(/[^\w\d!@#$()_\-+={}[],;']/g, function(char) {
-      return encodeURIComponent(char);
-    });
-  };
-
-
-  var isFile = exports.isFile_ = function(path, callback) {
+  exports.isFile_ = function(path, callback) {
     fs.stat(path, function(err, stat) {
       callback(null, !err && stat.isFile());
     });
   };
 
-  var isDir = exports.isDir_ = function(path, callback) {
+  exports.isDir_ = function(path, callback) {
     fs.stat(path, function(err, stat) {
       callback(null, !err && stat.isDirectory());
     });
   };
 
-  var readFile = exports.readFile_ = function(file, callback) {
-    file = mappath(file);
-    fs.readFile(file, callback);
+  exports.readFile_ = function(path, callback) {
+    path = mappath(path);
+    fs.readFile(path, callback);
   };
 
-  var readTextFile = exports.readTextFile_ = function(file, enc, callback) {
+  exports.readTextFile_ = function(path, enc, callback) {
+    path = mappath(path);
     var args = slice.call(arguments);
     callback = args.pop();
     enc = (typeof enc == 'string') ? enc : 'utf8';
-    file = mappath(file);
-    fs.readFile(file, enc, callback);
+    fs.readFile(path, enc, callback);
   };
 
   var writeFile = exports.writeFile_ = function(path, data, opts, callback) {
@@ -112,16 +63,17 @@ adapter.define('fs', function(require, exports) {
     });
   };
 
-  var writeTextToFile = exports.writeTextToFile_ = function(file, text, opts, callback) {
-    var args = slice.call(arguments);
-    callback = args.pop();
-    writeFile(file, String(text), opts, callback);
+  exports.writeTextToFile_ = function(path, text, opts, callback) {
+    path = mappath(path);
+    callback = slice.call(arguments).pop();
+    writeFile(path, String(text), opts, callback);
   };
 
-  var copyFile = exports.copyFile_ = function(file, dest, callback) {
-    file = mappath(file);
+  exports.copyFile_ = function(path, dest, callback) {
+    //todo: ENOENT error
+    path = mappath(path);
     dest = mappath(dest);
-    fs.stat(file, function(err, stat) {
+    fs.stat(path, function(err, stat) {
       if (err || !stat.isFile()) {
         return callback(err || new Error('Source path is not a file'));
       }
@@ -130,17 +82,18 @@ adapter.define('fs', function(require, exports) {
           return callback(err);
         }
         if (stat.isDirectory()) {
-          dest = exports.path.join(dest, exports.path.member(file));
+          dest = join(dest, basename(path));
         }
-        _copyFile(file, dest, callback);
+        copyFile(path, dest, callback);
       });
     });
   };
 
-  var moveFile = exports.moveFile_ = function(file, dest, callback) {
-    file = mappath(file);
+  exports.moveFile_ = function(path, dest, callback) {
+    //todo: ENOENT error
+    path = mappath(path);
     dest = mappath(dest);
-    fs.stat(file, function(err, stat) {
+    fs.stat(path, function(err, stat) {
       if (err || !stat.isFile()) {
         return callback(err || new Error('Source path is not a file'));
       }
@@ -149,20 +102,20 @@ adapter.define('fs', function(require, exports) {
           return callback(err);
         }
         if (stat.isDirectory()) {
-          dest = exports.path.join(dest, exports.path.member(file));
+          dest = join(dest, basename(path));
         }
-        fs.rename(file, dest, callback);
+        fs.rename(path, dest, callback);
       });
     });
   };
 
-  var deleteFile = exports.deleteFile_ = function(file, callback) {
-    file = mappath(file);
-    fs.unlink(file, callback);
+  exports.deleteFile_ = function(path, callback) {
+    path = mappath(path);
+    fs.unlink(path, callback);
   };
 
   //todo: recursive
-  var createDir = exports.createDir_ = function(path, recurse, callback) {
+  exports.createDir_ = function(path, recurse, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
     recurse = (recurse === true);
@@ -171,37 +124,19 @@ adapter.define('fs', function(require, exports) {
   };
 
   //todo: recursive
-  var removeDir = exports.removeDir_ = function(file, recurse, callback) {
+  exports.removeDir_ = function(path, recurse, callback) {
     var args = slice.call(arguments);
     callback = args.pop();
     recurse = (recurse === true);
-    file = mappath(file);
-    fs.rmdir(file, callback);
-  };
-
-  var log = exports.log_ = function(data, logfile, callback) {
-    var args = slice.call(arguments);
-    callback = args.pop();
-    if (args.length > 1) {
-      logfile = args.pop();
-    }
-    logfile = (logfile && typeof logfile == 'string') ? logfile : 'default';
-    logfile = logfile.replace(/\.log$/i, '') + '.log';
-    data = args.map(function(line) {
-      return (line instanceof Object) ? JSON.stringify(line) : String(line);
-    });
-    data.push('');
-    data.unshift(new Date().toUTCString());
-    data = data.join('\n').replace(/(\r\n|[\r\n])/g, '\r\n');
-    var path = exports.path.join('data/logs', logfile);
-    writeTextToFile(path, data, callback);
+    path = mappath(path);
+    fs.rmdir(path, callback);
   };
 
 
 
   //helpers
 
-  function _copyFile(sourcePath, destPath, callback) {
+  function copyFile(sourcePath, destPath, callback) {
     var source = fs.createReadStream(sourcePath);
     var dest = fs.createWriteStream(destPath);
     source.on('error', callback);

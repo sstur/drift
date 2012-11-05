@@ -2,10 +2,10 @@
  * Global Functions and Variables
  *   platforms not supporting ECMAScript 5 need ES5 shim loaded before this
  *
- * todo: htmlEnc/htmlDec; Date library; deprecate isSet
+ * todo: Date formatting
  */
 
-var forEach, vartype, isPrimitive, isSet, toArray;
+var forEach, vartype, isPrimitive, toArray;
 
 (function() {
   "use strict";
@@ -39,15 +39,7 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   };
 
   Object.isPrimitive = function(obj) {
-    if (obj == null) {
-      return true;
-    }
-    var type = typeof obj;
-    return (type == 'boolean' || type == 'number' || type == 'string');
-  };
-
-  Object.isSet = function(obj) {
-    return !(obj === null || typeof obj == 'undefined');
+    return !(obj === Object(obj));
   };
 
   Object.remove = function(obj, key) {
@@ -227,7 +219,6 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   //Shorthand
   vartype = Object.vartype;
   isPrimitive = Object.isPrimitive;
-  isSet = Object.isSet;
   toArray = Array.toArray;
 
   //export to global (except when compiled)
@@ -235,7 +226,6 @@ var forEach, vartype, isPrimitive, isSet, toArray;
   global.forEach= forEach;
   global.vartype = vartype;
   global.isPrimitive = isPrimitive;
-  global.isSet = isSet;
   global.toArray = toArray;
   /*}@*/
 

@@ -1,3 +1,4 @@
+/*global app, define */
 define('url', function(require, exports) {
   "use strict";
 

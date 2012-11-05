@@ -1,4 +1,5 @@
-define('qs', ['module'], function(module) {
+/*global app, define */
+define('qs', function(require, exports, module) {
   "use strict";
 
   var SEP = /[&\?]/;

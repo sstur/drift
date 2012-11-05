@@ -1,3 +1,4 @@
+/*global app, define */
 /**
  * Port of Tobias Luetke's Liquid Template Engine
  * from Ruby to JavaScript. Implements non-evaling

@@ -16,7 +16,7 @@ app.on('ready', function(require) {
 
   //app.route('/redir/:i?', function(req, res, i) {
   //  var count = (+i || 0) + 1;
-  //  fs.log('redirecting ' + count);
+  //  util.log('redirecting ' + count);
   //  //redirect 3 times (two intermediary and one final)
   //  res.redirect((count < 3) ? '../redir/' + count : '/dump');
   //});
@@ -104,7 +104,7 @@ app.on('ready', function(require) {
 
   //app.route('/log', function(req, res) {
   //  var fs = require('fs');
-  //  fs.log('test');
+  //  util.log('test');
   //  res.end('done');
   //});
 
