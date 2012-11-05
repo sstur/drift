@@ -12,7 +12,7 @@ adapter.define('body-parser', function(require, exports, module) {
 
   var MAX_BUFFER_SIZE = 1048576;
 
-  var join = path.join, basename = path.basename;
+  var join = path.join;
 
   function BodyParser(readStream, headers, opts) {
     EventEmitter.call(this);

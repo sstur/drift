@@ -10,14 +10,6 @@ adapter.define('fs', function(require, exports) {
   var join = path.join;
   var basename = path.basename;
 
-  //this.exports = exports = {
-  //  stat: fs.stat.bind(fs),
-  //  open: fs.open.bind(fs),
-  //  write: fs.write.bind(fs),
-  //  close: fs.close.bind(fs),
-  //  rename: fs.rename.bind(fs),
-  //};
-
   //convenient access to mappath
   var mappath = app.mappath;
 
