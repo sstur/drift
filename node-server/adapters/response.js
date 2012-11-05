@@ -12,7 +12,7 @@ app.define('adapter-response', function(require, exports, module) {
     this._super = httpRes;
   }
 
-  Response.prototype = {
+  util.extend(Response.prototype, {
     writeHead: function(status, headers) {
       var parts = STATUS_PARTS.exec(status);
       var statusCode = parts[1] || '200', reasonPhrase = parts[2];
@@ -38,7 +38,7 @@ app.define('adapter-response', function(require, exports, module) {
         fs.createReadStream(fullpath).pipe(_super);
       });
     }
-  };
+  });
 
   module.exports = Response;
 

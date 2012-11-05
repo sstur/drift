@@ -12,7 +12,7 @@ app.define('adapter-request', function(require, exports, module) {
     req.pause();
   }
 
-  Request.prototype = {
+  util.extend(Request.prototype, {
     getMethod: function() {
       return this._super.method;
     },
@@ -35,7 +35,7 @@ app.define('adapter-request', function(require, exports, module) {
       console.log(Object.keys(parser.__proto__));
       return parser.parse();
     }
-  };
+  });
 
   module.exports = Request;
 });
