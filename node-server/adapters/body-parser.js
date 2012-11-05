@@ -70,8 +70,9 @@ adapter.define('body-parser', function(require, exports, module) {
       default:
         this.processBinaryBody();
     }
-    //todo: try/catch?
-    this.readStream.resume();
+    if (this.readStream._paused) {
+      this.readStream.resume();
+    }
   };
 
   BodyParser.prototype.bufferReqBody = function(callback) {
