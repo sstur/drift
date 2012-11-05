@@ -78,12 +78,6 @@
     //cross-reference request and response
     req.res = res;
     res.req = req;
-    //debugging: ignore favicon request
-    if (req.url.toLowerCase() == '/favicon.ico') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
     //attempt to serve static file
     res.tryStaticPath('assets/', function() {
       console.log('fibers created: ' + Fiber.fibersCreated);
