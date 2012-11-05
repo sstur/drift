@@ -30,7 +30,7 @@
     err.file = details.file;
     err.type = details.category.replace(/(\w+ )?(\w+)Script/i, 'Script');
     err.line = details.line;
-    err.message = details.message;
+    err.message = details.description;
     err.code = details.number>>16 & 0x1FFF;
     err.number = details.number & 0xFFFF;
     err.referer = getItem('HTTP-Referer');

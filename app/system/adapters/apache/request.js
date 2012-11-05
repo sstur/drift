@@ -45,10 +45,10 @@ define('adapter-request', function(require, exports, module) {
       return this._get('remote-host');
     },
     _read: function(bytes) {
-      return new Buffer(apache.read(bytes));
+      return new Buffer(this._super.read(bytes));
     },
     parseReqBody: function(emitter) {
-      var parser = new BodyParser(this.getHeaders(), this._read);
+      var parser = new BodyParser(this.getHeaders(), this._read.bind(this));
       util.propagateEvents(parser, emitter, 'file upload-progress');
       return parser.parse();
     }

@@ -47,12 +47,12 @@ define('adapter-request', function(require, exports, module) {
       try {
         var bin = this._super.binaryRead(bytes);
       } catch(e) {
-        throw new Error('Could not read ' + bytes + ' bytes from request body');
+        throw new Error('Could not read ' + bytes + ' bytes from request body: ' + e.message);
       }
       return new Buffer(bin);
     },
     parseReqBody: function(emitter) {
-      var parser = new BodyParser(this.getHeaders(), this._read);
+      var parser = new BodyParser(this.getHeaders(), this._read.bind(this));
       util.propagateEvents(parser, emitter, 'file upload-progress');
       return parser.parse();
     }
