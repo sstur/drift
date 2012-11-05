@@ -14,6 +14,11 @@ app.on('ready', function(require) {
     res.redirect('/assets/favicon.ico', 301);
   });
 
+  app.route('/create-null', function(req, res) {
+    var o = Object.create(null);
+    res.end(typeof o.toString);
+  });
+
   //app.route('/redir/:i?', function(req, res, i) {
   //  var count = (+i || 0) + 1;
   //  util.log('redirecting ' + count);

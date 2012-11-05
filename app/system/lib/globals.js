@@ -166,7 +166,7 @@ var forEach, vartype, isPrimitive, toArray;
 
   String.parse = function(str, /**String=''*/ def) {
     def = (arguments.length > 1) ? def : '';
-    return (str == null) ? def : String(str);
+    return (str == null) ? def : (str.toString ? str.toString() : '' + str);
   };
 
   String.repeat = function(str, count) {

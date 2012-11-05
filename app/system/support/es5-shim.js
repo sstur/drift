@@ -3,7 +3,7 @@
  MIT License. http://github.com/280north/narwhal/blob/master/README.md
  */
 
-(function () {
+(function() {
 
   /**
    * Brings an environment as close to ECMAScript 5 compliance
@@ -43,7 +43,7 @@
       //   15.3.4.5.2.
       // 14. Set the [[HasInstance]] internal property of F as described in
       //   15.3.4.5.3.
-      var bound = function () {
+      var bound = function() {
 
         if (this instanceof bound) {
           // 15.3.4.5.2 [[Construct]]
@@ -634,7 +634,7 @@
         new Date(NaN).toJSON() === null &&
         new Date(negativeDate).toJSON().indexOf(negativeYearString) !== -1 &&
         Date.prototype.toJSON.call({ // generic
-          toISOString: function () {
+          toISOString: function() {
             return true;
           }
         })
@@ -946,7 +946,7 @@
 
   // ES5 9.9
   // http://es5.github.com/#x9.9
-  var toObject = function (o) {
+  var toObject = function(o) {
     if (o == null) { // this matches both null and undefined
       throw new Error("can't convert "+o+" to object");
     }
@@ -1039,8 +1039,8 @@
     // Contributed by Brandon Benvie, October, 2012
     var createEmpty;
     var supportsProto = Object.prototype.__proto__ === null;
-    if (supportsProto || typeof document == 'undefined') {
-      createEmpty = function () {
+    if (supportsProto || (typeof document == 'undefined' && typeof ActiveXObject == 'undefined')) {
+      createEmpty = function() {
         return { "__proto__": null };
       };
     } else {
@@ -1049,28 +1049,38 @@
       // aside from Object.prototype itself. Instead, create a new global
       // object and *steal* its Object.prototype and strip it bare. This is
       // used as the prototype to create nullary objects.
-      createEmpty = (function () {
-        var iframe = document.createElement('iframe');
-        var parent = document.body || document.documentElement;
-        iframe.style.display = 'none';
-        parent.appendChild(iframe);
-        iframe.src = 'javascript:';
-        var empty = iframe.contentWindow.Object.prototype;
-        parent.removeChild(iframe);
-        iframe = null;
-        delete empty.constructor;
-        delete empty.hasOwnProperty;
-        delete empty.propertyIsEnumerable;
-        delete empty.isProtoypeOf;
-        delete empty.toLocaleString;
-        delete empty.toString;
-        delete empty.valueOf;
-        empty.__proto__ = null;
+      createEmpty = (function() {
+        var empty, Empty;
+        return function() {
+          if (Empty) return new Empty();
+          try {
+            var doc = new ActiveXObject('htmlfile');
+          } catch(e) {}
+          if (doc) {
+            doc.write('<' + 'script>document.win = window<\/script>');
+            doc.close();
+            empty = doc.win.Object.prototype;
+          } else {
+            var iframe = document.createElement('iframe');
+            var parent = document.body || document.documentElement;
+            iframe.style.display = 'none';
+            parent.appendChild(iframe);
+            iframe.src = 'javascript:';
+            empty = iframe.contentWindow.Object.prototype;
+            parent.removeChild(iframe);
+            iframe = null;
+          }
+          delete empty.constructor;
+          delete empty.hasOwnProperty;
+          delete empty.propertyIsEnumerable;
+          delete empty.isProtoypeOf;
+          delete empty.toLocaleString;
+          delete empty.toString;
+          delete empty.valueOf;
+          empty.__proto__ = null;
 
-        function Empty() {}
-        Empty.prototype = empty;
-
-        return function () {
+          Empty = function() {};
+          Empty.prototype = empty;
           return new Empty();
         };
       })();
@@ -1252,7 +1262,7 @@
 
   // detect a Rhino bug and patch it
   try {
-    Object.freeze(function () {});
+    Object.freeze(function() {});
   } catch (exception) {
     Object.freeze = (function freeze(freezeObject) {
       return function freeze(object) {

@@ -38,7 +38,7 @@ define('adapter-response', function(require, exports, module) {
       if (Buffer.isBuffer(data)) {
         this._super.binaryWrite(data.toBin());
       } else {
-        this._super.write(String(data));
+        this._super.write('' + data);
       }
     },
     end: function() {
