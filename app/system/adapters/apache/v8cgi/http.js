@@ -67,10 +67,11 @@ define('http', function(require, exports) {
   };
 
   ClientRequest.prototype.send = function() {
+    var headers = this.headers;
     var hiddenSocket = null;
 
     //ensure host header is present
-    if (!this.headers.hasOwnProperty('Host')) {
+    if (!headers.hasOwnProperty('Host')) {
       this.addHeader('Host', this.generateHost());
     }
 
@@ -78,9 +79,9 @@ define('http', function(require, exports) {
 
     //build request head
     var head = this.method + ' ' + this.path + ' HTTP/1.1\r\n';
-    for (var n in this.headers) {
-      head += n + ': ' + this.headers[n] + '\r\n';
-    }
+    Object.keys(headers).forEach(function(n) {
+      head += n + ': ' + headers[n] + '\r\n';
+    });
     head += '\r\n';
 
     var ipaddr = Socket.getAddrInfo(this.hostname, Socket.PF_INET);

@@ -30,13 +30,13 @@ define('adapter-request', function(require, exports, module) {
     getHeaders: function() {
       if (!this._headers) {
         var headers = {}, all = system.env;
-        for (var n in all) {
+        Object.keys(all).forEach(function(n) {
           var key = n.toLowerCase(), val = all[n];
           if (special[key] || key.slice(0, 5) == 'http_') {
             key = key.replace(/^http_/, '').replace(/_/g, '-');
             headers[key] = headers[key] ? headers[key] + ', ' + val : val;
           }
-        }
+        });
         this._headers = headers;
       }
       return this._headers;

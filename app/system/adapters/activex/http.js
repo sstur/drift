@@ -65,15 +65,16 @@ define('http', function(require, exports) {
     var xhr = new ActiveXObject('WinHttp.WinHttpRequest.5.1');
 
     xhr.open(this.method, this.getFullUrl(), false);
+    var headers = this.headers;
     //if we don't add a user-agent ActiveX will do it for us
-    this.headers['User-Agent'] = this.headers['User-Agent'] || 'Mozilla/4.0';
+    headers['User-Agent'] = headers['User-Agent'] || 'Mozilla/4.0';
     //ActiveX uses strange syntax to set options
     // add [0] to make IDE/linter happy; compiler directive removes
     // it at compile time
     xhr.option(6)/*@remove{*/[0]/*}@*/ = false;
-    for (var n in this.headers) {
-      xhr.setRequestHeader(n, this.headers[n]);
-    }
+    Object.keys(headers).forEach(function(n) {
+      xhr.setRequestHeader(n, headers[n]);
+    });
     try {
       xhr.send(this.body || null);
     } catch(e) {

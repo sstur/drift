@@ -165,10 +165,11 @@ var app, define;
       return config[data];
     } else {
       data = data || {};
-      //todo deep merge?
-      for (var n in data) {
-        config[n] = data[n];
-      }
+      var keys = Object.keys(data);
+      keys.forEach(function(n) {
+        //todo deep merge?
+       config[n] = data[n];
+      });
     }
   };
 

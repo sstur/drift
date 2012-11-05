@@ -143,17 +143,16 @@ define('response', function(require, exports, module) {
 
     //these methods interface with the adapter (_super)
     _writeHead: function() {
-      var cookies = this.response.cookies;
-      for (var n in cookies) {
-        this.headers('Set-Cookie', serializeCookie(cookies[n]));
-      }
-      var headers = this.response.headers;
+      var headers = this.response.headers, cookies = this.response.cookies;
+      Object.keys(cookies).forEach(function(n) {
+        headers('Set-Cookie', serializeCookie(cookies[n]));
+      });
       headers['Content-Type'] = buildContentType(this.response.charset, headers['Content-Type']);
       if (cfg.logging && cfg.logging.response_time && app.__init) {
-        this.headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
+        headers('X-Response-Time', new Date().valueOf() - app.__init.valueOf());
       }
       this.req.emit('end');
-      this._super.writeHead(this.response.status, this.response.headers);
+      this._super.writeHead(this.response.status, headers);
     },
     _streamFile: function(path) {
       this._writeHead();

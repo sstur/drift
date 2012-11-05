@@ -23,10 +23,10 @@ define('class', function(require, exports, module) {
     var prototype = create(this.prototype);
 
     // Copy the properties over onto the new prototype
-    for (var name in prop) {
+    Object.keys(prop).forEach(function(name) {
       // Check if we're overwriting an existing function
-      prototype[name] = typeof prop[name] == "function" &&
-        typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+      prototype[name] = (typeof prop[name] == "function") &&
+        (typeof _super[name] == "function") && fnTest.test(prop[name]) ?
         (function(name, fn) {
           return function() {
             var tmp = this._super;
@@ -44,7 +44,7 @@ define('class', function(require, exports, module) {
           };
         })(name, prop[name]) :
         prop[name];
-    }
+    });
 
     // The dummy class constructor
     // All construction is actually done in the init method

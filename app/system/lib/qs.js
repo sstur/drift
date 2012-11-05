@@ -21,15 +21,15 @@ define('qs', function(require, exports, module) {
       }
     },
     stringify: function(obj) {
-      var arr = [];
-      for (var n in obj) {
-        var key = qs.escape(n), val = obj[n];
+      var arr = [], keys = Object.keys(obj), len = keys.length;
+      for (var i = 0; i < len; i++) {
+        var key = keys[i], name = qs.escape(key), val = obj[key];
         if (Array.isArray(val)) {
-          for (var i = 0; i < val.length; i++) {
-            arr.push(key + '=' + qs.escape(val[i]));
+          for (var j = 0; j < val.length; j++) {
+            arr.push(name + '=' + qs.escape(val[j]));
           }
         } else {
-          arr.push(key + '=' + qs.escape(val));
+          arr.push(name + '=' + qs.escape(val));
         }
       }
       return arr.join('&');
@@ -60,7 +60,9 @@ define('qs', function(require, exports, module) {
       }
       //flatten defaults to true (duplicates have their values concatenated with ,)
       if (opts.flatten !== false) {
-        for (key in obj) {
+        var keys = Object.keys(obj);
+        for (i = 0; i < keys.length; i++) {
+          key = keys[i];
           obj[key] = obj[key].join();
         }
       }
