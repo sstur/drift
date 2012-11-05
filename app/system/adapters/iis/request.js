@@ -20,8 +20,9 @@ define('adapter-request', function(require, exports, module) {
     },
     getMethod: function() {
       var method = this._get('method');
+      this.getHeaders();
       //POST is mis-reported as GET in 404 handler, so we make a best guess based on headers
-      if (method == 'GET' && (this._get('Content-Type') || this._get('Content-Length'))) {
+      if (method == 'GET' && (this._get('Content-Type') || +this._get('Content-Length'))) {
         method = 'POST';
       }
       return method;

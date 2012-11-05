@@ -52,6 +52,7 @@ define('util', function(require, util) {
 
   //log to the filesystem: util.log([logLevel], line1, [line2..], [logfile])
   util.log = function() {
+    var fs = require('fs');
     //todo: logLevel
     var logfile, args = toArray(arguments), logLevel = 1;
     if (typeof args[0] == 'number' && +args[0] == args[0] && args[0] > 0) {
