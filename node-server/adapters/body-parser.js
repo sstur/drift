@@ -10,7 +10,7 @@ adapter.define('body-parser', function(require, exports, module) {
   var qs = require('qs');
   var util = require('util');
 
-  var MAX_BUFFER_SIZE = 4096;
+  var MAX_BUFFER_SIZE = 1048576;
 
   var join = path.join, basename = path.basename;
 
@@ -76,18 +76,26 @@ adapter.define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.bufferReqBody = function(callback) {
     var readStream = this.readStream, opts = this.opts;
-    var body = [], size = 0, maxSize = opts.maxSize || MAX_BUFFER_SIZE;
+    var maxSize = opts.maxSize || MAX_BUFFER_SIZE;
+    if (this.length > maxSize) {
+      callback('413 Request Entity Too Large');
+      return;
+    }
+    var buffer = [], size = 0, expected = this.length;
     readStream.on('data', function(data) {
-      if (size < maxSize) {
-        body.push(data.toString(opts.encoding || 'utf8'));
-        size += data.length;
+      if (size > expected) {
+        readStream.pause();
+        callback('413 Request Entity Too Large');
+        return;
       }
+      buffer.push(data.toString(opts.encoding || 'utf8'));
+      size += data.length;
     });
     readStream.on('error', function(err) {
       callback(err);
     });
     readStream.on('end', function() {
-      callback(null, body.join(''));
+      callback(null, buffer.join(''));
     });
   };
 
@@ -127,45 +135,51 @@ adapter.define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.processMultiPartBody = function() {
     var self = this, readStream = this.readStream, opts = this.opts;
-    var form = new formidable.IncomingForm();
+    var parser = new formidable.IncomingForm();
+    parser.hash = 'md5';
+    parser.maxFieldsSize = opts.maxSize || MAX_BUFFER_SIZE;
     if (opts.autoSavePath) {
-      form.uploadDir = global.mappath(opts.autoSavePath);
+      parser.uploadDir = global.mappath(opts.autoSavePath);
     }
-    //calculate md5 hash for each uploaded file
-    form.on('fileBegin', function(name, file) {
-      file._hash = crypto.createHash('md5');
-      var _write = file.write;
-      file.write = function(buffer, cb) {
-        file._hash.update(buffer);
-        _write.apply(file, arguments);
-      };
-      file.on('end', function() {
-        file.hash = file._hash.digest('hex');
-        //should we attach to self.parsed.files here?
-      });
+    parser.on('field', function(name, value) {
+      self.parsed.fields[name] = value;
     });
-    form.parse(readStream, function(err, fields, files) {
+    parser.on('fileBegin', function(name, file) {
+      file.guid = getGuid();
+      if (opts.autoSavePath) {
+        file.path = join(parser.uploadDir, file.guid);
+      } else {
+        //hacky way to prevent formidable from saving files to disk
+        file.open = function() {
+          file._writeStream = new DummyWriteStream();
+        };
+      }
+    });
+    parser.on('file', function(name, item) {
+      if (item.path && item.size == 0) {
+        fs.unlink(item.path);
+        return;
+      }
+      var file = self.parsed.files[name] = {
+        type: 'file',
+        guid: item.guid,
+        length: item.size,
+        name: name,
+        fileName: item.name,
+        contentType: item.type,
+        md5: item.hash
+      };
+      if (item.path) {
+        file.fullpath = item.path;
+      }
+    });
+    //socket timeout or close
+    //parser.on('aborted', function() {});
+    parser.parse(readStream, function(err) {
       if (err) {
         self.emit('error', err);
         return;
       }
-      Object.keys(files).forEach(function(n) {
-        var file = files[n];
-        if (file.path && file.size == 0) {
-          fs.unlink(file.path);
-          return;
-        }
-        self.parsed.files[n] = {
-          //todo: guid
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          hash: file.hash,
-          fieldName: n
-        };
-        if (file.path) self.parsed.files[n].path = join(opts.autoSavePath, basename(file.path));
-      });
-      util.extend(self.parsed.fields, fields);
       self.emit('end');
     });
   };
@@ -215,6 +229,15 @@ adapter.define('body-parser', function(require, exports, module) {
     }
     return chars;
   }
+
+
+  function DummyWriteStream() {}
+  DummyWriteStream.prototype.write = function(data, callback) {
+    callback();
+  };
+  DummyWriteStream.prototype.end = function(callback) {
+    callback();
+  };
 
   module.exports = BodyParser;
 

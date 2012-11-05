@@ -10,8 +10,8 @@ define('body-parser', function(require, exports, module) {
   //var log = app._log = [];
 
   var CHUNK_SIZE = 1024;
-  var MAX_HEADER_SIZE = 1024;
-  var MAX_BUFFER_SIZE = 4096;
+  var MAX_HEADER_SIZE = 4096; //4 KB
+  var MAX_BUFFER_SIZE = 1048576; //1 MB
 
   function BodyParser(headers, read) {
     this._headers = headers;
@@ -56,11 +56,17 @@ define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype.processFormBody = function() {
+    if (this.length > MAX_BUFFER_SIZE) {
+      throw '413 Request Entity Too Large';
+    }
     var body = this._read(MAX_BUFFER_SIZE, 'utf8');
     util.extend(this.parsed.fields, qs.parse(body));
   };
 
   BodyParser.prototype.processJSONBody = function() {
+    if (this.length > MAX_BUFFER_SIZE) {
+      throw '413 Request Entity Too Large';
+    }
     var body = this._read(MAX_BUFFER_SIZE, 'utf8');
     try {
       var parsed = JSON.parse(body);
@@ -209,6 +215,9 @@ define('body-parser', function(require, exports, module) {
         this.emit('data', (enc) ? data.toString(enc) : data);
       }
     } else {
+      if (this.length > MAX_BUFFER_SIZE) {
+        throw new Error();
+      }
       this._chunks.push(data.toString('binary'));
     }
   };
