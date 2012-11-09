@@ -21,7 +21,7 @@ app.on('request', function(req, res) {
 
   //fix for IE 8/9 using XDomainRequest which will POST only text/plain
   if (req.method('post') && req.headers('content-type') == 'text/plain') {
-    var contentType = req.params('content-type');
+    var contentType = req.query('content-type');
     if (contentType in TYPES) {
       req._headers['content-type'] = contentType;
     }
