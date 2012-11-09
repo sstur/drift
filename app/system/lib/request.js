@@ -101,6 +101,10 @@ define('request', function(require, exports, module) {
     }
   });
 
+  //it's clearer to use req.body.fields('name')
+  Request.prototype.body.fields = Request.prototype.post.bind(Request.prototype);
+  Request.prototype.body.files = Request.prototype.uploads.bind(Request.prototype);
+
   //Helpers
 
   var REG_COOKIE_SEP = /[;,] */;
