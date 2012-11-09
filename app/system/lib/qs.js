@@ -1,10 +1,11 @@
+/**
+ * todo: alt flatten function to rename keys a=1&a=2 => {a[0]: 1, a[1]: 2)
+ */
 /*global app, define */
 define('qs', function(require, exports, module) {
   "use strict";
 
-  var SEP = /[&\?]/;
   var CHARS = /[^\w!$'()*,-.\/:;@[\\\]^{|}~]+/g;
-  var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   var qs = module.exports = {
     escape: function(s) {
@@ -37,8 +38,9 @@ define('qs', function(require, exports, module) {
     parse: function(str, opts) {
       opts = opts || {};
       var obj = {};
-      if (str) {
-        var split = str.split(SEP);
+      if (typeof str == 'string') {
+        if (str.charAt(0) == '?') str = str.slice(1);
+        var split = str.split('&');
         for (var i = 0, len = split.length; i < len; i++) {
           var part = split[i], pos = part.indexOf('=');
           if (pos < 0) {
@@ -47,8 +49,8 @@ define('qs', function(require, exports, module) {
           var key = part.slice(0, pos), val = part.slice(pos + 1);
           if (!key) continue;
           key = qs.unescape(key);
-          if (opts.lcase) {
-            //lowercase keys
+          //default to lowercase keys
+          if (opts.lcase !== false) {
             key = key.toLowerCase();
           }
           if (obj[key]) {
@@ -58,12 +60,12 @@ define('qs', function(require, exports, module) {
           }
         }
       }
-      //flatten defaults to true (duplicates have their values concatenated with ,)
+      //flatten defaults to true (duplicates have their values concatenated with ', ')
       if (opts.flatten !== false) {
         var keys = Object.keys(obj);
         for (i = 0; i < keys.length; i++) {
           key = keys[i];
-          obj[key] = obj[key].join();
+          obj[key] = obj[key].join(', ');
         }
       }
       return obj;

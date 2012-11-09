@@ -1,3 +1,7 @@
+/**
+ * todo: adapter request should have readRawBody() so that parseReqBody can be overriden to handle XML, etc
+ *
+ */
 /*global app, define */
 define('request', function(require, exports, module) {
   "use strict";
@@ -20,7 +24,7 @@ define('request', function(require, exports, module) {
       if (part) {
         return url[part];
       } else {
-        return url.full;
+        return url.raw;
       }
     },
     method: function(s) {
@@ -55,21 +59,40 @@ define('request', function(require, exports, module) {
         return params;
       }
     },
+    parseReqBody: function() {
+      if (this.method() in BODY_ALLOWED) {
+        var result = this._super.parseReqBody(this);
+        //try {
+        //  //passing req, ensures body-parser events propagate to request
+        //  var result = this._super.parseReqBody(this);
+        //} catch(e) {
+        //  if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
+        //    this.res.die(e);
+        //  } else {
+        //    this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
+        //  }
+        //}
+        return result;
+      }
+      return {files: {}, fields: {}};
+    },
+    body: function() {
+      return this._body || (this._body = parseReqBody(this));
+    },
     post: function(n) {
-      var parsed = this._body || (this._body = parseReqBody(this));
+      var body = this.body();
       if (arguments.length) {
-        return parsed.fields[n.toLowerCase()] || '';
+        return body.fields[n.toLowerCase()] || '';
       } else {
-        return parsed.fields;
+        return body.fields;
       }
     },
     uploads: function(n) {
-      var parsed = this._body || (this._body = parseReqBody(this));
-      if (!parsed.files) return null;
+      var body = this.body();
       if (arguments.length) {
-        return parsed.files[n] || null;
+        return body.files[n] || null;
       } else {
-        return parsed.files;
+        return body.files;
       }
     },
     isAjax: function() {
@@ -84,31 +107,15 @@ define('request', function(require, exports, module) {
 
   function parseURL(url) {
     var pos = url.indexOf('?')
-      , search = (pos > 0) ? url.slice(pos) : '';
+      , search = (pos > 0) ? url.slice(pos) : ''
+      , rawPath = search ? url.slice(0, pos) : url;
     return {
-      full: url,
-      path: qs.unescape(search ? url.slice(0, pos) : url),
+      raw: url,
+      rawPath: rawPath,
+      path: qs.unescape(rawPath),
       search: search,
       qs: search.slice(1)
     };
-  }
-
-  function parseReqBody(req) {
-    if (req.method() in BODY_ALLOWED) {
-      var result = req._super.parseReqBody(req);
-      //try {
-      //  //passing req, ensures body-parser events propagate to request
-      //  var result = req._super.parseReqBody(req);
-      //} catch(e) {
-      //  if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
-      //    req.res.die(e);
-      //  } else {
-      //    req.res.die(400, {error: 'Unable to parse request body; ' + e.message});
-      //  }
-      //}
-      return result;
-    }
-    return {files: {}, fields: {}};
   }
 
   function parseCookies(str) {
