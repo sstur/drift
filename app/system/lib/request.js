@@ -30,7 +30,7 @@ define('request', function(require, exports, module) {
     method: function(s) {
       if (!this._method) {
         //method override (for JSONP and platforms that don't support PUT/DELETE)
-        this._method = (this.headers('X-HTTP-Method-Override') || this.params('_method')).toUpperCase();
+        this._method = (this.headers('X-HTTP-Method-Override') || this.query('_method')).toUpperCase();
         this._method = (this._method in HTTP_METHODS) ? this._method : this._super.getMethod();
       }
       return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
@@ -51,12 +51,12 @@ define('request', function(require, exports, module) {
         return cookies;
       }
     },
-    params: function(n) {
-      var params = this._params || (this._params = qs.parse(this.url('qs')));
+    query: function(n) {
+      var query = this._query || (this._query = qs.parse(this.url('qs')));
       if (arguments.length) {
-        return params[n] || '';
+        return query[n] || '';
       } else {
-        return params;
+        return query;
       }
     },
     parseReqBody: function() {

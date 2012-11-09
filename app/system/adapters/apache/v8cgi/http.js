@@ -230,8 +230,8 @@ define('http', function(require, exports) {
   exports.ClientResponse = ClientResponse;
 
   exports.request = function(opts) {
-    if (opts.params) {
-      opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
+    if (opts.query) {
+      opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.query);
     }
     var req = new ClientRequest(opts);
     return req.send();
