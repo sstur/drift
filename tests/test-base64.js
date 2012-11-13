@@ -16,7 +16,7 @@ var DChambers = {}, WebReflection = {};
   exports.atob = function atob(string) {
     if (string.length % 4) throw new Error('Invalid Character');
     string = string.replace(re, '').split('');
-    var a, b, c, b1, b2, b3, b4, i = 0, len = string.length, result = [];
+    var a, b, c, b1, b2, b3, b4, i = 0, j = 0, len = string.length, result = [];
     while (i < len) {
       b1 = index[string[i++]];
       b2 = index[string[i++]];
@@ -25,9 +25,9 @@ var DChambers = {}, WebReflection = {};
       a = ((b1 & 0x3F) << 2) | ((b2 >> 4) & 0x3);
       b = ((b2 & 0xF) << 4) | ((b3 >> 2) & 0xF);
       c = ((b3 & 0x3) << 6) | (b4 & 0x3F);
-      result.push(fromCharCode(a));
-      b && result.push(fromCharCode(b));
-      c && result.push(fromCharCode(c));
+      result[j++] = fromCharCode(a);
+      b && (result[j++] = fromCharCode(b));
+      c && (result[j++] = fromCharCode(c));
     }
     return result.join('');
   };
