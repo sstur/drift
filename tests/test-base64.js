@@ -109,9 +109,57 @@ var DChambers = {}, WebReflection = {};
 })(WebReflection);
 
 
-//var decoded = [], encoded;
-//for (var i = 0; i < 0xFFFF; ++i) {
-//  decoded[i] = String.fromCharCode(i % 0xFF);
-//}
-//decoded = decoded.join('');
-//encoded = (window.btoa || WebReflection.btoa)(decoded);
+
+//decode tests
+function test_decode(atob) {
+  var test = {
+      "Zg==": "f"
+      ,"Zm8=": "fo"
+      ,"Zm9v": "foo"
+      ,"Zm9vYg==": "foob"
+      ,"Zm9vYmE=": "fooba"
+      ,"Zm9vYmFy": "foobar"
+      ,"MTQwYnl0ZX\n   MgcnVsZXMh": "140bytes rules!"
+    }
+    , errors = [];
+  for (var n in test) {
+    var r = atob(n);
+    if (r != test[n]) {
+      errors.push('Expected "' + test[n] + '" for "' + n + '" but got "' + r + '"');
+    }
+  }
+  if (errors.length) {
+    throw new Error(errors.length + ' tests failed!');
+  } else {
+    return 'All tests passed.';
+  }
+}
+
+//encode tests
+function test_encode(btoa){
+  var test = {
+      '': ''
+      ,'AA==': '\0'
+      ,'AAA=': '\0\0'
+      ,'AAAA': '\0\0\0'
+      ,'AAEC': '\0\1\2'
+      ,"Zg==": "f"
+      ,"Zm8=": "fo"
+      ,"Zm9v": "foo"
+      ,"Zm9vYg==": "foob"
+      ,"Zm9vYmE=": "fooba"
+      ,"Zm9vYmFy": "foobar"
+    }
+    , errors = [];
+  for (var n in test) {
+    var r = btoa(test[n]);
+    if (r != n) {
+      errors.push('Expected "' + n + '" for "' + test[n] + '" but got "' + r + '"');
+    }
+  }
+  if (errors.length) {
+    throw new Error(errors.length + ' tests failed!');
+  } else {
+    return 'All tests passed.';
+  }
+}
