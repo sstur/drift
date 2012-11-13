@@ -1,25 +1,27 @@
 var DChambers = {}, WebReflection = {};
 
-// fabricate a suitable error object
-var INVALID_CHARACTER_ERR = (function() { try { document.createElement('$') } catch (e) { return e } })();
-
 (function(exports) {
 
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('')
+    , index = {}
     , max = Math.max
     , re = /=+$/
+    , len = chars.length
     , fromCharCode = String.fromCharCode;
+
+  //populate index
+  while (len--) index[chars[len]] = len;
 
   // decoder
   exports.atob = function atob(string) {
-    string = string.replace(re, '');
-    var a, b, b1, b2, b3, b4, c, i = 0, len = string.length, result = [];
-    if (len % 4 === 1) throw new Error('Invalid Character');
+    if (string.length % 4) throw new Error('Invalid Character');
+    string = string.replace(re, '').split('');
+    var a, b, c, b1, b2, b3, b4, i = 0, len = string.length, result = [];
     while (i < len) {
-      b1 = chars.indexOf(string.charAt(i++));
-      b2 = chars.indexOf(string.charAt(i++));
-      b3 = chars.indexOf(string.charAt(i++));
-      b4 = chars.indexOf(string.charAt(i++));
+      b1 = index[string[i++]];
+      b2 = index[string[i++]];
+      b3 = index[string[i++]];
+      b4 = index[string[i++]];
       a = ((b1 & 0x3F) << 2) | ((b2 >> 4) & 0x3);
       b = ((b2 & 0xF) << 4) | ((b3 >> 2) & 0xF);
       c = ((b3 & 0x3) << 6) | (b4 & 0x3F);
@@ -32,24 +34,18 @@ var INVALID_CHARACTER_ERR = (function() { try { document.createElement('$') } ca
 
   // encoder
   exports.btoa = function btoa(string) {
-    var a, b, b1, b2, b3, b4, c, i = 0, len = string.length, result = [];
+    var a, b, c, b1, b2, b3, b4, i = 0, len = string.length, result = [];
     while (i < len) {
       a = string.charCodeAt(i++) || 0;
       b = string.charCodeAt(i++) || 0;
       c = string.charCodeAt(i++) || 0;
-      if (max(a, b, c) > 0xFF) {
-        throw new Error('Invalid Character');
-      }
+      if (max(a, b, c) > 0xFF) throw new Error('Invalid Character');
       b1 = (a >> 2) & 0x3F;
       b2 = ((a & 0x3) << 4) | ((b >> 4) & 0xF);
       b3 = ((b & 0xF) << 2) | ((c >> 6) & 0x3);
       b4 = c & 0x3F;
-      if (!b) {
-        b3 = b4 = 64;
-      } else if (!c) {
-        b4 = 64;
-      }
-      result.push(chars.charAt(b1) + chars.charAt(b2) + chars.charAt(b3) + chars.charAt(b4));
+      b ? (c ? 0 : b4 = 64) : (b3 = b4 = 64);
+      result.push(chars[b1], chars[b2], chars[b3], chars[b4]);
     }
     return result.join('');
   };
@@ -66,27 +62,17 @@ var INVALID_CHARACTER_ERR = (function() { try { document.createElement('$') } ca
     , index = {}
     , max = Math.max
     , re = /=+$/
-    , len = chars.length;
+    , len = chars.length
+    , fromCharCode = String.fromCharCode;
 
+  //populate index
   while (len--) index[chars[len]] = len;
-
-  // fromCharCode optimization
-  var _fromCharCode = String.fromCharCode
-  var MAX_LENGTH = 0xFFFF; //max array length to use for fn.apply
-  function fromCharCode(code) {
-    var result = [], length = code.length;
-    for (var i = 0; i < length; i += MAX_LENGTH) {
-      result.push(_fromCharCode.apply(null, code.slice(i, i + MAX_LENGTH)));
-    }
-    return result.join('');
-  }
 
   // decoder
   exports.atob = function atob(string) {
     if (string.length % 4) throw new Error('Invalid Character');
     string = string.replace(re, '').split('');
-    var a, b, b1, b2, b3, b4, c, i = 0, j = 0, result = [];
-    len = string.length;
+    var a, b, c, b1, b2, b3, b4, i = 0, j = 0, len = string.length, result = [];
     while (i < len) {
       b1 = index[string[i++]];
       b2 = index[string[i++]];
@@ -104,8 +90,7 @@ var INVALID_CHARACTER_ERR = (function() { try { document.createElement('$') } ca
 
   // encoder
   exports.btoa = function btoa(string) {
-    var a, b, b1, b2, b3, b4, c, i = 0, result = [];
-    len = string.length;
+    var a, b, c, b1, b2, b3, b4, i = 0, len = string.length, result = [];
     while (i < len) {
       a = string.charCodeAt(i++) || 0;
       b = string.charCodeAt(i++) || 0;
