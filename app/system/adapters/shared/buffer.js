@@ -25,7 +25,7 @@ define('buffer', function(require, exports) {
 
   var RE_NON_ASCII = /[\x80-\xFF]+/g;
 
-  //todo: offset, inspect, base64
+  //todo: offset, inspect
   function Buffer(subject, encoding, offset) {
     if (!(this instanceof Buffer)) {
       return new Buffer(subject, encoding, offset);
@@ -43,7 +43,7 @@ define('buffer', function(require, exports) {
         this._raw = hexToRaw(subject);
       } else
       if (encoding == 'base64') {
-        this._raw = fromBase64(subject);
+        this._raw = atob(subject);
       } else {
         this._raw = subject;
       }
@@ -116,7 +116,7 @@ define('buffer', function(require, exports) {
         return rawToHex(s);
       } else
       if (enc == 'base64') {
-        return toBase64(s);
+        return btoa(s);
       }
       return s;
     },
@@ -129,7 +129,6 @@ define('buffer', function(require, exports) {
   });
 
   // Helper functions
-  var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
   function toUtf8(s) {
     try {
@@ -187,29 +186,59 @@ define('buffer', function(require, exports) {
     return el.nodeTypedValue;
   }
 
-  function toBase64(str) {
-    var len = str.length, count = Math.ceil(len / 3), arr = new Array(count * 4);
-    for (var i = 0; i < count; i++) {
-      var j = i * 3, k = i * 4, l = len - j;
-      var a = str.charCodeAt(j), b = +str.charCodeAt(j + 1), c = +str.charCodeAt(j + 2);
-      arr[k] = B64.charAt((a >> 2) & 0x3F);
-      arr[k + 1] = B64.charAt(((a & 0x3) << 4) | ((b >> 4) & 0xF));
-      arr[k + 2] = B64.charAt((l > 1) ? ((b & 0xF) << 2) | ((c >> 6) & 0x3) : 64);
-      arr[k + 3] = B64.charAt((l > 2) ? c & 0x3F : 64);
+
+
+  // base64 atob/btoa implementation
+  // based on browser shim by github.com/DavidChambers
+  // with optimizations from github.com/WebReflection
+  // see jsperf.com/base64-optimized
+
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('')
+    , index = {}
+    , max = Math.max
+    , re = /=+$/
+    , len = chars.length
+    , fromCharCode = String.fromCharCode;
+
+  //populate index
+  while (len--) index[chars[len]] = len;
+
+  // decoder
+  function atob(string) {
+    if (string.length % 4) throw new Error('Invalid Character');
+    string = string.replace(re, '').split('');
+    var a, b, c, b1, b2, b3, b4, i = 0, j = 0, len = string.length, result = [];
+    while (i < len) {
+      b1 = index[string[i++]];
+      b2 = index[string[i++]];
+      b3 = index[string[i++]];
+      b4 = index[string[i++]];
+      a = ((b1 & 0x3F) << 2) | ((b2 >> 4) & 0x3);
+      b = ((b2 & 0xF) << 4) | ((b3 >> 2) & 0xF);
+      c = ((b3 & 0x3) << 6) | (b4 & 0x3F);
+      result[j++] = fromCharCode(a);
+      b && (result[j++] = fromCharCode(b));
+      c && (result[j++] = fromCharCode(c));
     }
-    return arr.join('');
+    return result.join('');
   }
 
-  function fromBase64(str) {
-    var len = str.length, count = Math.ceil(len / 4), arr = new Array(count * 3);
-    for (var i = 0; i < count; i++) {
-      var j = i * 4, k = i * 3;
-      var a = B64.indexOf(str.charAt(j)), b = B64.indexOf(str.charAt(j + 1)), c = B64.indexOf(str.charAt(j + 2)), d = B64.indexOf(str.charAt(j + 3));
-      arr[k] = String.fromCharCode(((a & 0x3F) << 2) | ((b >> 4) & 0x3));
-      arr[k + 1] = String.fromCharCode(((b & 0xF) << 4) | ((c >> 2) & 0xF));
-      arr[k + 2] = String.fromCharCode(((c & 0x3) << 6) | (d & 0x3F));
+  // encoder
+  function btoa(string) {
+    var a, b, c, b1, b2, b3, b4, i = 0, len = string.length, result = [];
+    while (i < len) {
+      a = string.charCodeAt(i++) || 0;
+      b = string.charCodeAt(i++) || 0;
+      c = string.charCodeAt(i++) || 0;
+      if (0xFF < max(a, b, c)) throw new Error('Invalid Character');
+      b1 = (a >> 2) & 0x3F;
+      b2 = ((a & 0x3) << 4) | ((b >> 4) & 0xF);
+      b3 = ((b & 0xF) << 2) | ((c >> 6) & 0x3);
+      b4 = c & 0x3F;
+      b ? (c ? 0 : b4 = 64) : (b3 = b4 = 64);
+      result.push(chars[b1], chars[b2], chars[b3], chars[b4]);
     }
-    return arr.join('');
+    return result.join('');
   }
 
   exports.Buffer = Buffer;
