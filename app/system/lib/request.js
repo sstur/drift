@@ -1,5 +1,5 @@
 /**
- * todo: adapter request should have readRawBody() so that parseReqBody can be overriden to handle XML, etc
+ * todo: adapter request should have readRawBody() so that parseReqBody can be overridden to handle XML, etc
  *
  */
 /*global app, define */
