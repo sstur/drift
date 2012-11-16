@@ -61,39 +61,30 @@ define('request', function(require, exports, module) {
     },
     parseReqBody: function() {
       if (this.method() in BODY_ALLOWED) {
-        var result = this._super.parseReqBody(this);
-        //try {
-        //  //passing req, ensures body-parser events propagate to request
-        //  var result = this._super.parseReqBody(this);
-        //} catch(e) {
-        //  if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
-        //    this.res.die(e);
-        //  } else {
-        //    this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
-        //  }
-        //}
+        try {
+          //passing req, ensures body-parser events propagate to request
+          var result = this._super.parseReqBody(this);
+        } catch(e) {
+          if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
+            this.res.die(e);
+          } else {
+            this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
+          }
+        }
         return result;
       }
       return {files: {}, fields: {}};
     },
     body: function() {
-      return this._body || (this._body = parseReqBody(this));
+      return this._body || (this._body = this.parseReqBody(this));
     },
+    //todo: req.post should be deprecated in favour of req.body.fields
     post: function(n) {
-      var body = this.body();
-      if (arguments.length) {
-        return body.fields[n.toLowerCase()] || '';
-      } else {
-        return body.fields;
-      }
+      return this.body.fields.apply(this.body, arguments);
     },
+    //todo: req.uploads should be deprecated in favour of req.body.files
     uploads: function(n) {
-      var body = this.body();
-      if (arguments.length) {
-        return body.files[n] || null;
-      } else {
-        return body.files;
-      }
+      return this.body.files.apply(this.body, arguments);
     },
     isAjax: function() {
       //todo: check accepts, x-requested-with, and qs (jsonp/callback)
@@ -101,9 +92,24 @@ define('request', function(require, exports, module) {
     }
   });
 
-  //it's clearer to use req.body.fields('name')
-  Request.prototype.body.fields = Request.prototype.post.bind(Request.prototype);
-  Request.prototype.body.files = Request.prototype.uploads.bind(Request.prototype);
+  //usage: req.body.fields('name')
+  Request.prototype.body.fields = function(n) {
+    var body = this();
+    if (arguments.length) {
+      return body.fields[n.toLowerCase()] || '';
+    } else {
+      return body.fields;
+    }
+  };
+  Request.prototype.body.files = function(n) {
+    var body = this();
+    if (arguments.length) {
+      return body.files[n] || null;
+    } else {
+      return body.files;
+    }
+  };
+
 
   //Helpers
 
