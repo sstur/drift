@@ -148,8 +148,8 @@ define('response', function(require, exports, module) {
         headers['Set-Cookie'] = serializeCookie(cookies[n]);
       });
       headers['Content-Type'] = buildContentType(this.response.charset, headers['Content-Type']);
-      if (cfg.logging && cfg.logging.response_time && app.__init) {
-        headers['X-Response-Time'] = new Date().valueOf() - app.__init.valueOf();
+      if (cfg.logging && cfg.logging.response_time && this.req.__init) {
+        headers['X-Response-Time'] = new Date().valueOf() - this.req.__init.valueOf();
       }
       this.req.emit('end');
       this._super.writeHead(this.response.status, headers);

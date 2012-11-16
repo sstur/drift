@@ -77,9 +77,9 @@ app.on('ready', function(require) {
   //});
 
   //app.route('/form-post', function(req, res) {
-  //  var fields = req.post(), files = req.uploads();
+  //  var fields = req.body();
   //  //res.end(app._log.join('\r\n'));
-  //  res.debug({fields: fields, files: files});
+  //  res.debug(fields);
   //});
 
   //app.route('/md5', function(req, res) {
@@ -128,7 +128,7 @@ app.on('ready', function(require) {
   //});
 
   //app.route('POST:/form-test', function(req, res) {
-  //  res.die({fields: req.post(), files: req.uploads()});
+  //  res.die(req.body());
   //});
 
   //app.route('/db-test', function(req, res) {

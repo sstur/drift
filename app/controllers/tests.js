@@ -7,8 +7,7 @@ app.on('ready', function(require) {
   var Buffer = require('buffer').Buffer;
 
   app.route('/test/json', function(req, res) {
-    var fields = req.post();
-    var data = JSON.parse(fields.data);
+    var data = JSON.parse(req.body('data'));
     res.end(data);
   });
 

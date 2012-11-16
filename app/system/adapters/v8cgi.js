@@ -3,8 +3,6 @@ var console, Buffer, _require = function(path) { return require(path); };
 (function(require) {
   "use strict";
 
-  app.__init = Date.now();
-
   Buffer = require('buffer').Buffer;
 
   console = {

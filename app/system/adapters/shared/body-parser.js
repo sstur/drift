@@ -1,5 +1,5 @@
 /**
- * todo: multiple fields/files: comma concat vs name[0]
+ * todo: multiple fields/files with same name? (comma concat vs name[0])
  */
 /*global app, define */
 define('body-parser', function(require, exports, module) {
@@ -20,7 +20,7 @@ define('body-parser', function(require, exports, module) {
     this._headers = headers;
     this._binaryRead = read;
     this.bytesRead = 0;
-    this.parsed = {files: {}, fields: {}}
+    this.parsed = {}
   }
   module.exports = BodyParser;
 
@@ -63,7 +63,7 @@ define('body-parser', function(require, exports, module) {
       throw '413 Request Entity Too Large';
     }
     var body = this._read(MAX_BUFFER_SIZE, 'utf8');
-    util.extend(this.parsed.fields, qs.parse(body));
+    util.extend(this.parsed, qs.parse(body));
   };
 
   BodyParser.prototype.processJSONBody = function() {
@@ -80,7 +80,7 @@ define('body-parser', function(require, exports, module) {
     if (parsed !== Object(parsed)) {
       parsed = {'': parsed};
     }
-    util.extend(this.parsed.fields, parsed);
+    util.extend(this.parsed, parsed);
   };
 
   BodyParser.prototype.processBinaryBody = function() {
@@ -174,9 +174,9 @@ define('body-parser', function(require, exports, module) {
   BodyParser.prototype._finalizePart = function(part) {
     part.end();
     if (part.type == 'file') {
-      this.parsed.files[part.name] = part;
+      this.parsed[part.name] = part;
     } else {
-      this.parsed.fields[part.name] = part.value;
+      this.parsed[part.name] = part.value;
     }
   };
 
@@ -197,8 +197,13 @@ define('body-parser', function(require, exports, module) {
   Part.prototype._initFile = function(file) {
     this.guid = getGuid();
     this._hash = md5.create();
-    this.length = 0;
+    this.size = 0;
     util.extend(this, file);
+  };
+
+  //allows files and fields to be flattened
+  Part.prototype.toString = function() {
+    return (('value' in this) ? this.value : this.fileName) || '';
   };
 
   //to make Part a valid ReadStream
@@ -210,7 +215,7 @@ define('body-parser', function(require, exports, module) {
   //to make Part a valid WriteStream
   Part.prototype.write = function(data) {
     if (this._finished) return;
-    this.length += data.length;
+    this.size += data.length;
     if (this.type == 'file') {
       this._hash.update(data);
       if (this._events && this._events['data']) {
@@ -218,7 +223,7 @@ define('body-parser', function(require, exports, module) {
         this.emit('data', (enc) ? data.toString(enc) : data);
       }
     } else {
-      if (this.length > MAX_BUFFER_SIZE) {
+      if (this.size > MAX_BUFFER_SIZE) {
         throw new Error();
       }
       this._chunks.push(data.toString('binary'));

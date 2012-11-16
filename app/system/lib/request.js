@@ -60,10 +60,10 @@ define('request', function(require, exports, module) {
       }
     },
     parseReqBody: function() {
-      if (this.method() in BODY_ALLOWED) {
+      if (!this._body) {
         try {
           //passing req, ensures body-parser events propagate to request
-          var result = this._super.parseReqBody(this);
+          this._body = (this.method() in BODY_ALLOWED) ? this._super.parseReqBody(this) : {};
         } catch(e) {
           if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
             this.res.die(e);
@@ -71,44 +71,22 @@ define('request', function(require, exports, module) {
             this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
           }
         }
-        return result;
       }
-      return {files: {}, fields: {}};
+      return this._body;
     },
-    body: function() {
-      return this._body || (this._body = this.parseReqBody(this));
-    },
-    //todo: req.post should be deprecated in favour of req.body.fields
-    post: function(n) {
-      return this.body.fields.apply(this.body, arguments);
-    },
-    //todo: req.uploads should be deprecated in favour of req.body.files
-    uploads: function(n) {
-      return this.body.files.apply(this.body, arguments);
+    body: function(n) {
+      var body = this.parseReqBody();
+      if (arguments.length) {
+        return body[n.toLowerCase()];
+      } else {
+        return body;
+      }
     },
     isAjax: function() {
       //todo: check accepts, x-requested-with, and qs (jsonp/callback)
       return (this.headers('x-requested-with').toLowerCase() == 'xmlhttprequest');
     }
   });
-
-  //usage: req.body.fields('name')
-  Request.prototype.body.fields = function(n) {
-    var body = this();
-    if (arguments.length) {
-      return body.fields[n.toLowerCase()] || '';
-    } else {
-      return body.fields;
-    }
-  };
-  Request.prototype.body.files = function(n) {
-    var body = this();
-    if (arguments.length) {
-      return body.files[n] || null;
-    } else {
-      return body.files;
-    }
-  };
 
 
   //Helpers

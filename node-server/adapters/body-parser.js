@@ -19,7 +19,7 @@ adapter.define('body-parser', function(require, exports, module) {
     this.readStream = readStream;
     this.headers = headers;
     this.opts = opts || {};
-    this.parsed = {fields: {}, files: {}};
+    this.parsed = {};
     //to work properly with formidable
     if (!readStream.headers) {
       readStream.headers = headers;
@@ -107,7 +107,7 @@ adapter.define('body-parser', function(require, exports, module) {
         self.emit('error', err);
         return;
       }
-      util.extend(self.parsed.fields, qs.parse(body));
+      util.extend(self.parsed, qs.parse(body));
       self.emit('end');
     });
   };
@@ -128,7 +128,7 @@ adapter.define('body-parser', function(require, exports, module) {
       if (parsed !== Object(parsed)) {
         parsed = {'': parsed};
       }
-      util.extend(self.parsed.fields, parsed);
+      util.extend(self.parsed, parsed);
       self.emit('end');
     });
 
@@ -143,38 +143,43 @@ adapter.define('body-parser', function(require, exports, module) {
       parser.uploadDir = global.mappath(opts.autoSavePath);
     }
     parser.on('field', function(name, value) {
-      self.parsed.fields[name] = value;
+      self.parsed[name] = value;
     });
-    parser.on('fileBegin', function(name, file) {
-      file.guid = getGuid();
+    parser.on('fileBegin', function(name, _file) {
+      var guid = getGuid();
       if (opts.autoSavePath) {
-        file.path = join(parser.uploadDir, file.guid);
+        _file.path = join(parser.uploadDir, guid);
       } else {
         //hacky way to prevent formidable from saving files to disk
-        file.open = function() {
-          file._writeStream = new DummyWriteStream();
+        _file.open = function() {
+          _file._writeStream = new DummyWriteStream();
         };
       }
+      var file = self.parsed[name] = new File();
+      file.guid = guid;
+      file.name = name;
+      file.fileName = _file.name;
+      file.contentType = _file.type;
+      file.size = 0;
+      file.md5 = null;
+      self.emit('file', file);
+      _file.on('data', function(data) {
+        file.size += data.length;
+        file.emit('data', data);
+      });
+      _file.on('end', function() {
+        file.md5 = _file.hash;
+        if (_file.path && _file.size == 0) {
+          fs.unlink(_file.path);
+        } else
+        if (_file.path) {
+          file.fullpath = _file.path;
+        }
+        file.emit('end');
+      });
+
     });
-    parser.on('file', function(name, item) {
-      if (item.path && item.size == 0) {
-        fs.unlink(item.path);
-        return;
-      }
-      var file = self.parsed.files[name] = {
-        type: 'file',
-        guid: item.guid,
-        length: item.size,
-        name: name,
-        fileName: item.name,
-        contentType: item.type,
-        md5: item.hash
-      };
-      if (item.path) {
-        file.fullpath = item.path;
-      }
-    });
-    //socket timeout or close
+    //todo: socket timeout or close
     //parser.on('aborted', function() {});
     parser.parse(readStream, function(err) {
       if (err) {
@@ -192,12 +197,13 @@ adapter.define('body-parser', function(require, exports, module) {
     var contentDisp = util.parseHeaderValue(headers['content-disposition']);
     var fieldName = contentDisp.name || headers['x-name'] || 'file';
 
-    var file = self.parsed.files[fieldName] = new EventEmitter();
-    file.name = contentDisp.filename || headers['x-file-name'] || 'upload';
-    file.type = headers['content-description'] || headers['x-content-type'] || self.type;
+    var file = self.parsed[fieldName] = new File();
+    file.guid = getGuid();
+    file.name = fieldName;
+    file.fileName = contentDisp.filename || headers['x-file-name'] || 'upload';
+    file.contentType = headers['content-description'] || headers['x-content-type'] || self.type;
     file.size = 0;
-    file.hash = null;
-    file.fieldName = fieldName;
+    file.md5 = null;
 
     self.emit('file', file);
 
@@ -217,10 +223,19 @@ adapter.define('body-parser', function(require, exports, module) {
       file.emit('data', data);
     });
     readStream.on('end', function() {
-      file.hash = hash.digest('hex');
+      file.md5 = hash.digest('hex');
       file.emit('end');
       self.emit('end');
     });
+  };
+
+  function File() {
+    this.type = 'file';
+  }
+  util.inherits(File, EventEmitter);
+
+  File.prototype.toString = function() {
+    return '' + (this.fileName || '');
   };
 
   function getGuid() {

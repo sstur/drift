@@ -121,16 +121,17 @@ var app, define;
     }
   }
 
-  function routeRequest(adapterReq, adapterRes) {
+  function routeRequest(_req, _res) {
     var util = require('util')
       , Router = require('router')
       , Request = require('request')
       , Response = require('response');
-    var req = new Request(adapterReq);
-    var res = new Response(adapterRes);
+    var req = new Request(_req);
+    var res = new Response(_res);
     //cross-reference request and response
     req.res = res;
     res.req = req;
+    req.__init = Date.now();
     app.emit('request', req, res);
     router = new Router(routes);
     var method = req.method(), url = req.url();
