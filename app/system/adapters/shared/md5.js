@@ -5,13 +5,22 @@
  * based on the JKM implementation (http://www.myersdaily.org/joseph/javascript/md5-text.html)
  *
  * Simple usage:
- *    var result = MD5.hash('Hi there');
+ *   var result = MD5.hash('Hi there');
  *
  * Incremental usage:
- *    var hash = MD5.create();
- *    hash.update('Hi');
- *    hash.update(' there');
- *    var result = hash.digest();
+ *   var hash = MD5.create();
+ *   hash.update('Hi');
+ *   hash.update(' there');
+ *   var result = hash.digest();
+ *
+ * Important:
+ *   The methods `hash` and `update` expect a "binary" string (\x00-\xFF chars only) or,
+ *   if global `Buffer` exists, a utf8 string by default but will also accept anything
+ *   the Buffer constructor accepts including a string and an encoding:
+ *   MD5.hash('02fa', 'hex')
+ *
+ *   Likewise the methods `hash` and `digest` will return a "binary" string or
+ *   if `Buffer` exists an instance of Buffer.
  *
  */
 /*global define, Buffer */
