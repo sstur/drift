@@ -67,6 +67,7 @@
       'Requested Resource: ' + err.path,
       'File: ' + err.file,
       'Line: ' + err.line,
+      'Index: ' + err.originalLine,
       'Message:\r\n' + err.message,
       ''
     ].join('\r\n');
