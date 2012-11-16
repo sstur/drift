@@ -1,4 +1,4 @@
-(function(req, res, server, map) {
+(function(req, res, server, offsets, map) {
   "use strict";
 
   var err = getErrDetails();
@@ -11,8 +11,12 @@
 
   function adjustError(err) {
     if (!map || !map.length) return;
-    var line = err.originalLine = err.line;
-    for (var i = 0; i < map.length; i++) {
+    var line = err.originalLine = err.line, offset = 0;
+    for (var i = 0; i < line; i++) {
+      offset += offsets[i] || 0;
+    }
+    line += offset;
+    for (i = 0; i < map.length; i++) {
       var source = map[i];
       if (line < source.lineOffset + source.lineCount) {
         err.file = source.path;

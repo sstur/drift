@@ -11,10 +11,14 @@
   var path = require('path');
   var Buffer = require('buffer').Buffer;
 
+  var join = path.join;
+
   //framework files beginning with these chars are excluded
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
-
-  var join = path.join;
+  //todo: technically we need to account for regex literals too
+  var COMMENT_OR_STRING = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|"(\\.|[^"])*"|\/(\\.|[^\/])+\/|\/\/(.*)/gm;
+  var STRINGS = {"'": 1, '"': 1};
+  var COMMENTS = {'//': 1, '/*': 1};
 
   try {
     var uglifyjs = require('uglify-js');
@@ -54,7 +58,6 @@
       '})({})'
     ];
     opts._end = [];
-    opts.bom = false;
     opts.target = 'app/build/app.sjs';
   } else {
     //build for iis/asp
@@ -89,13 +92,12 @@
     opts._end = [
       '</script>'
     ];
-    //include bom unless otherwise specified
-    opts.bom = !('no-bom' in opts);
     opts.target = 'app/build/app.asp';
   }
 
   var sourceFiles = []
     , sourceLines = []
+    , lineOffsets = {}
     , offset = opts._pre.length;
 
   sourceLines.push.apply(sourceLines, opts._head);
@@ -111,35 +113,29 @@
     }
     var mangle = ('mangle' in opts);
     sourceLines = [uglify(sourceLines.join('\n'), mangle)];
-    //don't need a bom because uglify has escaped extended chars
-    opts.bom = false;
-  } else
-  if (opts.apache) {
-    //we intentionally have a blank line for this
-    opts._pre[0] = 'var map = ' + JSON.stringify(sourceFiles) + ';';
   } else {
-    //for iis the error handling goes in a separate file
-    var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/!error.js'), 'utf8');
-    var errfile = [
-      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
-      '<script runat="server" language="javascript">',
-      errhandler.replace('[/*SRCMAP*/]', JSON.stringify(sourceFiles)),
-      '<\/script>'
-    ];
-    fs.writeFileSync(join(basePath, 'app/build/err.asp'), errfile.join('\r\n'), 'utf8');
+    sourceLines = cleanSource(sourceLines);
+    if (opts.apache) {
+      //we intentionally have a blank line for this
+      opts._pre[0] = 'var off = ' + JSON.stringify(lineOffsets) + ', map = ' + JSON.stringify(sourceFiles) + ';';
+    } else {
+      //for iis the error handling goes in a separate file
+      var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/!error.js'), 'utf8');
+      var errfile = [
+        '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
+        '<script runat="server" language="javascript">',
+        errhandler.replace('[/*SRCMAP*/]', JSON.stringify(lineOffsets) + ', ' + JSON.stringify(sourceFiles)),
+        '<\/script>'
+      ];
+      fs.writeFileSync(join(basePath, 'app/build/err.asp'), errfile.join('\r\n'), 'utf8');
+    }
   }
 
   sourceLines.unshift.apply(sourceLines, opts._pre);
   sourceLines.push.apply(sourceLines, opts._end);
 
-  //construct buffer including byte-order-mark and source
-  var bom = opts.bom ? new Buffer('EFBBBF', 'hex') : new Buffer(0)
-    , source = sourceLines.join('\r\n')
-    , sourceLength = Buffer.byteLength(source);
-  var buffer = new Buffer(bom.length + sourceLength);
-  bom.copy(buffer);
-  buffer.write(source, bom.length, sourceLength, 'utf8');
-  fs.writeFileSync(join(basePath, opts.target), buffer);
+  var source = sourceLines.join('\r\n');
+  fs.writeFileSync(join(basePath, opts.target), source, 'utf8');
 
 
   //helpers
@@ -191,6 +187,45 @@
       return all;
     });
     return code.split('\n');
+  }
+
+  function cleanSource(lines) {
+    var code = lines.join('\n');
+    code = code.replace(COMMENT_OR_STRING, function(str) {
+      if (str.slice(0, 2) in COMMENTS) {
+        //comments: remove, replacing with newlines
+        var lines = str.split('\n').length;
+        return new Array(lines).join('\n');
+      }
+      if (str.charAt(0) in STRINGS) {
+        //strings: escape unicode
+        return str.replace(/[\u0080-\uFFFF]/, function(c) {
+          return '\\u' + ('00' + c.charCodeAt(0).toString(16)).slice(-4);
+        });
+      } else {
+        //regex literals: ignore
+        return str;
+      }
+    });
+    //remove "use strict" directives (added at top level)
+    code = code.replace(/^[ \t]*("|')use strict\1;?[ \t]*$/mg, function(str) {
+      return '';
+    });
+    //remove empty lines
+    var removed = 0, cleaned = [];
+    code.split('\n').forEach(function(line) {
+      if (line.trim()) {
+        cleaned.push(line);
+        if (removed) {
+          lineOffsets[cleaned.length] = removed;
+        }
+        removed = 0;
+      } else {
+        removed++;
+        return '';
+      }
+    });
+    return cleaned;
   }
 
   function uglify(code, mangle) {
