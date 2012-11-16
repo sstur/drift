@@ -1,4 +1,4 @@
-/*global app, system */
+/*global app, system, offsets, map */
 var console, Buffer, _require = function(path) { return require(path); };
 (function(require) {
   "use strict";
@@ -55,8 +55,12 @@ var console, Buffer, _require = function(path) { return require(path); };
 
 
   function adjustError(line) {
-    var err = {};
-    for (var i = 0; i < map.length; i++) {
+    var err = {}, offset = 0;
+    for (var i = 0; i < line; i++) {
+      offset += offsets[i] || 0;
+    }
+    line += offset;
+    for (i = 0; i < map.length; i++) {
       var source = map[i];
       if (line < source.lineOffset + source.lineCount) {
         err.file = source.path;

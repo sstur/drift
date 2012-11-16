@@ -117,7 +117,7 @@
     sourceLines = cleanSource(sourceLines);
     if (opts.apache) {
       //we intentionally have a blank line for this
-      opts._pre[0] = 'var off = ' + JSON.stringify(lineOffsets) + ', map = ' + JSON.stringify(sourceFiles) + ';';
+      opts._pre[0] = 'var offsets = ' + JSON.stringify(lineOffsets) + ', map = ' + JSON.stringify(sourceFiles) + ';';
     } else {
       //for iis the error handling goes in a separate file
       var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/!error.js'), 'utf8');
