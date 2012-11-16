@@ -14,6 +14,11 @@ app.on('ready', function(require) {
     res.redirect('/assets/favicon.ico', 301);
   });
 
+  app.route('/md5/:str', function(req, res, str) {
+    var MD5 = require('md5');
+    res.end(MD5.hash(str).toString('hex'));
+  });
+
   app.route('/create-null', function(req, res) {
     var o = Object.create(null);
     res.end(typeof o.toString);

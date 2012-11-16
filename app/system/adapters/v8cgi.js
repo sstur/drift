@@ -5,10 +5,6 @@ var console, Buffer, _require = function(path) { return require(path); };
 
   app.__init = Date.now();
 
-  var util = require('util');
-  var Request = require('adapter-request');
-  var Response = require('adapter-response');
-
   Buffer = require('buffer').Buffer;
 
   console = {
@@ -21,6 +17,10 @@ var console, Buffer, _require = function(path) { return require(path); };
       console._log.push(args);
     }
   };
+
+  var util = require('util');
+  var Request = require('adapter-request');
+  var Response = require('adapter-response');
 
   //filesystem path including trailing slash
   var basePath = system.env['DOCUMENT_ROOT'], sep = (~basePath.indexOf('/')) ? '/' : '\\';

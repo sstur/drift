@@ -21,18 +21,17 @@ The goal of PlatformJS is not to compete with full-blown Node frameworks like Ex
 of request routing, view templating and data modelling with a normalized API for very different underlying platforms.
 
 Because of the inconsistencies in web platforms, we have to roll our own module loader and abstraction layers for
-request/response, filesystem, http/smtp client and database interfaces. I try to closely follow the way Node,
-CommonJS and other popular frameworks do things. This creates a familiar API that should seem intuitive to the typical
-JavaScript programmer.
+request/response, filesystem, etc. We try to closely follow the way Node, CommonJS and other popular frameworks do
+things. This creates a familiar API that should seem intuitive.
 
 In some cases (e.g. Buffer) we mimic the Node module as close as possible, however with our filesystem module, we
 provide a slightly higher-level API.
 
 ES5 methods are available across all supported platforms via simple polyfills. Basic eventing is provided similar to
-EventEmitter the way you are used to doing events. The define()/require() method of module loading is sort of a hybrid
-between Node, CommonJS and RequireJS.
+EventEmitter, and the define()/require() system of module loading is sort of a hybrid between Node, CommonJS and
+RequireJS.
 
-Overall, we follow conventions everyone is familiar with because the idea is to present a low barrier of entry.
+Overall, PlatformJS tries to follow conventions JS devs are familiar with.
 
 ##Modules / Interface Abstractions
 So far PlatformJS provides:
