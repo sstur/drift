@@ -6,6 +6,7 @@ define('qs', function(require, exports, module) {
   "use strict";
 
   var CHARS = /[^\w!$'()*,-.\/:;@[\\\]^{|}~]+/g;
+  var hasOwn = Object.hasOwnProperty;
 
   var qs = module.exports = {
     escape: function(s) {
@@ -53,7 +54,7 @@ define('qs', function(require, exports, module) {
           if (opts.lcase !== false) {
             key = key.toLowerCase();
           }
-          if (obj[key]) {
+          if (hasOwn.call(obj, key)) {
             obj[key].push(qs.unescape(val));
           } else {
             obj[key] = [qs.unescape(val)];
@@ -62,13 +63,16 @@ define('qs', function(require, exports, module) {
       }
       //flatten defaults to true (duplicates have their values concatenated with ', ')
       if (opts.flatten !== false) {
-        var keys = Object.keys(obj);
-        for (i = 0; i < keys.length; i++) {
-          key = keys[i];
-          obj[key] = obj[key].join(', ');
-        }
+        qs.flatten(obj);
       }
       return obj;
+    },
+    flatten: function(obj) {
+      var keys = Object.keys(obj);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        obj[key] = obj[key].join(', ');
+      }
     }
   };
 

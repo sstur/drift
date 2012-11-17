@@ -13,6 +13,7 @@ adapter.define('body-parser', function(require, exports, module) {
   var MAX_BUFFER_SIZE = 1048576;
 
   var join = path.join;
+  var hasOwn = Object.hasOwnProperty;
 
   function BodyParser(readStream, headers, opts) {
     EventEmitter.call(this);
@@ -77,8 +78,7 @@ adapter.define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.bufferReqBody = function(callback) {
     var readStream = this.readStream, opts = this.opts;
-    var maxSize = opts.maxSize || MAX_BUFFER_SIZE;
-    if (this.length > maxSize) {
+    if (this.length > MAX_BUFFER_SIZE) {
       callback('413 Request Entity Too Large');
       return;
     }
@@ -89,14 +89,15 @@ adapter.define('body-parser', function(require, exports, module) {
         callback('413 Request Entity Too Large');
         return;
       }
-      buffer.push(data.toString(opts.encoding || 'utf8'));
+      buffer.push(data.toString('binary'));
       size += data.length;
     });
     readStream.on('error', function(err) {
       callback(err);
     });
     readStream.on('end', function() {
-      callback(null, buffer.join(''));
+      var data = new Buffer(buffer.join(''), 'binary');
+      callback(null, data.toString(opts.encoding || 'utf8'));
     });
   };
 
@@ -138,15 +139,20 @@ adapter.define('body-parser', function(require, exports, module) {
     var self = this, readStream = this.readStream, opts = this.opts;
     var parser = new formidable.IncomingForm();
     parser.hash = 'md5';
-    parser.maxFieldsSize = opts.maxSize || MAX_BUFFER_SIZE;
+    parser.maxFieldsSize = MAX_BUFFER_SIZE;
     if (opts.autoSavePath) {
       parser.uploadDir = global.mappath(opts.autoSavePath);
     }
-    parser.on('field', function(name, value) {
-      self.parsed[name] = value;
+    parser.on('field', function(name, val) {
+      var parsed = self.parsed, key = name.toLowerCase();
+      if (hasOwn.call(parsed, key)) {
+        parsed[key] += ', ' + qs.unescape(val);
+      } else {
+        parsed[key] = qs.unescape(val);
+      }
     });
     parser.on('fileBegin', function(name, _file) {
-      var guid = getGuid();
+      var guid = getGuid(), key = name.toLowerCase();
       if (opts.autoSavePath) {
         _file.path = join(parser.uploadDir, guid);
       } else {
@@ -155,7 +161,7 @@ adapter.define('body-parser', function(require, exports, module) {
           _file._writeStream = new DummyWriteStream();
         };
       }
-      var file = self.parsed[name] = new File();
+      var file = self.parsed[key] = new File();
       file.guid = guid;
       file.name = name;
       file.fileName = _file.name;

@@ -11,6 +11,8 @@ define('body-parser', function(require, exports, module) {
   var MAX_HEADER_SIZE = 4096; //4 KB
   var MAX_BUFFER_SIZE = 1048576; //1 MB
 
+  var hasOwn = Object.hasOwnProperty;
+
   function BodyParser(headers, read) {
     this._headers = headers;
     this._binaryRead = read;
@@ -162,10 +164,12 @@ define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype._finalizePart = function(part) {
     part.end();
+    var parsed = this.parsed, key = part.name.toLowerCase();
     if (part.type == 'file') {
-      this.parsed[part.name] = part;
+      //uploads by the same name get replaced
+      parsed[key] = part;
     } else {
-      this.parsed[part.name] = part.value;
+      parsed[key] = (hasOwn(parsed, key) ? parsed[key] + ', ' : '') + part.value;
     }
   };
 
@@ -190,7 +194,7 @@ define('body-parser', function(require, exports, module) {
     util.extend(this, file);
   };
 
-  //allows files and fields to be flattened
+  //allows files to be flattened to strings
   Part.prototype.toString = function() {
     return (('value' in this) ? this.value : this.fileName) || '';
   };

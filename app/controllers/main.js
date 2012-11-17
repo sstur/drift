@@ -15,7 +15,6 @@ app.on('ready', function(require) {
 
   app.route('/form-post', function(req, res) {
     var fields = req.body();
-    //res.end(app._log.join('\r\n'));
     res.debug(fields);
   });
 
@@ -81,20 +80,6 @@ app.on('ready', function(require) {
   //  res.end(response.body.toString('utf8'));
   //});
 
-  //app.route('/form-post', function(req, res) {
-  //  var fields = req.body();
-  //  //res.end(app._log.join('\r\n'));
-  //  res.debug(fields);
-  //});
-
-  //app.route('/md5', function(req, res) {
-  //  var md5 = require('md5').create();
-  //  md5.update('4749463839610100010080FF00C0C0C000000021F9', 'hex');
-  //  md5.update('0401000000002C00000000010001000002024401003B', 'hex');
-  //  var hash = md5.digest('hex');
-  //  res.end(hash);
-  //});
-
   //app.route('/buffer', function(req, res) {
   //  var buffer = new Buffer('4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B', 'hex');
   //  res.end('image/gif', buffer);
@@ -126,14 +111,6 @@ app.on('ready', function(require) {
   //app.route('/cc', function(req, res) {
   //  res.write('is' /*@remove{*/ + ' not' /*}@*/ + ' compiled\n');
   //  res.end('is' /*@add{ + ' not' }@*/ + ' dev');
-  //});
-
-  //app.route('GET:/form-test', function(req, res) {
-  //  res.send('test-form', {name: 'test'});
-  //});
-
-  //app.route('POST:/form-test', function(req, res) {
-  //  res.die(req.body());
   //});
 
   //app.route('/db-test', function(req, res) {
