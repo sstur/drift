@@ -1,8 +1,9 @@
 /*global global, require, app, adapter */
-var http = require('http');
-var https = require('https');
+var _http = require('http');
+var _https = require('https');
 adapter.define('http', function(require, exports) {
   "use strict";
+
   var qs = require('qs');
   var url = require('url');
   var util = require('util');
@@ -13,15 +14,14 @@ adapter.define('http', function(require, exports) {
 
   var BODY_ALLOWED = {POST: 1, PUT: 1};
 
-  var knownHeaders = [
-    "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
-    "Cache-Control", "Connection", "Cookie", "Content-Length", "Content-MD5", "Content-Type", "Date", "Expect", "From",
-    "Host", "If-Match", "If-Modified-Since", "If-None-Match", "If-Range", "If-Unmodified-Since", "Max-Forwards",
-    "Pragma", "Proxy-Authorization", "Range", "Referer", "TE", "Upgrade", "User-Agent", "Via", "Warning",
-    "X-Requested-With", "X-Do-Not-Track", "X-Forwarded-For", "X-ATT-DeviceId", "X-Wap-Profile"];
+  var httpReqHeaders = 'Accept Accept-Charset Accept-Encoding Accept-Language Accept-Datetime Authorization ' +
+    'Cache-Control Connection Cookie Content-Length Content-MD5 Content-Type Date Expect From Host If-Match ' +
+    'If-Modified-Since If-None-Match If-Range If-Unmodified-Since Max-Forwards Pragma Proxy-Authorization ' +
+    'Range Referer TE Upgrade User-Agent Via Warning X-Requested-With X-Do-Not-Track X-Forwarded-For ' +
+    'X-ATT-DeviceId X-Wap-Profile';
 
   //index headers by lowercase
-  knownHeaders = knownHeaders.reduce(function(headers, header) {
+  httpReqHeaders = httpReqHeaders.split(' ').reduce(function(headers, header) {
     headers[header.toLowerCase()] = header;
     return headers;
   }, {});
@@ -36,7 +36,7 @@ adapter.define('http', function(require, exports) {
     //normalize header case
     var headers = {};
     for (var n in opts.headers) {
-      headers[knownHeaders[n.toLowerCase()] || n] = opts.headers[n];
+      headers[httpReqHeaders[n.toLowerCase()] || n] = opts.headers[n];
     }
     opts.headers = headers;
 
@@ -56,8 +56,9 @@ adapter.define('http', function(require, exports) {
         opts.body = '';
     }
 
-    var _super = (opts.protocol == 'https:') ? https : http;
-    var req = _super.request(opts, function(res) {
+    var http = (opts.protocol == 'https:') ? _https : _http;
+
+    var req = http.request(opts, function(res) {
       var body = [], length = 0;
       res.on('data', function(data) {
         length += data.length;

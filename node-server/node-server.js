@@ -60,7 +60,7 @@
     var Response = app.require('adapter-response');
     var req = new Request(http.req)
       , res = new Response(http.res);
-    sleep(100); //for debugging
+    sleep(1); //for debugging
     app.route(req, res);
     throw new Error('Router returned without handling request.');
   };

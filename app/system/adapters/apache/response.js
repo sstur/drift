@@ -10,9 +10,9 @@ define('adapter-response', function(require, exports, module) {
   }
 
   util.extend(Response.prototype, {
-    writeHead: function(status, headers) {
+    writeHead: function(statusCode, statusReason, headers) {
       var _super = this._super;
-      _super.header('Status', status);
+      _super.header('Status', statusCode + ' ' + statusReason);
       forEach(headers, function(n, val) {
         _super.header(n, val);
       });

@@ -4,7 +4,7 @@ define('response', function(require, exports, module) {
 
   //todo: move this to app/config
   var cfg = {
-    logging: {response_time: 1}
+    logging: {response_time: true}
   };
 
   var fs = require('fs');
@@ -13,16 +13,21 @@ define('response', function(require, exports, module) {
 
   var RE_CTYPE = /^[\w-]+\/[\w-]+$/;
   var RE_STATUS = /^\d{3}\b/;
+  var RE_ACCEPT_JSON = /(^|[, ])application\/json($|[,;])/i;
   var TEXT_CTYPES = /^text\/|\/json$/i;
 
-  var knownHeaders = ['Accept-Ranges', 'Age', 'Allow', 'Cache-Control', 'Connection', 'Content-Encoding', 'Content-Language',
-    'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Disposition', 'Content-Range', 'Content-Type', 'Date',
-    'ETag', 'Expires', 'Last-Modified', 'Link', 'Location', 'P3P', 'Pragma', 'Proxy-Authenticate', 'Refresh',
-    'Retry-After', 'Server', 'Set-Cookie', 'Strict-Transport-Security', 'Trailer', 'Transfer-Encoding', 'Vary', 'Via',
-    'Warning', 'WWW-Authenticate', 'X-Frame-Options', 'X-XSS-Protection', 'X-Content-Type-Options', 'X-Forwarded-Proto',
-    'Front-End-Https', 'X-Powered-By', 'X-UA-Compatible'];
+  var httpResHeaders = 'Accept-Ranges Age Allow Cache-Control Connection Content-Encoding Content-Language ' +
+    'Content-Length Content-Location Content-MD5 Content-Disposition Content-Range Content-Type Date ETag Expires ' +
+    'Last-Modified Link Location P3P Pragma Proxy-Authenticate Refresh Retry-After Server Set-Cookie ' +
+    'Strict-Transport-Security Trailer Transfer-Encoding Vary Via Warning WWW-Authenticate X-Frame-Options ' +
+    'X-XSS-Protection X-Content-Type-Options X-Forwarded-Proto Front-End-Https X-Powered-By X-UA-Compatible';
 
-  //todo: use these if statusReason not specified
+  //index headers by lowercase
+  httpResHeaders = httpResHeaders.split(' ').reduce(function(headers, header) {
+    headers[header.toLowerCase()] = header;
+    return headers;
+  }, {});
+
   var statusCodes = {100: 'Continue', 101: 'Switching Protocols', 102: 'Processing', 200: 'OK', 201: 'Created',
     202: 'Accepted', 203: 'Non-Authoritative Information', 204: 'No Content', 205: 'Reset Content', 206: 'Partial Content',
     207: 'Multi-Status', 300: 'Multiple Choices', 301: 'Moved Permanently', 302: 'Moved Temporarily', 303: 'See Other',
@@ -36,12 +41,6 @@ define('response', function(require, exports, module) {
     502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Time-out', 505: 'HTTP Version not supported',
     506: 'Variant Also Negotiates', 507: 'Insufficient Storage', 509: 'Bandwidth Limit Exceeded', 510: 'Not Extended',
     511: 'Network Authentication Required'};
-
-  //index headers by lowercase
-  knownHeaders = knownHeaders.reduce(function(headers, header) {
-    headers[header.toLowerCase()] = header;
-    return headers;
-  }, {});
 
   //headers that allow multiple
   var allowMulti = {'Set-Cookie': 1};
@@ -67,7 +66,10 @@ define('response', function(require, exports, module) {
     //these methods manipulate the response buffer
     status: function(status) {
       if (arguments.length) {
-        return this.response.status = status;
+        if (status.match(RE_STATUS) && (status.slice(0, 3) in statusCodes)) {
+          this.response.status = status;
+        }
+        return this.response.status;
       } else {
         return this.response.status;
       }
@@ -85,7 +87,7 @@ define('response', function(require, exports, module) {
         return headers;
       }
       n = (n == null) ? '' : String(n);
-      var key = knownHeaders[n.toLowerCase()] || n;
+      var key = httpResHeaders[n.toLowerCase()] || n;
       if (arguments.length == 1) {
         val = headers[key];
         //some header values are saved as an array
@@ -116,9 +118,9 @@ define('response', function(require, exports, module) {
 
     //these use the functions above to manipulate the response buffer
     contentType: function(type) {
-      //hack to override application/json -> text/plain when not an xhr request
-      //todo: should we check accepts header instead of x-requested-with
-      if (type == 'application/json' && !this.req.isAjax()) {
+      //hack to override application/json -> text/plain
+      //if (type == 'application/json' && !this.req.isAjax()) {
+      if (type == 'application/json' && !RE_ACCEPT_JSON.test(this.req.headers('accept'))) {
         type = 'text/plain'
       }
       this.headers('Content-Type', type);
@@ -152,7 +154,10 @@ define('response', function(require, exports, module) {
         headers['X-Response-Time'] = new Date().valueOf() - this.req.__init.valueOf();
       }
       this.req.emit('end');
-      this._super.writeHead(this.response.status, headers);
+      var status = this.response.status
+        , statusCode = status.slice(0, 3)
+        , statusReason = status.slice(4) || statusCodes[status];
+      this._super.writeHead(statusCode, statusReason, headers);
     },
     _streamFile: function(path) {
       this._writeHead();

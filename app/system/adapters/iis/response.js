@@ -12,9 +12,9 @@ define('adapter-response', function(require, exports, module) {
   }
 
   util.extend(Response.prototype, {
-    writeHead: function(status, headers) {
+    writeHead: function(statusCode, statusReason, headers) {
       var _super = this._super;
-      _super.status = status;
+      _super.status = statusCode + ' ' + statusReason;
       var charset = CHARSET.exec(headers['Content-Type']);
       if (charset) {
         _super.charset = charset[1];

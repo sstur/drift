@@ -32,7 +32,6 @@ app.define('adapter-request', function(require, exports, module) {
       };
       var parser = new BodyParser(req, req.headers, opts);
       util.propagateEvents(parser, emitter, 'file upload-progress');
-      console.log(Object.keys(parser.__proto__));
       return parser.parse();
     }
   });

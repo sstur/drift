@@ -6,21 +6,13 @@ app.define('adapter-response', function(require, exports, module) {
   var util = require('util');
   var Buffer = require('buffer').Buffer;
 
-  var STATUS_PARTS = /^(\d{3}\b)?\s*(.*)$/i;
-
   function Response(httpRes) {
     this._super = httpRes;
   }
 
   util.extend(Response.prototype, {
-    writeHead: function(status, headers) {
-      var parts = STATUS_PARTS.exec(status);
-      var statusCode = parts[1] || '200', reasonPhrase = parts[2];
-      if (reasonPhrase) {
-        this._super.writeHead(statusCode, reasonPhrase, headers);
-      } else {
-        this._super.writeHead(statusCode, headers);
-      }
+    writeHead: function(statusCode, statusReason, headers) {
+      this._super.writeHead(statusCode, statusReason || '', headers);
     },
     write: function(chunk) {
       this._super.write(Buffer.isBuffer(chunk) ? chunk : new Buffer(chunk));

@@ -1,7 +1,3 @@
-/**
- * todo: adapter request should have readRawBody() so that parseReqBody can be overridden to handle XML, etc
- *
- */
 /*global app, define */
 define('request', function(require, exports, module) {
   "use strict";

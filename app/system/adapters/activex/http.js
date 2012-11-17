@@ -12,15 +12,14 @@ define('http', function(require, exports) {
 
   var BODY_ALLOWED = {POST: 1, PUT: 1};
 
-  var knownHeaders = [
-    "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Datetime", "Authorization",
-    "Cache-Control", "Connection", "Cookie", "Content-Length", "Content-MD5", "Content-Type", "Date", "Expect", "From",
-    "Host", "If-Match", "If-Modified-Since", "If-None-Match", "If-Range", "If-Unmodified-Since", "Max-Forwards",
-    "Pragma", "Proxy-Authorization", "Range", "Referer", "TE", "Upgrade", "User-Agent", "Via", "Warning",
-    "X-Requested-With", "X-Do-Not-Track", "X-Forwarded-For", "X-ATT-DeviceId", "X-Wap-Profile"];
+  var httpReqHeaders = 'Accept Accept-Charset Accept-Encoding Accept-Language Accept-Datetime Authorization ' +
+    'Cache-Control Connection Cookie Content-Length Content-MD5 Content-Type Date Expect From Host If-Match ' +
+    'If-Modified-Since If-None-Match If-Range If-Unmodified-Since Max-Forwards Pragma Proxy-Authorization ' +
+    'Range Referer TE Upgrade User-Agent Via Warning X-Requested-With X-Do-Not-Track X-Forwarded-For ' +
+    'X-ATT-DeviceId X-Wap-Profile';
 
   //index headers by lowercase
-  knownHeaders = knownHeaders.reduce(function(headers, header) {
+  httpReqHeaders = httpReqHeaders.split(' ').reduce(function(headers, header) {
     headers[header.toLowerCase()] = header;
     return headers;
   }, {});
@@ -42,7 +41,7 @@ define('http', function(require, exports) {
 
   ClientRequest.prototype.addHeader = function(n, val) {
     var key = n.toLowerCase();
-    n = knownHeaders[key] || n;
+    n = httpReqHeaders[key] || n;
     this.headers[n] = val;
   };
 
