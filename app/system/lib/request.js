@@ -26,8 +26,8 @@ define('request', function(require, exports, module) {
     method: function(s) {
       if (!this._method) {
         //method override (for JSONP and platforms that don't support PUT/DELETE)
-        this._method = (this.headers('X-HTTP-Method-Override') || this.query('_method')).toUpperCase();
-        this._method = (this._method in HTTP_METHODS) ? this._method : this._super.getMethod();
+        var override = (this.headers('X-HTTP-Method-Override') || this.query('_method')).toUpperCase();
+        this._method = (override in HTTP_METHODS) ? override : this._super.getMethod();
       }
       return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
     },
