@@ -4,6 +4,7 @@ define('body-parser', function(require, exports, module) {
 
   var qs = require('qs');
   var md5 = require('md5');
+  var path = require('path');
   var util = require('util');
   var Buffer = require('buffer').Buffer;
 
@@ -11,9 +12,11 @@ define('body-parser', function(require, exports, module) {
   var MAX_HEADER_SIZE = 4096; //4 KB
   var MAX_BUFFER_SIZE = 1048576; //1 MB
 
+  var join = path.join;
   var hasOwn = Object.hasOwnProperty;
 
   function BodyParser(headers, read, opts) {
+    this.opts = opts || {};
     this._headers = headers;
     this._binaryRead = read;
     this.bytesRead = 0;
@@ -87,7 +90,7 @@ define('body-parser', function(require, exports, module) {
       name: contentDisp.name || headers['x-name'] || 'file',
       fileName: contentDisp.filename || headers['x-file-name'] || 'upload',
       contentType: headers['content-description'] || headers['x-content-type'] || this.type
-    });
+    }, this.opts);
     this.emit('file', part);
     var chunk;
     while ((chunk = this._read(CHUNK_SIZE)) && chunk.length) {
@@ -123,7 +126,7 @@ define('body-parser', function(require, exports, module) {
         }
         var endHeader = buffer.indexOf('\r\n\r\n');
         if (endHeader > 0) {
-          currentPart = new Part(buffer.slice(boundary1.length + 2, endHeader));
+          currentPart = new Part(buffer.slice(boundary1.length + 2, endHeader), null, this.opts);
           if (currentPart.type == 'file') {
             this.emit('file', currentPart);
           }
@@ -175,23 +178,33 @@ define('body-parser', function(require, exports, module) {
 
 
 
-  function Part(head, file) {
+  function Part(head, file, opts) {
     this.headers = (typeof head == 'string') ? util.parseHeaders(head) : head;
     this._chunks = [];
     file = file || parseFileHeaders(this.headers);
     this.type = (file) ? 'file' : 'field';
     if (file) {
-      this._initFile(file);
+      this._initFile(file, opts);
     }
   }
 
   app.eventify(Part.prototype);
 
-  Part.prototype._initFile = function(file) {
+  Part.prototype._initFile = function(file, opts) {
     this.guid = getGuid();
     this._hash = md5.create();
     this.size = 0;
     util.extend(this, file);
+    if (opts.autoSavePath) {
+      var path = this.path = join(opts.autoSavePath, this.guid);
+      var writeStream = fs.createWriteStream(path);
+      this.on('data', function(data) {
+        writeStream.write(data);
+      });
+      this.on('end', function() {
+        writeStream.end();
+      });
+    }
   };
 
   //allows files to be flattened to strings

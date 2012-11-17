@@ -26,7 +26,7 @@ app.define('adapter-request', function(require, exports, module) {
       return this._super.connection.remoteAddress;
     },
     parseReqBody: function(emitter) {
-      var req = this._super, res = this.res;
+      var req = this._super;
       var opts = {
         autoSavePath: app.cfg('auto_save_uploads')
       };
