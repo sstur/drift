@@ -4,7 +4,6 @@ app.on('ready', function(require) {
 
   var fs = require('fs');
   var util = require('util');
-  var Buffer = require('buffer').Buffer;
 
   app.route('/', function(req, res) {
     res.send('tests');
@@ -12,6 +11,12 @@ app.on('ready', function(require) {
 
   app.route('/favicon.ico', function(req, res) {
     res.redirect('/assets/favicon.ico', 301);
+  });
+
+  app.route('/form-post', function(req, res) {
+    var fields = req.body();
+    //res.end(app._log.join('\r\n'));
+    res.debug(fields);
   });
 
   app.route('/md5/:str', function(req, res, str) {

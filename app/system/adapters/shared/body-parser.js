@@ -1,6 +1,3 @@
-/**
- * todo: multiple fields/files with same name? (comma concat vs name[0])
- */
 /*global app, define */
 define('body-parser', function(require, exports, module) {
   "use strict";
@@ -9,8 +6,6 @@ define('body-parser', function(require, exports, module) {
   var md5 = require('md5');
   var util = require('util');
   var Buffer = require('buffer').Buffer;
-
-  //var log = app._log = [];
 
   var CHUNK_SIZE = 1024;
   var MAX_HEADER_SIZE = 4096; //4 KB
@@ -119,29 +114,24 @@ define('body-parser', function(require, exports, module) {
           return;
         }
       }
-      //log.push('buffer: ' + buffer.length + '; ' + JSON.stringify(truncate(buffer, 80)));
       if (!currentPart) {
         //header state
         if (buffer.length > MAX_HEADER_SIZE) {
           throw new Error('Multipart header size exceeds limit');
         }
         var endHeader = buffer.indexOf('\r\n\r\n');
-        //log.push('endHeader: ' + endHeader);
         if (endHeader > 0) {
           currentPart = new Part(buffer.slice(boundary1.length + 2, endHeader));
           if (currentPart.type == 'file') {
             this.emit('file', currentPart);
           }
-          //log.push('new part: ' + currentPart.headers['content-disposition']);
           buffer = buffer.slice(endHeader + 4);
         } else {
-          //log.push('nomatch');
           nomatch = true; //causes read or exit on next loop
         }
       } else {
         //body state
         var endBody = buffer.indexOf(boundary2);
-        //log.push('endBody: ' + endBody);
         if (endBody >= 0) {
           //part of buffer belongs to current item
           currentPart.write(new Buffer(buffer.slice(0, endBody), 'binary'));
@@ -154,7 +144,6 @@ define('body-parser', function(require, exports, module) {
             currentPart.write(new Buffer(buffer.slice(0, buffer.length - boundary2.length), 'binary'));
             buffer = buffer.slice(0 - boundary2.length);
           } else {
-            //log.push('nomatch');
             nomatch = true;
           }
         }

@@ -66,6 +66,7 @@ define('response', function(require, exports, module) {
     //these methods manipulate the response buffer
     status: function(status) {
       if (arguments.length) {
+        status = String(status);
         if (status.match(RE_STATUS) && (status.slice(0, 3) in statusCodes)) {
           this.response.status = status;
         }
