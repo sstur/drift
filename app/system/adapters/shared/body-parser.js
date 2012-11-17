@@ -13,7 +13,7 @@ define('body-parser', function(require, exports, module) {
 
   var hasOwn = Object.hasOwnProperty;
 
-  function BodyParser(headers, read) {
+  function BodyParser(headers, read, opts) {
     this._headers = headers;
     this._binaryRead = read;
     this.bytesRead = 0;
@@ -119,7 +119,7 @@ define('body-parser', function(require, exports, module) {
       if (!currentPart) {
         //header state
         if (buffer.length > MAX_HEADER_SIZE) {
-          throw new Error('Multipart header size exceeds limit');
+          throw new Error('Multipart Headers Too Large');
         }
         var endHeader = buffer.indexOf('\r\n\r\n');
         if (endHeader > 0) {
@@ -217,7 +217,7 @@ define('body-parser', function(require, exports, module) {
       }
     } else {
       if (this.size > MAX_BUFFER_SIZE) {
-        throw new Error();
+        throw new Error('Multipart Entity Too Large');
       }
       this._chunks.push(data.toString('binary'));
     }

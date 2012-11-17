@@ -30,7 +30,7 @@ app.define('adapter-request', function(require, exports, module) {
       var opts = {
         autoSavePath: app.cfg('auto_save_uploads')
       };
-      var parser = new BodyParser(req, req.headers, opts);
+      var parser = new BodyParser(req.headers, req, opts);
       util.propagateEvents(parser, emitter, 'file upload-progress');
       return parser.parse();
     }

@@ -15,7 +15,7 @@ adapter.define('body-parser', function(require, exports, module) {
   var join = path.join;
   var hasOwn = Object.hasOwnProperty;
 
-  function BodyParser(readStream, headers, opts) {
+  function BodyParser(headers, readStream, opts) {
     EventEmitter.call(this);
     this.readStream = readStream;
     this.headers = headers;
