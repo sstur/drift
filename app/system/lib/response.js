@@ -2,10 +2,7 @@
 define('response', function(require, exports, module) {
   "use strict";
 
-  //todo: move this to app/config
-  var cfg = {
-    logging: {response_time: true}
-  };
+  var log_response_time = app.cfg('logging/response_time');
 
   var fs = require('fs');
   var util = require('util');
@@ -151,7 +148,7 @@ define('response', function(require, exports, module) {
         headers['Set-Cookie'] = serializeCookie(cookies[n]);
       });
       headers['Content-Type'] = buildContentType(this.response.charset, headers['Content-Type']);
-      if (cfg.logging && cfg.logging.response_time && this.req.__init) {
+      if (log_response_time && this.req.__init) {
         headers['X-Response-Time'] = new Date().valueOf() - this.req.__init.valueOf();
       }
       this.req.emit('end');

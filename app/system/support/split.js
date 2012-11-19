@@ -4,7 +4,7 @@
  * If using fix-regexp this patch is redundant.
  *
  */
-(function(require) {
+(function() {
 
   /**
    * Cross-Browser Split 1.0.1

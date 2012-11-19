@@ -4,7 +4,6 @@ app.on('ready', function(require) {
 
   var fs = require('fs');
   var util = require('util');
-  var Buffer = require('buffer').Buffer;
 
   app.route('/test/json', function(req, res) {
     var data = JSON.parse(req.body('data'));

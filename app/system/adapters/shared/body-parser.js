@@ -2,6 +2,7 @@
 define('body-parser', function(require, exports, module) {
   "use strict";
 
+  var fs = require('fs');
   var qs = require('qs');
   var md5 = require('md5');
   var path = require('path');

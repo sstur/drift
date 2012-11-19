@@ -9,7 +9,6 @@
 
   var fs = require('fs');
   var path = require('path');
-  var Buffer = require('buffer').Buffer;
 
   var join = path.join;
 
@@ -42,20 +41,21 @@
     opts._load = [
       //load framework core (instantiates `app` and `define`)
       'app/system/core.js',
-      //load shim/patches
+      //load config
+      'app/system/config',
+      'app/config',
+      //load adapter specific modules
       'app/system/adapters/shared',
+      'app/system/adapters/apache',
       //load framework modules
       'app/system/lib',
-      'app/config',
       'app/controllers',
       'app/helpers',
-      //load adapter specific modules
-      'app/system/adapters/apache',
       //load init (fires app.ready)
       'app/system/adapters/v8cgi.js'
     ];
     opts._foot = [
-      '})({})'
+      '})({platform: "apache"})'
     ];
     opts._end = [];
     opts.target = 'app/build/app.sjs';
@@ -70,15 +70,18 @@
       '"use strict";'
     ];
     opts._load = [
-      //load framework core (instantiates `app` and `define`)
-      'app/system/core.js',
       //load shim/patches
       'app/system/support',
+      //load framework core (instantiates `app` and `define`)
+      'app/system/core.js',
+      //load config
+      'app/system/config',
+      'app/config',
+      //load adapter specific modules
       'app/system/adapters/shared',
       'app/system/adapters/activex',
       //load framework modules
       'app/system/lib',
-      'app/config',
       'app/controllers',
       'app/helpers',
       //load adapter specific modules
@@ -87,7 +90,7 @@
       'app/system/adapters/asp.js'
     ];
     opts._foot = [
-      '})({}, {req: Request, res: Response, svr: Server, app: Application})'
+      '})({platform: "iis"}, {req: Request, res: Response, svr: Server, app: Application})'
     ];
     opts._end = [
       '</script>'

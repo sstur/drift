@@ -9,6 +9,8 @@ var app, define;
     }
   };
 
+  var environments = app.environments = (global.platform || '').split(' ');
+
   var require, definitions = {}, loading = {}, cache = {};
 
   define = app.define = function(name, deps, definition) {
@@ -144,11 +146,11 @@ var app, define;
     });
     //todo: move to request lib?
     req.on('no-route', function(routeData) {
-      var response = routeData.response || app.cfg('res_404');
+      var response = routeData.response || app.cfg('response_404');
       if (response) {
         res.end(response.status || '404', response.type, response.body);
       } else {
-        res.end('404', 'No Route');
+        res.end('404', 'Not Found');
       }
     });
     return router.route(method, url, req, res);
@@ -156,24 +158,57 @@ var app, define;
 
 
   /*!
-   * Global configuration
-   * todo: recursive combine, xpath
+   * Configuration
    */
-  var config;
-  app.cfg = function(data) {
-    config = config || require('config');
-    if (typeof data == 'string') {
-      //todo: xpath
-      return config[data];
-    } else {
-      data = data || {};
-      var keys = Object.keys(data);
-      keys.forEach(function(n) {
-        //todo deep merge?
-       config[n] = data[n];
-      });
+  var config = app._cfg = {};
+  app.cfg = function() {
+    var args = Array.prototype.slice.call(arguments);
+    if (args.length == 1 && typeof args[0] == 'string') {
+      //get config
+      return getCfg(args[0].split('/'));
     }
+    var data = args.pop();
+    if (data !== Object(data)) {
+      throw new Error('Invalid arguments to app.cfg');
+    }
+    if (args.length) {
+      var env = args[0];
+      if (environments.indexOf(env) < 0) {
+        return;
+      }
+    }
+    mergeCfg(data, []);
   };
+
+  function mergeCfg(data, stack) {
+    Object.keys(data).forEach(function(key) {
+      var value = data[key], path = stack.concat(key.split('/'));
+      if (value === Object(value)) {
+        mergeCfg(value, path);
+      } else {
+        setCfg(path, value);
+      }
+    });
+
+  }
+
+  function setCfg(path, value) {
+    var obj = config;
+    for (var i = 0; i < path.length - 1; i++) {
+      var key = path[i];
+      obj = obj[key] || (obj[key] = {});
+    }
+    obj[path[i]] = value;
+  }
+
+  function getCfg(path) {
+    var obj = config;
+    for (var i = 0; i < path.length - 1; i++) {
+      var key = path[i];
+      obj = obj[key] || {};
+    }
+    return obj[path[i]];
+  }
 
 
   //module loader helpers

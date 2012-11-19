@@ -15,6 +15,8 @@
   //used in modules and app.mappath
   var basePath = global.basePath || join(process.argv[1], '..');
 
+  global.platform = 'node';
+
   //load framework core (instantiates `app`)
   require(join(basePath, 'app/system/core'));
 
@@ -44,10 +46,11 @@
 
   //load node adapter modules
   loadPathSync('node-server/adapters');
+  loadPathSync('app/system/config');
+  loadPathSync('app/config');
 
   //load framework modules
   loadPathSync('app/system/lib');
-  loadPathSync('app/config');
   loadPathSync('app/controllers');
   loadPathSync('app/helpers');
 
