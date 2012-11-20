@@ -9,6 +9,7 @@ var app, define;
     }
   };
 
+  //List of environment(s), such as the os and web server or platform that we are running on
   var environments = app.environments = (global.platform || '').split(' ');
 
   var require, definitions = {}, loading = {}, cache = {};
@@ -74,36 +75,42 @@ var app, define;
   require.cache = cache;
 
 
-
   /*!
-   * Add basic event emitter to an object
+   * Basic Event Emitter
    */
-  app.eventify = function(obj) {
-    obj.on = function(name, fn) {
+
+  var emitter = {
+    on: function(name, fn) {
       var events = this._events || (this._events = {})
         , list = events[name] || (events[name] = []);
       list.push(fn);
-    };
-    obj.emit = function(name) {
+    },
+    emit: function(name) {
       var args = Array.prototype.slice.call(arguments, 1);
       var events = this._events || {}, list = events[name] || [];
       for (var i = 0; i < list.length; i++) {
         list[i].apply(this, args);
       }
-    };
+    }
+  };
+
+  //Make an object into a basic Event Emitter
+  app.eventify = function(obj) {
+    obj.on = emitter.on;
+    obj.emit = emitter.emit;
   };
 
 
 
-  /*!
-   * App-level event emitter
-   */
+  //Global `app` should be able to emit events
   app.eventify(app);
 
 
   /*!
-   * Routing provided by separate module, but routes
-   * can be added before that module is loaded.
+   * Routing
+   *
+   * provided by separate module, but routes can be
+   * added before that module is loaded.
    */
   var router, routes = app._routes = [];
 
@@ -115,46 +122,6 @@ var app, define;
       return routeRequest(a, b);
     }
   };
-
-  function addRoute(route, handler) {
-    routes.push({route: route, handler: handler});
-    if (router) {
-      router.addRoute(route, handler);
-    }
-  }
-
-  function routeRequest(_req, _res) {
-    var util = require('util')
-      , Router = require('router')
-      , Request = require('request')
-      , Response = require('response');
-    var req = new Request(_req);
-    var res = new Response(_res);
-    //cross-reference request and response
-    req.res = res;
-    res.req = req;
-    req.__init = Date.now();
-    app.emit('request', req, res);
-    router = new Router(routes);
-    var method = req.method(), url = req.url();
-    url = url.split('?')[0]; //strip query from raw (encoded) url
-    util.propagateEvents(router, req, 'pre-route match-route no-route');
-    //so routes an access `this.params` with combined request params
-    req.on('match-route', function(routeData, params) {
-      //todo: parse body params?
-      routeData.params = util.extend({}, req.query(), params);
-    });
-    //todo: move to request lib?
-    req.on('no-route', function(routeData) {
-      var response = routeData.response || app.cfg('response_404');
-      if (response) {
-        res.end(response.status || '404', response.type, response.body);
-      } else {
-        res.end('404', 'Not Found');
-      }
-    });
-    return router.route(method, url, req, res);
-  }
 
 
   /*!
@@ -211,7 +178,49 @@ var app, define;
   }
 
 
-  //module loader helpers
+  /*!
+   * Helpers
+   */
+
+  function addRoute(route, handler) {
+    routes.push({route: route, handler: handler});
+    if (router) {
+      router.addRoute(route, handler);
+    }
+  }
+
+  function routeRequest(_req, _res) {
+    var util = require('util')
+      , Router = require('router')
+      , Request = require('request')
+      , Response = require('response');
+    var req = new Request(_req);
+    var res = new Response(_res);
+    //cross-reference request and response
+    req.res = res;
+    res.req = req;
+    req.__init = Date.now();
+    app.emit('request', req, res);
+    router = new Router(routes);
+    var method = req.method(), url = req.url();
+    url = url.split('?')[0]; //strip query from raw (encoded) url
+    util.propagateEvents(router, req, 'pre-route match-route no-route');
+    //so routes an access `this.params` with combined request params
+    req.on('match-route', function(routeData, params) {
+      //todo: parse body params?
+      routeData.params = util.extend({}, req.query(), params);
+    });
+    //todo: move to request lib?
+    req.on('no-route', function(routeData) {
+      var response = routeData.response || app.cfg('response_404');
+      if (response) {
+        res.end(response.status || '404', response.type, response.body);
+      } else {
+        res.end('404', 'Not Found');
+      }
+    });
+    return router.route(method, url, req, res);
+  }
 
   function loadModule(name) {
     var module, fn = definitions[name];
@@ -272,7 +281,7 @@ var app, define;
     return resolved.replace(/^\/|\/$/g, '');
   }
 
-  //export to global (but not when compiled)
+  //export to global (but remove when compiled)
   /*@remove{*/
   global.app = app;
   global.define = define;

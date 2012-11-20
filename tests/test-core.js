@@ -2,7 +2,7 @@
 (function() {
   "use strict";
 
-  var expect = require('chai').expect;
+  var expect = require('expect.js');
 
   require('../app/system/core');
 
@@ -39,6 +39,10 @@
       obj.on('foo', function() { count++ });
       obj.emit('foo', 1);
       expect(count).to.equal(4);
+    });
+
+    it('should get and set config options', function() {
+
     });
 
   });
