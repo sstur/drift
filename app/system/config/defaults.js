@@ -16,6 +16,5 @@ app.cfg({
   session: {
     default_datastore: 'memory'
   },
-  template_defaults: {},
-  html_entities: {amp: '&', gt: '>', lt: '<', quot: '"', apos: '\'', nbsp: '\u00a0'}
+  template_defaults: {}
 });

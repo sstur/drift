@@ -10,7 +10,8 @@ app.on('ready', function(require) {
   });
 
   app.route('/cfg', function(req, res) {
-    res.debug(app.cfg('session'));
+    app.cfg('node', {a: {b: false}});
+    res.debug(app.cfg('a/b'));
   });
 
   app.route('/favicon.ico', function(req, res) {

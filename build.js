@@ -55,7 +55,7 @@
       'app/system/adapters/v8cgi.js'
     ];
     opts._foot = [
-      '})({platform: "apache"})'
+      '})({platform: "apache v8cgi"})'
     ];
     opts._end = [];
     opts.target = 'app/build/app.sjs';
@@ -90,7 +90,7 @@
       'app/system/adapters/asp.js'
     ];
     opts._foot = [
-      '})({platform: "iis"}, {req: Request, res: Response, svr: Server, app: Application})'
+      '})({platform: "iis asp"}, {req: Request, res: Response, svr: Server, app: Application})'
     ];
     opts._end = [
       '</script>'

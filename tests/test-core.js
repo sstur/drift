@@ -1,4 +1,4 @@
-/*global app, define, describe, it */
+/*global app, require, describe, it */
 (function() {
   "use strict";
 
