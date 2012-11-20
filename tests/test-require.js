@@ -1,10 +1,12 @@
-/*global app, define, describe, it */
+/*global app, require, describe, it */
 (function() {
   "use strict";
 
-  var expect = require('chai').expect;
+  var expect = require('expect.js');
 
   require('../app/system/core');
+
+  var define = app.define;
 
   describe('define', function() {
     var require = app.require;
@@ -49,7 +51,7 @@
     it('should throw on non-existent module', function() {
       expect(function() {
         require('invalid-module');
-      }).to.throw(/Module not found/);
+      }).to.throwError(/Module not found/);
     });
 
     it('should export module.exports', function() {

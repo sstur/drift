@@ -29,8 +29,9 @@
     it('should add event-handling to an object', function() {
       var obj = {}, count = 0, fn = function(i) { count += i };
       app.eventify(obj);
-      expect(obj).to.have.property('on').that.is.a('function');
-      expect(obj).to.have.property('emit').that.is.a('function');
+      expect(obj).to.have.property('on').and.have.property('emit');
+      expect(obj.on).to.be.a('function');
+      expect(obj.emit).to.be.a('function');
       obj.on('foo', fn);
       expect(obj._events).to.eql({foo: [fn]});
       obj.emit('foo', 2);
@@ -42,7 +43,14 @@
     });
 
     it('should get and set config options', function() {
-
+      app.environments.push('test1');
+      app.cfg('test1', {a: {a: 1, b: false}});
+      app.cfg('test1', {a: {a: 1, b: false}});
+      app.cfg({a: {d: 'test'}});
+      expect(app.cfg('a/a')).to.be(1);
+      expect(app.cfg('a/b')).to.be(false);
+      expect(app.cfg('a/c')).to.be(undefined);
+      expect(app.cfg('a')).to.eql({a: 1, b: false, d: 'test'});
     });
 
   });

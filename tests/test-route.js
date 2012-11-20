@@ -1,42 +1,27 @@
-/*global app, define, describe, it */
+/*global app, require, describe, it */
 (function() {
   "use strict";
 
   var expect = require('chai').expect;
 
   require('../app/system/core');
+
+  require('../node-server/adapters/buffer');
+  require('../node-server/adapters/inspector');
+
+  require('../app/system/config/defaults');
+  require('../app/config/config');
+  require('../app/config/config');
+
   require('../app/system/lib/globals');
   require('../app/system/lib/router');
   require('../app/system/lib/qs');
-  require('../app/system/lib/request');
-  require('../app/system/lib/response');
   require('../app/system/lib/util');
-
-  //shim required modules
-  define('buffer', {Buffer: require('buffer').Buffer});
-  define('inspector', {inspect: function() {}});
-
-  var dummyRequest = function(method, url) {
-    return {
-      getURL: function() { return url },
-      getURLParts: function() { return {path: url, qs: ''} },
-      getMethod: function() { return method }
-    };
-  };
-
-  var dummyResponse = function() {
-    var lines = [];
-    return {
-      status: function(s) { lines.push('STATUS:' + s) },
-      charset: function(s) { lines.push('CHARSET:' + s) },
-      write: function(s) { lines.push('DATA:' + s) },
-      end: function() { lines.push('END') },
-      getData: function() { return lines }
-    };
-  };
 
   describe('router', function() {
     var require = app.require;
+    var util = require('util')
+      , Router = require('router');
 
     it('should add a route', function() {
       var fn = function() {};
