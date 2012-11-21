@@ -42,6 +42,9 @@ define('response', function(require, exports, module) {
   //headers that allow multiple
   var allowMulti = {'Set-Cookie': 1};
 
+  //short list of common mime-types
+  var mimeTypes = app.cfg('mime_types');
+
 
   function Response(res) {
     this._super = res;
@@ -158,12 +161,14 @@ define('response', function(require, exports, module) {
       this._super.writeHead(statusCode, statusReason, headers);
     },
     _streamFile: function(path) {
-      this._writeHead();
       var _super = this._super;
       if (_super.streamFile) {
         //allow the adapter to do things like X-Sendfile or X-Accel-Redirect
-        _super.streamFile(path);
+        //todo: _writeHead has not been called, so we don't get cookies and response-time
+        this.req.emit('end');
+        _super.streamFile(path, this.response.headers);
       } else {
+        this._writeHead();
         var readStream = fs.createReadStream(path);
         readStream.on('data', function(data) {
           _super.write(data);
@@ -209,7 +214,10 @@ define('response', function(require, exports, module) {
         opts = {file: String(opts)};
       }
       //todo: stat the file for content-length and throw if not exists
-      //todo: use file extention to lookup mime-type if not specified
+      if (!opts.contentType && mimeTypes) {
+        var ext = opts.file.split('/').pop().split('.').pop().toLowerCase();
+        opts.contentType = mimeTypes[ext];
+      }
       this.headers('Content-Type', opts.contentType || 'application/octet-stream');
       var contentDisp = [];
       if (opts.attachment) contentDisp.push('attachment');

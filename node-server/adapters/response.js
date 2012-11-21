@@ -21,11 +21,11 @@ app.define('adapter-response', function(require, exports, module) {
       this._super.end();
       Fiber.current.abort();
     },
-    streamFile: function(path) {
+    streamFile: function(path, headers) {
       var _super = this._super;
       var fullpath = global.mappath(path);
       console.log('stream file: ' + fullpath);
-      this.writeHead();
+      this.writeHead('200', 'OK', headers);
       Fiber.current.abort(function() {
         fs.createReadStream(fullpath).pipe(_super);
       });

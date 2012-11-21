@@ -10,7 +10,8 @@ app.on('ready', function(require) {
   });
 
   app.route('/favicon.ico', function(req, res) {
-    res.redirect('/assets/favicon.ico', 301);
+    res.sendFile('assets/favicon.ico');
+    //res.redirect('/assets/favicon.ico', 301);
   });
 
   app.route('/form-post', function(req, res) {
