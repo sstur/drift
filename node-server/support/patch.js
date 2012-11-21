@@ -15,13 +15,6 @@
 
   var join = path.join, basename = path.basename, extname = path.extname, normalize = path.normalize;
 
-  var mimeByExt = Object.keys(mimeTypes).reduce(function(obj, type) {
-    mimeTypes[type].split(' ').forEach(function(ext) {
-      obj[ext] = type;
-    });
-    return obj;
-  }, {});
-
   //var INVALID_CHARS = /[\x00-\x1F\\\/:*?<>|&%",\u007E-\uFFFF]/g;
   var INVALID_CHARS = /[^\w\d!#$'()+,\-;=@\[\]^`{}~]/g;
 
@@ -196,8 +189,7 @@
 
       // mime/content-type
       if (!res.getHeader('Content-Type')) {
-        var fileExt = extname(opts.path).slice(1).toLowerCase();
-        var contentType = opts.contentType || mimeByExt[fileExt] || 'application/octet-stream';
+        var contentType = opts.contentType || mimeTypes.getMime(opts.path) || 'application/octet-stream';
         //opts.charset === false disables charset completely
         //if (opts.charset !== false) {
         //  var charset = opts.charset || mimeTypes.charsets.lookup(contentType);
