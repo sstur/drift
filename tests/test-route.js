@@ -32,7 +32,7 @@
     it('should add a route', function() {
       var fn = function() {};
       router.addRoute('/one', fn);
-      expect(router._routes).to.eql([{route: '/one', paramNames: [], handler: fn}]);
+      expect(JSON.stringify(router._routes)).to.eql('[{"route":"/one","paramNames":[]}]');
     });
 
     it('should execute route', function() {
@@ -99,7 +99,6 @@
         count++;
         expect(p1).to.equal('1');
         expect(p2).to.equal('a');
-        //expect(req._params).to.eql({$1: '1', $2: 'a'});
       };
       router.addRoute(/\/five\/(\d+)\/([a-z]+)/, fn);
       complete = false;

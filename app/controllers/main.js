@@ -9,11 +9,6 @@ app.on('ready', function(require) {
     res.send('tests');
   });
 
-  app.route('/cfg', function(req, res) {
-    app.cfg('node', {a: {b: false}});
-    res.debug(app.cfg('a/b'));
-  });
-
   app.route('/favicon.ico', function(req, res) {
     res.redirect('/assets/favicon.ico', 301);
   });
