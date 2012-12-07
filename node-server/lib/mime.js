@@ -789,7 +789,7 @@ types = {
   'x-conference/x-cooltalk': ['ice']
 };
 
-extenstions = {
+extensions = {
   '123': 'application/vnd.lotus-1-2-3',
   '3dml': 'text/vnd.in3d.3dml',
   '3ds': 'image/x-3ds',

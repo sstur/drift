@@ -3,7 +3,7 @@
  * one platform-specific script file.
  *
  */
-/*global process, require, module, exports, __filename, __dirname */
+/*global process, require, module, exports */
 (function() {
   "use strict";
 
@@ -14,8 +14,7 @@
 
   //framework files beginning with these chars are excluded
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
-  //todo: technically we need to account for regex literals too
-  var COMMENT_OR_STRING = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|"(\\.|[^"])*"|\/(\\.|[^\/])+\/|\/\/(.*)/gm;
+  var COMMENT_OR_STRING = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|\/(\\.|[^\/])+\/|\/\/(.*)/gm;
   var STRINGS = {"'": 1, '"': 1};
   var COMMENTS = {'//': 1, '/*': 1};
 
