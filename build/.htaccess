@@ -11,6 +11,6 @@ RewriteBase /
 
 RewriteCond %{REQUEST_FILENAME} !-f [OR]
 RewriteCond %{REQUEST_URI} !^/assets/
-RewriteRule .* app.sjs [L,NC]
+RewriteRule .* build/app.sjs [L,NC]
 
 </IfModule>
