@@ -12,7 +12,7 @@
 
   var join = path.join;
 
-  //framework files beginning with these chars are excluded
+  //files beginning with these chars are excluded
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
   var COMMENT_OR_STRING = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|\/(\\.|[^\/])+\/|\/\/(.*)/gm;
   var STRINGS = {"'": 1, '"': 1};
@@ -29,6 +29,12 @@
   var opts = process.argv.slice(2).reduce(function(opts, el) {
     return (opts[el.replace(/^-+/, '')] = 1) && opts;
   }, {});
+
+  var config;
+  try {
+    config = fs.readFileSync(join(basePath, 'build-conf.json'), 'utf8');
+  } catch(e) {}
+  config = JSON.parse(config || '{}');
 
   if (opts.apache) {
     //build for apache/v8cgi
@@ -57,7 +63,7 @@
       '})({platform: "apache v8cgi"})'
     ];
     opts._end = [];
-    opts.target = 'app/build/app.sjs';
+    opts.target = 'build/app.sjs';
   } else {
     //build for iis/asp
     opts._pre = [
@@ -94,7 +100,7 @@
     opts._end = [
       '</script>'
     ];
-    opts.target = 'app/build/app.asp';
+    opts.target = 'build/app.asp';
   }
 
   var sourceFiles = []
@@ -103,7 +109,9 @@
     , offset = opts._pre.length;
 
   sourceLines.push.apply(sourceLines, opts._head);
-  opts._load.forEach(load);
+  opts._load.forEach(function(path) {
+    return (path.match(/\.js$/)) ? loadFile(path) : loadPath(path);
+  });
   sourceLines.push.apply(sourceLines, opts._foot);
 
   sourceLines = preProcess(sourceLines);
@@ -129,7 +137,7 @@
         errhandler.replace('[/*SRCMAP*/]', JSON.stringify(lineOffsets) + ', ' + JSON.stringify(sourceFiles)),
         '<\/script>'
       ];
-      fs.writeFileSync(join(basePath, 'app/build/err.asp'), errfile.join('\r\n'), 'utf8');
+      fs.writeFileSync(join(basePath, 'build/err.asp'), errfile.join('\r\n'), 'utf8');
     }
   }
 
@@ -142,12 +150,17 @@
 
   //helpers
 
-  function load(path) {
-    return (path.match(/\.js$/)) ? loadFile(path) : loadPath(path);
-  }
-
   function loadFile(path) {
     var fullpath = join(basePath, path);
+    var exclude = config.exclude || [], shortpath = path.replace(/^app\//, ''), skip = false;
+    //console.log(exclude, shortpath);
+    exclude.forEach(function(excl) {
+      if (excl === shortpath) skip = true;
+      if (excl.charAt(0) === '*') {
+        if (path.slice(0 - excl.length + 1) === excl.slice(1)) skip = true;
+      }
+    });
+    if (skip) return;
     if (!opts.q) console.log('load file', path);
     var filedata = fs.readFileSync(fullpath, 'utf8');
     var lines = filedata.split(REG_NL);
