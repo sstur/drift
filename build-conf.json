@@ -1,0 +1,5 @@
+{
+  "exclude": [
+    "system/lib/debug.js"
+  ]
+}
