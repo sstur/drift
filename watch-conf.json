@@ -6,7 +6,16 @@
     "exclude": ["app/system/adapters/apache"],
     "action": {
       "type": "exec",
-      "command": "node build iis"
+      "command": "node build iis && cp build/*.asp deploy/build/"
+    }
+  }, {
+    "profile": "node",
+    "paths": ["node-server"],
+    "mask": "*.js",
+    "exclude": ["node-server/node_modules"],
+    "action": {
+      "type": "kill",
+      "pidfile": "./server.pid"
     }
   }]
 }

@@ -94,8 +94,11 @@
         case 'exec':
           exec(opts.action.command);
           break;
+        case 'kill':
+          kill(opts.action.pidfile);
+          break;
         case 'mirror':
-          itemChanged(filePath, fileCurrentStat, filePreviousStat);
+          //itemChanged(filePath, fileCurrentStat, filePreviousStat);
       }
     };
 
@@ -120,12 +123,12 @@
       return;
     }
     running[cmd] = true;
-    console.log('start exec: ' + cmd);
+    console.log('--START EXEC: ' + cmd);
     child_process.exec(cmd, function(err, stdout, stderr) {
       if (err) throw err;
       delete running[cmd];
-      console.log('exec completed: ' + cmd);
       console.log(stdout);
+      console.log('--EXEC COMPLETED');
       if (queued[cmd]) {
         //files may have changed again during exec
         process.nextTick(function() {
@@ -134,6 +137,27 @@
         delete queued[cmd];
       }
     });
+  }
+
+  function kill(pid) {
+    if (String(pid).match(/\D/)) {
+      //pid is a file
+      var pidfile = pid;
+      fs.readFile(pidfile, 'utf8', function(err, pid) {
+        if (err) {
+          console.log('--ERROR READING FILE ' + pidfile);
+        } else {
+          kill(pid.trim());
+        }
+      });
+      return;
+    }
+    try {
+      process.kill(pid);
+      console.log('--KILLED PROCESS ' + pid);
+    } catch(e) {
+      console.log('--ERROR KILLING ' + pid);
+    }
   }
 
   function escRegExp(str) {
