@@ -1,17 +1,20 @@
+/*global process, require, module, exports */
 (function() {
   "use strict";
 
   var fs = require('fs');
   var path = require('path');
-  var watch = require('watch');
+  var watchr = require('watchr');
 
   //to suppress warning
   path.exists = fs.exists;
 
-  var cwd = process.cwd();
   var join = path.join;
   var basename = path.basename;
-  var config = fs.readFileSync(join(__dirname, 'config.json'), 'utf8');
+
+  var basePath = path.dirname(process.argv[1]);
+
+  var config = fs.readFileSync(join(basePath, 'config.json'), 'utf8');
   config = JSON.parse(config);
 
   function itemCreated(file, stat) {
@@ -31,59 +34,95 @@
     opts.ignoreUnderscore = (opts.ignoreUnderscore !== false);
 
     var paths = Array.isArray(opts.paths) ? opts.paths : String(opts.paths).split('|');
-    var pathCount = 0, next = function() { if (++pathCount == paths.length) done() };
-    var fileCount = 0, log = [];
+    var pathCount = 0;
+    var log = [];
 
-    if (opts.exclude || opts.mask || opts.ignoreUnderscore) {
-      var exPaths = Array.isArray(opts.exclude) ? opts.exclude : [];
-      exPaths = exPaths.map(function(path) {
-        //ensure one trailing slash
-        return path.replace(/\/$/, '') + '/';
+    var filters = [];
+
+    if (opts.mask) {
+      opts.mask = maskToRegExp(opts.mask);
+      filters.push(function(path) {
+        return opts.mask.test(path);
       });
-      var mask = opts.mask ? maskToRegExp(opts.mask) : false;
-      if (mask) log.push(opts.mask + ' -> ' + mask.toString());
-      opts.filter = function(path, stat) {
-        //return true to exclude
-        var excluded = false;
-        if (opts.ignoreUnderscore && basename(path).charAt(0) == '_') {
-          excluded = true;
-        } else
-        if (stat.isDirectory()) {
-          //add trailing slash
-          var dir = path + '/';
-          excluded = exPaths.reduce(function(abort, path) {
-            return abort || (dir.indexOf(path) == 0);
-          }, false);
-        } else {
-          excluded = mask && !mask.test(path);
-          //if (excluded) console.log('(' + mask.toString() + ').test("' + path + '") = ' + !excluded);
-        }
-        console.log(((excluded) ? 'exclude: ' : 'include: ') + path);
-        return excluded;
-      };
     }
 
+    if (opts.exclude) {
+      filters.push(function(path) {
+        var exclude = opts.exclude, len = exclude.length;
+        for (var i = 0; i < len; i++) {
+          var reg = new RegExp('(^|/)' + escRegExp(exclude[i]) + '(/|$)');
+          if (reg.test(path)) return false;
+        }
+        return true;
+      });
+    }
+
+    if (opts.ignoreDotFiles) {
+      filters.push(function(path) {
+        return (/(^|\/)\.[^\/]/).test(path) ? false : true;
+        //return (path.split('/').pop().charAt(0) == '.') ? false : true;
+      });
+    }
+
+    if (opts.ignoreUnderscore) {
+      filters.push(function(path) {
+        return (/(^|\/)_[^\/]/).test(path) ? false : true;
+        //return (path.split('/').pop().charAt(0) == '_') ? false : true;
+      });
+    }
+
+    var checkPath = function(path) {
+      for (var i = 0; i < filters.length; i++) {
+        if (!filters[i](path)) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    var next = function() {
+      if (++pathCount == paths.length) {
+        done();
+      }
+    };
+
     var done = function() {
-      log.forEach(function(line) { console.log(line) });
-      console.log('Watching ' + fileCount + ' items.');
+      log.forEach(function(line) {
+        console.log(line)
+      });
+      console.log('Watching ' + paths.length + ' paths.');
       console.log('------');
+    };
+
+    var listener = function(eventName, filePath, fileCurrentStat, filePreviousStat) {
+      if (!checkPath(filePath)) return;
+      switch (eventName) {
+        case 'new':
+          itemCreated(filePath, fileCurrentStat, filePreviousStat);
+          break;
+        case 'change':
+          itemChanged(filePath, fileCurrentStat, filePreviousStat);
+          break;
+        case 'unlink':
+          itemRemoved(filePath, fileCurrentStat, filePreviousStat);
+      }
     };
 
     paths.forEach(function(path) {
       path = (path.charAt(0) == '.') ? path : './' + path;
       log.push('watch path: ' + path);
-      watch.createMonitor(path, opts, function(monitor) {
-        monitor.path = path;
-        monitor.opts = opts;
-        monitor.on('created', itemCreated);
-        monitor.on('removed', itemRemoved);
-        monitor.on('changed', itemChanged);
-        fileCount += Object.keys(monitor.files).length;
-        next();
+      watchr.watch({
+        path: path,
+        listener: listener,
+        next: next
       });
     });
 
   });
+
+  function escRegExp(str) {
+    return String(str).replace(/([.?*+^$\[\]\\(){}-])/g, '\\$1');
+  }
 
   function maskToRegExp(mask) {
     var masks = mask.split(/;\s*/), exts = [];

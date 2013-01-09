@@ -4,25 +4,7 @@
     "paths": ["app", "assets"],
     "action": {
       "type": "copy",
-      "destination": "../_link/platformjs"
-    }
-  }, {
-    "profile": "iis",
-    "paths": ["app/config", "app/controllers", "app/helpers", "app/system"],
-    "mask": "*.js",
-    "exclude": ["app/system/adapters/apache"],
-    "action": {
-      "type": "exec",
-      "command": "node build iis"
-    }
-  }, {
-    "profile": "apache",
-    "paths": ["app/config", "app/controllers", "app/helpers", "app/system"],
-    "mask": "*.js",
-    "exclude": ["app/system/adapters/iis", "app/system/adapters/activex"],
-    "action": {
-      "type": "exec",
-      "command": "node build apache"
+      "destination": "../deploy"
     }
   }, {
     "profile": "node",
