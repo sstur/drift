@@ -5,29 +5,15 @@
   var fs = require('fs');
   var path = require('path');
   var watchr = require('watchr');
-
-  //to suppress warning
-  path.exists = fs.exists;
+  var child_process = require('child_process');
 
   var join = path.join;
-  var basename = path.basename;
 
-  var basePath = path.dirname(process.argv[1]);
+  //var basePath = path.dirname(process.argv[1]);
+  var basePath = process.cwd();
 
-  var config = fs.readFileSync(join(basePath, 'config.json'), 'utf8');
+  var config = fs.readFileSync(join(basePath, 'watch-conf.json'), 'utf8');
   config = JSON.parse(config);
-
-  function itemCreated(file, stat) {
-    console.log('created:', file);
-  }
-
-  function itemRemoved(file, stat) {
-    console.log('removed:', file);
-  }
-
-  function itemChanged(file, newStat, oldStat) {
-    console.log('changed:', file);
-  }
 
   config.watch.forEach(function(opts) {
     opts.ignoreDotFiles = (opts.ignoreDotFiles !== false);
@@ -60,14 +46,12 @@
     if (opts.ignoreDotFiles) {
       filters.push(function(path) {
         return (/(^|\/)\.[^\/]/).test(path) ? false : true;
-        //return (path.split('/').pop().charAt(0) == '.') ? false : true;
       });
     }
 
     if (opts.ignoreUnderscore) {
       filters.push(function(path) {
         return (/(^|\/)_[^\/]/).test(path) ? false : true;
-        //return (path.split('/').pop().charAt(0) == '_') ? false : true;
       });
     }
 
@@ -98,27 +82,59 @@
       if (!checkPath(filePath)) return;
       switch (eventName) {
         case 'new':
-          itemCreated(filePath, fileCurrentStat, filePreviousStat);
+          console.log('created:', filePath);
           break;
         case 'change':
-          itemChanged(filePath, fileCurrentStat, filePreviousStat);
+          console.log('changed:', filePath);
           break;
         case 'unlink':
-          itemRemoved(filePath, fileCurrentStat, filePreviousStat);
+          console.log('removed:', filePath);
+      }
+      switch (opts.action.type) {
+        case 'exec':
+          exec(opts.action.command);
+          break;
+        case 'mirror':
+          itemChanged(filePath, fileCurrentStat, filePreviousStat);
       }
     };
 
     paths.forEach(function(path) {
-      path = (path.charAt(0) == '.') ? path : './' + path;
+      //path = (path.charAt(0) == '.') ? path : './' + path;
+      var fullpath = join(basePath, path);
       log.push('watch path: ' + path);
       watchr.watch({
-        path: path,
+        path: fullpath,
         listener: listener,
         next: next
       });
     });
 
   });
+
+  var running = {}, queued = {};
+
+  function exec(cmd) {
+    if (cmd in running) {
+      queued[cmd] = true;
+      return;
+    }
+    running[cmd] = true;
+    console.log('start exec: ' + cmd);
+    child_process.exec(cmd, function(err, stdout, stderr) {
+      if (err) throw err;
+      delete running[cmd];
+      console.log('exec completed: ' + cmd);
+      console.log(stdout);
+      if (queued[cmd]) {
+        //files may have changed again during exec
+        process.nextTick(function() {
+          exec(cmd);
+        });
+        delete queued[cmd];
+      }
+    });
+  }
 
   function escRegExp(str) {
     return String(str).replace(/([.?*+^$\[\]\\(){}-])/g, '\\$1');
