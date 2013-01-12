@@ -1,4 +1,5 @@
 var exec = require('child_process').exec;
+var join = require('path').join;
 var readline = require('readline');
 
 function escape(s) {
@@ -31,7 +32,7 @@ exports.open = function open(target, callback) {
       break;
     default:
       // use Portlands xdg-open everywhere else
-      opener = path.join(__dirname, '../bin/xdg-open');
+      opener = join(__dirname, '../bin/xdg-open');
       break;
   }
   return exec(opener + ' "' + escape(target) + '"', callback);
