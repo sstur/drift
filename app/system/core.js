@@ -281,10 +281,8 @@ var app, define;
     return resolved.replace(/^\/|\/$/g, '');
   }
 
-  //export to global (but remove when compiled)
-  /*@remove{*/
+  //export to global (pseudo-global when compiled)
   global.app = app;
   global.define = define;
-  /*}@*/
 
 })();

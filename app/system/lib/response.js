@@ -215,6 +215,7 @@ define('response', function(require, exports, module) {
       }
       //todo: stat the file for content-length and throw if not exists
       if (!opts.contentType && mimeTypes) {
+        //todo: files that have no extension
         var ext = opts.file.split('/').pop().split('.').pop().toLowerCase();
         opts.contentType = mimeTypes[ext];
       }

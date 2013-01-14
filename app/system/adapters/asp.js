@@ -34,17 +34,14 @@ var console, Buffer;
 
   app.data = function(n, val) {
     if (arguments.length == 2) {
-      setProperty(iis.app, 'JSON:' + n, (val == null) ? '' : util.stringify(val));
+      var str = (val == null) ? '' : util.stringify(val);
+      iis.app('JSON:' + n)/*@cc_on@if(0)*/[0]/*@end@*/ = str;
       return val;
     } else {
       val = iis.app('JSON:' + n);
       return (val) ? util.parse(val) : '';
     }
   };
-
-  function setProperty(obj, name, value) {
-    obj(name)/*@remove{*/[0]/*}@*/ = value;
-  }
 
   app.emit('ready', require);
 

@@ -206,7 +206,7 @@ define('session', function(require, exports, module) {
     init: function(req, res, opts) {
       var options = {};
       if (vartype(opts, 'string')) {
-        opts = opts.w();
+        opts = opts.split(' ');
       }
       if (vartype(opts, 'array')) {
         opts.each(function(i, opt) {

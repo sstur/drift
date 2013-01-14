@@ -17,13 +17,13 @@ define('email', function(require, exports) {
     var cdo = new ActiveXObject('CDO.Message')
       , cfg = cdo.configuration.fields
       , prefix = 'http://schemas.microsoft.com/cdo/configuration/';
-    setProperty(cfg, prefix + 'sendusing', 2);
-    setProperty(cfg, prefix + 'smtpserver', app.cfg('smtp/host') || 'localhost');
-    setProperty(cfg, prefix + 'smtpserverport', app.cfg('smtp/port') || '25');
+    cfg.item(prefix + 'sendusing').value = 2;
+    cfg.item(prefix + 'smtpserver').value = app.cfg('smtp/host') || 'localhost';
+    cfg.item(prefix + 'smtpserverport').value = app.cfg('smtp/port') || '25';
     if (app.cfg('smtp/user') && app.cfg('smtp/pass')) {
-      setProperty(cfg, prefix + 'smtpauthenticate', 1);
-      setProperty(cfg, prefix + 'sendusername', app.cfg('smtp/user'));
-      setProperty(cfg, prefix + 'sendpassword', app.cfg('smtp/pass'));
+      cfg.item(prefix + 'smtpauthenticate').value = 1;
+      cfg.item(prefix + 'sendusername').value = app.cfg('smtp/user');
+      cfg.item(prefix + 'sendpassword').value = app.cfg('smtp/pass');
     }
     cfg.update();
     cdo.to = opts.to;
@@ -40,9 +40,5 @@ define('email', function(require, exports) {
       throw new Error('Error Sending Email: ' + e.message);
     }
   };
-
-  function setProperty(obj, name, value) {
-    obj(name)/*@remove{*/[0]/*}@*/ = value;
-  }
 
 });

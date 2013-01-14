@@ -93,6 +93,7 @@ define('request', function(require, exports, module) {
     var pos = url.indexOf('?')
       , search = (pos > 0) ? url.slice(pos) : ''
       , rawPath = search ? url.slice(0, pos) : url;
+    //todo: normalize rawPath: rawPath.split('/').map(decode).map(encode).join('/')
     return {
       raw: url,
       rawPath: rawPath,

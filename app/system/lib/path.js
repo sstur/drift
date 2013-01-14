@@ -9,6 +9,8 @@ define('path', function(require, exports) {
     , RE_DOTDOTSLASH = /[^\/]+\/\.\.\//g
     , RE_TRAILING_SLASH = /\/$/;
 
+  var slice = Array.prototype.slice;
+
   /*
    * Join one or more paths using forward-slash
    * path.join('assets/', 'scripts', 'file.js')
@@ -18,7 +20,14 @@ define('path', function(require, exports) {
     args.forEach(function(s, i) {
       if (s) a.push(s);
     });
-    var path = a.join('/');
+    return exports.normalize(a.join('/'));
+  };
+
+  /*
+   * Join one or more paths using forward-slash
+   * path.join('assets/', 'scripts', 'file.js')
+   */
+  exports.normalize = function(path) {
     path = path.replace(RE_SLASHES, '/');
     path = path.replace(RE_DOTSLASH, '/');
     path = path.replace(RE_DOTDOTSLASH, '');
