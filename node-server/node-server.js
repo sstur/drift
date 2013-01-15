@@ -51,8 +51,8 @@
 
   //load framework modules
   loadPathSync('app/system/lib');
-  loadPathSync('app/controllers');
   loadPathSync('app/helpers');
+  loadPathSync('app/controllers');
 
   //all modules loaded
   app.emit('ready', app.require);

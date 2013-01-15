@@ -222,7 +222,7 @@ var forEach, vartype, isPrimitive, toArray;
   toArray = Array.toArray;
 
   //export to global (pseudo-global when compiled)
-  global.forEach= forEach;
+  global.forEach = forEach;
   global.vartype = vartype;
   global.isPrimitive = isPrimitive;
   global.toArray = toArray;

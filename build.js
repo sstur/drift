@@ -54,8 +54,8 @@
       'app/system/adapters/apache',
       //load framework modules
       'app/system/lib',
-      'app/controllers',
       'app/helpers',
+      'app/controllers',
       //load init (fires app.ready)
       'app/system/adapters/v8cgi.js'
     ];
@@ -87,8 +87,8 @@
       'app/system/adapters/activex',
       //load framework modules
       'app/system/lib',
-      'app/controllers',
       'app/helpers',
+      'app/controllers',
       //load adapter specific modules
       'app/system/adapters/iis',
       //load init (fires app.ready)
