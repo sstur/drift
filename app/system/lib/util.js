@@ -55,7 +55,7 @@ define('util', function(require, util) {
     var fs = require('fs');
     //todo: logLevel
     var logfile, args = toArray(arguments), logLevel = 1;
-    if (typeof args[0] == 'number' && +args[0] == args[0] && args[0] > 0) {
+    if (typeof args[0] == 'number' && args[0] > 0 && args[0] == parseInt(args[0], 10)) {
       logLevel = args.shift();
     }
     if (args.length > 1) {

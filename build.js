@@ -143,6 +143,9 @@
 
   sourceLines.unshift.apply(sourceLines, opts._pre);
   sourceLines.push.apply(sourceLines, opts._end);
+  if ('appendLines' in config) {
+    sourceLines.push.apply(sourceLines, config.appendLines);
+  }
 
   var source = sourceLines.join('\r\n');
   fs.writeFileSync(join(basePath, opts.target), source, 'utf8');

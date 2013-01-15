@@ -35,7 +35,7 @@ var console, Buffer;
   app.data = function(n, val) {
     if (arguments.length == 2) {
       var str = (val == null) ? '' : util.stringify(val);
-      iis.app('JSON:' + n)/*@cc_on@if(0)*/[0]/*@end@*/ = str;
+      iis.app('JSON:' + n).value = str;
       return val;
     } else {
       val = iis.app('JSON:' + n);
