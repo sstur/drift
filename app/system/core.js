@@ -8,7 +8,6 @@ var app, define;
       return app.fn.apply(app, arguments);
     }
   };
-  app._log = [];
 
   //List of environment(s), such as the os and web server or platform that we are running on
   var environments = app.environments = (global.platform || '').split(' ');
@@ -16,7 +15,6 @@ var app, define;
   var require, definitions = {}, loading = {}, cache = {};
 
   define = app.define = function(name, deps, definition) {
-    app._log.push('defining module: ' + name);
     if (typeof name != 'string') {
       throw new Error('Invalid module name');
     }
@@ -44,14 +42,9 @@ var app, define;
       module = cache[fullname] || (cache[fullname] = loadModule(fullname));
     }
     if (!module) {
-      app._log.push('module not found: ' + namespace + ' + ' + name + ' = ' + fullname);
-      throw new Error(app._log.join('\n'));
-      throw new Error(Object.keys(definitions).join('\n'));
       var errMsg = 'Module not found: ' + name;
       throw new Error(errMsg);
     }
-    //app._log.push('require: ' + namespace + ' : ' + name);
-    app._log.push('require: ' + fullname);
     return module;
   };
 
@@ -61,14 +54,11 @@ var app, define;
       namespace = '';
     }
     var found, path = joinPath(namespace, getPath(name));
-    app._log.push('resolve: ' + namespace + ' + ' + name);
     name = name.replace(/.*\//, '');
     while (path && !found) {
-      app._log.push('try: ' + path + '/' + name);
       if (definitions[path + '/' + name]) {
         found = path + '/' + name;
       } else {
-        app._log.push('try: ' + path + '/lib/' + name);
         if (definitions[path + '/lib/' + name]) {
           found = path + '/lib/' + name;
         }
@@ -76,14 +66,12 @@ var app, define;
       path = getPath(path);
     }
     if (!found) {
-      app._log.push('try: ' + name);
     }
     //global modules
     if (!found && definitions[name]) {
       found = name;
     }
     if (!found) {
-      app._log.push('try: ' + name + '/' + name);
     }
     if (!found && definitions[name + '/' + name]) {
       found = name + '/' + name;
