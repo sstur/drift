@@ -42,6 +42,7 @@ define('adapter-response', function(require, exports, module) {
       }
     },
     end: function() {
+      app.emit('end');
       this._super.end();
     }
   });

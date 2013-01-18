@@ -21,6 +21,7 @@ define('adapter-response', function(require, exports, module) {
       this._super.write((Buffer.isBuffer(data)) ? data.toBin() : String(data));
     },
     end: function() {
+      app.emit('end');
       throw 0;
     }
   });

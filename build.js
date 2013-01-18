@@ -103,6 +103,12 @@
     opts.target = 'build/app.asp';
   }
 
+  if (config.compileViews) {
+    var viewsJSON = JSON.stringify(readViews('views'));
+    viewsJSON = viewsJSON.replace(/<(\/?script)\b/gi, '\\x3c$1');
+    opts._head.push('global.viewCache = ' + viewsJSON + ';');
+  }
+
   var sourceFiles = []
     , sourceLines = []
     , lineOffsets = {}
@@ -189,6 +195,31 @@
         loadFile(join(dir, item));
       }
     });
+  }
+
+  function readView(path, views) {
+    var fullpath = join(basePath, path);
+    if (!opts.q) console.log('read view', path);
+    var filedata = fs.readFileSync(fullpath, 'utf8');
+    views[path] = filedata;
+  }
+
+  function readViews(dir, views) {
+    views = views || {};
+    var path = join(basePath, dir);
+    var items = fs.readdirSync(path);
+    items.forEach(function(item) {
+      if (item.charAt(0) in EXCLUDE) return;
+      var fullpath = join(path, item)
+        , stat = fs.statSync(fullpath);
+      if (stat.isDirectory()) {
+        readViews(join(dir, item), views);
+      } else
+      if (stat.isFile()) {
+        readView(join(dir, item), views);
+      }
+    });
+    return views;
   }
 
   function preProcess(lines) {
