@@ -2,7 +2,7 @@
  * Global Functions and Variables
  *   platforms not supporting ECMAScript 5 need ES5 shim loaded before this
  *
- * todo: Date formatting
+ * todo: Basic Date formatting
  */
 
 var forEach, vartype, isPrimitive, toArray;
@@ -10,36 +10,42 @@ var forEach, vartype, isPrimitive, toArray;
 (function() {
   "use strict";
 
+  var toString = Object.prototype.toString;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+
   /**
-   * Shorthand to iterate an array or object
+   * Iterate over an array or object
    *   similar to jQuery.each()
+   *   return false will abort the loop
    */
   forEach = function(obj, fn, context) {
+    var i, len, keys, key, type = typeof obj;
     if (arguments.length == 3) {
       fn = fn.bind(context);
     }
     if (Array.isArray(obj)) {
-      return Array.prototype.each.call(obj, fn);
-    } else {
-      return Object.each(obj, fn);
-    }
-  };
-
-  Object.each = function(obj, fn) {
-    var keys = Object.keys(obj), len = keys.length;
-    for (var i = 0; i < len; i++) {
-      var n = keys[i];
-      if (fn.call(obj, n, obj[n], i) === false) break;
+      len = obj.length;
+      for (i = 0; i < len; i++) {
+        if (fn.call(obj, i, obj[i], i) === false) break;
+      }
+    } else
+    if (type == 'object' || type == 'function') {
+      keys = Object.keys(obj);
+      len = keys.length;
+      for (i = 0; i < len; i++) {
+        key = keys[i];
+        if (fn.call(obj, key, obj[key], i) === false) break;
+      }
     }
     return obj;
   };
 
   Object.exists = function(obj, key) {
-    return Object.prototype.hasOwnProperty.call(obj, key);
+    return hasOwnProperty.call(obj, key);
   };
 
   Object.isPrimitive = function(obj) {
-    return !(obj === Object(obj));
+    return (obj !== Object(obj));
   };
 
   Object.remove = function(obj, key) {
@@ -68,16 +74,7 @@ var forEach, vartype, isPrimitive, toArray;
       return list.exists(Object.vartype(obj));
     }
     var type = (obj === null) ? 'null' : typeof obj;
-    return (type == 'object') ? Object.prototype.toString.call(obj).slice(8, -1).toLowerCase() : type;
-  };
-
-  //similar to forEach but it can be aborted by returning false and the argument order is reversed
-  Array.prototype.each = function(fn) {
-    var arr = this, len = arr.length;
-    for (var i = 0; i < len; i++) {
-      if (fn.call(arr, i, arr[i]) === false) break;
-    }
-    return arr;
+    return (type == 'object') ? toString.call(obj).slice(8, -1).toLowerCase() : type;
   };
 
   Array.prototype.exists = function(el) {
@@ -113,7 +110,7 @@ var forEach, vartype, isPrimitive, toArray;
   String.prototype.replaceAll = function(a, b) {
     if (arguments.length == 1) {
       var self = this;
-      Object.each(a, function() {
+      forEach(a, function() {
         self = String.prototype.replaceAll.apply(self, arguments);
       });
       return self;

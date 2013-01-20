@@ -209,7 +209,7 @@ define('session', function(require, exports, module) {
         opts = opts.split(' ');
       }
       if (vartype(opts, 'array')) {
-        opts.each(function(i, opt) {
+        opts.forEach(function(opt) {
           var m = opt.match(/^([\w-]+)(?:[:=](\S+))?$/);
           if (m && m[2]) {
             options[m[1]] = m[2];

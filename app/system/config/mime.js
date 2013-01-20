@@ -5,6 +5,10 @@
  * sources:
  *  http://reference.sitepoint.com/html/mime-types
  *  http://www.mailbigfile.com/101-most-popular-file-types/
+ *
+ * In the case of reverse (mime -> extension) the last file extension should be used. To make
+ * this work, a couple of these are out of alphabetical order.
+ *
  */
 /*global app */
 app.cfg({
@@ -15,11 +19,10 @@ app.cfg({
     'ai': 'application/postscript',
     'aif': 'audio/x-aiff',
     'aiff': 'audio/x-aiff',
-    'asf': 'video/x-ms-asf',
     'asx': 'video/x-ms-asf',
+    'asf': 'video/x-ms-asf',
     'au': 'audio/basic',
     'avi': 'video/x-msvideo',
-    'bat': 'application/x-msdownload',
     'bin': 'application/octet-stream',
     'bmp': 'image/bmp',
     'bz2': 'application/x-bzip2',
@@ -27,7 +30,6 @@ app.cfg({
     'cbr': 'application/x-cbr',
     'chm': 'application/vnd.ms-htmlhelp',
     'css': 'text/css',
-    'dll': 'application/x-msdownload',
     'dmg': 'application/x-apple-diskimage',
     'doc': 'application/msword',
     'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -37,7 +39,6 @@ app.cfg({
     'eml': 'message/rfc822',
     'eot': 'application/vnd.ms-fontobject',
     'eps': 'application/postscript',
-    'exe': 'application/x-msdownload',
     'flv': 'video/x-flv',
     'gif': 'image/gif',
     'hqx': 'application/mac-binhex40',
@@ -59,12 +60,10 @@ app.cfg({
     'mid': 'audio/midi',
     'midi': 'audio/midi',
     'mov': 'video/quicktime',
-    'mp2': 'audio/mpeg',
     'mp3': 'audio/mpeg',
     'mp4': 'video/mp4',
     'mpeg': 'video/mpeg',
     'mpg': 'video/mpeg',
-    'msi': 'application/x-msdownload',
     'ogg': 'audio/ogg',
     'otf': 'application/x-font-otf',
     'pdf': 'application/pdf',
@@ -77,7 +76,6 @@ app.cfg({
     'ps': 'application/postscript',
     'psd': 'image/vnd.adobe.photoshop',
     'pub': 'application/x-mspublisher',
-    'qt': 'video/quicktime',
     'qxd': 'application/vnd.quark.quarkxpress',
     'ra': 'audio/x-pn-realaudio',
     'ram': 'audio/x-pn-realaudio',
@@ -93,14 +91,13 @@ app.cfg({
     'svg': 'image/svg+xml',
     'swf': 'application/x-shockwave-flash',
     'tar': 'application/x-tar',
-    'tif': 'image/tiff',
     'tiff': 'image/tiff',
+    'tif': 'image/tiff',
     'torrent': 'application/x-bittorrent',
     'tsv': 'text/tab-separated-values',
     'ttf': 'application/x-font-ttf',
     'txt': 'text/plain',
     'vcd': 'application/x-cdlink',
-    'vob': 'video/x-ms-vob',
     'wav': 'audio/x-wav',
     'wma': 'audio/x-ms-wma',
     'wmv': 'video/x-ms-wmv',

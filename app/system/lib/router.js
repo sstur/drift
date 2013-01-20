@@ -39,7 +39,7 @@ define('router', function(require, exports, module) {
       stopRouting = true;
     };
     this.emit('pre-route', routeData);
-    this._routes.each(function(i, item) {
+    forEach(this._routes, function(i, item) {
       if (item.method && item.method != method) {
         return true; //Continue
       }

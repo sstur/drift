@@ -116,13 +116,13 @@ define('util', function(require, util) {
       safe = safe.split(ch).join(map[ch]);
     });
     //control characters
-    safe = safe.replace(/[\x00-\x1F]/g, ch);
+    safe = safe.replace(/[\x00-\x1F]+/g, ch);
     //these are generally unsafe at the OS level
-    safe = safe.replace(/[\\\/:*?<>|&]/g, ch);
+    safe = safe.replace(/[\\\/:*?<>|&]+/g, ch);
     //these have special meaning in Content-Disposition header
-    safe = safe.replace(/[%",]/g, ch);
+    safe = safe.replace(/[%",]+/g, ch);
     //non-ascii / extended characters
-    safe = safe.replace(/[\u007E-\uFFFF]/g, ch);
+    safe = safe.replace(/[\u007E-\uFFFF]+/g, ch);
     if (ch) {
       //replace duplicate separators
       while (~safe.indexOf(ch + ch)) {
@@ -206,11 +206,11 @@ define('util', function(require, util) {
     if (typeof val == 'string') {
       var date = val.match(REG_ISODATE);
       if (date) {
-        val = new Date(val) || new Date(Date.UTC(+date[1], +date[2] - 1, +date[3], +date[4], +date[5], +date[6]));
-      }
+        return new Date(val) || new Date(Date.UTC(+date[1], +date[2] - 1, +date[3], +date[4], +date[5], +date[6]));
+      } else
       if (val.slice(0, 8) == '<Buffer ' && val.slice(-1) == '>') {
         return new Buffer(val.slice(8, -1), 'hex');
-      }
+      } else
       if (REG_CONSTR.test(val)) {
         return new Function('return ' + val)();
       }

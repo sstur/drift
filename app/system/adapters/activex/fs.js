@@ -4,8 +4,40 @@ define('fs', function(require, fs) {
 
   var util = require('util');
   var Buffer = require('buffer').Buffer;
+  var pathLib = require('path');
 
   var FSO = new ActiveXObject('Scripting.FileSystemObject');
+
+  fs.moveFile = function(file, dest) {
+    FSO.moveFile(app.mappath(file), app.mappath(dest));
+  };
+
+  fs.copyFile = function(f, d) {
+    FSO.copyFile(app.mappath(f), app.mappath(d));
+  };
+
+  fs.deleteFile = function(f) {
+    FSO.deleteFile(app.mappath(f), true);
+  };
+
+  fs.createDir = function(path) {
+    path = pathLib.normalize(path);
+    try {
+      var folder = FSO.getFolder(app.mappath(pathLib.dirname(path)));
+      folder.subFolders.add(pathLib.basename(path));
+    } catch(e) {
+      throw new Error('Error Creating Directory: ' + path);
+    }
+  };
+
+  fs.removeDir = function(path) {
+    path = pathLib.normalize(path);
+    try {
+      FSO.deleteFolder(path, true);
+    } catch(e) {
+      throw new Error('Error Removing Directory: ' + path);
+    }
+  };
 
   function FileReadStream(file, opts) {
     this.file = file;
@@ -130,7 +162,7 @@ define('fs', function(require, fs) {
   fs.writeTextToFile = function(file, text, opts) {
     opts = opts || {};
     //default is to append
-    opts.append = (opts.append !== false);
+    opts.append = (opts.append !== false || opts.overwrite === true);
     var stream = new FileWriteStream(file, opts);
     stream.write(text);
     stream.end();

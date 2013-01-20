@@ -197,7 +197,7 @@ define('body-parser', function(require, exports, module) {
     this.size = 0;
     util.extend(this, file);
     if (opts.autoSavePath) {
-      var path = this.path = join(opts.autoSavePath, this.guid);
+      var path = this.fullpath = join(opts.autoSavePath, this.guid);
       var writeStream = fs.createWriteStream(path);
       this.on('data', function(data) {
         writeStream.write(data);

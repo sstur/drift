@@ -2,6 +2,9 @@ var app, define;
 (function() {
   "use strict";
 
+  var join = Array.prototype.join;
+  var slice = Array.prototype.slice;
+
   app = function() {
     //allow to be used as a function
     if (typeof app.fn == 'function') {
@@ -94,7 +97,7 @@ var app, define;
       list.push(fn);
     },
     emit: function(name) {
-      var args = Array.prototype.slice.call(arguments, 1);
+      var args = slice.call(arguments, 1);
       var events = this._events || {}, list = events[name] || [];
       for (var i = 0; i < list.length; i++) {
         list[i].apply(this, args);
@@ -137,7 +140,7 @@ var app, define;
    */
   var config = app._cfg = {};
   app.cfg = function() {
-    var args = Array.prototype.slice.call(arguments);
+    var args = slice.call(arguments);
     if (args.length == 1 && typeof args[0] == 'string') {
       //get config
       return getCfg(args[0].split('/'));
@@ -278,7 +281,7 @@ var app, define;
   }
 
   function joinPath() {
-    var resolved = '/' + Array.prototype.join.call(arguments, '/') + '/';
+    var resolved = '/' + join.call(arguments, '/') + '/';
     resolved = resolved.replace(/\/+/g, '/');
     while(~resolved.indexOf('/./')) {
       resolved = resolved.replace(/\/\.\//g, '/');

@@ -179,16 +179,14 @@ define('response', function(require, exports, module) {
     },
     end: function() {
       var args = toArray(arguments);
-      if (args.length) {
-        if (args.length > 1 && RE_STATUS.test(args[0])) {
-          this.status(args.shift());
-        }
-        if (args.length > 1 && RE_CTYPE.test(args[0])) {
-          this.contentType(args.shift());
-        }
-        for (var i = 0; i < args.length; i++) {
-          this.write(args[i]);
-        }
+      if (args.length > 1 && RE_STATUS.test(args[0])) {
+        this.status(args.shift());
+      }
+      if (args.length > 1 && RE_CTYPE.test(args[0])) {
+        this.contentType(args.shift());
+      }
+      for (var i = 0; i < args.length; i++) {
+        this.write(args[i]);
       }
       this._writeHead();
       //write the buffered response
@@ -210,7 +208,7 @@ define('response', function(require, exports, module) {
       this.end();
     },
     sendFile: function(opts) {
-      if (Object.isPrimitive(opts)) {
+      if (isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
       //todo: stat the file for content-length and throw if not exists

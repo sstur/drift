@@ -163,8 +163,8 @@ adapter.define('body-parser', function(require, exports, module) {
       }
       var file = self.parsed[key] = new File();
       file.guid = guid;
-      file.name = name;
-      file.fileName = _file.name;
+      file.name = name; //field name
+      file.fileName = _file.name; //original file name as uploaded
       file.contentType = _file.type;
       file.size = 0;
       file.md5 = null;

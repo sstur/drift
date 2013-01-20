@@ -24,8 +24,7 @@ define('path', function(require, exports) {
   };
 
   /*
-   * Join one or more paths using forward-slash
-   * path.join('assets/', 'scripts', 'file.js')
+   * Normalize a path removing '../', '//', etc
    */
   exports.normalize = function(path) {
     path = path.replace(RE_SLASHES, '/');
