@@ -45,6 +45,7 @@ define('router', function(require, exports, module) {
       }
       if (typeof item.route == 'string') {
         if (url == item.route) {
+          router.emit('match-route', routeData, {});
           item.handler(routeData, routeArgs);
         }
       } else {

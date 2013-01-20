@@ -218,7 +218,6 @@ var app, define;
     util.propagateEvents(router, req, 'pre-route match-route no-route');
     //so routes an access `this.params` with combined request params
     req.on('match-route', function(routeData, params) {
-      //todo: parse body params?
       routeData.params = util.extend({}, req.query(), params);
     });
     //todo: move to request lib?
