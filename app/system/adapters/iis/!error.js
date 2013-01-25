@@ -1,12 +1,17 @@
-(function(req, res, server, offsets, map) {
+(function(req, res, server, offsets, map, config) {
   "use strict";
 
   var err = getErrDetails();
+  var date = new Date();
+
   adjustError(err);
+  if (config.emailErrors && !getItem('Host').match(/\blocal\b/)) {
+    emailError(err, config.emailErrors);
+  }
   if (isAjax()) {
-    displayErrorJSON(err);
+    sendErrorJSON(err);
   } else {
-    displayError(err);
+    sendError(err);
   }
 
   function adjustError(err) {
@@ -60,43 +65,66 @@
     return val || '';
   }
 
-  function displayError(err) {
-    var out = [
+  function emailError(err, opts) {
+    var errorText = renderError(err);
+    opts.textBody = errorText;
+    opts.htmlBody = '<pre>' + errorText.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</pre>';
+    sendEmail(opts);
+  }
+
+  function sendError(err) {
+    res.clear();
+    res.contentType = 'text/plain';
+    res.write(renderError(err));
+    res.end();
+  }
+
+  function sendErrorJSON(err) {
+    var errorJSON = renderErrorJSON(err);
+    var callback = JSONP();
+    if (callback) errorJSON = callback + '(' + errorJSON + ')';
+    res.clear();
+    //JSONP requests must always send status 200
+    res.status = callback ? '200 Server Error' : '500 Server Error';
+    res.contentType = 'text/plain';
+    res.write(errorJSON);
+    res.end();
+  }
+
+  function renderError(err) {
+    return [
       '500 Server Error',
-      'Date/Time: ' + new Date().toUTCString().slice(5, -3) + 'UTC',
+      'Date/Time: ' + date.toUTCString().slice(5, -3) + 'UTC',
       'Requested Resource: ' + err.path,
+      'Referer: ' + err.referer,
+      'User Agent: ' + err.userAgent,
       'File: ' + err.file,
       'Line: ' + err.line,
       'Index: ' + err.originalLine,
-      'Message:\r\n' + err.message,
+      'Message:',
+      err.message,
       ''
     ].join('\r\n');
-    res.clear();
-    res.contentType = 'text/plain';
-    res.write(out);
-    res.end();
   }
 
-  function displayErrorJSON(err) {
-    var out = [
-      '{"_status": "500"',
+  function renderErrorJSON(err) {
+    return [
+      '{"http_status": "500"',
+      ',"success": false',
       ',"error": "' + jsEnc(err.message) + '"',
-      ',"details": {"file": "' + jsEnc(err.file) + '", "line": "' + err.line + '"}}',
+      ',"details": {"file": "' + jsEnc(err.file) + '", "line": "' + err.line + '", "index": "' + err.originalLine + '"}}',
       ''
     ].join('\r\n');
-    res.clear();
-    //todo: jsonp should wrap JSON and send 200
-    //res.status = '200 Server Error';
-    res.status = '500 Server Error';
-    res.contentType = 'text/plain';
-    res.write(out);
-    res.end();
+  }
+
+  function JSONP() {
+    return (getItem('query-string').match(/(^|\?|&)(callback)=([a-z_$][\w$]+)(&|$)/) || [])[3];
   }
 
   function isAjax() {
-    //todo: check accepts, x-requested-with, and qs (jsonp/callback)
-    // if (getItem('X-Requested-With').toLowerCase() == 'xmlhttprequest')
-    return false;
+    //todo: check accepts
+    var isXHR = getItem('X-Requested-With').toLowerCase() == 'xmlhttprequest';
+    return JSONP() || isXHR;
   }
 
   function jsEnc(str) {
@@ -110,4 +138,28 @@
     return str;
   }
 
-})(Request, Response, Server, [/*SRCMAP*/]);
+  function sendEmail(opts) {
+    var cdo = new ActiveXObject('CDO.Message')
+      , cfg = cdo.configuration.fields
+      , prefix = 'http://schemas.microsoft.com/cdo/configuration/';
+    cfg.item(prefix + 'sendusing').value = 2;
+    cfg.item(prefix + 'smtpserver').value = opts['smtp/host'] || 'localhost';
+    cfg.item(prefix + 'smtpserverport').value = opts['smtp/port'] || '25';
+    if (opts['smtp/user'] && opts['smtp/pass']) {
+      cfg.item(prefix + 'smtpauthenticate').value = 1;
+      cfg.item(prefix + 'sendusername').value = opts['smtp/user'];
+      cfg.item(prefix + 'sendpassword').value = opts['smtp/pass'];
+    }
+    cfg.update();
+    cdo.to = opts.to;
+    cdo.from = opts.from || 'no-reply@localhost';
+    cdo.subject = opts.subject;
+    if (opts.textBody) cdo.textBody = opts.textBody;
+    if (opts.htmlBody) cdo.htmlBody = opts.htmlBody;
+    try {
+      cdo.send();
+    } catch (e) {
+    }
+  }
+
+})(Request, Response, Server, [/*SRCMAP*/], {/*CONFIG*/});

@@ -2,11 +2,12 @@
 define('util', function(require, util) {
   "use strict";
 
-  var inspector = require('inspector');
-
   var slice = Array.prototype.slice;
 
-  util.inspect = inspector.inspect;
+  util.inspect = function() {
+    var inspector = require('inspector');
+    return inspector.inspect.apply(inspector, arguments);
+  };
 
   util.extend = function() {
     var args = Array.toArray(arguments), dest = args.shift();
@@ -49,14 +50,19 @@ define('util', function(require, util) {
     });
   };
 
+  //0: log all, 1: errors only, 2: warnings, 3: trace
+  var logVerbosity = app.cfg('logging/verbosity');
 
   //log to the filesystem: util.log([logLevel], line1, [line2..], [logfile])
+  //if logLevel is specified, it will log only if logVerbosity is set at least that high
   util.log = function() {
     var fs = require('fs');
-    //todo: logLevel
     var logfile, args = toArray(arguments), logLevel = 1;
-    if (typeof args[0] == 'number' && args[0] > 0 && args[0] == parseInt(args[0], 10)) {
+    if (typeof args[0] == 'number' && args[0] > 0) {
       logLevel = args.shift();
+    }
+    if (logLevel && logVerbosity && logLevel > logVerbosity) {
+      return;
     }
     if (args.length > 1) {
       logfile = args.pop();
@@ -170,54 +176,46 @@ define('util', function(require, util) {
 
 
 
-  //extended JSON.stringify to handle special cases (Error, Date, Buffer)
+  //extend JSON.stringify to special case Error
+  //and always encode extended characters to ascii
   util.stringify = function(obj) {
-    var str = JSON.stringify(obj, replacer);
-    return str.replace(REG_CHARS, encodeChars);
+    return JSON.stringify(obj, replacer).replace(REG_CHARS, encodeChars);
   };
 
-  //extended JSON.parse to handle special cases (Error, Date, Buffer)
-  //  * this is unsafe to use with untrusted JSON as it uses eval!
+  //extend JSON.parse to handle Date, Buffer and Error
   util.parse = function(str) {
     return JSON.parse(str, reviver);
   };
 
-  //we require Buffer *after* defining util methods because Buffer will require util
-  var Buffer = require('buffer').Buffer;
-
   var REG_CHARS = /[^\x20-\x7E]/g;
-  var REG_CONSTR = /^new Error\(.*\)$/;
+  var REG_ERROR = /^new Error\((.*)\)$/;
   var REG_ISODATE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)Z$/;
 
   function replacer(key, val) {
-    //this function runs after .toJSON()
-    if (!val || typeof val != 'object') {
-      return val;
-    }
-    var type = Object.prototype.toString.call(val).slice(8, -1);
-    if (type == 'Error') {
+    //this function runs after .toJSON() so Buffer objects, for instance, are already stringified
+    if (vartype(val) == 'error') {
       return 'new Error(' + JSON.stringify(val.message) + ')';
-    } else {
-      return val;
     }
+    return val;
   }
 
   function reviver(key, val) {
     if (typeof val == 'string') {
-      var date = val.match(REG_ISODATE);
-      if (date) {
+      var date, error;
+      if ((date = val.match(REG_ISODATE))) {
         return new Date(val) || new Date(Date.UTC(+date[1], +date[2] - 1, +date[3], +date[4], +date[5], +date[6]));
       } else
       if (val.slice(0, 8) == '<Buffer ' && val.slice(-1) == '>') {
         return new Buffer(val.slice(8, -1), 'hex');
       } else
-      if (REG_CONSTR.test(val)) {
-        return new Function('return ' + val)();
+      if ((error = val.match(REG_ERROR))) {
+        return new Error(JSON.parse(error[1]));
       }
     }
     return val;
   }
 
+  //encode extended characters escape sequences
   function encodeChars(ch) {
     return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
   }

@@ -4,6 +4,7 @@ var app, define;
 
   var join = Array.prototype.join;
   var slice = Array.prototype.slice;
+  var toString = Object.prototype.toString;
 
   app = function() {
     //allow to be used as a function
@@ -160,9 +161,14 @@ var app, define;
 
   function mergeCfg(data, stack) {
     Object.keys(data).forEach(function(key) {
-      var value = data[key], path = stack.concat(key.split('/'));
-      if (value === Object(value)) {
+      var value = data[key]
+        , type = value ? toString.call(value) : typeof value
+        , path = stack.concat(key.split('/'));
+      if (type == '[object Object]') {
         mergeCfg(value, path);
+      } else
+      if (type == '[object Array]') {
+        setCfg(path, value.slice(0));
       } else {
         setCfg(path, value);
       }

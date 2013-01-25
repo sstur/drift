@@ -14,7 +14,9 @@
 
   //files beginning with these chars are excluded
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
-  var COMMENT_OR_STRING = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|\/(\\.|[^\/])+\/|\/\/(.*)/gm;
+  //this one is untested but should be more thorough with regex literals
+  //var COMMENT_OR_LITERAL = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|\/(\\[^\x00-\x1f]|\[(\\[^\x00-\x1f]|[^\x00-\x1f\\\/])*\]|[^\x00-\x1f\\\/\[])+\/|\/\/(.*)/gm;
+  var COMMENT_OR_LITERAL = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|\/(\\.|[^\/])+\/|\/\/(.*)/gm;
   var STRINGS = {"'": 1, '"': 1};
   var COMMENTS = {'//': 1, '/*': 1};
 
@@ -137,10 +139,12 @@
     } else {
       //for iis the error handling goes in a separate file
       var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/!error.js'), 'utf8');
+      errhandler = errhandler.replace('[/*SRCMAP*/]', JSON.stringify(lineOffsets) + ', ' + JSON.stringify(sourceFiles));
+      errhandler = errhandler.replace('{/*CONFIG*/}', JSON.stringify({emailErrors: config.emailErrors}));
       var errfile = [
         '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
         '<script runat="server" language="javascript">',
-        errhandler.replace('[/*SRCMAP*/]', JSON.stringify(lineOffsets) + ', ' + JSON.stringify(sourceFiles)),
+        errhandler,
         '<\/script>'
       ];
       fs.writeFileSync(join(basePath, 'build/err.asp'), errfile.join('\r\n'), 'utf8');
@@ -200,8 +204,7 @@
   function readView(path, views) {
     var fullpath = join(basePath, path);
     if (!opts.q) console.log('read view', path);
-    var filedata = fs.readFileSync(fullpath, 'utf8');
-    views[path] = filedata;
+    views[path] = fs.readFileSync(fullpath, 'utf8');
   }
 
   function readViews(dir, views) {
@@ -240,7 +243,7 @@
 
   function cleanSource(lines) {
     var code = lines.join('\n');
-    code = code.replace(COMMENT_OR_STRING, function(str) {
+    code = code.replace(COMMENT_OR_LITERAL, function(str) {
       if (str.slice(0, 2) in COMMENTS) {
         //comments: remove, replacing with newlines
         var lines = str.split('\n').length;

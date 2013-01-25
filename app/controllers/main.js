@@ -53,7 +53,6 @@ app.on('ready', function(require) {
   //    maxRedirects: 4,
   //    headers: {'Authorization': 'Basic dXI6djBc3N0uMWIw'}
   //  });
-  //  res.clear();
   //  res.write(response.status + '\r\n');
   //  res.write(util.inspect(response.headers, false, 4) + '\r\n\r\n');
   //  res.write(response.body.toString('utf8'));
@@ -66,7 +65,6 @@ app.on('ready', function(require) {
   //    url: 'http://' + host + '/dump',
   //    headers: {'Authorization': 'Basic dXI6djBc3N0uMWIw'}
   //  });
-  //  res.clear();
   //  res.write(response.status + '\r\n');
   //  res.write(util.inspect(response.headers, false, 4) + '\r\n\r\n');
   //  res.write(response.body.toString('utf8'));
