@@ -99,7 +99,7 @@
         }
 
       };
-      if(target.prototype) {
+      if (target.prototype) {
         bound.prototype = Object.create(target.prototype);
       }
       // XXX bound.length is never writable, so don't even try
@@ -833,28 +833,12 @@
   //
 
 
-  // ES5 15.5.4.14
-  // http://es5.github.com/#x15.5.4.14
-  // [bugfix, chrome]
-  // If separator is undefined, then the result array contains just one String,
-  // which is the this value (converted to a String). If limit is not undefined,
-  // then the output array is truncated so that it contains no more than limit
-  // elements.
-  // "0".split(undefined, 0) -> []
-  if("0".split(void 0, 0).length) {
-    var string_split = String.prototype.split;
-    String.prototype.split = function(separator, limit) {
-      if(separator === void 0 && limit === 0)return [];
-      return string_split.apply(this, arguments);
-    }
-  }
-
   // ECMA-262, 3rd B.2.3
   // Note an ECMAScript standart, although ECMAScript 3rd Edition has a
   // non-normative section suggesting uniform semantics and it should be
   // normalized across all browsers
   // [bugfix, IE lt 9] IE < 9 substr() with negative value not working in IE
-  if("".substr && "0b".substr(-1) !== "b") {
+  if ("".substr && "0b".substr(-1) !== "b") {
     var string_substr = String.prototype.substr;
     /**
      *  Get the substring of a string

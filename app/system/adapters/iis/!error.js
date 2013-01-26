@@ -15,6 +15,7 @@
   }
 
   function adjustError(err) {
+    if (err.file != '/build/app.asp') return;
     if (!map || !map.length) return;
     var line = err.originalLine = err.line, offset = 0;
     for (var i = 0; i < line; i++) {
@@ -100,7 +101,7 @@
       'User Agent: ' + err.userAgent,
       'File: ' + err.file,
       'Line: ' + err.line,
-      'Index: ' + err.originalLine,
+      'Index: ' + (err.originalLine || 0),
       'Message:',
       err.message,
       ''
@@ -139,25 +140,25 @@
   }
 
   function sendEmail(opts) {
-    var cdo = new ActiveXObject('CDO.Message')
-      , cfg = cdo.configuration.fields
+    var mail = new ActiveXObject('CDO.Message')
+      , fields = mail.configuration.fields
       , prefix = 'http://schemas.microsoft.com/cdo/configuration/';
-    cfg.item(prefix + 'sendusing').value = 2;
-    cfg.item(prefix + 'smtpserver').value = opts['smtp/host'] || 'localhost';
-    cfg.item(prefix + 'smtpserverport').value = opts['smtp/port'] || '25';
+    fields.item(prefix + 'sendusing').value = 2;
+    fields.item(prefix + 'smtpserver').value = opts['smtp/host'] || 'localhost';
+    fields.item(prefix + 'smtpserverport').value = opts['smtp/port'] || '25';
     if (opts['smtp/user'] && opts['smtp/pass']) {
-      cfg.item(prefix + 'smtpauthenticate').value = 1;
-      cfg.item(prefix + 'sendusername').value = opts['smtp/user'];
-      cfg.item(prefix + 'sendpassword').value = opts['smtp/pass'];
+      fields.item(prefix + 'smtpauthenticate').value = 1;
+      fields.item(prefix + 'sendusername').value = opts['smtp/user'];
+      fields.item(prefix + 'sendpassword').value = opts['smtp/pass'];
     }
-    cfg.update();
-    cdo.to = opts.to;
-    cdo.from = opts.from || 'no-reply@localhost';
-    cdo.subject = opts.subject;
-    if (opts.textBody) cdo.textBody = opts.textBody;
-    if (opts.htmlBody) cdo.htmlBody = opts.htmlBody;
+    fields.update();
+    mail.to = opts.to;
+    mail.from = opts.from || 'no-reply@localhost';
+    mail.subject = opts.subject;
+    if (opts.textBody) mail.textBody = opts.textBody;
+    if (opts.htmlBody) mail.htmlBody = opts.htmlBody;
     try {
-      cdo.send();
+      mail.send();
     } catch (e) {
     }
   }

@@ -1,5 +1,6 @@
-var JSON;
-
+//when compiled this is in a closure, so implicit declaration
+// produces a global which can be used inside eval
+/*@remove{*/var JSON;/*}@*/
 (function() {
 
   JSON = {};
