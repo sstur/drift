@@ -125,7 +125,12 @@ define('fs', function(require, fs) {
     opts = this.opts = opts || {};
     opts.encoding = opts.encoding || 'utf8';
     var mode = (opts.append) ? 8 : 2;
-    this._stream = FSO.openTextFile(app.mappath(file), mode, -1, 0);
+    try {
+      this._stream = FSO.openTextFile(app.mappath(file), mode, -1, 0);
+    } catch(e) {
+      //todo: e.message.match(/Permission denied/)
+      throw new Error('Unable to open file: ' + file + '\n' + e.message);
+    }
   }
 
   util.extend(FileWriteStream.prototype, {
