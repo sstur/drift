@@ -36,6 +36,7 @@ var console, Buffer, _require = function(path) { return require(path); };
     return '';
   };
 
+  app.emit('init', require);
   app.emit('ready', require);
 
   try {

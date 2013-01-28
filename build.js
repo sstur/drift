@@ -57,6 +57,8 @@
       //load framework modules
       'app/system/lib',
       'app/helpers',
+      'app/init',
+      'app/lib',
       'app/controllers',
       //load init (fires app.ready)
       'app/system/adapters/v8cgi.js'
@@ -90,6 +92,8 @@
       //load framework modules
       'app/system/lib',
       'app/helpers',
+      'app/init',
+      'app/lib',
       'app/controllers',
       //load adapter specific modules
       'app/system/adapters/iis',
@@ -187,7 +191,14 @@
 
   function loadPath(dir) {
     var path = join(basePath, dir);
-    var items = fs.readdirSync(path);
+    try {
+      var items = fs.readdirSync(path);
+    } catch(e) {
+      if (e.code == 'ENOENT') {
+        return console.log('Not Found: ' + dir);
+      }
+      throw e;
+    }
     items.forEach(function(item) {
       if (item.charAt(0) in EXCLUDE) return;
       var fullpath = join(path, item)

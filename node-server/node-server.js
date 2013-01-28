@@ -55,6 +55,7 @@
   loadPathSync('app/controllers');
 
   //all modules loaded
+  app.emit('init', app.require);
   app.emit('ready', app.require);
 
   //this function only runs within a fiber
