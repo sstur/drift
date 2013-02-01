@@ -68,8 +68,8 @@ define('util', function(require, util) {
       logfile = args.pop();
     }
     if (!logfile) logfile = 'default';
-    var data = args
-      , path = 'data/logs/' + logfile.replace(/\.log$/i, '') + '.log';
+    var data = args;
+    var path = 'data/logs/' + logfile.replace(/\.log$/i, '') + '.log';
     data.forEach(function(line, i) {
       data[i] = (isPrimitive(line)) ? String(line) : util.stringify(line);
     });

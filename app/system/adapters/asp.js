@@ -21,7 +21,7 @@ var console, Buffer;
   var Response = require('adapter-response');
 
   //filesystem path including trailing slash
-  var basePath = iis.svr.mappath('/') + '\\';
+  var basePath = iis.server.mappath('/') + '\\';
 
   app.mappath = function(path) {
     var fullpath = basePath;
@@ -43,6 +43,7 @@ var console, Buffer;
     }
   };
 
+  app.emit('init', require);
   app.emit('ready', require);
 
   app.route(new Request(), new Response());

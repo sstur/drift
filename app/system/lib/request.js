@@ -26,6 +26,7 @@ define('request', function(require, exports, module) {
     method: function(s) {
       if (!this._method) {
         //method override (for JSONP and platforms that don't support PUT/DELETE)
+        //todo: this query param (_method) should be specified/disabled in config
         var override = (this.headers('X-HTTP-Method-Override') || this.query('_method')).toUpperCase();
         this._method = (override in HTTP_METHODS) ? override : this._super.getMethod();
       }

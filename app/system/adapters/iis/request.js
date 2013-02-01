@@ -57,6 +57,12 @@ define('adapter-request', function(require, exports, module) {
         autoSavePath: app.cfg('auto_save_uploads')
       };
       var parser = new BodyParser(this.getHeaders(), this._read.bind(this), opts);
+      var scriptTimeout;
+      parser.on('file', function() {
+        if (!scriptTimeout) {
+          scriptTimeout = iis.server.scriptTimeout = app.cfg('upload_timeout') || 3600;
+        }
+      });
       util.propagateEvents(parser, emitter, 'file upload-progress');
       return parser.parse();
     }

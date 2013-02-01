@@ -101,7 +101,7 @@
       'app/system/adapters/asp.js'
     ];
     opts._foot = [
-      '})({platform: "iis asp"}, {req: Request, res: Response, svr: Server, app: Application})'
+      '})({platform: "iis asp"}, {req: Request, res: Response, app: Application, server: Server})'
     ];
     opts._end = [
       '</script>'

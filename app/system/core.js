@@ -110,6 +110,7 @@ var app, define;
   app.eventify = function(obj) {
     obj.on = emitter.on;
     obj.emit = emitter.emit;
+    return obj;
   };
 
 

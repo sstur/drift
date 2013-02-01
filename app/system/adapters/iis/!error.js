@@ -35,17 +35,20 @@
 
   function getErrDetails() {
     var details = server.getLastError();
-    var err = {};
-    err.path = getURL();
-    err.file = details.file;
-    err.type = details.category.replace(/(\w+ )?(\w+)Script/i, 'Script');
-    err.line = details.line;
-    err.message = details.description;
-    err.code = details.number>>16 & 0x1FFF;
-    err.number = details.number & 0xFFFF;
-    err.referer = getItem('HTTP-Referer');
-    err.userAgent = getItem('HTTP-User-Agent');
-    return err;
+    var file = details.file.toLowerCase().replace(/\\/g, '/');
+    var path = server.mapPath('/').toLowerCase().replace(/\\/g, '/') + '/';
+    while (file.match(/[^\/]+\/\.\.\//)) file = file.replace(/[^\/]+\/\.\.\//, '');
+    return {
+      path: getURL(),
+      file: (file.indexOf(path) === 0) ? file.slice(path.length) : file,
+      type: details.category.replace(/(\w+ )?(\w+)Script/i, 'Script'),
+      line: details.line,
+      message: details.description,
+      code: details.number>>16 & 0x1FFF,
+      number: details.number & 0xFFFF,
+      referer: getItem('HTTP-Referer'),
+      userAgent: getItem('HTTP-User-Agent')
+    };
   }
 
   function getURL() {
