@@ -90,7 +90,7 @@
     res.clear();
     //JSONP requests must always send status 200
     res.status = callback ? '200 Server Error' : '500 Server Error';
-    res.contentType = 'text/plain';
+    res.contentType = isXHR() ? 'application/json' : 'text/plain';
     res.write(errorJSON);
     res.end();
   }
@@ -114,8 +114,7 @@
   function renderErrorJSON(err) {
     return [
       '{"http_status": "500"',
-      ',"success": false',
-      ',"error": "' + jsEnc(err.message) + '"',
+      ',"error": "' + jsEnc(err.message || '') + '"',
       ',"details": {"file": "' + jsEnc(err.file) + '", "line": "' + err.line + '", "index": "' + err.originalLine + '"}}',
       ''
     ].join('\r\n');
@@ -125,10 +124,13 @@
     return (getItem('query-string').match(/(^|\?|&)(callback)=([a-z_$][\w$]+)(&|$)/) || [])[3];
   }
 
+  function isXHR() {
+    return (getItem('X-Requested-With').toLowerCase() == 'xmlhttprequest');
+  }
+
   function isAjax() {
     //todo: check accepts
-    var isXHR = getItem('X-Requested-With').toLowerCase() == 'xmlhttprequest';
-    return JSONP() || isXHR;
+    return JSONP() || isXHR();
   }
 
   function jsEnc(str) {

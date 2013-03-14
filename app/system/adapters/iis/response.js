@@ -5,7 +5,7 @@ define('adapter-response', function(require, exports, module) {
   var util = require('util');
   var Buffer = require('buffer').Buffer;
 
-  var CHARSET = /\bcharset=([\w-]+)/i;
+  var CHARSET = /;\s*charset=([\w-]+)/i;
 
   function Response() {
     this._super = iis.res;
@@ -15,9 +15,13 @@ define('adapter-response', function(require, exports, module) {
     writeHead: function(statusCode, statusReason, headers) {
       var _super = this._super;
       _super.status = statusCode + ' ' + statusReason;
-      var charset = CHARSET.exec(headers['Content-Type']);
-      if (charset) {
-        _super.charset = charset[1];
+      var contentType = headers['Content-Type'];
+      if (contentType) {
+        contentType = contentType.replace(CHARSET, function(_, charset) {
+          _super.charset = charset;
+          return '';
+        });
+        headers['Content-Type'] = contentType;
       }
       forEach(headers, function(n, val) {
         val = (val == null) ? '' : String(val);

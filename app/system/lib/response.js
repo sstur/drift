@@ -70,10 +70,8 @@ define('response', function(require, exports, module) {
         if (status.match(RE_STATUS) && (status.slice(0, 3) in statusCodes)) {
           this.response.status = status;
         }
-        return this.response.status;
-      } else {
-        return this.response.status;
       }
+      return this.response.status;
     },
     charset: function(charset) {
       if (arguments.length) {
@@ -84,8 +82,16 @@ define('response', function(require, exports, module) {
     },
     headers: function(n, val) {
       var headers = this.response.headers;
+      //return headers
       if (arguments.length == 0) {
         return headers;
+      }
+      //set headers from name/value pairs
+      if (n && typeof n == 'object') {
+        var res = this;
+        forEach(n, function(n, val) {
+          res.headers(n, val);
+        });
       }
       n = (n == null) ? '' : String(n);
       var key = httpResHeaders[n.toLowerCase()] || n;
@@ -120,10 +126,10 @@ define('response', function(require, exports, module) {
     //these use the functions above to manipulate the response buffer
     contentType: function(type) {
       //hack to override application/json -> text/plain
-      //if (type == 'application/json' && !this.req.isAjax()) {
-      if (type == 'application/json' && !RE_ACCEPT_JSON.test(this.req.headers('accept'))) {
-        type = 'text/plain'
-      }
+      //if (type == 'application/json' && !this.req.isAjax()) {}
+      //if (type == 'application/json' && !RE_ACCEPT_JSON.test(this.req.headers('accept'))) {
+      //  type = 'text/plain'
+      //}
       this.headers('Content-Type', type);
     },
     cookies: function(n, val) {

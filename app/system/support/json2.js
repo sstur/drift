@@ -325,7 +325,7 @@
 
       // If the text is not JSON parseable, then a SyntaxError is thrown.
 
-      throw new Error('JSON.parse');
+      throw new Error('Cannot Parse JSON: ' + text);
     };
   }
 

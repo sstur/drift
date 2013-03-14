@@ -2,8 +2,12 @@
 define('views', function(require, exports) {
   "use strict";
   var fs = require('fs');
-  //todo: separate vewCache from comiledViews
-  var viewCache = global.viewCache || {};
+
+  //todo: change global.viewCache to cachedFiles ?
+  var fileCache = global.viewCache || {};
+  var compiledViews;
+
+  var filters = exports.filters = {};
 
   var tmplEngineName = app.cfg('template/engine') || 'tmpl';
   var tmplEngine;
@@ -13,48 +17,68 @@ define('views', function(require, exports) {
   } catch(e) {
     throw new Error('Template engine "' + tmplEngineName + '" could not be loaded');
   }
+
+  tmplEngine.readTemplateFile = getTemplateText;
   var canCompile = (typeof tmplEngine.compile == 'function');
 
-  function loadTemplate(name) {
-    var tmpl;
+  function getTemplateText(name) {
+    var file = (~name.indexOf('.')) ? name : name + '.html';
+    file = 'views/' + file;
+    if (file in fileCache) {
+      return fileCache[file];
+    }
+    return fileCache[file] = fs.readTextFile(file, 'utf8');
+  }
+
+  function getCompiledTemplate(name) {
+    compiledViews = compiledViews || tmplEngine.compiled || {};
+    var file = (name.match(/\.js$/)) ? name : name + '.html.js';
+    file = 'views/' + file;
+    if (file in compiledViews) {
+      return compiledViews[file];
+    }
     try {
-      tmpl = fs.readTextFile('views/' + name + '.js', 'utf8');
+      var source = fs.readTextFile(file, 'utf8');
+      var compiled = new Function('require', 'return (' + source + ')')(require);
     } catch(e) {
-      if (e.code != 'ENOENT') {
-        throw e;
-      }
-      return fs.readTextFile('views/' + name + '.html', 'utf8');
+      if (e.code !== 'ENOENT') throw e;
     }
-    return new Function('return (' + tmpl + ')')();
+    //if (typeof compiled == 'function') {
+    //  //allows template engine to revive from serialized form
+    //  compiled = compiled(tmplEngine);
+    //}
+    if (!source) {
+      var text = getTemplateText(name);
+      compiled = tmplEngine.compile(text);
+    }
+    //compiled should now have a .render() method
+    return compiledViews[file] = compiled;
   }
 
-  function getRenderer(name) {
-    var tmpl = viewCache[name];
-    if (!tmpl) {
-      tmpl = loadTemplate(name);
-    }
-    if (typeof tmpl.render == 'function') {
-      return tmpl;
-    }
-    if (typeof tmpl == 'function') {
-      //revive template object
-      return (viewCache[name] = tmpl(tmplEngine));
-    }
-    tmpl = String(tmpl);
-    //todo: preprocess(tmpl) [resolve blocks and includes]
+  exports.addFilter = function(name, filter) {
+    filters[name] = filter;
+  };
+
+  exports.addFilters = function(filters) {
+    forEach(filters, function(name, filter) {
+      exports.addFilter(name, filter);
+    });
+  };
+
+  exports.render = function(name, context, opts) {
+    context = context || {};
+    opts = opts || {};
     if (canCompile) {
-      return (viewCache[name] = tmplEngine.compile(tmpl));
+      var tmpl = getCompiledTemplate(name);
+      var rendered = tmpl.render(context, {filters: filters});
+    } else {
+      var text = getTemplateText(name);
+      rendered = tmplEngine.render(text, context, {filters: filters});
     }
-    return {
-      render: function(context) {
-        tmplEngine.render(tmpl, context);
-      }
+    if (opts.trim !== false) {
+      rendered = rendered.trim();
     }
-  }
-
-  exports.render = function(name, context) {
-    var tmpl = getRenderer(name);
-    return tmpl.render(context);
+    return rendered;
   };
 
 });

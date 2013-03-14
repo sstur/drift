@@ -81,7 +81,7 @@ define('request', function(require, exports, module) {
     },
     isAjax: function() {
       //todo: check accepts, x-requested-with, and qs (jsonp/callback)
-      return (this.headers('x-requested-with').toLowerCase() == 'xmlhttprequest');
+      return (this.headers('X-Requested-With').toLowerCase() == 'xmlhttprequest');
     }
   });
 
