@@ -22,7 +22,7 @@ of request routing, view templating and data modelling with a normalized API for
 
 Because of the inconsistencies in web platforms, we have to roll our own module loader and abstraction layers for
 request/response, filesystem, etc. We try to closely follow the way Node, CommonJS and other popular frameworks do
-things. This creates a familiar API that should seem intuitive.
+things. This creates an intuitive API that should seem familiar.
 
 In some cases (e.g. Buffer) we mimic the Node module as close as possible, however with our filesystem module, we
 provide a slightly higher-level API.
@@ -31,10 +31,11 @@ ES5 methods are available across all supported platforms via simple polyfills. B
 EventEmitter, and the define()/require() system of module loading is sort of a hybrid between Node, CommonJS and
 RequireJS.
 
-Overall, PlatformJS tries to follow conventions JS devs are familiar with.
+Overall, PlatformJS tries to follow existing conventions.
 
 ##Modules / Interface Abstractions
-So far PlatformJS provides:
+So far PlatformJS provides
+
  * Normalized Request/Response instances
  * Request Body parsing (supporting form, application/json, non-buffering multipart, etc)
  * Buffer (just like Node but cannot access individual bytes by subscript: buf[1])
@@ -47,33 +48,27 @@ So far PlatformJS provides:
  * Utilities like Logging, MD5, Date formatting, URL parsing, etc
 
 ##View Layer
-Currently we are using the fantastic Liquid templating engine ported to JS by (darthapo)
-[http://github.com/darthapo/liquid.js] with modifications to fit in our framework. It turns out this is a bit
-heavy for our purposes so there are plans to port one more option and implement an interface for choosing the
-templating module from the config (providing each conforms to a simple interface). Pre-compiling and caching
-the templates for performance would be the next step.
+Jinja templates coming soon..
 
 ##Data Persistence
-Database interfaces are particularly hard to abstract in a truly platform agnostic way, so this is in the early stages
-at this point. SQLite will probably be the first adapter to work across the supported platforms, and will likely
-use an API similar to node-sqlite3 or the WebSQL proposal. MySQL will be next, or possibly CouchDB which is an easy
-one due to it's pure HTTP interface.
+Database interfaces are particularly hard to abstract in a truly platform agnostic way. SQLite and MySQL are the first
+adapters to be implemented. Plans for Mongo/CouchDB are in the works.
 
 I am considering an ORM from the various existing Node and client-side libraries with the goal of being light-weight
-while providing a simple but complete interface. Data moddeling can get complex if we wish to support relational and
-NoSQL at the persistence level, but there are a lot of great Node modules out there that do just that.
+while providing a simple but complete interface. Data modeling can get complex if we want to support relational and
+NoSQL in the same ORM layer, so this has not materialized yet but is in the plans.
 
 ##Controllers/Routing
 We include a rather basic routing implementation at the moment which does not provide a "resourceful" interface. Our
-aim is not to be a replacement for Rails-like frameworks, so simple routing is adequate at this point and keeps
-PlatformJS lightweight. This may change in the future as we build our first real-world apps.
+aim is not to be a replacement for Rails-like frameworks, so simple routing is adequate and keeps our framework
+lightweight.
 
 ##Todo
- * Better Test Coverage
- * Robust config options with multi-environment support
- * Build process should exclude unused modules
- * Provide a way to write higher-level modules (like Auth) that can be dropped in to quickly build robust apps
 
+ * Better Test Coverage
+ * More robust platform-specific config
+ * Modeling needs work (ORM)
+ * Provide a way to write higher-level modules (like Auth) that can be dropped in to quickly build robust apps
 
 ## License (MIT)
 
