@@ -2,6 +2,8 @@
  * List compiled from taking the most popular file-types (that have known mime-types) and adding
  *  - the @font-face types
  *  - ico
+ *  - appcache
+ *  - sass, scss, map (for css source-maps)
  * sources:
  *  http://reference.sitepoint.com/html/mime-types
  *  http://www.mailbigfile.com/101-most-popular-file-types/
@@ -19,6 +21,7 @@ app.cfg({
     'ai': 'application/postscript',
     'aif': 'audio/x-aiff',
     'aiff': 'audio/x-aiff',
+    'appcache': 'text/cache-manifest',
     'asx': 'video/x-ms-asf',
     'asf': 'video/x-ms-asf',
     'au': 'audio/basic',
@@ -55,6 +58,7 @@ app.cfg({
     'm4a': 'audio/mp4',
     'm4p': 'application/mp4',
     'm4v': 'video/x-m4v',
+    'map': 'text/plain',
     'mcd': 'application/vnd.mcd',
     'mdb': 'application/x-msaccess',
     'mid': 'audio/midi',
@@ -84,6 +88,8 @@ app.cfg({
     'rm': 'application/vnd.rn-realmedia',
     'rmvb': 'application/vnd.rn-realmedia-vbr',
     'rtf': 'application/rtf',
+    'sass': 'text/plain',
+    'scss': 'text/plain',
     'sgml': 'text/sgml',
     'sit': 'application/x-stuffit',
     'sitx': 'application/x-stuffitx',

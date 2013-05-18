@@ -37,8 +37,8 @@ Overall, PlatformJS tries to follow existing conventions.
 So far PlatformJS provides
 
  * Normalized Request/Response instances
- * Request Body parsing (supporting form, application/json, non-buffering multipart, etc)
- * Buffer (just like Node but cannot access individual bytes by subscript: buf[1])
+ * Request Body parsing (supporting form, application/json, non-buffering multipart)
+ * Buffer class (just like Node but cannot access individual bytes by subscript: buf[1])
  * Cookies and Session support
  * Sending files in a non-buffering way
  * HTTP Client
@@ -68,7 +68,7 @@ lightweight.
  * Better Test Coverage
  * More robust platform-specific config
  * Modeling needs work (ORM)
- * Provide a way to write higher-level modules (like Auth) that can be dropped in to quickly build robust apps
+ * Provide a way to provide high-level modules (like Auth) that can be dropped in to quickly build robust apps
 
 ## License (MIT)
 
