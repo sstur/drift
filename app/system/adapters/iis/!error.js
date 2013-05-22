@@ -15,8 +15,11 @@
   }
 
   function adjustError(err) {
-    if (err.file != '/build/app.asp') return;
     if (!map || !map.length) return;
+    if (!err.line) {
+      err.file = '/app.js';
+      return;
+    }
     var line = err.originalLine = err.line, offset = 0;
     for (var i = 0; i < line; i++) {
       offset += offsets[i] || 0;
@@ -30,7 +33,6 @@
         break;
       }
     }
-    err.report = 'Error at: ' + err.file + ':' + err.line + '\r\n' +  err.message;
   }
 
   function getErrDetails() {

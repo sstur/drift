@@ -107,23 +107,23 @@ var forEach, vartype, isPrimitive, toArray;
     return Math.floor(Math.random() * (upper - lower + 1)) + lower;
   };
 
-  String.prototype.replaceAll = function(a, b) {
+  String.prototype.replaceAll = function replaceAll(a, b) {
     if (arguments.length == 1) {
       var self = this;
       forEach(a, function() {
-        self = String.prototype.replaceAll.apply(self, arguments);
+        self = replaceAll.apply(self, arguments);
       });
       return self;
     }
-    return String.prototype.replace.call(this, new RegExp(RegExp.escape(a), 'ig'), b);
+    return this.replace(new RegExp(RegExp.escape(a), 'ig'), b.replace(/\$/g, '$$'));
   };
 
   String.prototype.trimLeft = function() {
-    return String.prototype.replace.call(this, /^\s*/, '');
+    return this.replace(/^\s*/, '');
   };
 
   String.prototype.trimRight = function() {
-    return String.prototype.replace.call(this, /\s*$/, '');
+    return this.replace(/\s*$/, '');
   };
 
   String.prototype.padLeft = function(num, str) {
@@ -157,7 +157,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   String.prototype.words = function() {
-    return String.prototype.split.call(this, /[,\s]+/);
+    return this.split(/[,\s]+/);
   };
   String.prototype.w = String.prototype.words;
 
@@ -171,7 +171,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   Date.prototype.toGMTString = function() {
-    var a = Date.prototype.toUTCString.call(this).split(' ');
+    var a = this.toUTCString().split(' ');
     if (a[1].length == 1) a[1] = '0' + a[1];
     return a.join(' ').replace(/UTC$/i, 'GMT');
   };
@@ -205,7 +205,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   RegExp.escape = function(str) {
-    return String(str).replace(/([.?*+^$\[\]\\(){}-])/g, '\\$1');
+    return String(str).replace(/[.?*+^$\[\]\\(){}-]/g, '\\$&');
   };
 
   RegExp.copyAsGlobal = function(reg) {
