@@ -161,6 +161,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
   String.prototype.w = String.prototype.words;
 
+  //todo: is this being used?
   String.parse = function(str, /**String=''*/ def) {
     def = (arguments.length > 1) ? def : '';
     return (str == null) ? def : (str.toString ? str.toString() : '' + str);

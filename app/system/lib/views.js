@@ -1,22 +1,25 @@
 /*global app, define, global */
-define('views', function(require, exports) {
+define('views', function(require, exports, module) {
   "use strict";
   var fs = require('fs');
 
   //todo: change global.viewCache to cachedFiles ?
   var fileCache = global.viewCache || {};
-  var compiledViews;
 
-  var filters = exports.filters = {};
 
   var tmplEngineName = app.cfg('template/engine') || 'tmpl';
-  var tmplEngine;
-
   try {
-    tmplEngine = require(tmplEngineName);
+    var tmplEngine = require(tmplEngineName);
   } catch(e) {
     throw new Error('Template engine "' + tmplEngineName + '" could not be loaded');
   }
+
+  module.exports = tmplEngine;
+
+  tmplEngine.defaultDateFormat = app.cfg('template/defaults/date_format');
+
+  var filters = tmplEngine.filters || (tmplEngine.filters = {});
+  var compiledViews = tmplEngine.compiled || (tmplEngine.compiled = {});
 
   tmplEngine.readTemplateFile = getTemplateText;
   var canCompile = (typeof tmplEngine.compile == 'function');
@@ -31,41 +34,32 @@ define('views', function(require, exports) {
   }
 
   function getCompiledTemplate(name) {
-    compiledViews = compiledViews || tmplEngine.compiled || {};
     var file = (name.match(/\.js$/)) ? name : name + '.html.js';
     file = 'views/' + file;
     if (file in compiledViews) {
       return compiledViews[file];
     }
     try {
-      var source = fs.readTextFile(file, 'utf8');
-      var compiled = new Function('require', 'return (' + source + ')')(require);
+      //pre-compiled template on file-system ?
+      var code = fs.readTextFile(file, 'utf8');
+      var compiled = new Function('require', 'return (' + code + ')')(require);
     } catch(e) {
+      //file not found is ok; continue
       if (e.code !== 'ENOENT') throw e;
     }
-    //if (typeof compiled == 'function') {
-    //  //allows template engine to revive from serialized form
-    //  compiled = compiled(tmplEngine);
-    //}
-    if (!source) {
-      var text = getTemplateText(name);
-      compiled = tmplEngine.compile(text);
+    if (!compiled) {
+      //if not pre-compiled, compile from source
+      var source = getTemplateText(name);
+      compiled = tmplEngine.compile(source);
     }
     //compiled should now have a .render() method
     return compiledViews[file] = compiled;
   }
 
-  exports.addFilter = function(name, filter) {
-    filters[name] = filter;
-  };
+  //override render function
+  var _render = tmplEngine.render;
 
-  exports.addFilters = function(filters) {
-    forEach(filters, function(name, filter) {
-      exports.addFilter(name, filter);
-    });
-  };
-
-  exports.render = function(name, context, opts) {
+  tmplEngine.render = function(name, context, opts) {
     context = context || {};
     opts = opts || {};
     if (canCompile) {
@@ -73,7 +67,7 @@ define('views', function(require, exports) {
       var rendered = tmpl.render(context, {filters: filters});
     } else {
       var text = getTemplateText(name);
-      rendered = tmplEngine.render(text, context, {filters: filters});
+      rendered = _render.call(tmplEngine, text, context, {filters: filters});
     }
     if (opts.trim !== false) {
       rendered = rendered.trim();
