@@ -14,15 +14,16 @@
 
   //files beginning with these chars are excluded
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
-  //this one is untested but should be more thorough with regex literals
-  //var COMMENT_OR_LITERAL = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|\/(\\[^\x00-\x1f]|\[(\\[^\x00-\x1f]|[^\x00-\x1f\\\/])*\]|[^\x00-\x1f\\\/\[])+\/|\/\/(.*)/gm;
-  var COMMENT_OR_LITERAL = /\/\*([\s\S]*?)\*\/|'(\\.|[^'])*'|"(\\.|[^"])*"|\/(\\.|[^\/])+\/|\/\/(.*)/gm;
+  //this whole literal matching is flawed; it would match `var a = 1/2, b = 'c/d';` and now we have an unterminated string
+  var COMMENT_OR_LITERAL = /\/\*([\s\S]*?)\*\/|'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/(\\.|[^\/\n])+\/|\/\/(.*)/gm;
   var STRINGS = {"'": 1, '"': 1};
   var COMMENTS = {'//': 1, '/*': 1};
 
   try {
     var uglifyjs = require('uglify-js');
   } catch(e) {}
+
+  var debugify = require('debugify');
 
   var REG_NL = /\r\n|\r|\n/g;
 
@@ -68,13 +69,14 @@
     ];
     opts._end = [];
     opts.target = 'build/app.sjs';
-  } else {
+  }
+  if (opts.iis) {
     //build for iis/asp
     opts._pre = [
-      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>',
-      '<script runat="server" language="javascript">'
+      '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>'
     ];
     opts._head = [
+      '<script runat="server" language="javascript">',
       '(function(global, iis) {',
       '"use strict";'
     ];
@@ -101,18 +103,51 @@
       'app/system/adapters/asp.js'
     ];
     opts._foot = [
-      '})({platform: "iis asp"}, {req: Request, res: Response, app: Application, server: Server})'
-    ];
-    opts._end = [
+      '})({platform: "iis asp"}, {req: Request, res: Response, app: Application, server: Server})',
       '</script>'
     ];
+    opts._end = [];
     opts.target = 'build/app.asp';
+  } else {
+    //build for wscript (repl)
+    opts._pre = [
+      '<package><job id="job">'
+    ];
+    opts._head = [
+      '<script language="javascript">"<![CDATA[";',
+      'var global = this, platform = "wscript";'
+    ];
+    opts._load = [
+      //load shim/patches
+      'app/system/support',
+      //load framework core (instantiates `app` and `define`)
+      'app/system/core.js',
+      //load config
+      'app/system/config',
+      'app/config',
+      //load adapter specific modules
+      'app/system/adapters/shared',
+      'app/system/adapters/activex',
+      //load framework modules
+      'app/system/lib',
+      'app/helpers',
+      'app/init',
+      'app/lib',
+      'app/controllers',
+      'app/system/adapters/repl.js'
+    ];
+    opts._foot = [
+      ';"]]>";</script>'
+    ];
+    opts._end = [
+      '</job></package>'
+    ];
+    opts.target = 'build/repl.wsf';
   }
 
   if (config.compileViews) {
-    var viewsJSON = JSON.stringify(readViews('views'));
-    viewsJSON = viewsJSON.replace(/<(\/?script)\b/gi, '\\x3c$1');
-    opts._head.push('global.viewCache = ' + viewsJSON + ';');
+    var compileViews = stringifyCompiledViews(readCompiledViews('views'));
+    opts._head.push('global.compiledViews = ' + escapeSource(compileViews) + ';');
   }
 
   var sourceFiles = []
@@ -120,6 +155,7 @@
     , lineOffsets = {}
     , offset = opts._pre.length;
 
+  //todo: _head and _foot should be added after uglify/stripSource
   sourceLines.push.apply(sourceLines, opts._head);
   opts._load.forEach(function(path) {
     return (path.match(/\.js$/)) ? loadFile(path) : loadPath(path);
@@ -129,6 +165,7 @@
   sourceLines = preProcess(sourceLines);
 
   if (opts.m) {
+    throw new Error('minification code needs to be fixed');
     if (!uglifyjs) {
       console.err('Cannot find module uglify-js.');
       process.exit();
@@ -136,7 +173,7 @@
     var mangle = ('mangle' in opts);
     sourceLines = [uglify(sourceLines.join('\n'), mangle)];
   } else {
-    sourceLines = cleanSource(sourceLines);
+    sourceLines = stripSource(sourceLines);
     if (opts.apache) {
       //we intentionally have a blank line for this
       opts._pre[0] = 'var offsets = ' + JSON.stringify(lineOffsets) + ', map = ' + JSON.stringify(sourceFiles) + ';';
@@ -156,10 +193,10 @@
   }
 
   sourceLines.unshift.apply(sourceLines, opts._pre);
-  sourceLines.push.apply(sourceLines, opts._end);
   if ('appendLines' in config) {
     sourceLines.push.apply(sourceLines, config.appendLines);
   }
+  sourceLines.push.apply(sourceLines, opts._end);
 
   var source = sourceLines.join('\r\n');
   fs.writeFileSync(join(basePath, opts.target), source, 'utf8');
@@ -180,6 +217,7 @@
     if (skip) return;
     if (!opts.q) console.log('load file', path);
     var filedata = fs.readFileSync(fullpath, 'utf8');
+    filedata = escapeSource(filedata);
     var lines = filedata.split(REG_NL);
     sourceFiles.push({
       path: path,
@@ -212,28 +250,39 @@
     });
   }
 
-  function readView(path, views) {
+  function readCompiledView(path, views) {
     var fullpath = join(basePath, path);
-    if (!opts.q) console.log('read view', path);
+    if (!opts.q) console.log('read compiled view', path);
+    //todo: remove extension from path?
     views[path] = fs.readFileSync(fullpath, 'utf8');
   }
 
-  function readViews(dir, views) {
+  function readCompiledViews(dir, views) {
     views = views || {};
     var path = join(basePath, dir);
     var items = fs.readdirSync(path);
     items.forEach(function(item) {
       if (item.charAt(0) in EXCLUDE) return;
-      var fullpath = join(path, item)
-        , stat = fs.statSync(fullpath);
+      var fullpath = join(path, item);
+      var stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
-        readViews(join(dir, item), views);
+        readCompiledViews(join(dir, item), views);
       } else
-      if (stat.isFile()) {
-        readView(join(dir, item), views);
+      if (stat.isFile() && item.match(/\.js$/)) {
+        readCompiledView(join(dir, item), views);
       }
     });
     return views;
+  }
+
+  function stringifyCompiledViews(obj) {
+    var output = [];
+    Object.keys(obj).forEach(function(name) {
+      var code = obj[name];
+      //todo: this is a hacky way of doing statement -> expression
+      output.push(JSON.stringify(name) + ':' + code.toString().replace(/;$/, ''));
+    });
+    return '{' + output.join(',') + '}';
   }
 
   function preProcess(lines) {
@@ -252,35 +301,83 @@
     return code.split('\n');
   }
 
-  function cleanSource(lines) {
-    var code = lines.join('\n');
+  function escapeSource(code) {
+    var isArray = Array.isArray(code);
+    if (isArray) code = code.join('\n');
     code = code.replace(COMMENT_OR_LITERAL, function(str) {
-      if (str.slice(0, 2) in COMMENTS) {
+      //exit if not a string literal
+      if (!(str.charAt(0) in STRINGS)) return str;
+      //strings: escape unicode
+      str = str.replace(/[\u0080-\uFFFF]/, function(c) {
+        return '\\u' + ('00' + c.charCodeAt(0).toString(16)).slice(-4);
+      });
+      //escape script tags and html comments in strings
+      str = str.replace(/<(\/?script)\b/gi, '\\x3c$1');
+      str = str.replace(/<!--/gi, '\\x3c!--');
+      str = str.replace(/(--|]])>/gi, '$1\\x3e');
+      return str;
+    });
+    return (isArray) ? code.split('\n') : code;
+  }
+
+//  function stringify(str) {
+//    str = JSON.stringify(str);
+//    str = str.slice(1, -1);
+//    str = str.replace(/\\"/g, '"');
+//    return str;
+//  }
+
+  //takes an array of lines, returns array
+  function stripSource(code) {
+    code = Array.isArray(code) ? code.join('\n') : code;
+
+//    var lines = code.split('\n');
+//    var indexToPos = function(n) {
+//      var index = 0;
+//      for (var i = 0; i < lines.length; i++) {
+//        index += lines[i].length + 1;
+//        if (index >= n) return i;
+//      }
+//    };
+
+    code.replace(COMMENT_OR_LITERAL, function(str) {
+      //don't remove special comments
+      if (str.slice(0, 3) == '/*@') {
+        var type = 'special_comment';
+      } else
+      if (str.slice(0, 2) == '/*') {
+        type = 'block_comment'
+      } else
+      if (str.slice(0, 2) == '//') {
+        type = 'line_comment'
+      } else
+      if (str.charAt(0) == '/') {
+        type = 'regular_expression'
+      } else {
+        type = 'string'
+      }
+      if (type == 'string' && str.match(/\/\/|\/\*/)) {
+        //console.log({string: str})
+        console.log('string: ' + str, 'lastIndex: ' + COMMENT_OR_LITERAL.lastIndex);
+      }
+      if (type == 'block_comment' || type == 'line_comment') {
         //comments: remove, replacing with newlines
         var lines = str.split('\n').length;
         return new Array(lines).join('\n');
       }
-      if (str.charAt(0) in STRINGS) {
-        //strings: escape unicode
-        return str.replace(/[\u0080-\uFFFF]/, function(c) {
-          return '\\u' + ('00' + c.charCodeAt(0).toString(16)).slice(-4);
-        });
-      } else {
-        //regex literals: ignore
-        return str;
-      }
+      return str;
     });
+
     //remove "use strict" directives (added at top level)
-    code = code.replace(/^[ \t]*("|')use strict\1;?[ \t]*$/mg, function(str) {
-      return '';
-    });
+    code = code.replace(/^[ \t]*("|')use strict\1;?[ \t]*$/mg, '');
+
     //remove empty lines
-    var removed = 0, cleaned = [];
+    var removed = 0, result = [];
     code.split('\n').forEach(function(line) {
       if (line.trim()) {
-        cleaned.push(line);
+        result.push(line);
         if (removed) {
-          lineOffsets[cleaned.length] = removed;
+          lineOffsets[result.length] = removed;
         }
         removed = 0;
       } else {
@@ -288,8 +385,17 @@
         return '';
       }
     });
-    return cleaned;
+
+    if (debugify && opts.debug) {
+      var old = result, sliced = result.slice(2, -2);
+      //console.log(sliced.slice(2566, 2568).join('\n'));
+      result = debugify(sliced.join('\n')).split('\n');
+      result.unshift.apply(result, old.slice(0, 2));
+      result.push.apply(result, old.slice(-2));
+    }
+    return result;
   }
+
 
   function uglify(code, mangle) {
     var jsp = uglifyjs.parser;
