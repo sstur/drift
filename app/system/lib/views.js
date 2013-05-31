@@ -2,10 +2,7 @@
 define('views', function(require, exports, module) {
   "use strict";
   var fs = require('fs');
-
-  //todo: change global.viewCache to cachedFiles ?
-  var fileCache = global.viewCache || {};
-
+  var util = require('util');
 
   var tmplEngineName = app.cfg('template/engine') || 'tmpl';
   try {
@@ -19,18 +16,21 @@ define('views', function(require, exports, module) {
   tmplEngine.defaultDateFormat = app.cfg('template/defaults/date_format');
 
   var filters = tmplEngine.filters || (tmplEngine.filters = {});
+  var views = tmplEngine.source || (tmplEngine.source = {});
   var compiledViews = tmplEngine.compiled || (tmplEngine.compiled = {});
+  util.extend(compiledViews, global.compiledViews || {});
 
   tmplEngine.readTemplateFile = getTemplateText;
   var canCompile = (typeof tmplEngine.compile == 'function');
 
   function getTemplateText(name) {
+    //default to .html extension if none specified
     var file = (~name.indexOf('.')) ? name : name + '.html';
     file = 'views/' + file;
-    if (file in fileCache) {
-      return fileCache[file];
+    if (file in views) {
+      return views[file];
     }
-    return fileCache[file] = fs.readTextFile(file, 'utf8');
+    return views[file] = fs.readTextFile(file, 'utf8');
   }
 
   function getCompiledTemplate(name) {
@@ -39,10 +39,11 @@ define('views', function(require, exports, module) {
     if (file in compiledViews) {
       return compiledViews[file];
     }
+
     try {
       //pre-compiled template on file-system ?
       var code = fs.readTextFile(file, 'utf8');
-      var compiled = new Function('require', 'return (' + code + ')')(require);
+      var compiled = new Function('require', 'return ' + code)(require);
     } catch(e) {
       //file not found is ok; continue
       if (e.code !== 'ENOENT') throw e;

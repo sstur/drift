@@ -3,6 +3,7 @@
 
   var err = getErrDetails();
   var date = new Date();
+  var defaultFile = '/app.js';
 
   adjustError(err);
   if (config.emailErrors && !getItem('Host').match(/\blocal\b/)) {
@@ -16,8 +17,8 @@
 
   function adjustError(err) {
     if (!map || !map.length) return;
+    err.file = defaultFile;
     if (!err.line) {
-      err.file = '/app.js';
       return;
     }
     var line = err.originalLine = err.line, offset = 0;
@@ -27,6 +28,7 @@
     line += offset;
     for (i = 0; i < map.length; i++) {
       var source = map[i];
+      if (line < source.lineOffset) break;
       if (line < source.lineOffset + source.lineCount) {
         err.file = source.path;
         err.line = line - source.lineOffset;

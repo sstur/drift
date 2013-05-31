@@ -365,12 +365,11 @@
         return '';
       }
     });
-    return result;
 
     if (debugify && opts.debug) {
       var old = result, sliced = result.slice(2, -2);
       //console.log(sliced.slice(2566, 2568).join('\n'));
-      result = debugify(sliced.join('\n')).split('\n');
+      result = debugify(sliced.join('\n'), 4).split('\n');
       result.unshift.apply(result, old.slice(0, 2));
       result.push.apply(result, old.slice(-2));
     }

@@ -67,7 +67,7 @@ define('http', function(require, exports) {
     var headers = this.headers;
     //if we don't add a user-agent ActiveX will do it for us
     headers['User-Agent'] = headers['User-Agent'] || 'Mozilla/4.0';
-    xhr.option(6)/*@remove{*/[0]/*}@*/ = false;
+    xhr.option(6)/*@cc_on@if(0)*/[0]/*@end@*/ = false;
     Object.keys(headers).forEach(function(n) {
       xhr.setRequestHeader(n, headers[n]);
     });
