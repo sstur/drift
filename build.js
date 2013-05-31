@@ -320,25 +320,9 @@
     return (isArray) ? code.split('\n') : code;
   }
 
-//  function stringify(str) {
-//    str = JSON.stringify(str);
-//    str = str.slice(1, -1);
-//    str = str.replace(/\\"/g, '"');
-//    return str;
-//  }
-
   //takes an array of lines, returns array
   function stripSource(code) {
     code = Array.isArray(code) ? code.join('\n') : code;
-
-//    var lines = code.split('\n');
-//    var indexToPos = function(n) {
-//      var index = 0;
-//      for (var i = 0; i < lines.length; i++) {
-//        index += lines[i].length + 1;
-//        if (index >= n) return i;
-//      }
-//    };
 
     code.replace(COMMENT_OR_LITERAL, function(str) {
       //don't remove special comments
@@ -356,12 +340,8 @@
       } else {
         type = 'string'
       }
-      if (type == 'string' && str.match(/\/\/|\/\*/)) {
-        //console.log({string: str})
-        console.log('string: ' + str, 'lastIndex: ' + COMMENT_OR_LITERAL.lastIndex);
-      }
       if (type == 'block_comment' || type == 'line_comment') {
-        //comments: remove, replacing with newlines
+        //remove, replacing with newlines
         var lines = str.split('\n').length;
         return new Array(lines).join('\n');
       }
@@ -385,6 +365,7 @@
         return '';
       }
     });
+    return result;
 
     if (debugify && opts.debug) {
       var old = result, sliced = result.slice(2, -2);
