@@ -324,7 +324,7 @@
   function stripSource(code) {
     code = Array.isArray(code) ? code.join('\n') : code;
 
-    code.replace(COMMENT_OR_LITERAL, function(str) {
+    code = code.replace(COMMENT_OR_LITERAL, function(str) {
       //don't remove special comments
       if (str.slice(0, 3) == '/*@') {
         var type = 'special_comment';
