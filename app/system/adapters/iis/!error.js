@@ -49,7 +49,7 @@
         stack[i] = item.replace(/@line:\{(\d+)\}/, function(str, lineNum) {
           var result = parseLine(+lineNum);
           if (!origin) origin = result;
-          return '@line ' + result.line + ' in file `' + result.file + '`';
+          return '@line ' + result.line + ' in "' + result.file + '"';
         });
       }
     }

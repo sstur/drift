@@ -369,7 +369,7 @@
       var old = result, sliced = result.slice(2, -2);
       result = debugify(sliced.join('\n'), 4).split('\n');
       result.unshift.apply(result, old.slice(0, 2));
-      result.push("function hErr(error, lineNumber) { var msg = error.message || error.description; var source = hErr['caller'].toString(); var match = source.match(/^function (\\w+)/) || []; var name = match[1] || ''; name = name ? 'function [' + name + ']' : 'function'; throw new Error(msg + '\\n' + 'in ' + name + ' @line:{' + lineNumber + '}') }");
+      result.push("function hErr(error, lineNumber) { var msg = error.message || error.description; var source = hErr['caller'].toString(); var match = source.match(/^function (\\w+)/) || []; var name = match[1] || ''; name = name ? 'function [' + name + ']' : 'function'; var e = new Error(msg + '\\n' + 'in ' + name + ' @line:{' + lineNumber + '}'); for (var n in error) if (error.hasOwnProperty(n) && n != 'message' && n != 'description') e[n] = error[n]; throw e }");
       result.push.apply(result, old.slice(-2));
     }
     return result;
