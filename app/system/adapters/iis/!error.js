@@ -15,44 +15,69 @@
     sendError(err);
   }
 
+  function getErrDetails() {
+    var error = server.getLastError();
+    var file = error.file.toLowerCase().replace(/\\/g, '/');
+    var path = server.mapPath('/').toLowerCase().replace(/\\/g, '/') + '/';
+    while (file.match(/[^\/]+\/\.\.\//)) file = file.replace(/[^\/]+\/\.\.\//, '');
+    return {
+      path: getURL(),
+      file: (file.indexOf(path) === 0) ? file.slice(path.length) : file,
+      type: error.category.replace(/(\w+ )?(\w+)Script/i, 'Script'),
+      line: error.line,
+      message: error.description || error.message,
+      code: error.number>>16 & 0x1FFF,
+      number: error.number & 0xFFFF,
+      referer: getItem('HTTP-Referer'),
+      userAgent: getItem('HTTP-User-Agent')
+    };
+  }
+
   function adjustError(err) {
     if (!map || !map.length) return;
     err.file = defaultFile;
     if (!err.line) {
       return;
     }
-    var line = err.originalLine = err.line, offset = 0;
+    err.originalLine = err.line;
+    //if we are in debug mode, we will have a stack
+    var stack = err.message.split('\n');
+    var origin;
+    for (var i = 0; i < stack.length; i++) {
+      var item = stack[i];
+      if (item.match(/^in function /)) {
+        stack[i] = item.replace(/@line:\{(\d+)\}/, function(str, lineNum) {
+          var result = parseLine(+lineNum);
+          if (!origin) origin = result;
+          return '@line ' + result.line + ' in file `' + result.file + '`';
+        });
+      }
+    }
+    err.message = stack.join('\n');
+    var result = origin || parseLine(err.line);
+    err.file = result.file;
+    err.line = result.line;
+  }
+
+  function parseLine(line) {
+    var offset = 0;
+    var result = {line: 0, file: ''};
     for (var i = 0; i < line; i++) {
       offset += offsets[i] || 0;
     }
     line += offset;
     for (i = 0; i < map.length; i++) {
       var source = map[i];
-      if (line < source.lineOffset) break;
+      if (line < source.lineOffset) {
+        break;
+      }
       if (line < source.lineOffset + source.lineCount) {
-        err.file = source.path;
-        err.line = line - source.lineOffset;
+        result.file = source.path;
+        result.line = line - source.lineOffset;
         break;
       }
     }
-  }
-
-  function getErrDetails() {
-    var details = server.getLastError();
-    var file = details.file.toLowerCase().replace(/\\/g, '/');
-    var path = server.mapPath('/').toLowerCase().replace(/\\/g, '/') + '/';
-    while (file.match(/[^\/]+\/\.\.\//)) file = file.replace(/[^\/]+\/\.\.\//, '');
-    return {
-      path: getURL(),
-      file: (file.indexOf(path) === 0) ? file.slice(path.length) : file,
-      type: details.category.replace(/(\w+ )?(\w+)Script/i, 'Script'),
-      line: details.line,
-      message: details.description,
-      code: details.number>>16 & 0x1FFF,
-      number: details.number & 0xFFFF,
-      referer: getItem('HTTP-Referer'),
-      userAgent: getItem('HTTP-User-Agent')
-    };
+    return result;
   }
 
   function getURL() {
