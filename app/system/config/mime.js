@@ -4,6 +4,7 @@
  *  - ico
  *  - appcache
  *  - sass, scss, map (for css source-maps)
+ *  - json
  * sources:
  *  http://reference.sitepoint.com/html/mime-types
  *  http://www.mailbigfile.com/101-most-popular-file-types/
@@ -53,12 +54,13 @@ app.cfg({
     'jpeg': 'image/jpeg',
     'jpg': 'image/jpeg',
     'js': 'application/javascript',
+    'json': 'application/javascript',
     'lnk': 'application/x-ms-shortcut',
     'log': 'text/plain',
     'm4a': 'audio/mp4',
     'm4p': 'application/mp4',
     'm4v': 'video/x-m4v',
-    'map': 'text/plain',
+    'map': 'application/json',
     'mcd': 'application/vnd.mcd',
     'mdb': 'application/x-msaccess',
     'mid': 'audio/midi',
@@ -69,7 +71,7 @@ app.cfg({
     'mpeg': 'video/mpeg',
     'mpg': 'video/mpeg',
     'ogg': 'audio/ogg',
-    'otf': 'application/x-font-otf',
+    'otf': 'font/opentype',
     'pdf': 'application/pdf',
     'png': 'image/png',
     'potx': 'application/vnd.openxmlformats-officedocument.presentationml.template',
@@ -107,7 +109,7 @@ app.cfg({
     'wav': 'audio/x-wav',
     'wma': 'audio/x-ms-wma',
     'wmv': 'video/x-ms-wmv',
-    'woff': 'application/x-font-woff',
+    'woff': 'application/font-woff',
     'wpd': 'application/vnd.wordperfect',
     'wps': 'application/vnd.ms-works',
     'xlam': 'application/vnd.ms-excel.addin.macroenabled.12',

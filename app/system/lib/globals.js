@@ -206,7 +206,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   RegExp.escape = function(str) {
-    return String(str).replace(/[.?*+^$\[\]\\(){}-]/g, '\\$&');
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   };
 
   RegExp.copyAsGlobal = function(reg) {

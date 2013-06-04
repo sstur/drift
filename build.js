@@ -9,6 +9,7 @@
 
   var fs = require('fs');
   var path = require('path');
+  var child_process = require('child_process');
 
   var join = path.join;
 
@@ -201,8 +202,33 @@
   var source = sourceLines.join('\r\n');
   fs.writeFileSync(join(basePath, opts.target), source, 'utf8');
 
+  var action = config['action:after'];
+  if (action && action.type == 'exec') {
+    exec(action.command);
+  }
 
-  //helpers
+
+
+
+  /**
+   * Helpers
+   */
+
+
+  function exec(cmd) {
+    console.log('--START EXEC: ' + cmd);
+    child_process.exec(cmd, function(err, stdout, stderr) {
+      if (err) throw err;
+      if (stderr && stderr.match(/\S/)) {
+        console.error(stderr);
+        return;
+      }
+      if (stdout && stdout.match(/\S/)) {
+        console.log(stdout);
+      }
+      console.log('--EXEC COMPLETED');
+    });
+  }
 
   function loadFile(path) {
     var fullpath = join(basePath, path);
