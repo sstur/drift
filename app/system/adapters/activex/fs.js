@@ -70,6 +70,9 @@ define('fs', function(require, fs) {
       var data = new Buffer(this._stream.read(bytes)), enc = this.opts.encoding;
       return (enc) ? data.toString(enc) : data;
     },
+    size: function() {
+      return this._stream.size;
+    },
     read: function() {
       while (this._bytesRead < this._bytesTotal) {
         this.emit('data', this._readBytes(this.opts.chunkSize));

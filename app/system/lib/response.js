@@ -175,6 +175,7 @@ define('response', function(require, exports, module) {
         _super.streamFile(path, this.response.headers);
       } else {
         var readStream = fs.createReadStream(path);
+        headers['Content-Length'] = readStream.size();
         this.headers(headers);
         this._writeHead();
         readStream.on('data', function(data) {
