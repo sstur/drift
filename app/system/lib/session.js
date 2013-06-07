@@ -33,7 +33,7 @@ define('session', function(require, exports, module) {
         res.cookies(key, token);
       }
     }
-    var session = {token: token};
+    var session = {token: token, namespaces: {}};
     req.on('end', function() {
       controllers[storetype].saveAll(session);
     });
@@ -42,7 +42,7 @@ define('session', function(require, exports, module) {
 
   var controllers = {
     memory: {
-      'load': function(session, inst) {
+      load: function(session, inst) {
         var token = session.token;
         var data = app.data('session:' + token + ':' + inst.namespace);
         session.lastAccess = app.data('session:last-access:' + token);
@@ -55,16 +55,15 @@ define('session', function(require, exports, module) {
           data = {};
         }
         this._old = JSON.stringify(data);
-        if (!session.namespaces) session.namespaces = {};
-        return session.namespaces[inst.namespace] = data;
+        return data;
       },
-      'saveAll': function(session) {
+      saveAll: function(session) {
         var self = controllers.memory;
-        forEach(session.namespaces || {}, function(namespace, data) {
+        forEach(session.namespaces, function(namespace, data) {
           self.save(session, namespace, data);
         });
       },
-      'save': function(session, namespace, data) {
+      save: function(session, namespace, data) {
         var stringified = (data == null) ? '' : JSON.stringify(data);
         //is dirty?
         if (stringified !== (session._old || '')) {
@@ -78,7 +77,7 @@ define('session', function(require, exports, module) {
       }
     },
     database: {
-      'load': function(session, inst) {
+      load: function(session, inst) {
         var self = controllers.database;
         var db = self.db || (self.db = require('localdb').open(app.cfg('session/database') || 'session', dbInit));
         var token = session.token, data;
@@ -98,16 +97,15 @@ define('session', function(require, exports, module) {
           data = {};
         }
         this._old = JSON.stringify(data);
-        if (!session.namespaces) session.namespaces = {};
-        return session.namespaces[inst.namespace] = data;
+        return data;
       },
-      'saveAll': function(session) {
+      saveAll: function(session) {
         var self = controllers.database;
         forEach(session.namespaces, function(namespace, data) {
           self.save(session, namespace, data);
         });
       },
-      'save': function(session, namespace, data) {
+      save: function(session, namespace, data) {
         var self = controllers.database, req = session.req;
         var db = self.db || (self.db = require('localdb').open(app.cfg('session/database') || 'session', dbInit));
         var stringified = (data == null) ? '' : JSON.stringify(data);
@@ -165,13 +163,13 @@ define('session', function(require, exports, module) {
     },
     getData: function() {
       var session = getSessionObject(this);
-      return session.namespaces && session.namespaces[this.namespace] || this.load();
+      var namespaces = session.namespaces;
+      var data = namespaces[this.namespace] || (namespaces[this.namespace] = this.load());
+      return data;
     },
     reload: function() {
       var session = getSessionObject(this);
-      if (session.namespaces) {
-        session.namespaces[this.namespace] = null;
-      }
+      delete session.namespaces[this.namespace];
     },
     access: function(n, val) {
       var data = this.getData();
@@ -196,8 +194,9 @@ define('session', function(require, exports, module) {
     },
     flush: function() {
       var session = getSessionObject(this);
-      if (session.namespaces && session.namespaces[this.namespace]) {
-        controllers[storetype].save(session, this.namespace, session.namespaces[this.namespace]);
+      var namespace = session.namespaces[this.namespace];
+      if (namespace) {
+        controllers[storetype].save(session, this.namespace, namespace);
       }
     }
   });

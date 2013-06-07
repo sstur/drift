@@ -210,8 +210,8 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   RegExp.copyAsGlobal = function(reg) {
-    var m = 'g' + ((reg.ignoreCase) ? 'i' : '') + ((reg.multiline) ? 'm' : '');
-    return new RegExp(reg.source, m);
+    var flags = 'g' + ((reg.ignoreCase) ? 'i' : '') + ((reg.multiline) ? 'm' : '');
+    return new RegExp(reg.source, flags);
   };
 
   //Shorthand

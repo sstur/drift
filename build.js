@@ -18,7 +18,6 @@
   //this whole literal matching is flawed; it would match `var a = 1/2, b = 'c/d';` and now we have an unterminated string
   var COMMENT_OR_LITERAL = /\/\*([\s\S]*?)\*\/|'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/(\\.|[^\/\n])+\/|\/\/(.*)/gm;
   var STRINGS = {"'": 1, '"': 1};
-  var COMMENTS = {'//': 1, '/*': 1};
 
   try {
     var uglifyjs = require('uglify-js');
@@ -69,7 +68,7 @@
       '})({platform: "apache v8cgi"})'
     ];
     opts._end = [];
-    opts.target = 'build/app.sjs';
+    opts.target = config.target ? config.target + '.asp' : 'build/app.sjs';
   }
   if (opts.iis) {
     //build for iis/asp
@@ -108,7 +107,7 @@
       '</script>'
     ];
     opts._end = [];
-    opts.target = 'build/app.asp';
+    opts.target = config.target ? config.target + '.asp' : 'build/app.asp';
   } else {
     //build for wscript (repl)
     opts._pre = [
@@ -143,7 +142,7 @@
     opts._end = [
       '</job></package>'
     ];
-    opts.target = 'build/repl.wsf';
+    opts.target = config.target ? config.target + '.wsf' : 'build/repl.wsf';
   }
 
   if (config.compileViews) {
@@ -189,7 +188,8 @@
         errhandler,
         '<\/script>'
       ];
-      fs.writeFileSync(join(basePath, 'build/err.asp'), errfile.join('\r\n'), 'utf8');
+      var errorHandler = config.errorHandler ? config.errorHandler + '.asp' : 'build/err.asp';
+      fs.writeFileSync(join(basePath, errorHandler), errfile.join('\r\n'), 'utf8');
     }
   }
 

@@ -166,7 +166,7 @@ define('response', function(require, exports, module) {
         , statusReason = status.slice(4) || statusCodes[status];
       this._super.writeHead(statusCode, statusReason, headers);
     },
-    _streamFile: function(path) {
+    _streamFile: function(path, headers) {
       var _super = this._super;
       if (_super.streamFile) {
         //allow the adapter to do things like X-Sendfile or X-Accel-Redirect
@@ -174,8 +174,9 @@ define('response', function(require, exports, module) {
         this.req.emit('end');
         _super.streamFile(path, this.response.headers);
       } else {
-        this._writeHead();
         var readStream = fs.createReadStream(path);
+        this.headers(headers);
+        this._writeHead();
         readStream.on('data', function(data) {
           _super.write(data);
         });
@@ -217,13 +218,14 @@ define('response', function(require, exports, module) {
       if (isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
+      var headers = {};
       //todo: stat the file for content-length and throw if not exists
       if (!opts.contentType && mimeTypes) {
         //todo: files that have no extension
         var ext = opts.file.split('/').pop().split('.').pop().toLowerCase();
         opts.contentType = mimeTypes[ext];
       }
-      this.headers('Content-Type', opts.contentType || 'application/octet-stream');
+      headers['Content-Type'] = opts.contentType || 'application/octet-stream';
       var contentDisp = [];
       if (opts.attachment) contentDisp.push('attachment');
       if (opts.filename) {
@@ -233,9 +235,9 @@ define('response', function(require, exports, module) {
         contentDisp.push('filename="' + filename + '"');
       }
       if (contentDisp.length) {
-        this.headers('Content-Disposition', contentDisp.join('; '));
+        headers['Content-Disposition'] = contentDisp.join('; ');
       }
-      this._streamFile(opts.file);
+      this._streamFile(opts.file, headers);
     },
     redirect: function(url, type) {
       if (type == 'html') {
