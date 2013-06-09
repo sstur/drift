@@ -3,6 +3,7 @@ define('util', function(require, util) {
   "use strict";
 
   var slice = Array.prototype.slice;
+  var dataPath = app.cfg('data_dir') || 'data/';
 
   util.inspect = function() {
     var inspector = require('inspector');
@@ -69,7 +70,7 @@ define('util', function(require, util) {
     }
     if (!logfile) logfile = 'default';
     var data = args;
-    var path = 'data/logs/' + logfile.replace(/\.log$/i, '') + '.log';
+    var path = dataPath + 'logs/' + logfile.replace(/\.log$/i, '') + '.log';
     data.forEach(function(line, i) {
       data[i] = (isPrimitive(line)) ? String(line) : util.stringify(line);
     });

@@ -221,16 +221,15 @@ define('response', function(require, exports, module) {
         opts = {file: String(opts)};
       }
       var headers = opts.headers || {};
+      var filename = (typeof opts.filename == 'string') ? opts.filename : opts.file.split('/').pop();
       if (!opts.contentType && mimeTypes) {
-        var parts = opts.file.split('/').pop().split('.');
-        var ext = parts.length > 1 ? parts.pop().toLowerCase() : '';
+        var ext = getFileExt(filename);
         opts.contentType = mimeTypes[ext];
       }
       headers['Content-Type'] = opts.contentType || 'application/octet-stream';
       var contentDisp = [];
       if (opts.attachment) contentDisp.push('attachment');
       if (opts.filename) {
-        var filename = (typeof opts.filename == 'string') ? opts.filename : opts.file.split('/').pop();
         //strip double-quote and comma, replacing other invalid chars with ~
         filename = util.stripFilename(filename, '~', {'"': '', ',': ''});
         contentDisp.push('filename="' + filename + '"');
@@ -285,6 +284,11 @@ define('response', function(require, exports, module) {
     if (cookie.secure)
       out.push('Secure');
     return out.join('; ');
+  }
+
+  function getFileExt(filename) {
+    var parts = filename.split('/').pop().split('.');
+    return parts.length > 1 ? parts.pop().toLowerCase() : '';
   }
 
   function buildContentType(charset, contentType) {
