@@ -71,7 +71,7 @@ define('fs', function(require, fs) {
       return (enc) ? data.toString(enc) : data;
     },
     size: function() {
-      return this._stream.size;
+      return this._bytesTotal;
     },
     read: function() {
       while (this._bytesRead < this._bytesTotal) {
@@ -90,6 +90,7 @@ define('fs', function(require, fs) {
     var stream = this._stream = new ActiveXObject('ADODB.Stream');
     stream.open();
     stream.type = 2;
+    //todo: set encoding after we loadFromFile and get the _bytesTotal
     this.setEncoding(opts.encoding);
     try {
       stream.loadFromFile(app.mappath(file));
@@ -111,6 +112,10 @@ define('fs', function(require, fs) {
       var text = this._stream.readText();
       this._stream.close();
       return text;
+    },
+    size: function() {
+      //todo: this includes a BOM that may not actually exist
+      return this._stream.size;
     },
     read: function() {
       var text;

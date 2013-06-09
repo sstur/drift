@@ -170,6 +170,7 @@ define('response', function(require, exports, module) {
       var _super = this._super;
       if (_super.streamFile) {
         //allow the adapter to do things like X-Sendfile or X-Accel-Redirect
+        //todo: check file exists
         //todo: _writeHead has not been called, so we don't get cookies and response-time
         this.req.emit('end');
         _super.streamFile(path, this.response.headers);
@@ -219,11 +220,10 @@ define('response', function(require, exports, module) {
       if (isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
-      var headers = {};
-      //todo: stat the file for content-length and throw if not exists
+      var headers = opts.headers || {};
       if (!opts.contentType && mimeTypes) {
-        //todo: files that have no extension
-        var ext = opts.file.split('/').pop().split('.').pop().toLowerCase();
+        var parts = opts.file.split('/').pop().split('.');
+        var ext = parts.length > 1 ? parts.pop().toLowerCase() : '';
         opts.contentType = mimeTypes[ext];
       }
       headers['Content-Type'] = opts.contentType || 'application/octet-stream';

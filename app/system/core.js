@@ -220,8 +220,9 @@ var app, define;
     req.__init = Date.now();
     app.emit('request', req, res);
     router = new Router(routes);
-    var method = req.method(), url = req.url();
-    url = url.split('?')[0]; //strip query from raw (encoded) url
+    var method = req.method();
+    //get raw (encoded) path
+    var path = req.url('rawPath');
     util.propagateEvents(router, req, 'pre-route match-route no-route');
     //so routes an access `this.params` with combined request params
     req.on('match-route', function(routeData, params) {
@@ -236,7 +237,7 @@ var app, define;
         res.end('404', 'Not Found');
       }
     });
-    return router.route(method, url, req, res);
+    return router.route(method, path, req, res);
   }
 
   function loadModule(name) {
