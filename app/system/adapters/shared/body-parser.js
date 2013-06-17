@@ -14,7 +14,7 @@ define('body-parser', function(require, exports, module) {
   var MAX_BUFFER_SIZE = 1048576; //1 MB
 
   var join = path.join;
-  var hasOwn = Object.hasOwnProperty;
+  var _hasOwnProperty = Object.hasOwnProperty;
 
   function BodyParser(headers, read, opts) {
     this.opts = opts || {};
@@ -36,12 +36,12 @@ define('body-parser', function(require, exports, module) {
       //nothing to parse
       return this.parsed;
     }
-    this.type = this._headers['content-type'] || '';
-    this.type = this.type.toLowerCase().split(';')[0];
-    if (!this.type) {
+    var type = this._headers['content-type'] || '';
+    type = this.type = type.toLowerCase().split(';')[0];
+    if (!type) {
       throw '415 Content-Type Required';
     }
-    switch(this.type) {
+    switch(type) {
       case 'application/x-www-form-urlencoded':
         this.processFormBody();
         break;
@@ -88,8 +88,10 @@ define('body-parser', function(require, exports, module) {
     var headers = this._headers;
     var contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
     var part = new Part(headers, {
-      name: contentDisp.name || headers['x-name'] || 'file',
-      fileName: contentDisp.filename || headers['x-file-name'] || 'upload',
+      name: contentDisp.name || headers['x-name'] || '',
+      fileName: contentDisp.filename || headers['x-file-name'] || '',
+      //some upload libraries (jquery/blueimp) set content-type to "application/octet-stream"
+      // and use content-description for the file's actual content-type
       contentType: headers['content-description'] || headers['x-content-type'] || this.type
     }, this.opts);
     this.emit('file', part);
@@ -170,22 +172,26 @@ define('body-parser', function(require, exports, module) {
     part.end();
     var parsed = this.parsed, key = part.name.toLowerCase();
     if (part.type == 'file') {
-      //uploads by the same name get replaced
+      //uploads with the same name get replaced
       parsed[key] = part;
     } else {
-      parsed[key] = (hasOwn(parsed, key) ? parsed[key] + ', ' : '') + part.value;
+      //fields with the same name are concatenated
+      parsed[key] = (_hasOwnProperty.call(parsed, key) ? parsed[key] + ', ' : '') + part.value;
     }
   };
 
 
 
-  function Part(head, file, opts) {
+  function Part(head, parsed, opts) {
     this.headers = (typeof head == 'string') ? util.parseHeaders(head) : head;
     this._chunks = [];
-    file = file || parseFileHeaders(this.headers);
-    this.type = (file) ? 'file' : 'field';
-    if (file) {
-      this._initFile(file, opts);
+    parsed = parsed || parsePartHeaders(this.headers);
+    util.extend(this, parsed);
+    if ('fileName' in parsed) {
+      this.type = 'file';
+      this._initFile(parsed, opts);
+    } else {
+      this.type = 'field';
     }
   }
 
@@ -194,8 +200,6 @@ define('body-parser', function(require, exports, module) {
   Part.prototype._initFile = function(file, opts) {
     this.guid = getGuid();
     this._hash = md5.create();
-    this.size = 0;
-    util.extend(this, file);
     if (opts.autoSavePath) {
       var path = this.fullpath = join(opts.autoSavePath, this.guid);
       var writeStream = fs.createWriteStream(path);
@@ -222,7 +226,7 @@ define('body-parser', function(require, exports, module) {
   //to make Part a valid WriteStream
   Part.prototype.write = function(data) {
     if (this._finished) return;
-    this.size += data.length;
+    this.size = (this.size || 0) + data.length;
     if (this.type == 'file') {
       this._hash.update(data);
       if (this._events && this._events['data']) {
@@ -253,15 +257,14 @@ define('body-parser', function(require, exports, module) {
 
 
 
-  function parseFileHeaders(headers) {
-    var file, contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
+  function parsePartHeaders(headers) {
+    var contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
+    var parsed = {name: contentDisp.name || ''};
     if ('filename' in contentDisp) {
-      file = {};
-      file.name = contentDisp.name || 'file';
-      file.fileName = contentDisp.filename || 'upload';
-      file.contentType = headers['content-type'] || 'application/octet-stream';
+      parsed.fileName = contentDisp.filename || '';
+      parsed.contentType = headers['content-type'] || 'application/octet-stream';
     }
-    return file;
+    return parsed;
   }
 
   function getGuid() {

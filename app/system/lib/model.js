@@ -148,7 +148,11 @@ define('model', function(require, exports) {
       this[model.idField] = db.insert(model.tableName, model._mapToDB(data), true);
     },
     toJSON: function() {
-      return util.extend({}, this);
+      var result = {}, self = this;
+      forEach(this._model.fields, function(name, def) {
+        result[name] = (def && def.type == 'json') ? util.clone(self[name]) : self[name];
+      });
+      return result;
     }
   });
 
@@ -287,11 +291,15 @@ define('model', function(require, exports) {
   }
 
   function revive(obj, prop) {
-    var opts = obj[prop];
-    if (typeof opts == 'string') {
-      opts = obj[prop] = util.parse(opts || '{}'); //catch empty string
+    var data = obj[prop];
+    if (typeof data == 'string') {
+      try {
+        data = obj[prop] = util.parse(data || '{}'); //catch empty string
+      } catch(e) {
+        data = {};
+      }
     }
-    return opts || (obj[prop] = {}); //catch null
+    return data || (obj[prop] = {}); //catch null
   }
 
 });

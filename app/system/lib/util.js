@@ -21,6 +21,11 @@ define('util', function(require, util) {
     return dest;
   };
 
+  util.clone = function(obj) {
+    //todo: fix this
+    return JSON.parse(JSON.stringify(obj));
+  };
+
   util.inherits = function(ctor, parent) {
     ctor.super_ = parent;
     ctor.prototype = Object.create(parent.prototype, {

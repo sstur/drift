@@ -188,7 +188,7 @@
     fields.update();
     mail.to = opts.to;
     mail.from = opts.from || 'no-reply@localhost';
-    mail.subject = opts.subject;
+    mail.subject = (opts.subject || '').replace('%HOSTNAME%', getItem('host'));
     if (opts.textBody) mail.textBody = opts.textBody;
     if (opts.htmlBody) mail.htmlBody = opts.htmlBody;
     try {

@@ -109,7 +109,7 @@
     opts._end = [];
     opts.target = config.target ? config.target + '.asp' : 'build/app.asp';
   } else {
-    //build for wscript (repl)
+    //build for wscript repl
     opts._pre = [
       '<package><job id="job">'
     ];
