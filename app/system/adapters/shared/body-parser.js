@@ -257,6 +257,15 @@ define('body-parser', function(require, exports, module) {
     delete this._events;
   };
 
+  Part.prototype.isFile = function() {
+    return (this.type == 'file');
+  };
+
+  Part.prototype.saveTo = function(path) {
+    fs.moveFile(this.fullpath, path);
+    this.fullpath = path;
+  };
+
 
 
   function parsePartHeaders(headers) {

@@ -23,7 +23,7 @@ define('util', function(require, util) {
 
   util.clone = function(obj) {
     //todo: fix this
-    return JSON.parse(JSON.stringify(obj));
+    return util.parse(util.stringify(obj));
   };
 
   util.inherits = function(ctor, parent) {
@@ -120,6 +120,7 @@ define('util', function(require, util) {
 
 
   //strip a filename to be ascii-safe
+  // used in Content-Disposition header
   util.stripFilename = function(filename, ch, map) {
     ch = ch || '';
     var safe = String(filename);
