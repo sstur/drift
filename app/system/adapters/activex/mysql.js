@@ -15,22 +15,32 @@ define('mysql', function(require, exports) {
     if (name in connections) {
       conn = connections[name];
     } else {
-      conn = new ActiveXObject("ADODB.Connection");
+      conn = connections[name] = new ActiveXObject("ADODB.Connection");
     }
     if (conn.state == 0) {
-      try {
-        conn.open(this._cstr);
-      } catch(e) {
-        var message = cleanError(e.message);
-        //todo: "Table 'db.tbl' doesn't exist"
-        if (message.match(/^Could not find table/i)) {
-          //todo: create table
-          this.isNew = true;
+      (function open() {
+        try {
           conn.open(this._cstr);
-        } else {
-          throw e;
+          if (app.cfg('debug_open_connections')) {
+            var openConnections = app.data('debug:open_connections') || 0;
+            app.data('debug:open_connections', openConnections + 1);
+          }
+        } catch(e) {
+          var message = cleanError(e.message);
+          //todo: "Table 'db.tbl' doesn't exist"
+          if (message.match(/^Could not find table/i)) {
+            //todo: create table
+            this.isNew = true;
+            conn.open(this._cstr);
+          } else
+          if (message.match(/^Can't create a new thread/i)) {
+            //this is a strange error on IIS6; just try again
+            open.call(this);
+          } else {
+            throw e;
+          }
         }
-      }
+      }).call(this);
     }
     this._conn = conn;
   }
@@ -331,7 +341,13 @@ define('mysql', function(require, exports) {
 
   app.on('end', function() {
     forEach(connections, function(name, conn) {
-      if (conn.state != 0) conn.close();
+      if (conn.state != 0) {
+        conn.close();
+        if (app.cfg('debug_open_connections')) {
+          var openConnections = app.data('debug:open_connections') || 1;
+          app.data('debug:open_connections', openConnections - 1);
+        }
+      }
     });
   });
 

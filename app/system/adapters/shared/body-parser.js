@@ -200,7 +200,7 @@ define('body-parser', function(require, exports, module) {
   app.eventify(Part.prototype);
 
   Part.prototype._initFile = function(file, opts) {
-    this.guid = getGuid();
+    this.guid = util.getUniqueHex();
     this._hash = md5.create();
     if (opts.autoSavePath) {
       var path = this.fullpath = join(opts.autoSavePath, this.guid);
@@ -287,14 +287,6 @@ define('body-parser', function(require, exports, module) {
     id += 1;
     while (_hasOwnProperty.call(obj, key + id)) id += 1;
     return key + id;
-  }
-
-  function getGuid() {
-    var chars = '';
-    for (var i = 0; i < 32; i++) {
-      chars += Math.floor(Math.random() * 16).toString(16);
-    }
-    return chars;
   }
 
 });

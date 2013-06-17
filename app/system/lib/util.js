@@ -82,6 +82,20 @@ define('util', function(require, util) {
     });
   };
 
+  //returns a unique 16 byte value in hex
+  util.getUniqueHex = function() {
+    return (Date.now().toString(16) + util.hexBytes(11)).slice(0, 32);
+  };
+
+  //returns random bytes as hex
+  util.hexBytes = function(bytes) {
+    var hex = '', n = bytes * 2;
+    for (var i = 0; i < n; i++) {
+      hex += Math.floor(Math.random() * 16).toString(16);
+    }
+    return hex;
+  };
+
   //log to the filesystem: util.log([logLevel], line1, [line2..], [logfile])
   //if logLevel is specified, it will log only if logVerbosity is set at least that high
   util.log = function() {
