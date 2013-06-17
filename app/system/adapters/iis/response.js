@@ -36,9 +36,6 @@ define('adapter-response', function(require, exports, module) {
             _super.addHeader(n, val);
         }
       });
-      if (app.cfg('debug_open_connections')) {
-        _super.addHeader('X-Debug-DB-Connections', app.data('debug:open_connections') || 'None');
-      }
       _super.buffer = false;
     },
     write: function(data) {
