@@ -227,7 +227,7 @@ define('body-parser', function(require, exports, module) {
 
   //to make Part a valid WriteStream
   Part.prototype.write = function(data) {
-    if (this._finished) return;
+    if (!this._chunks) return;
     this.size = (this.size || 0) + data.length;
     if (this.type == 'file') {
       this._hash.update(data);
@@ -244,8 +244,7 @@ define('body-parser', function(require, exports, module) {
   };
 
   Part.prototype.end = function() {
-    if (this._finished) return;
-    this._finished = true;
+    if (!this._chunks) return;
     if (this.type == 'file') {
       this.md5 = this._hash.digest('hex');
       delete this._hash;
@@ -255,6 +254,7 @@ define('body-parser', function(require, exports, module) {
       this.value = data.toString('utf8');
     }
     delete this._chunks;
+    delete this._events;
   };
 
 
