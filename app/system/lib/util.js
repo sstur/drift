@@ -3,7 +3,34 @@ define('util', function(require, util) {
   "use strict";
 
   var slice = Array.prototype.slice;
+  var toString = Object.prototype.toString;
   var dataPath = app.cfg('data_dir') || 'data/';
+
+  //0: log all, 1: errors only, 2: warnings, 3: trace
+  var logVerbosity = app.cfg('logging/verbosity');
+
+  //regex literals for json helpers
+  var REG_CHARS = /[^\x20-\x7E]/g;
+  var REG_ERROR = /^new Error\((.*)\)$/;
+  var REG_ISODATE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)Z$/;
+
+  //regex literals for html decoding
+  var REG_ENT_DEC = /&#(\d+);/g;
+  var REG_ENT_HEX = /&#x((?:[\dA-F]{2}){1,2});/ig;
+  var REG_ENT_OTHER = /&([a-z]+);/ig;
+
+  //type-specific clone helpers
+  var CLONE = {
+    'Array': function() {
+      return Array.prototype.map.call(o, clone);
+    },
+    'Date': function() {
+      return new Date(this.valueOf());
+    },
+    'String': String.prototype.valueOf,
+    'Number': Number.prototype.valueOf,
+    'Boolean': Boolean.prototype.valueOf
+  };
 
   util.inspect = function() {
     var inspector = require('inspector');
@@ -22,8 +49,7 @@ define('util', function(require, util) {
   };
 
   util.clone = function(obj) {
-    //todo: fix this
-    return util.parse(util.stringify(obj));
+    return clone(obj);
   };
 
   util.inherits = function(ctor, parent) {
@@ -55,9 +81,6 @@ define('util', function(require, util) {
       dest.end();
     });
   };
-
-  //0: log all, 1: errors only, 2: warnings, 3: trace
-  var logVerbosity = app.cfg('logging/verbosity');
 
   //log to the filesystem: util.log([logLevel], line1, [line2..], [logfile])
   //if logLevel is specified, it will log only if logVerbosity is set at least that high
@@ -158,10 +181,6 @@ define('util', function(require, util) {
     return str;
   };
 
-  var REG_ENT_DEC = /&#(\d+);/g;
-  var REG_ENT_HEX = /&#x((?:[\dA-F]{2}){1,2});/ig;
-  var REG_ENT_OTHER = /&([a-z]+);/ig;
-
   util.htmlDec = function(str) {
     str = String(str);
     str = str.replace(REG_ENT_DEC, function(ent, n) {
@@ -186,7 +205,7 @@ define('util', function(require, util) {
   //extend JSON.stringify to special case Error
   //and always encode extended characters to ascii
   util.stringify = function(obj) {
-    return JSON.stringify(obj, replacer).replace(REG_CHARS, encodeChars);
+    return JSON.stringify(obj, replacer).replace(REG_CHARS, escapeNonAscii);
   };
 
   //extend JSON.parse to handle Date, Buffer and Error
@@ -194,13 +213,11 @@ define('util', function(require, util) {
     return JSON.parse(str, reviver);
   };
 
-  var REG_CHARS = /[^\x20-\x7E]/g;
-  var REG_ERROR = /^new Error\((.*)\)$/;
-  var REG_ISODATE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)Z$/;
+
 
   function replacer(key, val) {
-    //this function runs after .toJSON() so Buffer objects, for instance, are already stringified
-    if (vartype(val) == 'error') {
+    //this function runs after .toJSON() so Buffer instances are already stringified
+    if (toString.call(val) == '[object Error]') {
       return 'new Error(' + JSON.stringify(val.message) + ')';
     }
     return val;
@@ -222,8 +239,8 @@ define('util', function(require, util) {
     return val;
   }
 
-  //encode extended characters escape sequences
-  function encodeChars(ch) {
+  //escape extended characters escape sequences
+  function escapeNonAscii(ch) {
     return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
   }
 
@@ -236,6 +253,27 @@ define('util', function(require, util) {
         return unescape(s);
       }
     });
+  }
+
+  //deep-copy an object, similar to calling JSON.parse(JSON.stringify(obj)) but preserves dates and undefined
+  function clone(obj) {
+    if (isPrimitive(obj)) return obj;
+    if (typeof obj.toJSON == 'function') {
+      return obj.toJSON();
+    }
+    var type = toString.call(obj).slice(8, -1);
+    if (type in CLONE) {
+      return CLONE[type].call(obj);
+    }
+    var copy = {};
+    Object.keys(obj).forEach(function(key) {
+      copy[key] = clone(obj[key]);
+    });
+    return copy;
+  }
+
+  function isPrimitive(o) {
+    return !(Object(o) === o);
   }
 
 

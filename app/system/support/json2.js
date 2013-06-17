@@ -18,7 +18,7 @@
   var toString = Object.prototype.toString;
 
   var REPLACERS = {
-    Date: function(key) {
+    'Date': function(key) {
       var val = this.valueOf();
       return isFinite(val) ?
         this.getUTCFullYear() + '-' +
@@ -29,9 +29,9 @@
           f2(this.getUTCSeconds()) + '.' +
           f3(val % 1000) + 'Z' : null;
     },
-    String: String.prototype.valueOf,
-    Number: Number.prototype.valueOf,
-    Boolean: Boolean.prototype.valueOf
+    'String': String.prototype.valueOf,
+    'Number': Number.prototype.valueOf,
+    'Boolean': Boolean.prototype.valueOf
   };
 
   var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
