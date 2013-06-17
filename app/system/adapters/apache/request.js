@@ -47,12 +47,12 @@ define('adapter-request', function(require, exports, module) {
     _read: function(bytes) {
       return new Buffer(this._super.read(bytes));
     },
-    parseReqBody: function(emitter) {
+    parseReqBody: function(parent) {
       var opts = {
-        autoSavePath: app.cfg('auto_save_uploads')
+        autoSavePath: parent.autoSavePath || app.cfg('auto_save_uploads')
       };
       var parser = new BodyParser(this.getHeaders(), this._read.bind(this), opts);
-      util.propagateEvents(parser, emitter, 'file upload-progress');
+      util.propagateEvents(parser, parent, 'file upload-progress');
       return parser.parse();
     }
   });

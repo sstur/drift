@@ -52,9 +52,9 @@ define('adapter-request', function(require, exports, module) {
       }
       return new Buffer(bin);
     },
-    parseReqBody: function(emitter) {
+    parseReqBody: function(parent) {
       var opts = {
-        autoSavePath: app.cfg('auto_save_uploads')
+        autoSavePath: parent.autoSavePath || app.cfg('auto_save_uploads')
       };
       var parser = new BodyParser(this.getHeaders(), this._read.bind(this), opts);
       var scriptTimeout;
@@ -63,7 +63,7 @@ define('adapter-request', function(require, exports, module) {
           scriptTimeout = iis.server.scriptTimeout = app.cfg('upload_timeout') || 3600;
         }
       });
-      util.propagateEvents(parser, emitter, 'file upload-progress');
+      util.propagateEvents(parser, parent, 'file upload-progress');
       return parser.parse();
     }
   });

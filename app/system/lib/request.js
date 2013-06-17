@@ -65,7 +65,6 @@ define('request', function(require, exports, module) {
           if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
             this.res.die(e);
           } else {
-            throw e;
             this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
           }
         }

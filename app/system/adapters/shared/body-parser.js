@@ -171,12 +171,14 @@ define('body-parser', function(require, exports, module) {
   BodyParser.prototype._finalizePart = function(part) {
     part.end();
     var parsed = this.parsed, key = part.name.toLowerCase();
+    var exists = _hasOwnProperty.call(parsed, key);
     if (part.type == 'file') {
-      //uploads with the same name get replaced
+      //append a number to key if we have multiple with the same name
+      if (exists) key = getUniqueKey(parsed, key);
       parsed[key] = part;
     } else {
-      //fields with the same name are concatenated
-      parsed[key] = (_hasOwnProperty.call(parsed, key) ? parsed[key] + ', ' : '') + part.value;
+      //non-file fields are flattened; those with the same name are concatenated
+      parsed[key] = (exists ? parsed[key] + ', ' : '') + part.value;
     }
   };
 
@@ -265,6 +267,17 @@ define('body-parser', function(require, exports, module) {
       parsed.contentType = headers['content-type'] || 'application/octet-stream';
     }
     return parsed;
+  }
+
+  function getUniqueKey(obj, key) {
+    var id = 0;
+    key = key.replace(/\d+$/, function(key, num) {
+      id = parseInt(num, 10);
+      return '';
+    });
+    id += 1;
+    while (_hasOwnProperty.call(obj, key + id)) id += 1;
+    return key + id;
   }
 
   function getGuid() {
