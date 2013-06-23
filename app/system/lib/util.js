@@ -88,6 +88,7 @@ define('util', function(require, util) {
   };
 
   //returns random bytes as hex
+  //  todo: we need to somehow seed this; maybe an incrementer stored in app.data()
   util.hexBytes = function(bytes) {
     var hex = '', n = bytes * 2;
     for (var i = 0; i < n; i++) {

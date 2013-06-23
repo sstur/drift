@@ -28,9 +28,11 @@ define('adapter-request', function(require, exports, module) {
       return method;
     },
     getURL: function() {
+      //todo: these header names should be specified in cfg e.g. "original_url_header"
+      //if the original url (pathname) is in a header
       var url = this._get('X-Rewrite-URL') || this._get('X-Original-URL');
       if (app.cfg('virtual_url') || !url) {
-        //url path embedded in query
+        //else we assume it's embedded in the query string (IIS 404 method)
         url = this._get('Query-String').match(REG_URL).pop() || '/';
       }
       return url;

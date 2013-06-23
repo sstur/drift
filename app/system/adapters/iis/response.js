@@ -46,6 +46,7 @@ define('adapter-response', function(require, exports, module) {
       }
     },
     end: function() {
+      //todo: move this to _writeHead ?
       app.emit('end');
       this._super.end();
     }

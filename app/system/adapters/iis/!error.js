@@ -174,9 +174,11 @@
   }
 
   function sendEmail(opts) {
-    var mail = new ActiveXObject('CDO.Message')
-      , fields = mail.configuration.fields
-      , prefix = 'http://schemas.microsoft.com/cdo/configuration/';
+    var mail = new ActiveXObject('CDO.Message');
+    var host = getItem('host');
+    var domain = host.replace(/^www\./, '') || 'localhost';
+    var fields = mail.configuration.fields;
+    var prefix = 'http://schemas.microsoft.com/cdo/configuration/';
     fields.item(prefix + 'sendusing').value = 2;
     fields.item(prefix + 'smtpserver').value = opts['smtp/host'] || 'localhost';
     fields.item(prefix + 'smtpserverport').value = opts['smtp/port'] || '25';
@@ -187,14 +189,13 @@
     }
     fields.update();
     mail.to = opts.to;
-    mail.from = opts.from || 'no-reply@localhost';
-    mail.subject = (opts.subject || '').replace('%HOSTNAME%', getItem('host'));
+    mail.from = opts.from || 'no-reply@' + domain;
+    mail.subject = (opts.subject || 'Server Error').replace('%HOSTNAME%', host);
     if (opts.textBody) mail.textBody = opts.textBody;
     if (opts.htmlBody) mail.htmlBody = opts.htmlBody;
     try {
       mail.send();
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
 })(Request, Response, Server, [/*SRCMAP*/], {/*CONFIG*/});

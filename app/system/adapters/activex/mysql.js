@@ -6,85 +6,39 @@ define('mysql', function(require, exports) {
 
   var RE_NONASCII = /[\x00-\x1f\x7f-\xff\u0100-\uffff]+/g;
   var RE_UNICODE = /[\x7f-\xff\u0100-\uffff]+/g;
-  var namedConnections = app.cfg('mysql/connections') || {};
+  var connectionStrings = app.cfg('mysql/connections') || {};
   var connections = {};
 
-  function Connection(name, conn_str) {
-    this._cstr = conn_str;
-    var conn;
-    if (name in connections) {
-      conn = connections[name];
-    } else {
-      conn = connections[name] = new ActiveXObject("ADODB.Connection");
-    }
-    if (conn.state == 0) {
-      try {
-        conn.open(this._cstr);
-      } catch(e) {
-        var message = cleanError(e.message);
-        //todo: "Table 'db.tbl' doesn't exist"
-        if (message.match(/^Could not find table/i)) {
-          //todo: create table
-          this.isNew = true;
-          conn.open(this._cstr);
-        } else {
-          throw e;
-        }
+  function Connection(name, connStr) {
+    //todo: build connection string from connection uri
+    this._cstr = connStr;
+    this._conn = (name in connections) ? connections[name] : new ActiveXObject('ADODB.Connection');
+    try {
+      this.open();
+    } catch(e) {
+      var message = cleanError(e);
+      //todo: log error?
+      //IIS creating too many connections; try again?
+      if (message.match(/^Can't create a new thread/i)) {
+        this.open();
+      } else {
+        throw new Error('MySQL: Error opening Connection: ' + message);
       }
     }
-    this._conn = conn;
+    
   }
-
-  function Query(conn, str, params) {
-    this.str = str;
-    this.conn = conn;
-    this.params = params;
-  }
-
-  util.extend(Query.prototype, {
-    getSQL: function() {
-      return this.sql || (this.sql = buildSQL(this.str, this.params));
-    },
-    each: function(func) {
-      var sql = this.getSQL();
-      util.log(3, sql, 'mysql');
-      try {
-        var rs = this.conn.execute(sql);
-      } catch (e) {
-        throw new Error('SQL Statement Could not be executed. ' + cleanError(e.message) + '\r\n' + sql);
-      }
-      var abort = false, i = 0;
-      if (rs.state) {
-        while (!rs.eof && !abort) {
-          var rec = {};
-          enumerate(rs.fields, function(i, field) {
-            rec[field.name] = fromADO(field.value);
-          });
-          abort = ( func(rec, i++) === false );
-          rs.movenext();
-        }
-        rs.close();
-      }
-      return this;
-    },
-    getOne: function() {
-      var rec;
-      this.each(function(r) {
-        rec = r;
-        return false;
-      });
-      return rec;
-    },
-    getAll: function() {
-      var arr = [];
-      this.each(function(r) {
-        arr.push(r);
-      });
-      return arr;
-    }
-  });
 
   util.extend(Connection.prototype, {
+    open: function() {
+      var conn = this._conn;
+      if (conn.state == 0) {
+        conn.open(this._cstr);
+        if (app.cfg('debug_open_connections')) {
+          var openConnections = app.data('debug:open_connections') || 0;
+          app.data('debug:open_connections', openConnections + 1);
+        }
+      }
+    },
     query: function(str, params, func) {
       if (arguments.length == 1) {
         params = [];
@@ -118,7 +72,7 @@ define('mysql', function(require, exports) {
           conn.execute(sql, i, 128);
         }
       } catch (e) {
-        throw new Error('SQL Statement Could not be executed. ' + cleanError(e.message) + '\r\n' + sql);
+        throw new Error('SQL Statement Could not be executed. ' + cleanError(e) + '\r\n' + sql);
       }
       if (returnAffected) {
         if (String(sql).match(/^INSERT/i)) {
@@ -134,7 +88,63 @@ define('mysql', function(require, exports) {
     },
     close: function() {
       var conn = this._conn;
-      if (conn.state != 0) conn.close();
+      if (conn.state != 0) {
+        conn.close();
+        if (app.cfg('debug_open_connections')) {
+          var openConnections = app.data('debug:open_connections') || 1;
+          app.data('debug:open_connections', openConnections - 1);
+        }
+      }
+    }
+  });
+
+
+  function Query(conn, str, params) {
+    this.str = str;
+    this.conn = conn;
+    this.params = params;
+  }
+
+  util.extend(Query.prototype, {
+    getSQL: function() {
+      return this.sql || (this.sql = buildSQL(this.str, this.params));
+    },
+    each: function(func) {
+      var sql = this.getSQL();
+      util.log(3, sql, 'mysql');
+      try {
+        var rs = this.conn.execute(sql);
+      } catch (e) {
+        throw new Error('SQL Statement Could not be executed. ' + cleanError(e) + '\r\n' + sql);
+      }
+      var abort = false, i = 0;
+      if (rs.state) {
+        while (!rs.eof && !abort) {
+          var rec = {};
+          enumerate(rs.fields, function(i, field) {
+            rec[field.name] = fromADO(field.value);
+          });
+          abort = ( func(rec, i++) === false );
+          rs.movenext();
+        }
+        rs.close();
+      }
+      return this;
+    },
+    getOne: function() {
+      var rec;
+      this.each(function(r) {
+        rec = r;
+        return false;
+      });
+      return rec;
+    },
+    getAll: function() {
+      var arr = [];
+      this.each(function(r) {
+        arr.push(r);
+      });
+      return arr;
     }
   });
 
@@ -324,29 +334,29 @@ define('mysql', function(require, exports) {
     }
   }
 
-  function cleanError(message) {
-    message = String(message);
-    return message.replace(/^(\[[^\]]+\])+/, '');
+  function cleanError(e) {
+    var message = (e && typeof e.message == 'string') ? e.message : '';
+    return message.replace(/^(\[(.*?)\])+/, '');
   }
 
   app.on('end', function() {
     forEach(connections, function(name, conn) {
       if (conn.state != 0) {
         conn.close();
+        if (app.cfg('debug_open_connections')) {
+          var openConnections = app.data('debug:open_connections') || 1;
+          app.data('debug:open_connections', openConnections - 1);
+        }
       }
     });
   });
 
-  exports.open = function(conn_name, initFunc) {
-    var conn_str = namedConnections[conn_name || 'default'];
-    if (!conn_str) {
-      throw new Error('Invalid MySQL Connection');
+  exports.open = function(name) {
+    var connStr = connectionStrings[name || 'default'];
+    if (!connStr) {
+      throw new Error('MySQL: Invalid Named Connection: ' + name);
     }
-    var conn = new Connection(conn_name, conn_str);
-    if (conn.isNew && initFunc) {
-      initFunc(conn);
-    }
-    return conn;
+    return new Connection(name, connStr);
   };
 
 });
