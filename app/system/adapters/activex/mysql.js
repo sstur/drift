@@ -7,12 +7,12 @@ define('mysql', function(require, exports) {
   var RE_NONASCII = /[\x00-\x1f\x7f-\xff\u0100-\uffff]+/g;
   var RE_UNICODE = /[\x7f-\xff\u0100-\uffff]+/g;
   var connectionStrings = app.cfg('mysql/connections') || {};
-  var connections = {};
+  var connections = [];
 
-  function Connection(name, connStr) {
+  function Connection(connStr) {
     //todo: build connection string from connection uri
     this._cstr = connStr;
-    this._conn = (name in connections) ? connections[name] : new ActiveXObject('ADODB.Connection');
+    this._conn = new ActiveXObject('ADODB.Connection');
     try {
       this.open();
     } catch(e) {
@@ -25,7 +25,7 @@ define('mysql', function(require, exports) {
         throw new Error('MySQL: Error opening Connection: ' + message);
       }
     }
-    
+    connections.push(this);
   }
 
   util.extend(Connection.prototype, {
@@ -340,14 +340,8 @@ define('mysql', function(require, exports) {
   }
 
   app.on('end', function() {
-    forEach(connections, function(name, conn) {
-      if (conn.state != 0) {
-        conn.close();
-        if (app.cfg('debug_open_connections')) {
-          var openConnections = app.data('debug:open_connections') || 1;
-          app.data('debug:open_connections', openConnections - 1);
-        }
-      }
+    forEach(connections, function(i, connection) {
+      connection.close();
     });
   });
 
@@ -356,7 +350,7 @@ define('mysql', function(require, exports) {
     if (!connStr) {
       throw new Error('MySQL: Invalid Named Connection: ' + name);
     }
-    return new Connection(name, connStr);
+    return new Connection(connStr);
   };
 
 });
