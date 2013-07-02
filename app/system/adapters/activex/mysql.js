@@ -18,7 +18,7 @@ define('mysql', function(require, exports) {
     } catch(e) {
       var message = cleanError(e);
       //todo: log error?
-      //IIS creating too many connections; try again?
+      //too many open connections; try again?
       if (message.match(/^Can't create a new thread/i)) {
         this.open();
       } else {
