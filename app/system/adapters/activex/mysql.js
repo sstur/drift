@@ -7,23 +7,19 @@ define('mysql', function(require, exports) {
   var RE_NONASCII = /[\x00-\x1f\x7f-\xff\u0100-\uffff]+/g;
   var RE_UNICODE = /[\x7f-\xff\u0100-\uffff]+/g;
   var connectionStrings = app.cfg('mysql/connections') || {};
+  var adodbConnections = {};
   var connections = [];
 
   function Connection(connStr) {
     //todo: build connection string from connection uri
     this._cstr = connStr;
-    this._conn = new ActiveXObject('ADODB.Connection');
+    this._conn = adodbConnections[connStr] || (adodbConnections[connStr] = new ActiveXObject('ADODB.Connection'));
     try {
       this.open();
     } catch(e) {
       var message = cleanError(e);
       //todo: log error?
-      //too many open connections; try again?
-      if (message.match(/^Can't create a new thread/i)) {
-        this.open();
-      } else {
-        throw new Error('MySQL: Error opening Connection: ' + message);
-      }
+      throw new Error('MySQL: Error opening Connection: ' + message);
     }
     connections.push(this);
   }

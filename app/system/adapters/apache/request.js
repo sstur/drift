@@ -49,7 +49,7 @@ define('adapter-request', function(require, exports, module) {
     },
     parseReqBody: function(parent) {
       var opts = {
-        autoSavePath: parent.autoSavePath || app.cfg('auto_save_uploads')
+        autoSavePath: ('autoSavePath' in parent) ? parent.autoSavePath : app.cfg('auto_save_uploads')
       };
       var parser = new BodyParser(this.getHeaders(), this._read.bind(this), opts);
       util.propagateEvents(parser, parent, 'file upload-progress');

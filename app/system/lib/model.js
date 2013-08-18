@@ -79,7 +79,6 @@ define('model', function(require, exports) {
       var rec = db.query(built.sql, built.values).getOne();
       return rec ? this.create(rec) : null;
     },
-    //todo: opts.start and opts.limit
     findAll: function(params, opts) {
       params = params ? this._mapToDB(params) : {};
       var built = buildSelect(this, params, opts);
