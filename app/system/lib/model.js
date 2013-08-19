@@ -70,6 +70,13 @@ define('model', function(require, exports) {
       instance.insert();
       return instance;
     },
+    updateWhere: function(data, params, opts) {
+      params = this._mapToDB(params);
+      opts = opts || {};
+      var built = buildUpdateWhere(this, data, params);
+      var db = mysql.open();
+      return db.exec(built.sql, built.values, opts.returnAffected);
+    },
     find: function(params, opts) {
       params = this._mapToDB(params);
       opts = opts || {};
@@ -212,6 +219,22 @@ define('model', function(require, exports) {
     var model = instance._model;
     var sql = 'UPDATE `' + model.tableName + '` SET ' + terms.join(', ') + ' WHERE `' + model.dbIdField + '` = ?';
     values.push(instance[model.idField]);
+    return {sql: sql, values: values};
+  }
+
+  function buildUpdateWhere(model, data, params) {
+    var terms = [];
+    var values = [];
+    forEach(data, function(n, val) {
+      terms.push('`' + n + '` = ?');
+      values.push(val);
+    });
+    var sql = 'UPDATE `' + model.tableName + '` SET ' + terms.join(', ');
+    var where = buildWhere(params);
+    if (where.terms.length) {
+      sql += ' WHERE ' + where.terms.join(' AND ');
+      values.push.apply(values, where.values);
+    }
     return {sql: sql, values: values};
   }
 
