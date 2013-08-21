@@ -21,8 +21,8 @@ define('util', function(require, util) {
 
   //type-specific clone helpers
   var CLONE = {
-    'Array': function() {
-      return Array.prototype.map.call(o, clone);
+    'Array': function(clone) {
+      return Array.prototype.map.call(this, clone);
     },
     'Date': function() {
       return new Date(this.valueOf());
@@ -48,9 +48,7 @@ define('util', function(require, util) {
     return dest;
   };
 
-  util.clone = function(obj) {
-    return clone(obj);
-  };
+  util.clone = clone;
 
   util.inherits = function(ctor, parent) {
     ctor.super_ = parent;
@@ -278,7 +276,7 @@ define('util', function(require, util) {
     }
     var type = toString.call(obj).slice(8, -1);
     if (type in CLONE) {
-      return CLONE[type].call(obj);
+      return CLONE[type].call(obj, clone);
     }
     var copy = {};
     Object.keys(obj).forEach(function(key) {
