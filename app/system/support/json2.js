@@ -1,5 +1,6 @@
-//when compiled this is in a closure, so implicit declaration
-// produces a global which can be used inside eval
+//note: when compiled for server-side the whole file is wrapped in a function, so
+// implicit declaration produces a global (can be used inside eval) and when
+// compiled for client-side the comments get removed and we get a global anyway
 /*@remove{*/var JSON;/*}@*/
 (function() {
 
