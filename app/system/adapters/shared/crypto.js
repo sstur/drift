@@ -936,14 +936,16 @@ define('crypto', function (require, crypto) {
     this._super = hasher.create();
   }
 
-  Hash.prototype.udpate = function(data, enc) {
+  Hash.prototype.update = function(data, enc) {
     data = Buffer.apply(null, arguments).toString('binary');
-    this._super.udpate(data)
+    this._super.update(data)
   };
 
-  Hash.prototype.digest = function() {
+  Hash.prototype.digest = function(enc) {
     var wordArray = this._super.finalize();
-    return new Buffer(wordArray.toString(Raw), 'binary');
+    var result = new Buffer(wordArray.toString(Raw), 'binary');
+    if (enc) result = result.toString(enc);
+    return result;
   };
 
   crypto.createHash = function(type) {
@@ -963,14 +965,16 @@ define('crypto', function (require, crypto) {
     this._super = HMAC.create(hasher, key.toString('binary'));
   }
 
-  Hmac.prototype.udpate = function(data, enc) {
+  Hmac.prototype.update = function(data, enc) {
     data = Buffer.apply(null, arguments).toString('binary');
-    this._super.udpate(data)
+    this._super.update(data)
   };
 
-  Hmac.prototype.digest = function() {
+  Hmac.prototype.digest = function(enc) {
     var wordArray = this._super.finalize();
-    return new Buffer(wordArray.toString(Raw), 'binary');
+    var result = new Buffer(wordArray.toString(Raw), 'binary');
+    if (enc) result = result.toString(enc);
+    return result;
   };
 
   crypto.createHmac = function(type, key, enc) {

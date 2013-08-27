@@ -4,10 +4,9 @@ define('body-parser', function(require, exports, module) {
 
   var fs = require('fs');
   var qs = require('qs');
-  var md5 = require('md5');
   var path = require('path');
   var util = require('util');
-  var Buffer = require('buffer').Buffer;
+  var crypto = require('crypto');
 
   var CHUNK_SIZE = 1024;
   var MAX_HEADER_SIZE = 4096; //4 KB
@@ -201,7 +200,7 @@ define('body-parser', function(require, exports, module) {
 
   Part.prototype._initFile = function(file, opts) {
     this.guid = util.getUniqueHex();
-    this._hash = md5.create();
+    this._hash = crypto.createHash('md5');
     if (opts.autoSavePath) {
       var path = this.fullpath = join(opts.autoSavePath, this.guid);
       var writeStream = fs.createWriteStream(path);
