@@ -43,9 +43,6 @@ define('crypto', function (require, crypto) {
           subtype.mixIn(overrides);
         }
 
-        // Reference supertype
-        subtype.$super = this;
-
         return subtype;
       },
 
@@ -108,19 +105,6 @@ define('crypto', function (require, crypto) {
         if (properties.hasOwnProperty('toString')) {
           this.toString = properties.toString;
         }
-      },
-
-      /**
-       * Creates a copy of this object.
-       *
-       * @return {Object} The clone.
-       *
-       * @example
-       *
-       *   var clone = instance.clone();
-       */
-      clone: function () {
-        return this.$super.extend(this);
       }
     };
   })();
@@ -241,7 +225,7 @@ define('crypto', function (require, crypto) {
      *   var clone = wordArray.clone();
      */
     clone: function () {
-      var clone = Base.clone.call(this);
+      var clone = WordArray.extend(this);
       clone.words = this.words.slice(0);
 
       return clone;
@@ -424,22 +408,6 @@ define('crypto', function (require, crypto) {
       return WordArray.create(processedWords, nBytesReady);
     },
 
-    /**
-     * Creates a copy of this object.
-     *
-     * @return {Object} The clone.
-     *
-     * @example
-     *
-     *   var clone = bufferedBlockAlgorithm.clone();
-     */
-    clone: function () {
-      var clone = Base.clone.call(this);
-      clone._data = this._data.clone();
-
-      return clone;
-    },
-
     _minBufferSize: 0
   });
 
@@ -523,22 +491,6 @@ define('crypto', function (require, crypto) {
       this._doFinalize();
 
       return this._hash;
-    },
-
-    /**
-     * Creates a copy of this object.
-     *
-     * @return {Object} The clone.
-     *
-     * @example
-     *
-     *   var clone = hasher.clone();
-     */
-    clone: function () {
-      var clone = BufferedBlockAlgorithm.clone.call(this);
-      clone._hash = this._hash.clone();
-
-      return clone;
     },
 
     blockSize: 512/32
