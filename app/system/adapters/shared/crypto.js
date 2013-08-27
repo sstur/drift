@@ -889,8 +889,8 @@ define('crypto', function (require, crypto) {
   }
 
   Hash.prototype.update = function(data, enc) {
-    data = Buffer.apply(null, arguments).toString('binary');
-    this._super.update(data)
+    data = new Buffer(data, enc);
+    this._super.update(data.toString('binary'));
   };
 
   Hash.prototype.digest = function(enc) {
@@ -912,14 +912,14 @@ define('crypto', function (require, crypto) {
   /**
    * createHmac conforming to Node API
    */
-  function Hmac(hasher, key) {
-    //here key is expected to be a buffer
+  function Hmac(hasher, key, enc) {
+    key = new Buffer(key, enc);
     this._super = HMAC.create(hasher, key.toString('binary'));
   }
 
   Hmac.prototype.update = function(data, enc) {
-    data = Buffer.apply(null, arguments).toString('binary');
-    this._super.update(data)
+    data = new Buffer(data, enc);
+    this._super.update(data.toString('binary'));
   };
 
   Hmac.prototype.digest = function(enc) {
@@ -930,12 +930,11 @@ define('crypto', function (require, crypto) {
   };
 
   crypto.createHmac = function(type, key, enc) {
-    key = new Buffer(key, enc).toString('binary');
     var hasher = crypto['Hash_' + type.toUpperCase()];
     if (!hasher) {
       throw new Error('Invalid Hashing Algorithm: ' + type);
     }
-    return new Hmac(hasher, key);
+    return new Hmac(hasher, key, enc);
   };
 
 
