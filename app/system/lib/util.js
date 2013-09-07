@@ -38,7 +38,7 @@ define('util', function(require, util) {
   };
 
   util.extend = function() {
-    var args = Array.toArray(arguments), dest = args.shift();
+    var args = toArray(arguments), dest = args.shift();
     args.forEach(function(src) {
       if (!src) return;
       Object.keys(src).forEach(function(key) {
@@ -170,7 +170,7 @@ define('util', function(require, util) {
     safe = safe.replace(/[\\\/:*?<>|&]+/g, ch);
     //these have special meaning in Content-Disposition header
     safe = safe.replace(/[%",]+/g, ch);
-    //non-ascii / extended characters
+    //ascii "del" and unicode characters
     safe = safe.replace(/[\u007E-\uFFFF]+/g, ch);
     if (ch) {
       //replace duplicate separators
@@ -182,12 +182,12 @@ define('util', function(require, util) {
   };
 
 
-  util.htmlEnc = function(str, /**Boolean=true*/ attr) {
+  util.htmlEnc = function(str, /**Boolean=true*/ isAttr) {
     str = String(str);
     str = str.replace(/&/g, '&amp;');
     str = str.replace(/>/g, '&gt;');
     str = str.replace(/</g, '&lt;');
-    if (attr !== false) {
+    if (isAttr !== false) {
       str = str.replace(/"/g, '&quot;');
     }
     str = str.replace(/\u00a0/g, '&nbsp;');

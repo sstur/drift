@@ -200,7 +200,12 @@ define('body-parser', function(require, exports, module) {
 
   Part.prototype._initFile = function(file, opts) {
     this.guid = util.getUniqueHex();
-    this._hash = crypto.createHash('md5');
+    var hashType = (opts.hash === false) ? null : (opts.hash || 'md5');
+    if (hashType) {
+      this._hash = crypto.createHash(hashType);
+      //note: kinda hacky; used once below
+      this._hash.type = hashType;
+    }
     if (opts.autoSavePath) {
       var path = this.fullpath = join(opts.autoSavePath, this.guid);
       var writeStream = fs.createWriteStream(path);
@@ -244,8 +249,10 @@ define('body-parser', function(require, exports, module) {
 
   Part.prototype.end = function() {
     if (!this._chunks) return;
-    if (this.type == 'file') {
-      this.md5 = this._hash.digest('hex');
+    if (this._hash) {
+      this.hash = this._hash.digest('hex');
+      //for legacy code that expects file.md5
+      this[this._hash.type] = this.hash;
       delete this._hash;
       this.emit('end');
     } else {

@@ -1,5 +1,11 @@
 /*global app, iis */
 var console, Buffer;
+
+//this is outside the closure so it gets hoisted
+function getEnvironment() {
+  return (iis.server.scriptTimeout == 91) ? 'development' : 'production';
+}
+
 (function(require) {
   "use strict";
 

@@ -912,7 +912,7 @@ define('crypto', function (require, crypto) {
   crypto.createHash = function(type) {
     var hasher = crypto['Hash_' + type.toUpperCase()];
     if (!hasher) {
-      throw new Error('Invalid Hashing Algorithm: ' + type);
+      throw new Error('Digest method not supported: ' + type);
     }
     return new Hash(hasher);
   };
@@ -941,7 +941,7 @@ define('crypto', function (require, crypto) {
   crypto.createHmac = function(type, key, enc) {
     var hasher = crypto['Hash_' + type.toUpperCase()];
     if (!hasher) {
-      throw new Error('Invalid Hashing Algorithm: ' + type);
+      throw new Error('Digest method not supported: ' + type);
     }
     return new Hmac(hasher, key, enc);
   };
@@ -956,7 +956,7 @@ define('crypto', function (require, crypto) {
     return hasher.digest();
   };
 
-  crypto.hmac = function(type, data, key, enc) {
+  crypto.hmac = function(type, key, data, enc) {
     var hasher = crypto.createHmac(type, key, enc);
     hasher.update(data, enc);
     return hasher.digest();
