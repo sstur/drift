@@ -19,14 +19,14 @@ define('router', function(require, exports, module) {
   }
   app.eventify(Router.prototype);
 
-  Router.prototype.addRoute = function(route, handler) {
-    this._routes.push(parseRoute(route, handler));
+  Router.prototype.addRoute = function(route, handler, opts) {
+    this._routes.push(parseRoute(route, handler, opts));
   };
 
   Router.prototype.addRoutes = function(arr) {
     var router = this;
     arr.forEach(function(definition) {
-      router.addRoute(definition.route, definition.handler);
+      router.addRoute(definition.route, definition.handler, definition.opts);
     });
   };
 
@@ -45,12 +45,14 @@ define('router', function(require, exports, module) {
       }
       if (typeof item.route == 'string') {
         if (url == item.route) {
+          routeData.opts = item.opts || {};
           router.emit('match-route', routeData, {});
           item.handler(routeData, routeArgs);
         }
       } else {
         var matches = item.route.exec(url);
         if (matches) {
+          routeData.opts = item.opts || {};
           var params = getNamedParams(matches.slice(1), item.paramNames);
           router.emit('match-route', routeData, params);
           item.handler(routeData, routeArgs, params);
@@ -62,7 +64,7 @@ define('router', function(require, exports, module) {
   };
 
   //Parse the given route, returning http-method, regular expression and handler
-  var parseRoute = function(route, fn) {
+  var parseRoute = function(route, fn, opts) {
     var parsed = {}, names = [], type = typeof route, m;
     if (type == 'string' && (m = RE_VERB.exec(route))) {
       parsed.method = m[1];
@@ -74,6 +76,7 @@ define('router', function(require, exports, module) {
       params = params || {};
       return fn.apply(routeData, routeArgs.concat(Object.values(params)));
     };
+    parsed.opts = opts;
     return parsed;
   };
 
