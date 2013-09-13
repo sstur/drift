@@ -124,7 +124,9 @@ define('util', function(require, util) {
 
 
   //parse a set of HTTP headers
+  // todo: multi-line headers
   util.parseHeaders = function(raw) {
+    //raw = raw.replace(/[ \t]*(\r\n)[ \t]+/, ' ');
     var headers = {}, all = raw.split('\r\n');
     for (var i = 0; i < all.length; i++) {
       var header = all[i], pos = header.indexOf(':');

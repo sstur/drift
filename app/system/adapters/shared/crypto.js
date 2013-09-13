@@ -900,6 +900,7 @@ define('crypto', function (require, crypto) {
   Hash.prototype.update = function(data, enc) {
     data = new Buffer(data, enc);
     this._super.update(data.toString('binary'));
+    return this;
   };
 
   Hash.prototype.digest = function(enc) {
@@ -929,6 +930,7 @@ define('crypto', function (require, crypto) {
   Hmac.prototype.update = function(data, enc) {
     data = new Buffer(data, enc);
     this._super.update(data.toString('binary'));
+    return this;
   };
 
   Hmac.prototype.digest = function(enc) {
