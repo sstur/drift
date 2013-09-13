@@ -44,6 +44,14 @@ define('model', function(require, exports) {
       util.extend(RecordClass.prototype, opts.instanceMethods);
     }
     RecordClass.prototype._model = this;
+    var getters = opts.getters;
+    if (getters) {
+      //this makes specified getters available in view engine
+      RecordClass.prototype._get = function(key) {
+        var getter = getters[key];
+        return (getter && this[getter]) ? this[getter]() : null;
+      };
+    }
     this.RecordClass = RecordClass;
   }
   exports.Model = Model;
