@@ -2,7 +2,7 @@
 var console, Buffer;
 
 //this is outside the closure so it gets hoisted
-function getEnvironment() {
+function getEnv() {
   return (iis.server.scriptTimeout == 91) ? 'development' : 'production';
 }
 

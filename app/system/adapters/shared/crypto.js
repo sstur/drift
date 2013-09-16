@@ -6,8 +6,6 @@
  */
 /*global define, Buffer */
 define('crypto', function (require, crypto) {
-  //var Buffer = require('buffer').Buffer;
-
   /**
    * Base object for prototypal inheritance.
    */
