@@ -195,6 +195,7 @@ define('response', function(require, exports, module) {
         headers['Content-Length'] = readStream.size();
         this.headers(headers);
         util.pipe(readStream, this.getWriteStream());
+        readStream.read();
       }
     },
     end: function() {
