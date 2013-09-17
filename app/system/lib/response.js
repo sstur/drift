@@ -6,7 +6,6 @@ define('response', function(require, exports, module) {
 
   var fs = require('fs');
   var util = require('util');
-  var Buffer = require('buffer').Buffer;
 
   var RE_CTYPE = /^[\w-]+\/[\w-]+$/;
   var RE_STATUS = /^\d{3}\b/;
@@ -65,7 +64,7 @@ define('response', function(require, exports, module) {
   util.extend(Response.prototype, {
     clear: function(type, status) {
       //reset response buffer
-      this.response = {
+      this.buffer = {
         status: status || '200 OK',
         headers: {'Content-Type': type || 'text/plain'},
         charset: 'utf-8',
@@ -79,20 +78,20 @@ define('response', function(require, exports, module) {
       if (arguments.length) {
         status = String(status);
         if (status.match(RE_STATUS) && (status.slice(0, 3) in statusCodes)) {
-          this.response.status = status;
+          this.buffer.status = status;
         }
       }
-      return this.response.status;
+      return this.buffer.status;
     },
     charset: function(charset) {
       if (arguments.length) {
-        return this.response.charset = charset;
+        return this.buffer.charset = charset;
       } else {
-        return this.response.charset;
+        return this.buffer.charset;
       }
     },
     headers: function(n, val) {
-      var headers = this.response.headers;
+      var headers = this.buffer.headers;
       //return headers
       if (arguments.length == 0) {
         return headers;
@@ -124,17 +123,17 @@ define('response', function(require, exports, module) {
       //don't write anything for head requests
       if (this.req.method('head')) return;
       if (isPrimitive(data)) {
-        this.response.body.push(String(data));
+        this.buffer.body.push(String(data));
       } else
       if (Buffer.isBuffer(data)) {
-        this.response.body.push(data);
+        this.buffer.body.push(data);
       } else {
         //stringify returns undefined in some cases
-        this.response.body.push(JSON.stringify(data) || '');
+        this.buffer.body.push(JSON.stringify(data) || '');
       }
     },
 
-    //these use the functions above to manipulate the response buffer
+    //these use the methods above to manipulate the response buffer
     contentType: function(type) {
       //hack to override application/json -> text/plain
       //if (type == 'application/json' && !this.req.isAjax()) {}
@@ -146,7 +145,7 @@ define('response', function(require, exports, module) {
     cookies: function(n, val) {
       //cookies are a case-sensitive collection that will be serialized into
       // Set-Cookie header(s) when response is sent
-      var cookies = this.response.cookies;
+      var cookies = this.buffer.cookies;
       if (arguments.length == 0) {
         return cookies;
       }
@@ -161,40 +160,41 @@ define('response', function(require, exports, module) {
       cookies[n] = cookie;
     },
 
-    //these methods interface with the adapter (_super)
-    _writeHead: function() {
-      var headers = this.response.headers, cookies = this.response.cookies;
+    //this preps the headers to be sent using _writeHead or _streamFile
+    _prepHeaders: function() {
+      var headers = this.buffer.headers;
+      var cookies = this.buffer.cookies;
       Object.keys(cookies).forEach(function(n) {
         headers['Set-Cookie'] = serializeCookie(cookies[n]);
       });
-      headers['Content-Type'] = buildContentType(this.response.charset, headers['Content-Type']);
+      headers['Content-Type'] = buildContentType(this.buffer.charset, headers['Content-Type']);
       if (log_response_time && this.req.__init) {
         headers['X-Response-Time'] = new Date().valueOf() - this.req.__init.valueOf();
       }
+    },
+
+    //these methods interface with the adapter (_super)
+    _writeHead: function() {
+      this._prepHeaders();
       this.req.emit('end');
-      var status = this.response.status;
-      var statusCode = status.slice(0, 3);
-      var statusReason = status.slice(4) || statusCodes[status];
-      this._super.writeHead(statusCode, statusReason, headers);
+      var status = parseStatus(this.buffer.status);
+      this._super.writeHead(status.code, status.reason, this.buffer.headers);
     },
     _streamFile: function(path, headers) {
       var _super = this._super;
       if (_super.streamFile) {
         //allow the adapter to do things like X-Sendfile or X-Accel-Redirect
         //todo: check file exists
-        //todo: _writeHead has not been called, so we don't get cookies and response-time
+        this.headers(headers);
+        this._prepHeaders();
         this.req.emit('end');
-        _super.streamFile(path, this.response.headers);
+        var status = parseStatus(this.buffer.status);
+        _super.streamFile(status.code, status.reason, this.buffer.headers, path);
       } else {
         var readStream = fs.createReadStream(path);
         headers['Content-Length'] = readStream.size();
         this.headers(headers);
-        this._writeHead();
-        readStream.on('data', function(data) {
-          _super.write(data);
-        });
-        readStream.read();
-        _super.end();
+        util.pipe(readStream, this.getWriteStream());
       }
     },
     end: function() {
@@ -211,7 +211,7 @@ define('response', function(require, exports, module) {
       this._writeHead();
       //write the buffered response
       var _super = this._super;
-      this.response.body.forEach(function(chunk) {
+      this.buffer.body.forEach(function(chunk) {
         _super.write(chunk);
       });
       _super.end();
@@ -293,6 +293,14 @@ define('response', function(require, exports, module) {
     }
   });
 
+
+  function parseStatus(status) {
+    var statusCode = status.slice(0, 3);
+    return {
+      code: statusCode,
+      reason: status.slice(4) || statusCodes[statusCode]
+    }
+  }
 
   function serializeCookie(cookie) {
     var out = [];
