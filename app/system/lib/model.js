@@ -105,6 +105,21 @@ define('model', function(require, exports) {
       });
       return results;
     },
+    findEach: function(params, opts, fn) {
+      if (typeof opts == 'function') {
+        fn = opts;
+        opts = {};
+      }
+      params = params ? this._mapToDB(params) : {};
+      var built = buildSelect(this, params, opts);
+      var db = mysql.open();
+      var query = db.query(built.sql, built.values);
+      var self = this;
+      var i = 0;
+      query.each(function(rec) {
+        fn(self.create(rec), i++);
+      });
+    },
     count: function(params) {
       params = this._mapToDB(params);
       var built = buildCount(this, params);

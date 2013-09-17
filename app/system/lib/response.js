@@ -45,6 +45,17 @@ define('response', function(require, exports, module) {
   //short list of common mime-types
   var mimeTypes = app.cfg('mime_types');
 
+  var htmlRedirect = [
+    '<html>',
+    '<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=URL"/></head>',
+    '<body onload="location.replace(document.getElementsByTagName(\'meta\')[0].content.slice(6))">',
+    '<noscript><p>If you are not redirected, <a href="URL">Click Here</a></p></noscript>',
+    //add padding to prevent "friendly" error messages in certain browsers
+    new Array(15).join('<' + '!-- PADDING --' + '>'),
+    '</body>',
+    '</html>'
+  ].join('\r\n');
+
 
   function Response(res) {
     this._super = res;
@@ -161,9 +172,9 @@ define('response', function(require, exports, module) {
         headers['X-Response-Time'] = new Date().valueOf() - this.req.__init.valueOf();
       }
       this.req.emit('end');
-      var status = this.response.status
-        , statusCode = status.slice(0, 3)
-        , statusReason = status.slice(4) || statusCodes[status];
+      var status = this.response.status;
+      var statusCode = status.slice(0, 3);
+      var statusReason = status.slice(4) || statusCodes[status];
       this._super.writeHead(statusCode, statusReason, headers);
     },
     _streamFile: function(path, headers) {
@@ -216,6 +227,9 @@ define('response', function(require, exports, module) {
       this.write(util.inspect(data, 4));
       this.end();
     },
+    getWriteStream: function() {
+      return new ResponseWriteStream(this.req, this);
+    },
     sendFile: function(opts) {
       if (isPrimitive(opts)) {
         opts = {file: String(opts)};
@@ -260,16 +274,25 @@ define('response', function(require, exports, module) {
     }
   });
 
-  var htmlRedirect = [
-    '<html>',
-    '<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=URL"/></head>',
-    '<body onload="location.replace(document.getElementsByTagName(\'meta\')[0].content.slice(6))">',
-    '<noscript><p>If you are not redirected, <a href="URL">Click Here</a></p></noscript>',
-    //add padding to prevent "friendly" error messages in certain browsers
-    new Array(15).join('<' + '!-- PADDING --' + '>'),
-    '</body>',
-    '</html>'
-  ].join('\r\n');
+
+  function ResponseWriteStream(req, res) {
+    this.req = req;
+    this.res = res;
+  }
+
+  util.extend(ResponseWriteStream.prototype, {
+    write: function(data) {
+      if (!this.started) {
+        this.res._writeHead();
+        this.started = true;
+      }
+      this.res._super.write(data);
+    },
+    end: function() {
+      this.res._super.end();
+    }
+  });
+
 
   function serializeCookie(cookie) {
     var out = [];
