@@ -153,7 +153,6 @@ define('model', function(require, exports) {
       var query = db.query(built.sql, built.values);
       var results = [], i = 0;
       query.each(function(rec) {
-        app.debug(rec);
         var items = self._parseResult(rec);
         fn ? fn.apply(null, items.concat(i++)) : results.push(items);
       });
@@ -168,7 +167,7 @@ define('model', function(require, exports) {
         results[field.name] = value;
       });
       return this.models.map(function(model) {
-        var data = resultSets[model.tableName];
+        var data = resultSets[model.tableName] || {};
         return model.create(data);
       });
     },
