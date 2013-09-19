@@ -157,33 +157,18 @@ define('model', function(require, exports) {
       });
       return fn ? null : results;
     },
-    //create model instances from query result
-    _parseResult: function(rec, map) {
-      var resultSets = {};
-      rec.forEach(function(value, i) {
-        var model = map[i][0];
-        var fieldName = map[i][1];
-        var results = resultSets[model.tableName] || (resultSets[model.tableName] = {});
-        results[fieldName] = value;
-      });
-      return this.models.map(function(model) {
-        var data = resultSets[model.tableName] || {};
-        return model.create(data);
-      });
-    },
     _buildSelect: function(params, opts) {
       opts = opts || {};
-      var allFieldNames = [];
+      var selectTerms = [];
       var modelFields = [];
       this.models.forEach(function(model) {
         var fieldNames = opts.fields && opts.fields[model.tableName] || model.fieldNames;
         fieldNames.forEach(function(field) {
           modelFields.push([model, field]);
-          var dbFieldName = model._mapToDB(field);
-          allFieldNames.push(buildTableField(model.tableName, dbFieldName));
+          selectTerms.push(buildTableField(model.tableName, model._mapToDB(field)));
         });
       });
-      var sql = 'SELECT ' + allFieldNames.join(', ') + ' FROM ' + this._buildRelationships(opts);
+      var sql = 'SELECT ' + selectTerms.join(', ') + ' FROM ' + this._buildRelationships(opts);
       var where = buildWhere(params);
       if (where.terms.length) {
         sql += ' WHERE ' + where.terms.join(' AND ');
@@ -211,6 +196,20 @@ define('model', function(require, exports) {
         thisModel = thatModel;
       });
       return results.join(' ');
+    },
+    //create model instances from query result
+    _parseResult: function(rec, map) {
+      var resultSets = {};
+      rec.forEach(function(value, i) {
+        var model = map[i][0];
+        var fieldName = map[i][1];
+        var results = resultSets[model.tableName] || (resultSets[model.tableName] = {});
+        results[fieldName] = value;
+      });
+      return this.models.map(function(model) {
+        var data = resultSets[model.tableName] || {};
+        return model.create(data);
+      });
     }
   });
 
