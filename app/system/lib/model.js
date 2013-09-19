@@ -28,40 +28,48 @@ define('model', function(require, exports) {
       }
     });
     this.fieldMap = opts.fieldMap || {};
-    this.reverseFieldMap = invert(opts.fieldMap);
+    this.reverseFieldMap = invert(this.fieldMap);
     this.dbFieldNames = Object.keys(this._mapToDB(fields));
-    this.dbIdField = opts.dbIdField || this.reverseFieldMap[this.idField] || this.idField;
+    this.dbIdField = opts.dbIdField || this._mapToDB(this.idField);
     this.autoIncrement = opts.autoIncrement;
     if (opts.classMethods) {
       util.extend(this, opts.classMethods);
     }
-    //record instances are of self class
-    function RecordClass(data) {
-      return Record.apply(this, arguments);
+    //record instances are of class Record
+    function Record(data) {
+      return RecordBase.apply(this, arguments);
     }
-    util.inherits(RecordClass, Record);
+    util.inherits(Record, RecordBase);
     if (opts.instanceMethods) {
-      util.extend(RecordClass.prototype, opts.instanceMethods);
+      util.extend(Record.prototype, opts.instanceMethods);
     }
-    RecordClass.prototype._model = this;
+    Record.prototype._model = this;
     var getters = opts.getters;
     if (getters) {
       //this makes specified getters available in view engine
-      RecordClass.prototype._get = function(key) {
+      Record.prototype._get = function(key) {
         var getter = getters[key];
         return (getter && this[getter]) ? this[getter]() : null;
       };
     }
-    this.RecordClass = RecordClass;
+    this.Record = Record;
   }
   exports.Model = Model;
 
   util.extend(Model.prototype, {
     _mapFromDB: function(obj) {
-      return mapKeys(obj, this.fieldMap);
+      var map = this.fieldMap;
+      if (typeof obj == 'string') {
+        return map[obj] || obj;
+      }
+      return mapKeys(obj, map);
     },
     _mapToDB: function(obj) {
-      return mapKeys(obj, this.reverseFieldMap);
+      var map = this.reverseFieldMap;
+      if (typeof obj == 'string') {
+        return map[obj] || obj;
+      }
+      return mapKeys(obj, map);
     },
     _reviveFields: function(rec) {
       this.jsonFields.forEach(function(fieldName) {
@@ -71,7 +79,7 @@ define('model', function(require, exports) {
     create: function(rec) {
       rec = this._mapFromDB(rec);
       this._reviveFields(rec);
-      return new this.RecordClass(rec);
+      return new this.Record(rec);
     },
     insert: function(data) {
       var instance = this.create(data);
@@ -94,31 +102,17 @@ define('model', function(require, exports) {
       var rec = db.query(built.sql, built.values).getOne();
       return rec ? this.create(rec) : null;
     },
-    findAll: function(params, opts) {
+    findAll: function(params, opts, fn) {
       params = params ? this._mapToDB(params) : {};
       var built = buildSelect(this, params, opts);
       var db = mysql.open();
       var query = db.query(built.sql, built.values);
-      var results = [], self = this;
+      var results = [], self = this, i = 0;
       query.each(function(rec) {
-        results.push(self.create(rec));
+        rec = self.create(rec);
+        fn ? fn(rec, i++) : results.push(rec);
       });
-      return results;
-    },
-    findEach: function(params, opts, fn) {
-      if (typeof opts == 'function') {
-        fn = opts;
-        opts = {};
-      }
-      params = params ? this._mapToDB(params) : {};
-      var built = buildSelect(this, params, opts);
-      var db = mysql.open();
-      var query = db.query(built.sql, built.values);
-      var self = this;
-      var i = 0;
-      query.each(function(rec) {
-        fn(self.create(rec), i++);
-      });
+      return fn ? null : results;
     },
     count: function(params) {
       params = this._mapToDB(params);
@@ -126,16 +120,111 @@ define('model', function(require, exports) {
       var db = mysql.open();
       var rec = db.query(built.sql, built.values).getOne();
       return rec.count;
+    },
+    join: function() {
+      var joinedSet = new JoinedSet(this);
+      joinedSet.join.apply(joinedSet, arguments);
+      return joinedSet;
     }
   });
 
-  function Record(data) {
+  function JoinedSet(model) {
+    this.models = [];
+    this.relationships = [];
+    this.addModel(model);
+  }
+  exports.Joined = JoinedSet;
+
+  //todo: buildTableField on model proto? unmap field names?
+  util.extend(JoinedSet.prototype, {
+    addModel: function(model) {
+      this.models.push(model);
+    },
+    join: function(thisField, thatModel, thatField) {
+      this.addModel(thatModel);
+      this.relationships.push([thisField, thatField]);
+      return this;
+    },
+    findAll: function(params, opts, fn) {
+      var self = this;
+      //todo: params = params ? this._mapToDB(params) : {};
+      var built = this._buildSelect(params, opts);
+      var db = mysql.open();
+      var query = db.query(built.sql, built.values);
+      var results = [], i = 0;
+      query.each(function(rec) {
+        app.debug(rec);
+        var items = self._parseResult(rec);
+        fn ? fn.apply(null, items.concat(i++)) : results.push(items);
+      });
+      return fn ? null : results;
+    },
+    //create multiple model instances from a query result
+    _parseResult: function(rec) {
+      var resultSets = {};
+      forEach(rec, function(field, value) {
+        field = parseTableField(field);
+        var results = resultSets[field.table] || (resultSets[field.table] = {});
+        results[field.name] = value;
+      });
+      return this.models.map(function(model) {
+        var data = resultSets[model.tableName];
+        return model.create(data);
+      });
+    },
+    _buildSelect: function(params, opts) {
+      var models = this.models;
+      opts = opts || {};
+      var allFieldNames = [];
+      models.forEach(function(model) {
+        var fields = model.fields, dbFieldNames = model.dbFieldNames;
+        //optionally select only certain fields
+        if (opts.fields && opts.fields.length) {
+          fields = filterObject(fields, opts.fields);
+          dbFieldNames = Object.keys(model._mapToDB(fields));
+        }
+        dbFieldNames.forEach(function(dbFieldName) {
+          allFieldNames.push(buildTableField(model.tableName, dbFieldName));
+        });
+      });
+      var sql = 'SELECT ' + allFieldNames.join(', ') + ' FROM ' + this._buildRelationships(opts);
+      var where = buildWhere(params);
+      if (where.terms.length) {
+        sql += ' WHERE ' + where.terms.join(' AND ');
+      }
+      var values = where.values;
+      //todo: opts.search
+      if (opts.orderBy) {
+        //todo: var orderBy = model._mapToDB(opts.orderBy);
+        sql += ' ORDER BY `' + opts.orderBy + '`' + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
+      }
+      if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
+      if (opts.offset) sql += ' OFFSET ' + opts.offset;
+      return {sql: sql, values: values};
+    },
+    _buildRelationships: function(opts) {
+      var rels = this.relationships;
+      var models = this.models.slice();
+      var thisModel = models.shift();
+      var results = ['`' + thisModel.tableName + '`'];
+      models.forEach(function(thatModel, i) {
+        var rel = rels[i];
+        var thisField = thisModel._mapToDB(rel[0]);
+        var thatField = thatModel._mapToDB(rel[1]);
+        results.push('INNER JOIN `' + thatModel.tableName + '` ON ' + buildTableField(thisModel.tableName, thisField) + ' = ' + buildTableField(thatModel.tableName, thatField));
+        thisModel = thatModel;
+      });
+      return results.join(' ');
+    }
+  });
+
+  function RecordBase(data) {
     util.extend(this, data);
     if (this.init) this.init();
   }
-  exports.Record = Record;
+  exports.Record = RecordBase;
 
-  util.extend(Record.prototype, {
+  util.extend(RecordBase.prototype, {
     update: function(data) {
       var model = this._model;
       if (data) {
@@ -215,12 +304,24 @@ define('model', function(require, exports) {
       sql += ' AND (' + searchTerms.join(' OR ') + ')';
     }
     if (opts.orderBy && (opts.orderBy in fields)) {
-      var orderBy = model.reverseFieldMap[opts.orderBy] || opts.orderBy;
+      var orderBy = model._mapToDB(opts.orderBy);
       sql += ' ORDER BY `' + orderBy + '`' + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
     }
     if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
     if (opts.offset) sql += ' OFFSET ' + opts.offset;
     return {sql: sql, values: values};
+  }
+
+  function buildTableField(table, name) {
+    return '`' + table + '`.`' + name + '`';
+  }
+
+  //parse 'table.name' -> {table: 'table', name: 'name'}
+  function parseTableField(field) {
+    //todo: unescape?
+    var parsed = field.split('.');
+    if (parsed.length < 2) parsed.unshift('');
+    return {table: parsed[0], name: parsed[1]};
   }
 
   function buildCount(model, params) {
