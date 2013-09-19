@@ -35,16 +35,14 @@ define('mysql', function(require, exports) {
         }
       }
     },
-    query: function(str, params, func) {
-      if (arguments.length == 1) {
-        params = [];
+    query: function(str /*, [params], [opts], [func] */) {
+      var args = Array.prototype.slice.call(arguments);
+      if (args[args.length - 1] == 'function') {
+        var func = args.pop();
       }
-      if (vartype(params) == 'function') {
-        func = params;
-        params = [];
-      }
-      var query = new Query(this._conn, str, params);
-      //Apply passed in function
+      var opts = (args.length > 2) ? args.pop() : {};
+      var params = (args.length > 1) ? args.pop() : [];
+      var query = new Query(this._conn, str, params, opts);
       if (func) query.each(func);
       return query;
     },
@@ -95,10 +93,11 @@ define('mysql', function(require, exports) {
   });
 
 
-  function Query(conn, str, params) {
+  function Query(conn, str, params, opts) {
     this.str = str;
     this.conn = conn;
     this.params = params;
+    this.opts = opts || {};
   }
 
   util.extend(Query.prototype, {
@@ -115,12 +114,18 @@ define('mysql', function(require, exports) {
       }
       var abort = false, i = 0;
       if (rs.state) {
+        var opts = this.opts;
         while (!rs.eof && !abort) {
-          var rec = {};
+          var rec = opts.array ? [] : {};
           enumerate(rs.fields, function(i, field) {
-            rec[field.name] = fromADO(field.value);
+            var value = fromADO(field.value);
+            if (opts.array) {
+              rec.push(value);
+            } else {
+              rec[field.name] = value;
+            }
           });
-          abort = ( func(rec, i++) === false );
+          abort = (func(rec, i++) === false);
           rs.movenext();
         }
         rs.close();
