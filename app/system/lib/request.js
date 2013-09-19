@@ -51,7 +51,7 @@ define('request', function(require, exports, module) {
     query: function(n) {
       var query = this._query || (this._query = qs.parse(this.url('qs')));
       if (arguments.length) {
-        return query[n] || '';
+        return query[n.toLowerCase()] || '';
       } else {
         return query;
       }
