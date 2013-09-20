@@ -76,7 +76,13 @@ define('model', function(require, exports) {
         revive(rec, fieldName);
       });
     },
+    _getTableField: function(field) {
+      return '`' + this.tableName + '`.`' + this._mapToDB(field) + '`';
+    },
     create: function(rec) {
+      return new this.Record(rec);
+    },
+    createFromDB: function(rec) {
       rec = this._mapFromDB(rec);
       this._reviveFields(rec);
       return new this.Record(rec);
@@ -100,7 +106,7 @@ define('model', function(require, exports) {
       var built = buildSelect(this, params, opts);
       var db = mysql.open();
       var rec = db.query(built.sql, built.values).getOne();
-      return rec ? this.create(rec) : null;
+      return rec ? this.createFromDB(rec) : null;
     },
     findAll: function(params, opts, fn) {
       params = params ? this._mapToDB(params) : {};
@@ -109,7 +115,7 @@ define('model', function(require, exports) {
       var query = db.query(built.sql, built.values);
       var results = [], self = this, i = 0;
       query.each(function(rec) {
-        rec = self.create(rec);
+        rec = self.createFromDB(rec);
         fn ? fn(rec, i++) : results.push(rec);
       });
       return fn ? null : results;
@@ -121,10 +127,10 @@ define('model', function(require, exports) {
       var rec = db.query(built.sql, built.values).getOne();
       return rec.count;
     },
+    //see JoinedSet#join for method signature
     join: function() {
       var joinedSet = new JoinedSet(this);
-      joinedSet.join.apply(joinedSet, arguments);
-      return joinedSet;
+      return joinedSet.join.apply(joinedSet, arguments);
     }
   });
 
@@ -135,15 +141,25 @@ define('model', function(require, exports) {
   }
   exports.Joined = JoinedSet;
 
-  //todo: buildTableField on model proto? unmap field names?
   util.extend(JoinedSet.prototype, {
     addModel: function(model) {
       this.models.push(model);
     },
-    join: function(thisField, thatModel, thatField) {
-      this.addModel(thatModel);
-      this.relationships.push([thisField, thatField]);
-      return this;
+    //this is kind of a funky way to allow us to do:
+    // `Account.join(User).on('account.user_id', 'user.id')`
+    // anything before the . is sugar, so it is the same as
+    // `Account.join(User).on('user_id', 'id')`
+    join: function(thatModel) {
+      var self = this;
+      return {
+        on: function(thisField, thatField) {
+          thisField = thisField.split('.').pop();
+          thatField = thatField.split('.').pop();
+          self.addModel(thatModel);
+          self.relationships.push([thisField, thatField]);
+          return self;
+        }
+      };
     },
     findAll: function(params, opts, fn) {
       var self = this;
@@ -159,13 +175,14 @@ define('model', function(require, exports) {
     },
     _buildSelect: function(params, opts) {
       opts = opts || {};
+      var dbFieldMap = [];
       var selectTerms = [];
-      var modelFields = [];
       this.models.forEach(function(model) {
+        //todo: opts.fields should not use tableName
         var fieldNames = opts.fields && opts.fields[model.tableName] || model.fieldNames;
         fieldNames.forEach(function(field) {
-          modelFields.push([model, field]);
-          selectTerms.push(buildTableField(model.tableName, model._mapToDB(field)));
+          dbFieldMap.push([model, model._mapToDB(field)]);
+          selectTerms.push(model._getTableField(field));
         });
       });
       var sql = 'SELECT ' + selectTerms.join(', ') + ' FROM ' + this._buildRelationships(opts);
@@ -181,7 +198,7 @@ define('model', function(require, exports) {
       }
       if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
       if (opts.offset) sql += ' OFFSET ' + opts.offset;
-      return {sql: sql, values: values, map: modelFields};
+      return {sql: sql, values: values, map: dbFieldMap};
     },
     _buildRelationships: function(opts) {
       var rels = this.relationships;
@@ -190,9 +207,7 @@ define('model', function(require, exports) {
       var results = ['`' + thisModel.tableName + '`'];
       models.forEach(function(thatModel, i) {
         var rel = rels[i];
-        var thisField = thisModel._mapToDB(rel[0]);
-        var thatField = thatModel._mapToDB(rel[1]);
-        results.push('INNER JOIN `' + thatModel.tableName + '` ON ' + buildTableField(thisModel.tableName, thisField) + ' = ' + buildTableField(thatModel.tableName, thatField));
+        results.push('INNER JOIN `' + thatModel.tableName + '` ON ' + thisModel._getTableField(rel[0]) + ' = ' + thatModel._getTableField(rel[1]));
         thisModel = thatModel;
       });
       return results.join(' ');
@@ -208,7 +223,7 @@ define('model', function(require, exports) {
       });
       return this.models.map(function(model) {
         var data = resultSets[model.tableName] || {};
-        return model.create(data);
+        return model.createFromDB(data);
       });
     }
   });
@@ -305,18 +320,6 @@ define('model', function(require, exports) {
     if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
     if (opts.offset) sql += ' OFFSET ' + opts.offset;
     return {sql: sql, values: values};
-  }
-
-  function buildTableField(table, name) {
-    return '`' + table + '`.`' + name + '`';
-  }
-
-  //parse 'table.name' -> {table: 'table', name: 'name'}
-  function parseTableField(field) {
-    //todo: unescape?
-    var parsed = field.split('.');
-    if (parsed.length < 2) parsed.unshift('');
-    return {table: parsed[0], name: parsed[1]};
   }
 
   function buildCount(model, params) {
