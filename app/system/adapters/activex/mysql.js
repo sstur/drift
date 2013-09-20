@@ -6,6 +6,16 @@ define('mysql', function(require, exports) {
 
   var RE_NONASCII = /[\x00-\x1f\x7f-\xff\u0100-\uffff]+/g;
   var RE_UNICODE = /[\x7f-\xff\u0100-\uffff]+/g;
+  var REG_ESC_UNICODE = /%u([0-9a-f]{4})/ig;
+  var WIN1252 = {"2013": "96", "2014": "97", "2018": "91", "2019": "92", "2020": "86", "2021": "87", "2022": "95",
+    "2026": "85", "2030": "89", "2039": "8b", "2122": "99", "20AC": "80", "201A": "82", "0192": "83", "201E": "84",
+    "02C6": "88", "0160": "8a", "0152": "8c", "017D": "8e", "201C": "93", "201D": "94", "02DC": "98", "0161": "9a",
+    "203A": "9b", "0153": "9c", "017E": "9e", "0178": "9f"};
+  var REG_SQL_ENTITIES = /('(''|[^'])*'|\[(\\.|[^\]])*\]|\$\d+|\?|[A-Z_]+\(\))/gim;
+  var REG_DATE_1 = /^(\d{4})-(\d{2})-(\d{2})\s*T?([\d:]+)(\.\d+)?($|[Z\s+-].*)$/i;
+  var REG_DATE_2 = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/;
+
+
   var connectionStrings = app.cfg('mysql/connections') || {};
   var adodbConnections = {};
   var connections = [];
@@ -149,7 +159,6 @@ define('mysql', function(require, exports) {
     }
   });
 
-  var REG_SQL_ENTITIES = /('(''|[^'])*'|\[(\\.|[^\]])*\]|\$\d+|\?|[A-Z_]+\(\))/gim;
 
   function buildSQL(str, params) {
     var sql = String(str), arr = [0].concat(params);
@@ -236,9 +245,6 @@ define('mysql', function(require, exports) {
     return ('0' + n).slice(-2);
   }
 
-  var REG_DATE_1 = /^(\d{4})-(\d{2})-(\d{2})\s*T?([\d:]+)(\.\d+)?($|[Z\s+-].*)$/i;
-  var REG_DATE_2 = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/;
-
   function parseDate(input, /**String=*/ def) {
     if (input instanceof Date) {
       return new Date(input);
@@ -297,6 +303,7 @@ define('mysql', function(require, exports) {
   function fromADO(val) {
     var type = typeof val;
     if (type == 'string' && RE_UNICODE.test(val)) {
+      //this is for databases the might have data inserted by other libs
       return tryDecodeMultibyte(val);
     } else
     if (type == 'date') {
@@ -308,12 +315,6 @@ define('mysql', function(require, exports) {
     }
     return val;
   }
-
-  var REG_ESC_UNICODE = /%u([0-9a-f]{4})/ig;
-  var WIN1252 = {"2013": "96", "2014": "97", "2018": "91", "2019": "92", "2020": "86", "2021": "87", "2022": "95",
-    "2026": "85", "2030": "89", "2039": "8b", "2122": "99", "20AC": "80", "201A": "82", "0192": "83", "201E": "84",
-    "02C6": "88", "0160": "8a", "0152": "8c", "017D": "8e", "201C": "93", "201D": "94", "02DC": "98", "0161": "9a",
-    "203A": "9b", "0153": "9c", "017E": "9e", "0178": "9f"};
 
   function tryDecodeMultibyte(str) {
     var enc = escape(str).replace(REG_ESC_UNICODE, function(_, hex) {
