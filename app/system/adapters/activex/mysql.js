@@ -47,7 +47,7 @@ define('mysql', function(require, exports) {
     },
     query: function(str /*, [params], [opts], [func] */) {
       var args = Array.prototype.slice.call(arguments);
-      if (args[args.length - 1] == 'function') {
+      if (typeof args[args.length - 1] == 'function') {
         var func = args.pop();
       }
       var opts = (args.length > 2) ? args.pop() : {};
@@ -73,7 +73,7 @@ define('mysql', function(require, exports) {
         if (returnAffected) {
           i = executeSqlAndReturnNumRowsAffected(conn, sql);
         } else {
-          conn.execute(sql, i, 128);
+          conn.execute(sql, null, 128);
         }
       } catch (e) {
         throw new Error('SQL Statement Could not be executed. ' + cleanError(e) + '\r\n' + sql);

@@ -273,7 +273,8 @@ define('model', function(require, exports) {
         }
       });
       var db = mysql.open();
-      this[model.idField] = db.insert(model.tableName, model._mapToDB(data), true);
+      var result = db.insert(model.tableName, model._mapToDB(data), true);
+      this[model.idField] = result;
     },
     toJSON: function() {
       var result = {}, self = this;
