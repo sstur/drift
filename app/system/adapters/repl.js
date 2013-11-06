@@ -2,7 +2,9 @@
 var require = app.require, console, Buffer;
 (function() {
   Buffer = require('buffer').Buffer;
+  var util = require('util');
   var inspect = require('inspector').inspect;
+
   console = {
     log: function() {
       for (var i = 0; i < arguments.length; i++) {
@@ -11,6 +13,7 @@ var require = app.require, console, Buffer;
       }
     }
   };
+
   var basePath = String(WScript.scriptFullName).replace(/[^\\]+\\[^\\]+$/, '');
   app.mappath = function(path) {
     var fullpath = basePath;
@@ -20,13 +23,37 @@ var require = app.require, console, Buffer;
     fullpath = fullpath.replace(/\\$/g, '');
     return fullpath;
   };
+
+  app.debug = function() {
+    console.log.apply(console, arguments);
+    throw null;
+  };
+
+  var data = {};
+  app.data = function(n, val) {
+    if (arguments.length == 2) {
+      var str = (val == null) ? '' : util.stringify(val);
+      data['JSON:' + n] = str;
+      return val;
+    } else {
+      val = data['JSON:' + n];
+      return (val) ? util.parse(val) : '';
+    }
+  };
+
+  app.emit('init', require);
+  app.emit('ready', require);
+
+  //app.route(new Request(), new Response());
+
 })();
 try {
   throw {};
 } catch(repl) {
   while (repl.line != '.exit') {
     if (repl.line) {
-      repl.err = null;
+      delete repl.out;
+      delete repl.err;
       try {
         repl.out = eval('(' + repl.line + ')');
       } catch (e) {
@@ -43,7 +70,7 @@ try {
       if (repl.err) {
         console.log('Error: ' + repl.err.message);
       } else {
-        console.log(repl.out);
+        if ('out' in repl) console.log(repl.out);
       }
     }
     WScript.stdout.write('> ');
