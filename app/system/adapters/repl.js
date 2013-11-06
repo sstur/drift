@@ -44,7 +44,21 @@ var require = app.require, console, Buffer;
   app.emit('init', require);
   app.emit('ready', require);
 
-  //app.route(new Request(), new Response());
+  var Request = require('adapter-request');
+  var Response = require('adapter-response');
+
+  var _route = app.route;
+  app.route = function(reqData) {
+    var req = new Request(reqData);
+    var res = new Response();
+    try {
+      _route.call(app, req, res);
+    } catch(e) {
+      //if e is null, then the request was handled successfully
+      if (e === null) return res;
+      throw e;
+    }
+  };
 
 })();
 try {
