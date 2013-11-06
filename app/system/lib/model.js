@@ -235,6 +235,7 @@ define('model', function(require, exports) {
   exports.Record = RecordBase;
 
   util.extend(RecordBase.prototype, {
+    __super__: RecordBase.prototype,
     update: function(data) {
       var model = this._model;
       if (data) {

@@ -1,6 +1,7 @@
 /*global app */
 app.on('init', function(require) {
   "use strict";
+  var util = require('util');
 
   // GET    /items -> Items.$index
   // GET    /items/new -> Items.$new
@@ -10,7 +11,7 @@ app.on('init', function(require) {
   // POST   /items/:id -> Items.$update
   // POST   /items/:id/delete -> Items.$destroy
 
-  var controllers = {};
+  var controllers = app.controllers = {};
 
   app.getController = function(name) {
     return controllers[name];
