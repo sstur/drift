@@ -9,9 +9,9 @@ function getEnv() {
 (function(require) {
   "use strict";
 
-  Buffer = require('buffer').Buffer;
+  Buffer = global.Buffer = require('buffer').Buffer;
 
-  console = {
+  console = global.console = {
     _log: [],
     log: function() {
       var args = toArray(arguments);

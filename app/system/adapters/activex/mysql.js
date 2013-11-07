@@ -1,3 +1,7 @@
+/*!
+ * MySQL library for ActiveX/ADODB
+ * todo: remove executeSqlAndReturnNumRowsAffected
+ */
 /*global app, define, Buffer, Enumerator, executeSqlAndReturnNumRowsAffected */
 define('mysql', function(require, exports) {
   "use strict";
