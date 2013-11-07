@@ -7,7 +7,7 @@ var require = app.require, console, Buffer;
 
   console = {
     log: function() {
-      for (var i = 0; i < arguments.length; i++) {
+      for (var i = 0, len = arguments.length; i < len; i++) {
         var value = arguments[i], isObject = (Object(value) === value);
         WScript.stdout.writeLine(isObject ? inspect(value) : String(value));
       }

@@ -5,7 +5,7 @@ define('buffer', function(require, exports) {
   var util = require('util');
   var _super = (typeof _require != 'undefined') && _require('binary').Buffer;
 
-  //patch for environments supporting CommonJS Binary/F
+  //patch for platforms supporting CommonJS Binary/F
   if (_super) {
     _super.prototype.toRaw = function() {
       var len = this.length, arr = new Array(len);

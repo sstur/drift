@@ -219,7 +219,7 @@ var forEach, vartype, isPrimitive, toArray;
   isPrimitive = Object.isPrimitive;
   toArray = Array.toArray;
 
-  //export to global (pseudo-global when compiled)
+  //export to global for CommonJS environments
   global.forEach = forEach;
   global.vartype = vartype;
   global.isPrimitive = isPrimitive;

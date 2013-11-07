@@ -13,8 +13,11 @@ var app, define;
     }
   };
 
-  //List of environment(s), such as the os and web server or platform that we are running on
-  var environments = app.environments = (global.platform || '').split(' ');
+  //platform(s), such as apache/v8cgi
+  var platforms = app.platforms = {};
+  (global.platform || '').split('/').forEach(function(platform) {
+    platforms[platform] = 1;
+  });
 
   var require, definitions = {}, loading = {}, cache = {};
 
@@ -152,8 +155,8 @@ var app, define;
       throw new Error('Invalid arguments to app.cfg');
     }
     if (args.length) {
-      var env = args[0];
-      if (environments.indexOf(env) < 0) {
+      var platform = args[0];
+      if (!(platform in platforms)) {
         return;
       }
     }
@@ -299,7 +302,7 @@ var app, define;
     return resolved.replace(/^\/|\/$/g, '');
   }
 
-  //export to global (pseudo-global when compiled)
+  //export to global for CommonJS environments
   global.app = app;
   global.define = define;
 
