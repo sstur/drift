@@ -18,6 +18,7 @@ define('model', function(require, exports) {
   function Model(opts) {
     if (!(this instanceof Model)) return new Model(opts);
     this.tableName = opts.tableName || error('Invalid Table Name');
+    this.name = opts.name || opts.tableName;
     var fields = this.fields = opts.fields || {};
     this.fieldNames = Object.keys(fields);
     this.idField = opts.idField || getFirstKey(fields) || error('Invalid ID Field');
@@ -77,7 +78,7 @@ define('model', function(require, exports) {
       });
     },
     _getTableField: function(field) {
-      return '`' + this.tableName + '`.`' + this._mapToDB(field) + '`';
+      return q(this.tableName) + '.' + q(this._mapToDB(field));
     },
     create: function(rec) {
       return new this.Record(rec);
@@ -139,15 +140,17 @@ define('model', function(require, exports) {
     this.relationships = [];
     this.addModel(model);
   }
-  exports.Joined = JoinedSet;
+  exports.JoinedSet = JoinedSet;
 
   util.extend(JoinedSet.prototype, {
     addModel: function(model) {
+      var name = model.name;
+      this.modelsByName[name] = model;
       this.models.push(model);
     },
     //this is kind of a funky way to allow us to do:
     // `Account.join(User).on('account.user_id', 'user.id')`
-    // anything before the . is sugar, so it is the same as
+    // anything before the . is ignored, so it is the same as
     // `Account.join(User).on('user_id', 'id')`
     join: function(thatModel) {
       var self = this;
@@ -160,6 +163,14 @@ define('model', function(require, exports) {
           return self;
         }
       };
+    },
+    parseField: function(str) {
+      var parts = str.split('.');
+      if (parts.length > 1) {
+        var modelName = parts.shift();
+      }
+      var model = modelName && this.modelsByName[modelName] || this.models[0];
+      return {model: model, field: parts[0]};
     },
     findAll: function(params, opts, fn) {
       var self = this;
@@ -194,7 +205,7 @@ define('model', function(require, exports) {
       //todo: opts.search
       if (opts.orderBy) {
         //todo: var orderBy = model._mapToDB(opts.orderBy);
-        sql += ' ORDER BY `' + opts.orderBy + '`' + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
+        sql += ' ORDER BY ' + q(opts.orderBy) + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
       }
       if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
       if (opts.offset) sql += ' OFFSET ' + opts.offset;
@@ -204,10 +215,10 @@ define('model', function(require, exports) {
       var rels = this.relationships;
       var models = this.models.slice();
       var thisModel = models.shift();
-      var results = ['`' + thisModel.tableName + '`'];
+      var results = [q(thisModel.tableName)];
       models.forEach(function(thatModel, i) {
         var rel = rels[i];
-        results.push('INNER JOIN `' + thatModel.tableName + '` ON ' + thisModel._getTableField(rel[0]) + ' = ' + thatModel._getTableField(rel[1]));
+        results.push('INNER JOIN ' + q(thatModel.tableName) + ' ON ' + thisModel._getTableField(rel[0]) + ' = ' + thatModel._getTableField(rel[1]));
         thisModel = thatModel;
       });
       return results.join(' ');
@@ -299,8 +310,8 @@ define('model', function(require, exports) {
       fields = filterObject(fields, opts.fields);
       dbFieldNames = Object.keys(model._mapToDB(fields));
     }
-    var fieldNames = '`' + dbFieldNames.join('`, `') + '`';
-    var sql = 'SELECT ' + fieldNames + ' FROM `' + model.tableName + '`';
+    var fieldNames = dbFieldNames.map(q).join(', ');
+    var sql = 'SELECT ' + fieldNames + ' FROM ' + q(model.tableName);
     var where = buildWhere(params);
     if (where.terms.length) {
       sql += ' WHERE ' + where.terms.join(' AND ');
@@ -311,13 +322,13 @@ define('model', function(require, exports) {
       var searchTerms = [];
       forEach(search, function(field, text) {
         values.push(normalizeSearchText(text));
-        searchTerms.push('`' + field + '` LIKE ?');
+        searchTerms.push(q(field) + ' LIKE ?');
       });
       sql += ' AND (' + searchTerms.join(' OR ') + ')';
     }
     if (opts.orderBy && (opts.orderBy in fields)) {
       var orderBy = model._mapToDB(opts.orderBy);
-      sql += ' ORDER BY `' + orderBy + '`' + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
+      sql += ' ORDER BY ' + q(orderBy) + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
     }
     if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
     if (opts.offset) sql += ' OFFSET ' + opts.offset;
@@ -325,7 +336,7 @@ define('model', function(require, exports) {
   }
 
   function buildCount(model, params) {
-    var sql = 'SELECT COUNT(`' + model.dbIdField + '`) AS `count` FROM `' + model.tableName + '`';
+    var sql = 'SELECT COUNT(' + q(model.dbIdField) + ') AS ' + q('count') + ' FROM ' + q(model.tableName);
     var where = buildWhere(params);
     if (where.terms.length) {
       sql += ' WHERE ' + where.terms.join(' AND ');
@@ -337,11 +348,11 @@ define('model', function(require, exports) {
     var terms = [];
     var values = [];
     forEach(data, function(n, val) {
-      terms.push('`' + n + '` = ?');
+      terms.push(q(n) + ' = ?');
       values.push(val);
     });
     var model = instance._model;
-    var sql = 'UPDATE `' + model.tableName + '` SET ' + terms.join(', ') + ' WHERE `' + model.dbIdField + '` = ?';
+    var sql = 'UPDATE ' + q(model.tableName) + ' SET ' + terms.join(', ') + ' WHERE ' + q(model.dbIdField) + ' = ?';
     values.push(instance[model.idField]);
     return {sql: sql, values: values};
   }
@@ -350,10 +361,10 @@ define('model', function(require, exports) {
     var terms = [];
     var values = [];
     forEach(data, function(n, val) {
-      terms.push('`' + n + '` = ?');
+      terms.push(q(n) + ' = ?');
       values.push(val);
     });
-    var sql = 'UPDATE `' + model.tableName + '` SET ' + terms.join(', ');
+    var sql = 'UPDATE ' + q(model.tableName) + ' SET ' + terms.join(', ');
     var where = buildWhere(params);
     if (where.terms.length) {
       sql += ' WHERE ' + where.terms.join(' AND ');
@@ -367,7 +378,7 @@ define('model', function(require, exports) {
     var values = [];
     forEach(params, function(fieldName, term) {
       term = parseTerm(term);
-      terms.push('`' + fieldName + '` ' + term.sql);
+      terms.push(q(fieldName) + ' ' + term.sql);
       values.push.apply(values, term.values);
     });
     return {terms: terms, values: values};
@@ -391,6 +402,11 @@ define('model', function(require, exports) {
       values = [value];
     }
     return {sql: sql, values: values};
+  }
+
+  // quote identifier
+  function q(identifier) {
+    return '`' + identifier + '`';
   }
 
   function error(str) {
