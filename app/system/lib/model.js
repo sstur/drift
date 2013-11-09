@@ -152,9 +152,8 @@ define('model', function(require, exports) {
       this.modelsByName[name] = model;
       this.models.push(model);
     },
-    //this is kind of a funky way to allow us to do:
-    // `Account.join(User).on('account.user_id', 'user.id')`
-    // anything before the . is ignored, so it is the same as
+    //In order to allow `Account.join(User).on('Account.user_id', 'User.id')`
+    // the part before the . is ignored, so it is the same as
     // `Account.join(User).on('user_id', 'id')`
     join: function(thatModel) {
       var self = this;
@@ -217,7 +216,7 @@ define('model', function(require, exports) {
 
   /**
    * @constructor
-   * Used as a base class for records of individual models
+   * Used as a base class for each model's Record class
    */
   function RecordBase(data) {
     util.extend(this, data);
@@ -279,7 +278,7 @@ define('model', function(require, exports) {
 
 
   /*!
-   * Query Class helpers (must be attached to prototype)
+   * Query Building helpers (must be attached to prototype)
    */
 
   function getQueryHelpers() {
@@ -363,7 +362,22 @@ define('model', function(require, exports) {
           sql += ' WHERE ' + where.terms.join(' AND ');
         }
         var values = where.values;
-        //todo: opts.search
+        //search fields
+        if (opts.search) {
+          var searchTerms = [];
+          forEach(opts.search.fields, function(field, text) {
+            field = self._parseField(field);
+            searchTerms.push(field.toTableString() + ' LIKE ?');
+            values.push(normalizeSearchText(text));
+          });
+          var searchOp = opts.search.operator || '';
+          searchOp = (searchOp.toLowerCase() == 'and') ? ' AND ' : ' OR ';
+          if (where.terms.length) {
+            sql += ' AND (' + searchTerms.join(searchOp) + ')';
+          } else {
+            sql += ' WHERE ' + searchTerms.join(searchOp);
+          }
+        }
         //order by
         if (opts.orderBy) {
           var orderBy = Array.isArray(opts.orderBy) ? opts.orderBy : [opts.orderBy];
