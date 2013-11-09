@@ -59,6 +59,7 @@ define('model', function(require, exports) {
   util.extend(Model.prototype, getQueryHelpers());
 
   util.extend(Model.prototype, {
+    //todo: this is only used in createFromDB
     _mapFromDB: function(obj) {
       var map = this.fieldMap;
       if (typeof obj == 'string') {
@@ -66,6 +67,7 @@ define('model', function(require, exports) {
       }
       return mapKeys(obj, map);
     },
+    //todo: can we optimize map to/from db if the fields are 1:1
     _mapToDB: function(obj) {
       var map = this.reverseFieldMap;
       if (typeof obj == 'string') {
@@ -73,6 +75,7 @@ define('model', function(require, exports) {
       }
       return mapKeys(obj, map);
     },
+    //todo: move to helper and inline revive
     _reviveFields: function(rec) {
       this.jsonFields.forEach(function(fieldName) {
         revive(rec, fieldName);
@@ -388,7 +391,7 @@ define('model', function(require, exports) {
           results.push('INNER JOIN ' + q(thatModel.tableName) + ' ON ' + thisModel._getTableField(rel[0]) + ' = ' + thatModel._getTableField(rel[1]));
           thisModel = thatModel;
         });
-        return results.join(' ');
+        return ' FROM ' + results.join(' ');
       },
 
       _buildWhere: function(params) {
@@ -509,6 +512,7 @@ define('model', function(require, exports) {
     return '%' + text.toLowerCase().replace(/[^\w]+/g, ' ').trim().replace(/\s+/g, '%') + '%';
   }
 
+  //todo: this is only used in one place; can be inlined
   function revive(obj, prop) {
     var data = obj[prop];
     if (typeof data == 'string') {
