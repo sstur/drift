@@ -108,18 +108,18 @@ define('model', function(require, exports) {
       opts.limit = 1;
       var built = this._buildSelect(params, opts);
       var db = mysql.open();
-      var rec = db.query(built.sql, built.values).getOne();
-      return rec ? this.createFromDB(rec) : null;
+      var rec = db.query(built.sql, built.values, {array: true}).getOne();
+      return rec ? this._parseResult(rec, built.fields) : null;
     },
     findAll: function(params, opts, fn) {
       params = params ? this._mapToDB(params) : {};
       var built = this._buildSelect(params, opts);
       var db = mysql.open();
-      var query = db.query(built.sql, built.values);
+      var query = db.query(built.sql, built.values, {array: true});
       var results = [], self = this, i = 0;
       query.each(function(rec) {
-        rec = self.createFromDB(rec);
-        fn ? fn(rec, i++) : results.push(rec);
+        var instance = self._parseResult(rec, built.fields);
+        fn ? fn.call(null, instance, i++) : results.push(instance);
       });
       return fn ? null : results;
     },
@@ -178,20 +178,6 @@ define('model', function(require, exports) {
         fn ? fn.apply(null, items.concat(i++)) : results.push(items);
       });
       return fn ? null : results;
-    },
-    //create model instances from query result
-    _parseResult: function(rec, fields) {
-      var results = {};
-      rec.forEach(function(value, i) {
-        var field = fields[i];
-        var model = field.model;
-        var data = results[model.name] || (results[model.name] = {});
-        data[field.name] = value;
-      });
-      return this.models.map(function(model) {
-        var data = results[model.name] || {};
-        return model.createFromDB(data);
-      });
     }
   });
 
@@ -417,6 +403,22 @@ define('model', function(require, exports) {
           values.push.apply(values, term.values);
         });
         return {terms: terms, values: values};
+      },
+      //create model instances from query result
+      _parseResult: function(rec, fields) {
+        var models = this.models || [this];
+        var results = {};
+        rec.forEach(function(value, i) {
+          var field = fields[i];
+          var model = field.model;
+          var data = results[model.name] || (results[model.name] = {});
+          data[field.name] = value;
+        });
+        var instances = models.map(function(model) {
+          var data = results[model.name] || {};
+          return model.createFromDB(data);
+        });
+        return (instances.length == 1) ? instances[0] : instances;
       }
 
     };
