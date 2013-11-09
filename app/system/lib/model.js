@@ -2,7 +2,7 @@
 define('model', function(require, exports) {
   "use strict";
   var util = require('util');
-  var mysql = require('mysql');
+  var database = require(app.cfg('models/database'));
 
   var _hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -99,7 +99,7 @@ define('model', function(require, exports) {
       params = this._mapToDB(params);
       opts = opts || {};
       var built = this._buildUpdateWhere(this, data, params);
-      var db = mysql.open();
+      var db = database.open();
       return db.exec(built.sql, built.values, opts.returnAffected);
     },
     find: function(params, opts) {
@@ -107,14 +107,14 @@ define('model', function(require, exports) {
       opts = opts || {};
       opts.limit = 1;
       var built = this._buildSelect(params, opts);
-      var db = mysql.open();
+      var db = database.open();
       var rec = db.query(built.sql, built.values, {array: true}).getOne();
       return rec ? this._parseResult(rec, built.fields) : null;
     },
     findAll: function(params, opts, fn) {
       params = params ? this._mapToDB(params) : {};
       var built = this._buildSelect(params, opts);
-      var db = mysql.open();
+      var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], self = this, i = 0;
       query.each(function(rec) {
@@ -126,7 +126,7 @@ define('model', function(require, exports) {
     count: function(params) {
       params = this._mapToDB(params);
       var built = this._buildCount(this, params);
-      var db = mysql.open();
+      var db = database.open();
       var rec = db.query(built.sql, built.values).getOne();
       return rec.count;
     },
@@ -170,7 +170,7 @@ define('model', function(require, exports) {
     findAll: function(params, opts, fn) {
       var self = this;
       var built = this._buildSelect(params, opts);
-      var db = mysql.open();
+      var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], i = 0;
       query.each(function(rec) {
@@ -232,7 +232,7 @@ define('model', function(require, exports) {
         }
       });
       var built = this._buildUpdate(this, model._mapToDB(data));
-      var db = mysql.open();
+      var db = database.open();
       db.exec(built.sql, built.values);
     },
     insert: function() {
@@ -249,7 +249,7 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
-      var db = mysql.open();
+      var db = database.open();
       var result = db.insert(model.tableName, model._mapToDB(data), true);
       this[model.idField] = result;
     },
