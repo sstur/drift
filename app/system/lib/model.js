@@ -169,7 +169,7 @@ define('model', function(require, exports) {
     },
     findAll: function(params, opts, fn) {
       var self = this;
-      var built = this._buildComplexSelect(params, opts);
+      var built = this._buildSelect(params, opts);
       var db = mysql.open();
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], i = 0;
@@ -294,45 +294,6 @@ define('model', function(require, exports) {
       },
 
       _buildSelect: function(params, opts) {
-        opts = opts || {};
-        var model = this;
-        var fields = model.fields;
-        var dbFieldNames = model.dbFieldNames;
-        //optionally select only certain fields
-        if (opts.fields && opts.fields.length) {
-          fields = filterObject(fields, opts.fields);
-          dbFieldNames = Object.keys(model._mapToDB(fields));
-        }
-        var fieldNames = dbFieldNames.map(q).join(', ');
-        var sql = 'SELECT ' + fieldNames + ' FROM ' + q(model.tableName);
-        //where clause
-        var where = this._buildWhere(params);
-        if (where.terms.length) {
-          sql += ' WHERE ' + where.terms.join(' AND ');
-        }
-        var values = where.values;
-        if (opts.search) {
-          var search = model._mapToDB(opts.search.fields);
-          var searchTerms = [];
-          forEach(search, function(field, text) {
-            values.push(normalizeSearchText(text));
-            searchTerms.push(q(field) + ' LIKE ?');
-          });
-          sql += ' AND (' + searchTerms.join(' OR ') + ')';
-        }
-        //order by
-        if (opts.orderBy && (opts.orderBy in fields)) {
-          var orderBy = model._mapToDB(opts.orderBy);
-          sql += ' ORDER BY ' + q(orderBy) + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
-        }
-        //offset/limit
-        //todo: move this to adapter
-        if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
-        if (opts.offset) sql += ' OFFSET ' + opts.offset;
-        return {sql: sql, values: values};
-      },
-
-      _buildComplexSelect: function(params, opts) {
         opts = opts || {};
         var self = this;
         var models = this.models || [this];
