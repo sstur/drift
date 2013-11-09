@@ -30,7 +30,6 @@ define('model', function(require, exports) {
     });
     this.fieldMap = opts.fieldMap || {};
     this.reverseFieldMap = invert(this.fieldMap);
-    this.dbFieldNames = Object.keys(this._mapToDB(fields));
     this.dbIdField = opts.dbIdField || this._mapToDB(this.idField);
     this.autoIncrement = opts.autoIncrement;
     if (opts.classMethods) {
