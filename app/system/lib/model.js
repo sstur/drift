@@ -28,8 +28,10 @@ define('model', function(require, exports) {
         jsonFields.push(name);
       }
     });
-    this.fieldMap = opts.fieldMap || {};
-    this.reverseFieldMap = invert(this.fieldMap);
+    if (opts.fieldMap) {
+      this.fieldMap = opts.fieldMap;
+      this.reverseFieldMap = invert(this.fieldMap);
+    }
     this.dbIdField = this._mapToDB(this.idField);
     this.autoIncrement = opts.autoIncrement;
     if (opts.classMethods) {
@@ -57,9 +59,9 @@ define('model', function(require, exports) {
   exports.Model = Model;
 
   util.extend(Model.prototype, {
-    //todo: can we optimize map to/from db if the fields are 1:1
     _mapToDB: function(obj) {
       var map = this.reverseFieldMap;
+      if (!map) return obj;
       if (typeof obj == 'string') {
         return map[obj] || obj;
       }
@@ -72,7 +74,7 @@ define('model', function(require, exports) {
       return new this.Record(rec);
     },
     createFromDB: function(rec) {
-      var data = mapKeys(rec, this.fieldMap);
+      var data = this.fieldMap ? mapKeys(rec, this.fieldMap) : rec;
       reviveFields(data, this.jsonFields);
       return this.create(data);
     },
@@ -82,14 +84,12 @@ define('model', function(require, exports) {
       return instance;
     },
     updateWhere: function(data, params, opts) {
-      params = this._mapToDB(params);
       opts = opts || {};
       var built = new QueryBuilder(this).buildUpdate(data, params);
       var db = database.open();
       return db.exec(built.sql, built.values, opts.returnAffected);
     },
     find: function(params, opts) {
-      params = this._mapToDB(params);
       opts = opts || {};
       opts.limit = 1;
       var built = new QueryBuilder(this).buildSelect(params, opts);
@@ -98,7 +98,7 @@ define('model', function(require, exports) {
       return rec ? parseResult(rec, this, built.fields) : null;
     },
     findAll: function(params, opts, fn) {
-      params = params ? this._mapToDB(params) : {};
+      params = params || {};
       var built = new QueryBuilder(this).buildSelect(params, opts);
       var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
@@ -110,7 +110,6 @@ define('model', function(require, exports) {
       return fn ? null : results;
     },
     count: function(params) {
-      params = this._mapToDB(params);
       var built = new QueryBuilder(this).buildCount(params);
       var db = database.open();
       var rec = db.query(built.sql, built.values, {array: true}).getOne();
@@ -221,6 +220,7 @@ define('model', function(require, exports) {
       var db = database.open();
       db.exec(built.sql, built.values);
     },
+    //todo: something here isn't right
     insert: function() {
       var model = this._model;
       //filter data
@@ -336,12 +336,14 @@ define('model', function(require, exports) {
     },
 
     buildUpdate: function(data, params) {
+      var self = this;
       var model = this.models[0];
       var terms = [];
       var values = [];
-      forEach(data, function(n, val) {
-        terms.push(q(n) + ' = ?');
-        values.push(val);
+      forEach(data, function(field, value) {
+        field = self._parseField(field);
+        terms.push(field.toTableString() + ' = ?');
+        values.push(value);
       });
       var sql = 'UPDATE ' + q(model.tableName) + ' SET ' + terms.join(', ');
       var where = this.buildWhere(params);
