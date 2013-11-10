@@ -30,7 +30,8 @@ define('model', function(require, exports) {
     });
     this.fieldMap = opts.fieldMap || {};
     this.reverseFieldMap = invert(this.fieldMap);
-    this.dbIdField = opts.dbIdField || this._mapToDB(this.idField);
+    //todo: we cannot have a dbIdField that does not map
+    this.dbIdField = opts.dbIdField || this.reverseFieldMap[this.idField] || this.idField;
     this.autoIncrement = opts.autoIncrement;
     if (opts.classMethods) {
       util.extend(this, opts.classMethods);
@@ -57,38 +58,20 @@ define('model', function(require, exports) {
   exports.Model = Model;
 
   util.extend(Model.prototype, {
-    //todo: this is only used in createFromDB
-    _mapFromDB: function(obj) {
-      var map = this.fieldMap;
-      if (typeof obj == 'string') {
-        return map[obj] || obj;
-      }
-      return mapKeys(obj, map);
-    },
     //todo: can we optimize map to/from db if the fields are 1:1
     _mapToDB: function(obj) {
-      var map = this.reverseFieldMap;
-      if (typeof obj == 'string') {
-        return map[obj] || obj;
-      }
-      return mapKeys(obj, map);
-    },
-    //todo: move to helper and inline revive
-    _reviveFields: function(rec) {
-      this.jsonFields.forEach(function(fieldName) {
-        revive(rec, fieldName);
-      });
+      return mapKeys(obj, this.reverseFieldMap);
     },
     _getTableField: function(field) {
-      return q(this.tableName) + '.' + q(this._mapToDB(field));
+      return q(this.tableName) + '.' + q(this.reverseFieldMap[field] || field);
     },
     create: function(rec) {
       return new this.Record(rec);
     },
     createFromDB: function(rec) {
-      rec = this._mapFromDB(rec);
-      this._reviveFields(rec);
-      return this.create(rec);
+      var data = mapKeys(rec, this.fieldMap);
+      reviveFields(data, this.jsonFields);
+      return this.create(data);
     },
     insert: function(data) {
       var instance = this.create(data);
