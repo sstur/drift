@@ -59,13 +59,9 @@ define('model', function(require, exports) {
   exports.Model = Model;
 
   util.extend(Model.prototype, {
-    _mapToDB: function(obj) {
+    _mapToDB: function(field) {
       var map = this.reverseFieldMap;
-      if (!map) return obj;
-      if (typeof obj == 'string') {
-        return map[obj] || obj;
-      }
-      return mapKeys(obj, map);
+      return map && map[field] || field;
     },
     _getTableField: function(field) {
       return q(this.tableName) + '.' + q(this._mapToDB(field));
