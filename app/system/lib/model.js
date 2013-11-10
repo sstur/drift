@@ -109,7 +109,7 @@ define('model', function(require, exports) {
       var built = new QueryBuilder(this).buildSelect(params, opts);
       var db = database.open();
       var rec = db.query(built.sql, built.values, {array: true}).getOne();
-      return rec ? this._parseResult(rec, built.fields) : null;
+      return rec ? parseResult(rec, this, built.fields) : null;
     },
     findAll: function(params, opts, fn) {
       params = params ? this._mapToDB(params) : {};
@@ -118,7 +118,7 @@ define('model', function(require, exports) {
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], self = this, i = 0;
       query.each(function(rec) {
-        var instance = self._parseResult(rec, built.fields);
+        var instance = parseResult(rec, self, built.fields);
         fn ? fn.call(null, instance, i++) : results.push(instance);
       });
       return fn ? null : results;
@@ -172,7 +172,7 @@ define('model', function(require, exports) {
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], i = 0;
       query.each(function(rec) {
-        var items = self._parseResult(rec, built.fields);
+        var items = parseResult(rec, self.models, built.fields);
         fn ? fn.apply(null, items.concat(i++)) : results.push(items);
       });
       return fn ? null : results;
@@ -400,23 +400,6 @@ define('model', function(require, exports) {
       }
       var model = modelName && this.modelsByName[modelName] || defaultModel;
       return new Field(model, parts[0]);
-    },
-
-    //create model instances from query result
-    _parseResult: function(rec, fields) {
-      var models = this.models;
-      var results = {};
-      rec.forEach(function(value, i) {
-        var field = fields[i];
-        var model = field.model;
-        var data = results[model.name] || (results[model.name] = {});
-        data[field.name] = value;
-      });
-      var instances = models.map(function(model) {
-        var data = results[model.name] || {};
-        return model.createFromDB(data);
-      });
-      return (instances.length == 1) ? instances[0] : instances;
     }
 
   });
@@ -452,6 +435,23 @@ define('model', function(require, exports) {
     if (term == null) return false;
     var isPlainObject = (term.toString === Object.prototype.toString);
     return isPlainObject && Object.keys(term).join('').match(/^(\$\w+)+$/);
+  }
+
+  // Create model instances from query result
+  function parseResult(rec, models, fields) {
+    models = Array.isArray(models) ? models : [models];
+    var results = {};
+    rec.forEach(function(value, i) {
+      var field = fields[i];
+      var model = field.model;
+      var data = results[model.name] || (results[model.name] = {});
+      data[field.name] = value;
+    });
+    var instances = models.map(function(model) {
+      var data = results[model.name] || {};
+      return model.createFromDB(data);
+    });
+    return (instances.length == 1) ? instances[0] : instances;
   }
 
 
@@ -507,17 +507,15 @@ define('model', function(require, exports) {
     return '%' + text.toLowerCase().replace(/[^\w]+/g, ' ').trim().replace(/\s+/g, '%') + '%';
   }
 
-  //todo: this is only used in one place; can be inlined
-  function revive(obj, prop) {
-    var data = obj[prop];
-    if (typeof data == 'string') {
-      try {
-        data = obj[prop] = util.parse(data || '{}'); //catch empty string
-      } catch(e) {
-        data = {};
+  function reviveFields(data, keys) {
+    keys.forEach(function(key) {
+      if (typeof data[key] == 'string') {
+        try {
+          var value = util.parse(data[key] || '{}'); //catch empty string
+        } catch(e) {}
       }
-    }
-    return data || (obj[prop] = {}); //catch null
+      data[key] = value || {}; //catch null
+    });
   }
 
   function error(str) {
