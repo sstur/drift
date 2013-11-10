@@ -87,6 +87,12 @@ define('model', function(require, exports) {
       var db = database.open();
       return db.exec(built.sql, built.values, opts.returnAffected);
     },
+    destroyWhere: function(params, opts) {
+      opts = opts || {};
+      var built = new QueryBuilder(this).buildDelete(params);
+      var db = database.open();
+      return db.exec(built.sql, built.values, opts.returnAffected);
+    },
     find: function(params, opts) {
       opts = opts || {};
       opts.limit = 1;
@@ -216,6 +222,14 @@ define('model', function(require, exports) {
       var db = database.open();
       db.exec(built.sql, built.values);
     },
+    destroy: function() {
+      var model = this._model;
+      var params = {};
+      params[model.idField] = this[model.idField];
+      var built = new QueryBuilder(model).buildDelete(params);
+      var db = database.open();
+      db.exec(built.sql, built.values);
+    },
     insert: function() {
       var model = this._model;
       //filter data
@@ -332,7 +346,6 @@ define('model', function(require, exports) {
     },
 
     buildUpdate: function(data, params) {
-      var self = this;
       var model = this.models[0];
       var terms = [];
       var values = [];
@@ -347,6 +360,17 @@ define('model', function(require, exports) {
         values.push.apply(values, where.values);
       }
       return {sql: sql, values: values};
+    },
+
+    buildDelete: function(params) {
+      var model = this.models[0];
+      var sql = 'DELETE FROM ' + q(model.tableName);
+      var where = this.buildWhere(params);
+      if (where.terms.length) {
+        sql += ' WHERE ' + where.terms.join(' AND ');
+        var values = where.values;
+      }
+      return {sql: sql, values: values || []};
     },
 
     buildInsert: function(data) {
