@@ -1,5 +1,5 @@
 /*global app, define */
-define('adapter-response', function(require, exports, module) {
+define('dummy-response', function(require, exports, module) {
   "use strict";
 
   var util = require('util');

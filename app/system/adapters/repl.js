@@ -44,8 +44,8 @@ var require = app.require, console, Buffer;
   app.emit('init', require);
   app.emit('ready', require);
 
-  var Request = require('adapter-request');
-  var Response = require('adapter-response');
+  var Request = require('dummy-request');
+  var Response = require('dummy-response');
 
   var _route = app.route;
   app.route = function(reqData) {

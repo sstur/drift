@@ -252,7 +252,8 @@ define('model', function(require, exports) {
     toJSON: function() {
       var result = {}, self = this;
       forEach(this._model.fields, function(name, def) {
-        result[name] = (def && def.type == 'json') ? util.clone(self[name]) : self[name];
+        def = def || {};
+        result[name] = (def.type == 'json') ? util.clone(self[name]) : self[name];
       });
       return result;
     }

@@ -1,5 +1,5 @@
 /*global app, define */
-define('adapter-request', function(require, exports, module) {
+define('dummy-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
   var util = require('util');
