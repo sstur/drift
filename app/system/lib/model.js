@@ -28,9 +28,11 @@ define('model', function(require, exports) {
         jsonFields.push(name);
       }
     });
-    if (opts.fieldMap) {
-      this.fieldMap = opts.fieldMap;
-      this.reverseFieldMap = invert(this.fieldMap);
+    //opts term not clear here
+    var fieldMap = opts.fieldMap || opts.dbToFields || opts.dbFieldsToModel;
+    if (fieldMap) {
+      this.dbToFields = fieldMap;
+      this.fieldsToDb = invert(fieldMap);
     }
     this.dbIdField = this._mapToDB(this.idField);
     this.autoIncrement = opts.autoIncrement;
@@ -60,7 +62,7 @@ define('model', function(require, exports) {
 
   util.extend(Model.prototype, {
     _mapToDB: function(field) {
-      var map = this.reverseFieldMap;
+      var map = this.fieldsToDb;
       return map && map[field] || field;
     },
     _getTableField: function(field) {
@@ -70,7 +72,7 @@ define('model', function(require, exports) {
       return new this.Record(rec);
     },
     createFromDB: function(rec) {
-      var data = this.fieldMap ? mapKeys(rec, this.fieldMap) : rec;
+      var data = this.dbToFields ? mapKeys(rec, this.dbToFields) : rec;
       reviveFields(data, this.jsonFields);
       return this.create(data);
     },
@@ -127,8 +129,6 @@ define('model', function(require, exports) {
 
   util.extend(JoinedSet.prototype, {
     addModel: function(model) {
-      var name = model.name;
-      this.modelsByName[name] = model;
       this.models.push(model);
     },
     //In order to allow `Account.join(User).on('Account.user_id', 'User.id')`
@@ -148,7 +148,7 @@ define('model', function(require, exports) {
     },
     findAll: function(params, opts, fn) {
       var self = this;
-      var built = new QueryBuilder(this).buildSelect(params, opts);
+      var built = new QueryBuilder(this.models).buildSelect(params, opts);
       var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], i = 0;
@@ -230,7 +230,7 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
-      var built = new QueryBuilder(model).buildInsert(data, params);
+      var built = new QueryBuilder(model).buildInsert(data);
       var db = database.open();
       var result = db.exec(built.sql, built.values, true);
       this[model.idField] = result;
