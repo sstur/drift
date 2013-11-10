@@ -6,9 +6,10 @@ define('adapter-request', function(require, exports, module) {
   var Buffer = require('buffer').Buffer;
   var BodyParser = require('body-parser');
 
-  var REG_URL = /^([^:\/]+:\/\/)?([^\/]*)(.*)$/;
-
   function Request(data) {
+    if (typeof data == 'string') {
+      data = {url: data};
+    }
     data = data || {};
     data.url = data.url || '/';
     data.method = data.method || 'GET';
@@ -25,7 +26,11 @@ define('adapter-request', function(require, exports, module) {
       return this._data.url;
     },
     getHeaders: function() {
-      return this._data.headers;
+      var headers = {};
+      forEach(this._data.headers, function(key, value) {
+        headers[key.toLowerCase()] = value;
+      });
+      return headers;
     },
     getRemoteAddress: function() {
       return this._data.remoteAddr;

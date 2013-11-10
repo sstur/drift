@@ -40,12 +40,9 @@
   config = JSON.parse(config || '{}');
 
   if (opts.apache) {
-    //build for apache/v8cgi
+    opts.platform = 'apache/v8cgi';
     opts._pre = [''];
-    opts._head = [
-      '(function(global) {',
-      '"use strict";'
-    ];
+    opts._head = ['global.platform = "apache/v8cgi";'];
     opts._load = [
       //load framework core (instantiates `app` and `define`)
       'app/system/core.js',
@@ -56,29 +53,28 @@
       'app/system/adapters/shared',
       'app/system/adapters/apache',
       //load framework modules
+      'app/system/init',
       'app/system/lib',
       'app/helpers',
+      'app/models',
       'app/init',
       'app/lib',
       'app/controllers',
-      //load init (fires app.ready)
       'app/system/adapters/v8cgi.js'
     ];
-    opts._foot = [
-      '})({platform: "apache v8cgi"})'
-    ];
+    opts._foot = [];
     opts._end = [];
     opts.target = config.target ? config.target + '.asp' : 'build/app.sjs';
   }
   if (opts.iis) {
-    //build for iis/asp
+    opts.platform = 'iis/asp';
     opts._pre = [
       '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>'
     ];
     opts._head = [
       '<script runat="server" language="javascript">',
-      '(function(global, iis) {',
-      '"use strict";'
+      //in asp, globals are explicitly declared using var; `global` is just spoofed so other code doesn't break
+      'var platform = "iis/asp", iis = {req: Request, res: Response, app: Application, server: Server}, global = {platform: platform, iis: iis};'
     ];
     opts._load = [
       //load shim/patches
@@ -92,30 +88,32 @@
       'app/system/adapters/shared',
       'app/system/adapters/activex',
       //load framework modules
+      'app/system/init',
       'app/system/lib',
       'app/helpers',
+      'app/models',
       'app/init',
       'app/lib',
       'app/controllers',
       //load adapter specific modules
       'app/system/adapters/iis',
-      //load init (fires app.ready)
       'app/system/adapters/asp.js'
     ];
     opts._foot = [
-      '})({platform: "iis asp"}, {req: Request, res: Response, app: Application, server: Server})',
       '</script>'
     ];
     opts._end = [];
     opts.target = config.target ? config.target + '.asp' : 'build/app.asp';
   } else {
-    //build for wscript repl
+    //windows scripting host is used for repl and testing on windows
+    opts.platform = 'wsh/other';
     opts._pre = [
       '<package><job id="job">'
     ];
+    //todo: cdata shoudl be in comments; rearrange build order to prevent removal
     opts._head = [
       '<script language="javascript">"<![CDATA[";',
-      'var global = this, platform = "wscript";'
+      'var global = this, platform = "wsh/other";'
     ];
     opts._load = [
       //load shim/patches
@@ -129,11 +127,15 @@
       'app/system/adapters/shared',
       'app/system/adapters/activex',
       //load framework modules
+      'app/system/init',
       'app/system/lib',
       'app/helpers',
+      'app/models',
       'app/init',
       'app/lib',
       'app/controllers',
+      //load adapter specific modules
+      'app/system/adapters/test',
       'app/system/adapters/repl.js'
     ];
     opts._foot = [
@@ -150,12 +152,13 @@
     opts._head.push('global.compiledViews = ' + escapeSource(compileViews) + ';');
   }
 
-  var sourceFiles = []
-    , sourceLines = []
-    , lineOffsets = {}
-    , offset = opts._pre.length;
+  var sourceFiles = [];
+  var sourceLines = [];
+  var lineOffsets = {};
+  var offset = opts._pre.length;
 
   //todo: _head and _foot should be added after uglify/stripSource
+  //  that will solve issues with /*<![CDATA[*/ being striped
   sourceLines.push.apply(sourceLines, opts._head);
   opts._load.forEach(function(path) {
     return (path.match(/\.js$/)) ? loadFile(path) : loadPath(path);
@@ -193,10 +196,14 @@
     }
   }
 
-  sourceLines.unshift.apply(sourceLines, opts._pre);
   if ('appendLines' in config) {
-    sourceLines.push.apply(sourceLines, config.appendLines);
+    if (opts.platform == 'wsh/other') {
+      sourceLines.unshift.apply(sourceLines, config.appendLines);
+    } else {
+      sourceLines.push.apply(sourceLines, config.appendLines);
+    }
   }
+  sourceLines.unshift.apply(sourceLines, opts._pre);
   sourceLines.push.apply(sourceLines, opts._end);
 
   var source = sourceLines.join('\r\n');
@@ -350,6 +357,7 @@
   function stripSource(code) {
     code = Array.isArray(code) ? code.join('\n') : code;
 
+    var debuggerCode;
     code = code.replace(COMMENT_OR_LITERAL, function(str) {
       if (str.slice(0, 3) == '/*@') {
         var type = 'special_comment';
@@ -365,6 +373,9 @@
       } else {
         type = 'string'
       }
+      if (type == 'line_comment' && str.slice(0, 11) === '//DEBUGGER:') {
+        debuggerCode = str.slice(11);
+      }
       if (type == 'block_comment' || type == 'line_comment') {
         //remove, replacing with newlines
         var lines = str.split('\n').length;
@@ -372,6 +383,10 @@
       }
       return str;
     });
+
+    if (debuggerCode && opts.platform == 'wsh/other') {
+      code = code.replace(/\bdebugger;/g, debuggerCode);
+    }
 
     //remove "use strict" directives (added at top level)
     code = code.replace(/^[ \t]*("|')use strict\1;?[ \t]*$/mg, '');
