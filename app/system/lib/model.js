@@ -30,8 +30,7 @@ define('model', function(require, exports) {
     });
     this.fieldMap = opts.fieldMap || {};
     this.reverseFieldMap = invert(this.fieldMap);
-    //todo: we cannot have a dbIdField that does not map
-    this.dbIdField = opts.dbIdField || this._mapToDB(this.idField);
+    this.dbIdField = this._mapToDB(this.idField);
     this.autoIncrement = opts.autoIncrement;
     if (opts.classMethods) {
       util.extend(this, opts.classMethods);
