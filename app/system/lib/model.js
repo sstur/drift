@@ -220,7 +220,6 @@ define('model', function(require, exports) {
       var db = database.open();
       db.exec(built.sql, built.values);
     },
-    //todo: something here isn't right
     insert: function() {
       var model = this._model;
       //filter data
@@ -235,8 +234,9 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
+      var built = new QueryBuilder(model).buildInsert(data, params);
       var db = database.open();
-      var result = db.insert(model.tableName, model._mapToDB(data), true);
+      var result = db.exec(built.sql, built.values, true);
       this[model.idField] = result;
     },
     toJSON: function() {
@@ -341,8 +341,7 @@ define('model', function(require, exports) {
       var terms = [];
       var values = [];
       forEach(data, function(field, value) {
-        field = self._parseField(field);
-        terms.push(field.toTableString() + ' = ?');
+        terms.push(q(model._mapToDB(field)) + ' = ?');
         values.push(value);
       });
       var sql = 'UPDATE ' + q(model.tableName) + ' SET ' + terms.join(', ');
@@ -351,6 +350,18 @@ define('model', function(require, exports) {
         sql += ' WHERE ' + where.terms.join(' AND ');
         values.push.apply(values, where.values);
       }
+      return {sql: sql, values: values};
+    },
+
+    buildInsert: function(data) {
+      var model = this.models[0];
+      var fields = [];
+      var values = [];
+      forEach(data, function(field, value) {
+        fields.push(q(model._mapToDB(field)));
+        values.push(value);
+      });
+      var sql = 'INSERT INTO ' + q(model.tableName) + ' (' + fields.join(', ') + ') VALUES (' + repeat('?', values.length).split('').join(', ') + ')';
       return {sql: sql, values: values};
     },
 
