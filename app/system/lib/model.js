@@ -148,7 +148,7 @@ define('model', function(require, exports) {
     },
     findAll: function(params, opts, fn) {
       var self = this;
-      var built = new QueryBuilder(this.models).buildSelect(params, opts);
+      var built = new QueryBuilder(this.models, this.relationships).buildSelect(params, opts);
       var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], i = 0;
