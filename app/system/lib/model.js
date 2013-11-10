@@ -56,8 +56,6 @@ define('model', function(require, exports) {
   }
   exports.Model = Model;
 
-  util.extend(Model.prototype, getQueryHelpers());
-
   util.extend(Model.prototype, {
     //todo: this is only used in createFromDB
     _mapFromDB: function(obj) {
@@ -100,7 +98,7 @@ define('model', function(require, exports) {
     updateWhere: function(data, params, opts) {
       params = this._mapToDB(params);
       opts = opts || {};
-      var built = this._buildUpdateWhere(this, data, params);
+      var built = new QueryBuilder(this).buildUpdate(data, params);
       var db = database.open();
       return db.exec(built.sql, built.values, opts.returnAffected);
     },
@@ -108,14 +106,14 @@ define('model', function(require, exports) {
       params = this._mapToDB(params);
       opts = opts || {};
       opts.limit = 1;
-      var built = this._buildSelect(params, opts);
+      var built = new QueryBuilder(this).buildSelect(params, opts);
       var db = database.open();
       var rec = db.query(built.sql, built.values, {array: true}).getOne();
       return rec ? this._parseResult(rec, built.fields) : null;
     },
     findAll: function(params, opts, fn) {
       params = params ? this._mapToDB(params) : {};
-      var built = this._buildSelect(params, opts);
+      var built = new QueryBuilder(this).buildSelect(params, opts);
       var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], self = this, i = 0;
@@ -127,10 +125,10 @@ define('model', function(require, exports) {
     },
     count: function(params) {
       params = this._mapToDB(params);
-      var built = this._buildCount(this, params);
+      var built = new QueryBuilder(this).buildCount(params);
       var db = database.open();
-      var rec = db.query(built.sql, built.values).getOne();
-      return rec.count;
+      var rec = db.query(built.sql, built.values, {array: true}).getOne();
+      return rec[0];
     },
     //see JoinedSet#join for method signature
     join: function() {
@@ -145,8 +143,6 @@ define('model', function(require, exports) {
     this.addModel(model);
   }
   exports.JoinedSet = JoinedSet;
-
-  util.extend(JoinedSet.prototype, getQueryHelpers());
 
   util.extend(JoinedSet.prototype, {
     addModel: function(model) {
@@ -171,7 +167,7 @@ define('model', function(require, exports) {
     },
     findAll: function(params, opts, fn) {
       var self = this;
-      var built = this._buildSelect(params, opts);
+      var built = new QueryBuilder(this).buildSelect(params, opts);
       var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
       var results = [], i = 0;
@@ -233,7 +229,9 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
-      var built = this._buildUpdate(this, model._mapToDB(data));
+      var params = {};
+      params[model.idField] = this[model.idField];
+      var built = new QueryBuilder(model).buildUpdate(data, params);
       var db = database.open();
       db.exec(built.sql, built.values);
     },
@@ -265,166 +263,163 @@ define('model', function(require, exports) {
   });
 
 
-  /*!
-   * Query Building helpers (must be attached to prototype)
+  /**
+   * @constructor
+   * Query Building helper
    */
+  function QueryBuilder(models, relationships) {
+    if (!(this instanceof QueryBuilder)) return new QueryBuilder(models);
+    this.models = Array.isArray(models) ? models : [models];
+    var modelsByName = this.modelsByName = {};
+    this.models.forEach(function(model) {
+      modelsByName[model.name] = model;
+    });
+    this.relationships = relationships;
+  }
+  exports.QueryBuilder = QueryBuilder;
 
-  function getQueryHelpers() {
-    return {
-      _parseField: function(str, defaultModel) {
-        defaultModel = defaultModel || this.models ? this.models[0] : this;
-        var parts = str.split('.');
-        if (parts.length > 1) {
-          var modelName = parts.shift();
-        }
-        var model = modelName && this.modelsByName[modelName] || defaultModel;
-        return new Field(model, parts[0]);
-      },
-
-      _buildSelect: function(params, opts) {
-        opts = opts || {};
-        var self = this;
-        var models = this.models || [this];
-        var selectTerms = [];
-        var selectFields = []; //used to construct instances from query result
-        if (opts.fields && opts.fields.length) {
-          //select only certain fields
-          opts.fields.forEach(function(field) {
-            field = self._parseField(field);
+  util.extend(QueryBuilder.prototype, {
+    buildSelect: function(params, opts) {
+      opts = opts || {};
+      var self = this;
+      var models = this.models;
+      var selectTerms = [];
+      var selectFields = []; //used to construct instances from query result
+      if (opts.fields && opts.fields.length) {
+        //select only certain fields
+        opts.fields.forEach(function(field) {
+          field = self._parseField(field);
+          selectTerms.push(field.toTableString());
+          selectFields.push(field);
+        });
+      } else {
+        //select all fields for each model
+        models.forEach(function(model) {
+          model.fieldNames.forEach(function(field) {
+            field = new Field(model, field);
             selectTerms.push(field.toTableString());
             selectFields.push(field);
           });
-        } else {
-          //select all fields for each model
-          models.forEach(function(model) {
-            model.fieldNames.forEach(function(field) {
-              field = new Field(model, field);
-              selectTerms.push(field.toTableString());
-              selectFields.push(field);
-            });
-          });
-        }
-        var sql = 'SELECT ' + selectTerms.join(', ') + this._buildFromClause();
-        //where clause
-        var where = this._buildWhere(params);
-        if (where.terms.length) {
-          sql += ' WHERE ' + where.terms.join(' AND ');
-        }
-        var values = where.values;
-        //search fields
-        if (opts.search) {
-          var searchTerms = [];
-          forEach(opts.search.fields, function(field, text) {
-            field = self._parseField(field);
-            searchTerms.push(field.toTableString() + ' LIKE ?');
-            values.push(normalizeSearchText(text));
-          });
-          var searchOp = opts.search.operator || '';
-          searchOp = (searchOp.toLowerCase() == 'and') ? ' AND ' : ' OR ';
-          if (where.terms.length) {
-            sql += ' AND (' + searchTerms.join(searchOp) + ')';
-          } else {
-            sql += ' WHERE ' + searchTerms.join(searchOp);
-          }
-        }
-        //order by
-        if (opts.orderBy) {
-          var orderBy = Array.isArray(opts.orderBy) ? opts.orderBy : [opts.orderBy];
-          var orderByTerms = orderBy.map(function(field) {
-            return self._parseField(field).toTableString() + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
-          });
-          sql += ' ORDER BY ' + orderByTerms.join(', ');
-        }
-        //todo: move this to adapter
-        if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
-        if (opts.offset) sql += ' OFFSET ' + opts.offset;
-        return {fields: selectFields, values: values, sql: sql};
-      },
-
-      //todo: why are we passing model here?
-      _buildCount: function(model, params) {
-        var sql = 'SELECT COUNT(' + q(model.dbIdField) + ') AS ' + q('count') + ' FROM ' + q(model.tableName);
-        var where = this._buildWhere(params);
-        if (where.terms.length) {
-          sql += ' WHERE ' + where.terms.join(' AND ');
-        }
-        return {sql: sql, values: where.values};
-      },
-
-      //todo: consolidate with _buildUpdateWhere
-      _buildUpdate: function(instance, data) {
-        var terms = [];
-        var values = [];
-        forEach(data, function(n, val) {
-          terms.push(q(n) + ' = ?');
-          values.push(val);
         });
-        var model = instance._model;
-        var sql = 'UPDATE ' + q(model.tableName) + ' SET ' + terms.join(', ') + ' WHERE ' + q(model.dbIdField) + ' = ?';
-        values.push(instance[model.idField]);
-        return {sql: sql, values: values};
-      },
-
-      _buildUpdateWhere: function(model, data, params) {
-        var terms = [];
-        var values = [];
-        forEach(data, function(n, val) {
-          terms.push(q(n) + ' = ?');
-          values.push(val);
-        });
-        var sql = 'UPDATE ' + q(model.tableName) + ' SET ' + terms.join(', ');
-        var where = this._buildWhere(params);
-        if (where.terms.length) {
-          sql += ' WHERE ' + where.terms.join(' AND ');
-          values.push.apply(values, where.values);
-        }
-        return {sql: sql, values: values};
-      },
-
-      _buildFromClause: function() {
-        var rels = this.relationships;
-        var models = this.models ? this.models.slice() : [this];
-        var thisModel = models.shift();
-        var results = [q(thisModel.tableName)];
-        models.forEach(function(thatModel, i) {
-          var rel = rels[i];
-          results.push('INNER JOIN ' + q(thatModel.tableName) + ' ON ' + thisModel._getTableField(rel[0]) + ' = ' + thatModel._getTableField(rel[1]));
-          thisModel = thatModel;
-        });
-        return ' FROM ' + results.join(' ');
-      },
-
-      _buildWhere: function(params) {
-        var self = this;
-        var terms = [];
-        var values = [];
-        forEach(params, function(field, term) {
-          term = parseTerm(term);
-          field = self._parseField(field);
-          terms.push(field.toTableString() + ' ' + term.sql);
-          values.push.apply(values, term.values);
-        });
-        return {terms: terms, values: values};
-      },
-      //create model instances from query result
-      _parseResult: function(rec, fields) {
-        var models = this.models || [this];
-        var results = {};
-        rec.forEach(function(value, i) {
-          var field = fields[i];
-          var model = field.model;
-          var data = results[model.name] || (results[model.name] = {});
-          data[field.name] = value;
-        });
-        var instances = models.map(function(model) {
-          var data = results[model.name] || {};
-          return model.createFromDB(data);
-        });
-        return (instances.length == 1) ? instances[0] : instances;
       }
+      var sql = 'SELECT ' + selectTerms.join(', ') + this.buildFrom();
+      //where clause
+      var where = this.buildWhere(params);
+      if (where.terms.length) {
+        sql += ' WHERE ' + where.terms.join(' AND ');
+      }
+      var values = where.values;
+      //search fields
+      if (opts.search) {
+        var searchTerms = [];
+        forEach(opts.search.fields, function(field, text) {
+          field = self._parseField(field);
+          searchTerms.push(field.toTableString() + ' LIKE ?');
+          values.push(normalizeSearchText(text));
+        });
+        var searchOp = opts.search.operator || '';
+        searchOp = (searchOp.toLowerCase() == 'and') ? ' AND ' : ' OR ';
+        if (where.terms.length) {
+          sql += ' AND (' + searchTerms.join(searchOp) + ')';
+        } else {
+          sql += ' WHERE ' + searchTerms.join(searchOp);
+        }
+      }
+      //order by
+      if (opts.orderBy) {
+        var orderBy = Array.isArray(opts.orderBy) ? opts.orderBy : [opts.orderBy];
+        var orderByTerms = orderBy.map(function(field) {
+          return self._parseField(field).toTableString() + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
+        });
+        sql += ' ORDER BY ' + orderByTerms.join(', ');
+      }
+      //todo: move this to adapter
+      if (opts.limit || opts.offset) sql += ' LIMIT ' + (opts.limit || '18446744073709551615'); //2^64-1
+      if (opts.offset) sql += ' OFFSET ' + opts.offset;
+      return {fields: selectFields, values: values, sql: sql};
+    },
 
-    };
-  }
+    buildCount: function(params) {
+      var model = this.models[0];
+      var sql = 'SELECT COUNT(' + q(model.dbIdField) + ') FROM ' + q(model.tableName);
+      var where = this.buildWhere(params);
+      if (where.terms.length) {
+        sql += ' WHERE ' + where.terms.join(' AND ');
+      }
+      return {sql: sql, values: where.values};
+    },
+
+    buildUpdate: function(data, params) {
+      var model = this.models[0];
+      var terms = [];
+      var values = [];
+      forEach(data, function(n, val) {
+        terms.push(q(n) + ' = ?');
+        values.push(val);
+      });
+      var sql = 'UPDATE ' + q(model.tableName) + ' SET ' + terms.join(', ');
+      var where = this.buildWhere(params);
+      if (where.terms.length) {
+        sql += ' WHERE ' + where.terms.join(' AND ');
+        values.push.apply(values, where.values);
+      }
+      return {sql: sql, values: values};
+    },
+
+    buildFrom: function() {
+      var rels = this.relationships;
+      var models = this.models.slice();
+      var thisModel = models.shift();
+      var results = [q(thisModel.tableName)];
+      models.forEach(function(thatModel, i) {
+        var rel = rels[i];
+        results.push('INNER JOIN ' + q(thatModel.tableName) + ' ON ' + thisModel._getTableField(rel[0]) + ' = ' + thatModel._getTableField(rel[1]));
+        thisModel = thatModel;
+      });
+      return ' FROM ' + results.join(' ');
+    },
+
+    buildWhere: function(params) {
+      var self = this;
+      var terms = [];
+      var values = [];
+      forEach(params, function(field, term) {
+        term = parseTerm(term);
+        field = self._parseField(field);
+        terms.push(field.toTableString() + ' ' + term.sql);
+        values.push.apply(values, term.values);
+      });
+      return {terms: terms, values: values};
+    },
+
+    _parseField: function(str, defaultModel) {
+      defaultModel = defaultModel || this.models[0];
+      var parts = str.split('.');
+      if (parts.length > 1) {
+        var modelName = parts.shift();
+      }
+      var model = modelName && this.modelsByName[modelName] || defaultModel;
+      return new Field(model, parts[0]);
+    },
+
+    //create model instances from query result
+    _parseResult: function(rec, fields) {
+      var models = this.models;
+      var results = {};
+      rec.forEach(function(value, i) {
+        var field = fields[i];
+        var model = field.model;
+        var data = results[model.name] || (results[model.name] = {});
+        data[field.name] = value;
+      });
+      var instances = models.map(function(model) {
+        var data = results[model.name] || {};
+        return model.createFromDB(data);
+      });
+      return (instances.length == 1) ? instances[0] : instances;
+    }
+
+  });
 
 
   /*!
