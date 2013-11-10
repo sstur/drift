@@ -31,7 +31,7 @@ define('model', function(require, exports) {
     this.fieldMap = opts.fieldMap || {};
     this.reverseFieldMap = invert(this.fieldMap);
     //todo: we cannot have a dbIdField that does not map
-    this.dbIdField = opts.dbIdField || this.reverseFieldMap[this.idField] || this.idField;
+    this.dbIdField = opts.dbIdField || this._mapToDB(this.idField);
     this.autoIncrement = opts.autoIncrement;
     if (opts.classMethods) {
       util.extend(this, opts.classMethods);
@@ -60,10 +60,14 @@ define('model', function(require, exports) {
   util.extend(Model.prototype, {
     //todo: can we optimize map to/from db if the fields are 1:1
     _mapToDB: function(obj) {
-      return mapKeys(obj, this.reverseFieldMap);
+      var map = this.reverseFieldMap;
+      if (typeof obj == 'string') {
+        return map[obj] || obj;
+      }
+      return mapKeys(obj, map);
     },
     _getTableField: function(field) {
-      return q(this.tableName) + '.' + q(this.reverseFieldMap[field] || field);
+      return q(this.tableName) + '.' + q(this._mapToDB(field));
     },
     create: function(rec) {
       return new this.Record(rec);
