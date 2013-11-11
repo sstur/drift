@@ -14,9 +14,9 @@ define('email', function(require, exports) {
    *
    */
   exports.sendEmail = function(opts) {
-    var mail = new ActiveXObject('CDO.Message')
-      , fields = mail.configuration.fields
-      , prefix = 'http://schemas.microsoft.com/cdo/configuration/';
+    var mail = new ActiveXObject('CDO.Message');
+    var fields = mail.configuration.fields;
+    var prefix = 'http://schemas.microsoft.com/cdo/configuration/';
     fields.item(prefix + 'sendusing').value = 2;
     fields.item(prefix + 'smtpserver').value = app.cfg('smtp/host') || 'localhost';
     fields.item(prefix + 'smtpserverport').value = app.cfg('smtp/port') || '25';

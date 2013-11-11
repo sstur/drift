@@ -96,8 +96,8 @@ var app, define;
 
   var emitter = {
     on: function(name, fn) {
-      var events = this._events || (this._events = {})
-        , list = events[name] || (events[name] = []);
+      var events = this._events || (this._events = {});
+      var list = events[name] || (events[name] = []);
       list.push(fn);
     },
     emit: function(name) {
@@ -165,9 +165,9 @@ var app, define;
 
   function mergeCfg(data, stack) {
     Object.keys(data).forEach(function(key) {
-      var value = data[key]
-        , type = value ? toString.call(value) : typeof value
-        , path = stack.concat(key.split('/'));
+      var value = data[key];
+      var type = value ? toString.call(value) : typeof value;
+      var path = stack.concat(key.split('/'));
       if (type == '[object Object]') {
         mergeCfg(value, path);
       } else

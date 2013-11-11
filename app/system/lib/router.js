@@ -2,8 +2,8 @@
 define('router', function(require, exports, module) {
   "use strict";
 
-  var qs = require('qs')
-    , util = require('util');
+  var qs = require('qs');
+  var util = require('util');
 
   var RE_VERB = /^([A-Z]+):(.*)/;
   var RE_PLAIN_ROUTE = /^[^:*]+$/;
@@ -31,10 +31,10 @@ define('router', function(require, exports, module) {
   };
 
   Router.prototype.route = function(method, url) {
-    var router = this
-      , routeData = {}
-      , routeArgs = Array.prototype.slice.call(arguments, 2)
-      , stopRouting = false;
+    var router = this;
+    var routeData = {};
+    var routeArgs = Array.prototype.slice.call(arguments, 2);
+    var stopRouting = false;
     routeData.stop = function() {
       stopRouting = true;
     };

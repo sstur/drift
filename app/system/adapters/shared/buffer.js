@@ -193,12 +193,12 @@ define('buffer', function(require, exports) {
   // with optimizations from github.com/WebReflection
   // see jsperf.com/base64-optimized
 
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('')
-    , index = {}
-    , max = Math.max
-    , re = /=+$/
-    , len = chars.length
-    , fromCharCode = String.fromCharCode;
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('');
+  var index = {};
+  var max = Math.max;
+  var re = /=+$/;
+  var len = chars.length;
+  var fromCharCode = String.fromCharCode;
 
   //populate index
   while (len--) index[chars[len]] = len;

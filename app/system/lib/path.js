@@ -2,12 +2,12 @@
 define('path', function(require, exports) {
   "use strict";
 
-  var RE_HEAD = /^(.*)\//
-    , RE_TAIL = /\/([^\/]*)$/
-    , RE_SLASHES = /\/+/g
-    , RE_DOTSLASH = /\/.\//g
-    , RE_DOTDOTSLASH = /[^\/]+\/\.\.\//g
-    , RE_TRAILING_SLASH = /\/$/;
+  var RE_HEAD = /^(.*)\//;
+  var RE_TAIL = /\/([^\/]*)$/;
+  var RE_SLASHES = /\/+/g;
+  var RE_DOTSLASH = /\/.\//g;
+  var RE_DOTDOTSLASH = /[^\/]+\/\.\.\//g;
+  var RE_TRAILING_SLASH = /\/$/;
 
   var slice = Array.prototype.slice;
 
