@@ -5,6 +5,8 @@ define('router', function(require, exports, module) {
   var qs = require('qs');
   var util = require('util');
 
+  var slice = Array.prototype.slice;
+
   var RE_VERB = /^([A-Z]+):(.*)/;
   var RE_PLAIN_ROUTE = /^[^:*]+$/;
 
@@ -33,7 +35,8 @@ define('router', function(require, exports, module) {
   Router.prototype.route = function(method, url) {
     var router = this;
     var routeData = {};
-    var routeArgs = Array.prototype.slice.call(arguments, 2);
+    //rest-args to be passed on to each route handler (usually req, res)
+    var routeArgs = slice.call(arguments, 2);
     var stopRouting = false;
     routeData.stop = function() {
       stopRouting = true;
@@ -41,22 +44,20 @@ define('router', function(require, exports, module) {
     this.emit('pre-route', routeData);
     forEach(this._routes, function(i, item) {
       if (item.method && item.method != method) {
-        return true; //Continue
+        return true; //continue
       }
       if (typeof item.route == 'string') {
-        if (url == item.route) {
-          routeData.opts = item.opts || {};
-          router.emit('match-route', routeData, {});
-          item.handler(routeData, routeArgs);
-        }
+        var matches = (item.route == url) ? [] : null;
       } else {
-        var matches = item.route.exec(url);
-        if (matches) {
-          routeData.opts = item.opts || {};
-          var params = getNamedParams(matches.slice(1), item.paramNames);
-          router.emit('match-route', routeData, params);
-          item.handler(routeData, routeArgs, params);
-        }
+        matches = item.route.exec(url);
+      }
+      if (matches) {
+        var matchData = Object.create(routeData);
+        matchData.opts = item.opts || {};
+        var values = matchData.values = matches.slice(1);
+        var params = matchData.params = assignNames(item.paramNames, values);
+        router.emit('match-route', matchData, params);
+        item.handler(matchData, routeArgs);
       }
       return !stopRouting;
     });
@@ -64,7 +65,7 @@ define('router', function(require, exports, module) {
   };
 
   //Parse the given route, returning http-method, regular expression and handler
-  var parseRoute = function(route, fn, opts) {
+  function parseRoute(route, fn, opts) {
     var parsed = {}, names = [], type = typeof route, m;
     if (type == 'string' && (m = RE_VERB.exec(route))) {
       parsed.method = m[1];
@@ -72,25 +73,24 @@ define('router', function(require, exports, module) {
     }
     parsed.route = (type == 'string' && !route.match(RE_PLAIN_ROUTE)) ? buildRegExp(route, names) : route;
     parsed.paramNames = names;
-    parsed.handler = function(routeData, routeArgs, params) {
-      params = params || {};
-      return fn.apply(routeData, routeArgs.concat(Object.values(params)));
+    parsed.handler = function(matchData, routeArgs) {
+      return fn.apply(matchData, routeArgs.concat(matchData.values));
     };
     parsed.opts = opts;
     return parsed;
-  };
+  }
 
-  function getNamedParams(matches, names) {
+  function assignNames(names, values) {
     var params = {};
-    for (var i = 0; i < matches.length; i++) {
+    for (var i = 0; i < values.length; i++) {
       var name = names[i] || '$' + (i + 1);
-      params[name] = qs.unescape(matches[i]);
+      params[name] = qs.unescape(values[i]);
     }
     return params;
   }
 
   //Build a regular expression object from a route string, storing param names in the array provided
-  var buildRegExp = function(route, names) {
+  function buildRegExp(route, names) {
     var str = route.concat('/?').replace(/\/\(/g, '(?:/'), index = 0;
     str = str.replace(/(\/)?(\.)?:([\w-]+)(\?)?/g, function(_, slash, format, key, optional) {
       names[index++] = key;
@@ -99,7 +99,7 @@ define('router', function(require, exports, module) {
     });
     str = str.replace(/([\/.-])/g, '\\$1').replace(/\*/g, '(.+)');
     return new RegExp('^' + str + '$', 'i');
-  };
+  }
 
   //export router
   module.exports = Router;
