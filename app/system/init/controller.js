@@ -20,6 +20,17 @@ app.on('init', function(require) {
   app.addController = function(name, config) {
     var path = config.resourcePath;
 
+    var routeMap = {};
+    routeMap['GET:' + path] = '$index';
+    routeMap['GET:' + path + '/new'] = '$new';
+    routeMap['POST:' + path] = '$create';
+    routeMap['GET:' + path + '/:id'] = '$show';
+    routeMap['GET:' + path + '/:id/edit'] = '$edit';
+    routeMap['POST:' + path + '/:id'] = '$update';
+    routeMap['POST:' + path + '/:id/delete'] = '$destroy';
+
+    util.extend(routeMap, config.routeMap);
+
     function Controller(req, res, params) {
       this.request = req;
       this.response = res;
@@ -43,50 +54,16 @@ app.on('init', function(require) {
         controller.authenticate();
       }
       //id param, if it exists, gets special treatment here
-      controller['$' + action](req, res, id);
+      controller[action](req, res, id);
     }
 
-    if (config.$index) {
-      app.route('GET:' + path, function(req, res) {
-        route.call(this, 'index', req, res);
-      });
-    }
-
-    if (config.$new) {
-      app.route('GET:' + path + '/new', function(req, res) {
-        route.call(this, 'new', req, res);
-      });
-    }
-
-    if (config.$create) {
-      app.route('POST:' + path, function(req, res) {
-        route.call(this, 'create', req, res);
-      });
-    }
-
-    if (config.$show) {
-      app.route('GET:' + path + '/:id', function(req, res) {
-        route.call(this, 'show', req, res);
-      });
-    }
-
-    if (config.$edit) {
-      app.route('GET:' + path + '/:id/edit', function(req, res) {
-        route.call(this, 'edit', req, res);
-      });
-    }
-
-    if (config.$update) {
-      app.route('POST:' + path + '/:id', function(req, res) {
-        route.call(this, 'update', req, res);
-      });
-    }
-
-    if (config.$destroy) {
-      app.route('POST:' + path + '/:id/delete', function(req, res) {
-        route.call(this, 'destroy', req, res);
-      });
-    }
+    forEach(routeMap, function(url, action) {
+      if (config[action]) {
+        app.route(url, function(req, res) {
+          route.call(this, action, req, res);
+        });
+      }
+    });
 
   };
 

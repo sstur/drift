@@ -1,3 +1,9 @@
+/*!
+ * Todo:
+ * new Router()
+ * new Route(): route.method, route.url/regex, route.handler
+ * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params, opts
+ */
 /*global app, define */
 define('router', function(require, exports, module) {
   "use strict";
