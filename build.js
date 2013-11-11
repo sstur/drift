@@ -49,7 +49,7 @@
       //load config
       'app/system/config',
       'app/config',
-      //load adapter specific modules
+      //load platform specific adapters
       'app/system/adapters/shared',
       'app/system/adapters/apache',
       //load framework modules
@@ -60,6 +60,9 @@
       'app/init',
       'app/lib',
       'app/controllers',
+      //load testing framework (todo: not for production)
+      'app/system/test',
+      //load adapter specific modules
       'app/system/adapters/v8cgi.js'
     ];
     opts._foot = [];
@@ -84,7 +87,7 @@
       //load config
       'app/system/config',
       'app/config',
-      //load adapter specific modules
+      //load platform specific adapters
       'app/system/adapters/shared',
       'app/system/adapters/activex',
       //load framework modules
@@ -95,6 +98,8 @@
       'app/init',
       'app/lib',
       'app/controllers',
+      //load testing framework (todo: not for production)
+      'app/system/test',
       //load adapter specific modules
       'app/system/adapters/iis',
       'app/system/adapters/asp.js'
@@ -123,7 +128,7 @@
       //load config
       'app/system/config',
       'app/config',
-      //load adapter specific modules
+      //load platform specific adapters
       'app/system/adapters/shared',
       'app/system/adapters/activex',
       //load framework modules
@@ -134,8 +139,9 @@
       'app/init',
       'app/lib',
       'app/controllers',
+      //load testing framework (todo: not for production)
+      'app/system/test',
       //load adapter specific modules
-      'app/system/adapters/test',
       'app/system/adapters/repl.js'
     ];
     //this is hacky, but we need two lines in _head and _foot for debugify
