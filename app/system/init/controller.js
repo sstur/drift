@@ -20,68 +20,71 @@ app.on('init', function(require) {
   app.addController = function(name, config) {
     var path = config.resourcePath;
 
-    function Controller(req, res) {
+    function Controller(req, res, params) {
       this.request = req;
       this.response = res;
+      this.params = params;
     }
     util.extend(Controller.prototype, config);
 
     controllers[name] = Controller;
 
-    function route(action, req, res, id) {
-      var controller = new Controller(req, res);
-      if (id != null) {
+    function route(action, req, res) {
+      var params = this.params;
+      var controller = new Controller(req, res, params);
+      if (params.id != null) {
         if (controller.validateID) {
-          id = controller.validateID(id);
+          var id = controller.validateID(params.id);
           if (id == null) return;
         }
-        controller.id = id;
+        params.id = id;
       }
       if (controller.authenticate) {
         controller.authenticate();
       }
+      //id param, if it exists, gets special treatment here
       controller['$' + action](req, res, id);
     }
 
     if (config.$index) {
       app.route('GET:' + path, function(req, res) {
-        route('index', req, res);
+        route.call(this, 'index', req, res);
       });
     }
 
     if (config.$new) {
       app.route('GET:' + path + '/new', function(req, res) {
-        route('new', req, res);
+        route.call(this, 'new', req, res);
       });
     }
 
     if (config.$create) {
       app.route('POST:' + path, function(req, res) {
-        route('create', req, res);
+        route.call(this, 'create', req, res);
       });
     }
 
     if (config.$show) {
-      app.route('GET:' + path + '/:id', function(req, res, id) {
-        route('show', req, res, id);
+      app.route('GET:' + path + '/:id', function(req, res) {
+        route.call(this, 'show', req, res);
       });
     }
 
     if (config.$edit) {
-      app.route('GET:' + path + '/:id/edit', function(req, res, id) {
-        route('edit', req, res, id);
+      app.route('GET:' + path + '/:id/edit', function(req, res) {
+        route.call(this, 'edit', req, res);
       });
     }
 
     if (config.$update) {
-      app.route('POST:' + path + '/:id', function(req, res, id) {
-        route('update', req, res, id);
+      app.route('POST:' + path + '/:id', function(req, res) {
+        route.call(this, 'update', req, res);
       });
     }
 
     if (config.$destroy) {
-      app.route('POST:' + path + '/:id/delete', function(req, res, id) {
-        route('destroy', req, res, id);
+      app.route('POST:' + path + '/:id/delete', function(req, res) {
+        route.call(this, 'destroy', req, res);
       });
     }
 
