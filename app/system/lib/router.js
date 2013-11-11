@@ -56,7 +56,7 @@ define('router', function(require, exports, module) {
         matchData.opts = item.opts || {};
         var values = matchData.values = matches.slice(1);
         var params = matchData.params = assignNames(item.paramNames, values);
-        router.emit('match-route', matchData, params);
+        router.emit('match-route', matchData);
         item.handler(matchData, routeArgs);
       }
       return !stopRouting;

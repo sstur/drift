@@ -227,9 +227,10 @@ var app, define;
     //get raw (encoded) path
     var path = req.url('rawPath');
     util.propagateEvents(router, req, 'pre-route match-route no-route');
-    //so routes an access `this.params` with combined request params
-    req.on('match-route', function(routeData, params) {
-      routeData.params = util.extend({}, req.query(), params);
+    //so routes can access `this.params` with combined request params
+    req.on('match-route', function(route) {
+      var routeParams = route.params;
+      route.params = util.extend(Object.create(req.query()), routeParams);
     });
     //todo: move to request lib?
     req.on('no-route', function(routeData) {
