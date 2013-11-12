@@ -103,7 +103,8 @@ app.on('ready', function(require) {
   });
 
   app.route('/test/models', function(req, res) {
-    var output = testRunner.run();
+    var output = testRunner.run({format: 'html'});
+    res.contentType('text/html');
     res.end(output);
   });
 
