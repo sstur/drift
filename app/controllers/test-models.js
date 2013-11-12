@@ -5,6 +5,7 @@ app.on('ready', function(require) {
   var expect = require('expect');
   var database = require(app.cfg('models/database'));
   var Model = require('model').Model;
+  require('model-create');
 
   var Author = new Model({
     name: 'Author',
@@ -28,34 +29,29 @@ app.on('ready', function(require) {
   });
 
   function setup() {
-    var db = database.open();
-    db.exec('DROP TABLE IF EXISTS `authors`');
-    db.exec([
-      'CREATE TABLE `authors` (',
-      '`id` int(10) unsigned NOT NULL AUTO_INCREMENT,',
-      '`name` text,',
-      '`created_at` timestamp,',
-      'PRIMARY KEY (`id`)',
-      ') AUTO_INCREMENT=123 DEFAULT CHARSET=utf8'
-    ].join('\n'));
+    Author.createTable({drop: true});
+    //Article.createTable({drop: true});
   }
 
   function teardown() {
-    var db = database.open();
-    db.exec('DROP TABLE IF EXISTS `authors`');
+    Author.dropTable();
+    //Article.dropTable();
   }
 
   app.route('/test/models', function(req, res) {
     setup();
-    var date = new Date();
-    //truncate milliseconds (MySQL stores only second accuracy)
-    date = new Date(Math.floor(date.valueOf() / 1000) * 1000);
-
+    var date = getDate();
     var author1 = Author.insert({name: 'Simon', created_at: date});
     var author2 = Author.find({id: author1.id});
     expect(author1).to.eql(author2);
     teardown();
     res.end('success');
-  }, {noAuth: 1});
+  });
+
+  function getDate() {
+    var date = new Date();
+    //truncate milliseconds (MySQL stores only second accuracy)
+    return new Date(Math.floor(date.valueOf() / 1000) * 1000);
+  }
 
 });

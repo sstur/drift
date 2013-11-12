@@ -1,5 +1,5 @@
 /*global app, define */
-app.on('ready', function(require) {
+app.on('-ready', function(require) {
 
   var fs = require('fs')
     , util = require('util')

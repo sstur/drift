@@ -1,5 +1,15 @@
 {
-  "exclude": [
-    "system/lib/debug.js"
-  ]
+  "appendLines": [
+    "<script runat=\"server\" language=\"vbscript\">",
+    "function executeSqlAndReturnNumRowsAffected(connection, sql)",
+    "  dim count",
+    "  connection.execute sql, count",
+    "  executeSqlAndReturnNumRowsAffected = count",
+    "end function",
+    "</script>"
+  ],
+  "action:after": {
+    "type": "exec",
+    "command": "cp build/*.* deploy/build/"
+  }
 }

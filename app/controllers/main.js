@@ -7,12 +7,11 @@ app.on('ready', function(require) {
   var util = require('util');
 
   app.route('/', function(req, res) {
-    res.send('tests');
+    res.end('Hello World');
   });
 
   app.route('/favicon.ico', function(req, res) {
     res.sendFile('assets/favicon.ico');
-    //res.redirect('/assets/favicon.ico', 301);
   });
 
   app.route('/form-post', function(req, res) {
