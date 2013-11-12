@@ -18,7 +18,7 @@ app.on('ready', function(require) {
     },
     instanceMethods: {
       insertArticle: function(data) {
-        data.article_id = this.id;
+        data.author_id = this.id;
         return Article.insert(data);
       }
     }
@@ -84,13 +84,21 @@ app.on('ready', function(require) {
       var author1 = Author.insert({name: 'Richard'});
       var article1 = Article.insert({title: 'Article 1', author_id: author1.id});
       expect(article1.id).to.be.a('number');
-      var article2 = author1.insertArticle({title: 'Article 3'});
+      var article2 = author1.insertArticle({title: 'Article 2'});
       expect(article2.id).to.be.a('number');
       var author2 = Author.insert({name: 'Gerald'});
       var article3 = author2.insertArticle({title: 'Article 3'});
       expect(article3.id).to.be.a('number');
       var articles = Article.findAll();
       expect(articles).to.have.length(3);
+    },
+    'join': function() {
+      var join = Author.join(Article).on('Author.id', 'Article.author_id');
+      var articles = [];
+      join.findAll({'Author.id': {$ne: 2}}, {}, function(author, article) {
+        articles.push(article);
+      });
+      expect(articles).to.have.length(2);
     }
   });
 

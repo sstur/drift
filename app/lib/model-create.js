@@ -34,7 +34,7 @@ define('model-create', function(require, exports, module) {
       fieldDefs.push(str);
     });
     fieldDefs.push('PRIMARY KEY (' + q(model.idField) + ')');
-    var sql = 'CREATE TABLE ' + q(model.tableName) + ' (' + fieldDefs.join(', ') + ') AUTO_INCREMENT=123';
+    var sql = 'CREATE TABLE ' + q(model.tableName) + ' (' + fieldDefs.join(', ') + ')';
     if (typeof model.autoIncrement == 'number') {
       sql += ' AUTO_INCREMENT=' + model.autoIncrement;
     }
