@@ -51,18 +51,10 @@ define('test-runner', function(require, exports, module) {
       forEach(this.testCases, function(name, fn, i) {
         try {
           self.beforeEach();
-          var beforeComplete = true;
           fn.call(self, name, i);
+          self.afterEach();
         } catch(e) {
           var error = e;
-        }
-        //if beforeEach completed, we should run afterEach (even if the test failed)
-        if (beforeComplete) {
-          try {
-            self.afterEach();
-          } catch(e) {
-            if (!error) error = e;
-          }
         }
         self.logResult(name, error);
       });

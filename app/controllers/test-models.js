@@ -3,6 +3,7 @@ app.on('ready', function(require) {
   "use strict";
 
   var expect = require('expect');
+  //patch Model to create/drop tables
   require('model-create');
   var Model = require('model').Model;
   var TestRunner = require('test-runner');
@@ -14,6 +15,12 @@ app.on('ready', function(require) {
       id: 0,
       name: '',
       created_at: {type: 'date'}
+    },
+    instanceMethods: {
+      insertArticle: function(data) {
+        data.article_id = this.id;
+        return Article.insert(data);
+      }
     }
   });
 
@@ -23,6 +30,7 @@ app.on('ready', function(require) {
     fields: {
       id: 0,
       title: '',
+      author_id: 0,
       content: {type: 'text'},
       created_at: {type: 'date'}
     }
@@ -37,9 +45,8 @@ app.on('ready', function(require) {
       Author.dropTable();
       Article.dropTable();
     },
-    'insert and find by id': function() {
-      var date = getDate();
-      var author1 = Author.insert({name: 'Jimmy', created_at: date});
+    'find by id': function() {
+      var author1 = Author.insert({name: 'Jimmy', created_at: getDate()});
       expect(author1.id).to.be.a('number');
       var author1a = Author.find({id: author1.id});
       expect(author1).to.eql(author1a);
@@ -53,15 +60,34 @@ app.on('ready', function(require) {
       author = Author.find({id: author.id});
       expect(author.created_at).to.be.a(Date);
     },
-    'multiple by name': function() {
-      this.setup();
+    'findAll': function() {
       Author.insert({name: 'Bill'});
       Author.insert({name: 'George'});
       Author.insert({name: 'Barak'});
       var authors = Author.findAll();
+      expect(authors).to.have.length(6);
+      authors = Author.findAll({name: 'George'});
+      expect(authors).to.have.length(2);
+      expect(authors[0]).to.have.property('name');
+    },
+    'findAll iterator': function() {
+      var authors = [];
+      Author.findAll(function(author, i) {
+        expect(i).to.be.a('number');
+        expect(author).to.have.property('name');
+        authors.push(author);
+      });
       expect(authors).to.have.length(3);
-      var author = Author.find({name: 'George'});
-      expect(author).to.not.be.empty();
+    },
+    'basic relationship': function() {
+      this.setup();
+      var author1 = Author.insert({name: 'Richard'});
+      var article1 = Article.insert({title: 'Article 1', author_id: author1.id});
+      var article2 = author2.insertArticle({title: 'Article 3'});
+      var author2 = Author.insert({name: 'Gerald'});
+      var article3 = author2.insertArticle({title: 'Article 3'});
+      var articles = Article.findAll();
+      expect(articles).to.have.length(3);
     }
   });
 
