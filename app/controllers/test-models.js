@@ -3,9 +3,9 @@ app.on('ready', function(require) {
   "use strict";
 
   var expect = require('expect');
-  var database = require(app.cfg('models/database'));
-  var Model = require('model').Model;
   require('model-create');
+  var Model = require('model').Model;
+  var TestRunner = require('test-runner');
 
   var Author = new Model({
     name: 'Author',
@@ -28,24 +28,46 @@ app.on('ready', function(require) {
     }
   });
 
-  function setup() {
-    Author.createTable({drop: true});
-    //Article.createTable({drop: true});
-  }
-
-  function teardown() {
-    Author.dropTable();
-    //Article.dropTable();
-  }
+  var testRunner = new TestRunner({
+    setup: function() {
+      Author.createTable({drop: true});
+      Article.createTable({drop: true});
+    },
+    teardown: function() {
+      Author.dropTable();
+      Article.dropTable();
+    },
+    'insert and find by id': function() {
+      var date = getDate();
+      var author1 = Author.insert({name: 'Jimmy', created_at: date});
+      expect(author1.id).to.be.a('number');
+      var author1a = Author.find({id: author1.id});
+      expect(author1).to.eql(author1a);
+      var author2 = Author.insert({id: 99, name: 'Ronald'});
+      expect(author2).to.not.have.property('created_at');
+      expect(author2.id).to.not.be(99);
+    },
+    'database auto set date': function() {
+      var author = Author.insert({name: 'George'});
+      expect(author).to.not.have.property('created_at');
+      author = Author.find({id: author.id});
+      expect(author.created_at).to.be.a(Date);
+    },
+    'multiple by name': function() {
+      this.setup();
+      Author.insert({name: 'Bill'});
+      Author.insert({name: 'George'});
+      Author.insert({name: 'Barak'});
+      var authors = Author.findAll();
+      expect(authors).to.have.length(3);
+      var author = Author.find({name: 'George'});
+      expect(author).to.not.be.empty();
+    }
+  });
 
   app.route('/test/models', function(req, res) {
-    setup();
-    var date = getDate();
-    var author1 = Author.insert({name: 'Simon', created_at: date});
-    var author2 = Author.find({id: author1.id});
-    expect(author1).to.eql(author2);
-    teardown();
-    res.end('success');
+    var output = testRunner.run();
+    res.end(output);
   });
 
   function getDate() {
