@@ -57,6 +57,7 @@ define('test-runner', function(require, exports, module) {
           var error = e;
         }
         self.logResult(name, error);
+        if (error) return false;
       });
       self.teardown();
       if (writeStream) {

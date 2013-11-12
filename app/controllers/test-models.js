@@ -72,20 +72,23 @@ app.on('ready', function(require) {
     },
     'findAll iterator': function() {
       var authors = [];
-      Author.findAll(function(author, i) {
+      Author.findAll(null, null, function(author, i) {
         expect(i).to.be.a('number');
         expect(author).to.have.property('name');
         authors.push(author);
       });
-      expect(authors).to.have.length(3);
+      expect(authors).to.have.length(6);
     },
     'basic relationship': function() {
       this.setup();
       var author1 = Author.insert({name: 'Richard'});
       var article1 = Article.insert({title: 'Article 1', author_id: author1.id});
-      var article2 = author2.insertArticle({title: 'Article 3'});
+      expect(article1.id).to.be.a('number');
+      var article2 = author1.insertArticle({title: 'Article 3'});
+      expect(article2.id).to.be.a('number');
       var author2 = Author.insert({name: 'Gerald'});
       var article3 = author2.insertArticle({title: 'Article 3'});
+      expect(article3.id).to.be.a('number');
       var articles = Article.findAll();
       expect(articles).to.have.length(3);
     }
