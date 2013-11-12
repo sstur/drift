@@ -1,5 +1,7 @@
 /*global app, define */
 define('expect', function(require, exports, module) {
+  var util = require('util');
+  var inspect = util.inspect;
 
   module.exports = expect;
   expect.Assertion = Assertion;
@@ -21,12 +23,6 @@ define('expect', function(require, exports, module) {
   function expect(obj) {
     return new Assertion(obj);
   }
-
-  /**
-   * Constructor
-   *
-   * @api private
-   */
 
   function Assertion(obj, flag, parent) {
     this.obj = obj;
@@ -601,7 +597,7 @@ define('expect', function(require, exports, module) {
       if (actual.length != expected.length) return false;
 
       for (var i = 0; i < actual.length; i++) {
-        if (actual[i] !== expected[i]) return false;
+        if (actual.get(i) !== expected.get(i)) return false;
       }
 
       return true;
