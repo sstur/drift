@@ -51,20 +51,20 @@ app.on('ready', function(require) {
       expect(author1.id).to.be.a('number');
       var author1a = Author.find({id: author1.id});
       expect(author1).to.eql(author1a);
-      var author2 = Author.insert({id: 99, name: 'Ronald'});
+      var author2 = Author.insert({id: 99, name: 'Ronald', rating: 9});
       expect(author2).to.not.have.property('created_at');
       expect(author2.id).to.not.be(99);
     },
     'database auto set date': function() {
-      var author = Author.insert({name: 'George'});
+      var author = Author.insert({name: 'George', rating: 5});
       expect(author).to.not.have.property('created_at');
       author = Author.find({id: author.id});
       expect(author.created_at).to.be.a(Date);
     },
     'findAll': function() {
-      Author.insert({name: 'Bill'});
-      Author.insert({name: 'George'});
-      Author.insert({name: 'Barak'});
+      Author.insert({name: 'Bill', rating: 7});
+      Author.insert({name: 'George', rating: 3});
+      Author.insert({name: 'Barak', rating: 6});
       var authors = Author.findAll();
       expect(authors).to.have.length(6);
       authors = Author.findAll({name: 'George'});
@@ -79,6 +79,35 @@ app.on('ready', function(require) {
         authors.push(author);
       });
       expect(authors).to.have.length(6);
+    },
+    'destroy a record by instance': function() {
+      var author = Author.find({name: 'George', rating: 5});
+      author.destroy();
+      author = Author.find({id: author.id});
+      expect(author).to.not.be.ok();
+    },
+    'destroyWhere': function() {
+      Author.destroyWhere({name: 'Jimmy', rating: {$lt: 7}});
+      var authors = Author.findAll({name: 'Jimmy'});
+      expect(authors).to.be.empty();
+    },
+    'less-than and greater-than': function() {
+      var authors = Author.findAll({rating: {$lt: 7}});
+      expect(authors).to.have.length(2);
+      authors = Author.findAll({rating: {$gt: 5}});
+      expect(authors).to.have.length(3);
+      authors = Author.findAll({rating: {$gte: 3}});
+      expect(authors).to.have.length(4);
+      authors = Author.findAll({rating: {$lte: 7}});
+      expect(authors).to.have.length(3);
+    },
+    'in and not in set': function() {
+      var authors = Author.findAll({rating: {$in: [1, 3, 6]}});
+      expect(authors).to.have.length(2);
+      authors = Author.findAll({name: {$in: ['Bill', 'Al', 'Barak']}});
+      expect(authors).to.have.length(2);
+      authors = Author.findAll({rating: {$nin: [2, 3]}});
+      expect(authors).to.have.length(3);
     },
     'basic relationship': function() {
       this.setup();
@@ -100,19 +129,6 @@ app.on('ready', function(require) {
         articles.push(article);
       });
       expect(articles).to.have.length(2);
-    },
-    'less-than and greater-than': function() {
-      Author.insert({name: 'Bill', rating: 7});
-      Author.insert({name: 'George', rating: 3});
-      Author.insert({name: 'Barak', rating: 6});
-      var authors = Author.findAll({rating: {$lt: 7}});
-      expect(authors).to.have.length(2);
-      authors = Author.findAll({rating: {$gt: 5}});
-      expect(authors).to.have.length(2);
-      authors = Author.findAll({rating: {$gte: 3}});
-      expect(authors).to.have.length(3);
-      authors = Author.findAll({rating: {$lte: 7}});
-      expect(authors).to.have.length(3);
     }
   });
 
