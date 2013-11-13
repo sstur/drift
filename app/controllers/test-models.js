@@ -70,6 +70,10 @@ app.on('ready', function(require) {
       authors = Author.findAll({name: 'George'});
       expect(authors).to.have.length(2);
       expect(authors[0]).to.have.property('name');
+      authors = Author.findAll({name: 'George'}, {orderBy: 'rating'});
+      expect(authors[0].rating).to.be(3);
+      authors = Author.findAll({name: 'George'}, {orderBy: 'rating', dir: 'desc'});
+      expect(authors[0].rating).to.be(5);
     },
     'findAll iterator': function() {
       var authors = [];
@@ -79,6 +83,16 @@ app.on('ready', function(require) {
         authors.push(author);
       });
       expect(authors).to.have.length(6);
+      authors.length = 0;
+      Author.findAll({name: 'George'}, function(author) {
+        authors.push(author);
+      });
+      expect(authors).to.have.length(2);
+      authors.length = 0;
+      Author.findAll({name: 'George'}, {orderBy: {field: 'rating', dir: 'desc'}}, function(author) {
+        authors.push(author);
+      });
+      expect(authors[0].rating).to.be(5);
     },
     'destroy a record by instance': function() {
       var author = Author.find({name: 'George', rating: 5});

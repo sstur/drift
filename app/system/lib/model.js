@@ -336,8 +336,10 @@ define('model', function(require, exports) {
       //order by
       if (opts.orderBy) {
         var orderBy = Array.isArray(opts.orderBy) ? opts.orderBy : [opts.orderBy];
-        var orderByTerms = orderBy.map(function(field) {
-          return self._parseField(field).toTableString() + (opts.dir ? ' ' + opts.dir.toUpperCase() : '');
+        var orderByTerms = orderBy.map(function(term) {
+          if (typeof term == 'string') term = {field: term};
+          var dir = term.dir || opts.dir;
+          return self._parseField(term.field).toTableString() + (dir ? ' ' + dir.toUpperCase() : '');
         });
         sql += ' ORDER BY ' + orderByTerms.join(', ');
       }
