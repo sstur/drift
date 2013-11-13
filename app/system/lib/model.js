@@ -103,8 +103,12 @@ define('model', function(require, exports) {
       var rec = db.query(built.sql, built.values, {array: true}).getOne();
       return rec ? parseResult(rec, this, built.fields) : null;
     },
+    // all arguments are optional, but if opts specified, params must be also
     findAll: function(params, opts, fn) {
-      params = params || {};
+      var args = toArray(arguments);
+      fn = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
+      params = args[0] || {};
+      opts = args[1] || {};
       var built = new QueryBuilder(this).buildSelect(params, opts);
       var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
@@ -154,7 +158,12 @@ define('model', function(require, exports) {
         }
       };
     },
+    // all arguments are optional, but if opts specified, params must be also
     findAll: function(params, opts, fn) {
+      var args = toArray(arguments);
+      fn = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
+      params = args[0] || {};
+      opts = args[1] || {};
       var self = this;
       var built = new QueryBuilder(this.models, this.relationships).buildSelect(params, opts);
       var db = database.open();

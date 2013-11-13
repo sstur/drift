@@ -73,7 +73,7 @@ app.on('ready', function(require) {
     },
     'findAll iterator': function() {
       var authors = [];
-      Author.findAll(null, null, function(author, i) {
+      Author.findAll(function(author, i) {
         expect(i).to.be.a('number');
         expect(author).to.have.property('name');
         authors.push(author);
