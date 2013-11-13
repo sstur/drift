@@ -123,6 +123,23 @@ app.on('ready', function(require) {
       authors = Author.findAll({rating: {$nin: [2, 3]}});
       expect(authors).to.have.length(3);
     },
+    'record.update': function() {
+      var author = Author.find({name: 'Bill'});
+      expect(author.rating).to.be(7);
+      author.update({rating: 6});
+      expect(author.rating).to.be(6);
+      author = Author.find({name: 'Bill'});
+      expect(author.rating).to.be(6);
+      author.rating = 5;
+      author.update();
+      author = Author.find({name: 'Bill'});
+      expect(author.rating).to.be(5);
+    },
+    'Model.updateWhere': function() {
+      Author.updateWhere({name: 'William'}, {name: 'Bill'});
+      var author = Author.find({name: 'William'});
+      expect(author.rating).to.be(5);
+    },
     'basic relationship': function() {
       this.setup();
       var author1 = Author.insert({name: 'Richard'});
