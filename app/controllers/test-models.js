@@ -14,6 +14,7 @@ app.on('ready', function(require) {
     fields: {
       id: 0,
       name: '',
+      rating: 0,
       created_at: {type: 'date'}
     },
     instanceMethods: {
@@ -46,7 +47,7 @@ app.on('ready', function(require) {
       Article.dropTable();
     },
     'find by id': function() {
-      var author1 = Author.insert({name: 'Jimmy', created_at: getDate()});
+      var author1 = Author.insert({name: 'Jimmy', rating: 5, created_at: getDate()});
       expect(author1.id).to.be.a('number');
       var author1a = Author.find({id: author1.id});
       expect(author1).to.eql(author1a);
@@ -92,13 +93,26 @@ app.on('ready', function(require) {
       var articles = Article.findAll();
       expect(articles).to.have.length(3);
     },
-    'join': function() {
+    'join, $ne': function() {
       var join = Author.join(Article).on('Author.id', 'Article.author_id');
       var articles = [];
       join.findAll({'Author.id': {$ne: 2}}, {}, function(author, article) {
         articles.push(article);
       });
       expect(articles).to.have.length(2);
+    },
+    'less-than and greater-than': function() {
+      Author.insert({name: 'Bill', rating: 7});
+      Author.insert({name: 'George', rating: 3});
+      Author.insert({name: 'Barak', rating: 6});
+      var authors = Author.findAll({rating: {$lt: 7}});
+      expect(authors).to.have.length(2);
+      authors = Author.findAll({rating: {$gt: 5}});
+      expect(authors).to.have.length(2);
+      authors = Author.findAll({rating: {$gte: 3}});
+      expect(authors).to.have.length(3);
+      authors = Author.findAll({rating: {$lte: 7}});
+      expect(authors).to.have.length(3);
     }
   });
 

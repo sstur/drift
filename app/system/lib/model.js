@@ -9,6 +9,8 @@ define('model', function(require, exports) {
   var COMPARATORS = {
     $lt: '<',
     $gt: '>',
+    $lte: '<=',
+    $gte: '>=',
     $eq: '=',
     $ne: '!=',
     $in: 'IN',
