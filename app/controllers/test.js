@@ -14,9 +14,9 @@ app.on('ready', function(require) {
     if (!suites[0]) return;
     var testRunner = new TestRunner();
     testRunner.addSuite(suites);
-    var output = testRunner.run({format: 'html'});
     res.contentType('text/html');
-    res.end(output);
+    testRunner.run({format: 'html', writeStream: res.getWriteStream()});
+    res.end();
   });
 
   //app.route('/test/cookie/:name/:value', function(req, res, name, value) {
