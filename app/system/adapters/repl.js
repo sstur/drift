@@ -44,8 +44,8 @@ var require = app.require, console, Buffer;
   app.emit('init', require);
   app.emit('ready', require);
 
-  var Request = require('dummy-request');
-  var Response = require('dummy-response');
+  var Request = require('mock-request');
+  var Response = require('mock-response');
 
   var _route = app.route;
   app.route = function(reqData) {
@@ -55,8 +55,8 @@ var require = app.require, console, Buffer;
       _route.call(app, req, res);
     } catch(e) {
       //if e is null, then the request was handled successfully
-      if (e === null) return res;
-      throw e;
+      if (e !== null) throw e;
+      return res;
     }
   };
 

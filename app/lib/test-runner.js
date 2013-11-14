@@ -48,15 +48,15 @@ define('test-runner', function(require, exports, module) {
     format_html: function(item, error) {
       var firstTest = (this.output.length == 0);
       if (firstTest) {
-        this.writeLine('<style>body { margin: 20px } h1 { margin: 0; font-size: 120%; font-family: "Helvetica Neue", Helvetica, "Myriad Pro", "Lucida Grande", sans-serif } pre { margin: 10px; font-family: Consolas, "Liberation Mono", Courier, monospace; } .pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee } .message:before { display: block; float: left; content: "    "; height: 100% }</style>');
-        this.writeLine('<body>');
+        this.write('<style>body { margin: 20px } h1 { margin: 0; font-size: 120%; font-family: "Helvetica Neue", Helvetica, "Myriad Pro", "Lucida Grande", sans-serif; text-transform: uppercase } pre { margin: 10px; font-family: Consolas, "Liberation Mono", Courier, monospace; } .pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee } .message:before { display: block; float: left; content: "    "; height: 100% }</style>');
+        this.write('<body>');
       }
       if (item instanceof TestSuite) {
         if (!firstTest) {
-          this.writeLine('</pre></code>');
+          this.write('</pre></code>');
         }
-        this.writeLine('<h1>' + util.htmlEnc(item.description) + '</h1>');
-        this.writeLine('<pre><code>');
+        this.write('<h1>' + util.htmlEnc(item.description) + '</h1>');
+        this.write('<pre><code>');
       } else {
         if (!error) {
           this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + util.htmlEnc(item) + '</span>');
@@ -72,11 +72,14 @@ define('test-runner', function(require, exports, module) {
         this.writeLine('✖ FAIL ‹‹‹ ' + name + '\n' + error.message);
       }
     },
-    writeLine: function(line) {
-      this.output.push(line);
+    write: function(text) {
+      this.output.push(text);
       if (this.writeStream) {
-        this.writeStream.write(line + '\n');
+        this.writeStream.write(text);
       }
+    },
+    writeLine: function(text) {
+      this.write(text + '\n')
     },
     log: function() {
       var self = this;
@@ -112,7 +115,7 @@ define('test-runner', function(require, exports, module) {
       if (this.writeStream) {
         this.writeStream.end();
       }
-      return this.output.join('\n');
+      return this.output.join('');
     }
   });
 

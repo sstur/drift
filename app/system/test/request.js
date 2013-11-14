@@ -1,5 +1,5 @@
 /*global app, define */
-define('dummy-request', function(require, exports, module) {
+define('mock-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
   var util = require('util');
