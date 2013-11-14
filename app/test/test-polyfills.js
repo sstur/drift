@@ -4,8 +4,7 @@ app.on('ready', function(require) {
 
   var expect = require('expect');
 
-  app.addTestSuite('misc', {
-    description: 'Miscellaneous Features',
+  app.addTestSuite('polyfills', {
     //'Object.create(null)': function() {
     //  var o = Object.create(null);
     //  expect(o.toString).to.be(null);
