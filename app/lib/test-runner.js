@@ -48,7 +48,7 @@ define('test-runner', function(require, exports, module) {
     format_html: function(item, error) {
       var firstTest = (this.output.length == 0);
       if (firstTest) {
-        this.writeLine('<style>.pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee } .message:before { display: block; float: left; content: "    "; height: 100% }</style>');
+        this.writeLine('<style>body { margin: 20px } h1 { margin: 0; font-size: 120%; font-family: "Helvetica Neue", Helvetica, "Myriad Pro", "Lucida Grande", sans-serif } pre { margin: 10px; font-family: Consolas, "Liberation Mono", Courier, monospace; } .pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee } .message:before { display: block; float: left; content: "    "; height: 100% }</style>');
         this.writeLine('<body>');
       }
       if (item instanceof TestSuite) {
