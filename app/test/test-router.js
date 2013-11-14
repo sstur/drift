@@ -14,16 +14,27 @@ app.on('ready', function(require) {
       router = new Router();
     },
     'basic route': function() {
-      //var req = new Request('/a');
-      //var res = new Response();
-      var i = 0;
+      var count = 0;
       router.addRoute('/a', function() {
-        i += 1;
+        count += 1;
       });
       router.route('GET', '/');
-      expect(i).to.be(0);
+      expect(count).to.be(0);
       router.route('GET', '/a');
-      expect(i).to.be(1);
+      expect(count).to.be(1);
+    },
+    'route with params': function() {
+      this.setup();
+      var params = null;
+      router.addRoute('/a/:b/:c', function(b, c) {
+        params = toArray(arguments);
+      });
+      router.route('GET', '/a');
+      expect(params).to.be(null);
+      router.route('GET', '/a/one/two');
+      expect(params).to.eql(['one', 'two']);
+      router.route('GET', '/a/s/d', null);
+      expect(params).to.eql([null, 's', 'd']);
     }
   });
 
