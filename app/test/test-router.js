@@ -79,6 +79,24 @@ app.on('ready', function(require) {
       });
       router.route('GET', '/a');
       expect(count).to.be(1);
+    },
+    'route get/post': function() {
+      this.setup();
+      var result = [];
+      router.addRoute('/a', function() {
+        result.push('all');
+      });
+      router.addRoute('GET:/a', function() {
+        result.push('get');
+      });
+      router.addRoute('POST:/a', function() {
+        result.push('post');
+      });
+      router.route('GET', '/a');
+      expect(result.join('|')).to.be('all|get');
+      result.length = 0;
+      router.route('POST', '/a');
+      expect(result.join('|')).to.be('all|post');
     }
   });
 
