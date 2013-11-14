@@ -96,7 +96,9 @@ define('test-runner', function(require, exports, module) {
       this.logResult = this['format_' + format];
       this.writeStream = opts.writeStream;
       var self = this;
-      this.suites.forEach(function(suite) {
+      var suites = this.suites;
+      for (var i = 0, len = suites.length; i < len; i++) {
+        var suite = suites[i];
         suite.runner = self;
         suite.setup();
         self.logResult(suite);
@@ -111,14 +113,15 @@ define('test-runner', function(require, exports, module) {
               fn.call(suite, name, i);
               suite.afterEach();
             } catch(e) {
-              var error = e;
+              suite.error = e;
             }
           }
-          self.logResult(name, error);
-          return (error) ? false : null;
+          self.logResult(name, suite.error);
+          return (suite.error) ? false : null;
         });
         suite.teardown();
-      });
+        if (suite.error) break;
+      }
       if (this.writeStream) {
         this.writeStream.end();
       }
