@@ -100,10 +100,10 @@ define('test-runner', function(require, exports, module) {
         suite.setup();
         self.logResult(suite);
         forEach(suite.testCases, function(name, fn, i) {
-          suite.beforeEach();
-          fn.call(suite, name, i);
-          suite.afterEach();
           try {
+            suite.beforeEach();
+            fn.call(suite, name, i);
+            suite.afterEach();
           } catch(e) {
             var error = e;
           }
