@@ -1,0 +1,68 @@
+ QUERY BUILDERS
+----------------
+http://knexjs.org
+ condition builder
+ support joins
+ support schema functions
+
+https://github.com/brianc/node-sql
+ sql string builder for node - supports PostgreSQL, mysql, and sqlite dialects.
+
+https://github.com/hiddentao/squel
+ conditions are passed as strings (not built)
+ SQL query string builder for Javascript
+ node + browser
+
+https://npmjs.org/package/sql-builder
+
+Query Parsers:
+ https://github.com/forward/sql-parser
+  SELECT only
+ https://github.com/RienNeVaPlus/simple-sql-parser
+  (from: https://github.com/dsferruzza/simpleSqlParser)
+ 
+
+ ABSTRACTION
+-------------
+
+https://github.com/grncdr/node-any-db
+ A less-opinionated database abstraction layer
+ Connection URI support
+
+https://github.com/robconery/massive-js
+ Some Light Abstraction for Accessing Data
+ Implements some query-building
+ Connection URI support
+
+https://github.com/DrBenton/Node-DBI
+ DBSelect is a query-builder
+ DBWrapper is an Abstraction Layer
+
+
+ ORM
+------
+
+https://github.com/brianc/node-relational
+ A fancy query-builder based on pre-defined schemas [unfinished]
+
+http://www.sequelizejs.com/documentation
+ Nodejs ORM for MySQL
+
+
+ MIGRATION
+-----------
+
+https://github.com/nearinfinity/node-db-migrate
+ Specify scripts to migrate up and down versions
+ Includes abstraction for:
+  createTable, dropTable, renameTable, addColumn, removeColumn, renameColumn, changeColumn,
+  addIndex, insert, removeIndex, runSql
+
+
+ CONCEPTS
+----------
+
+Database Driver
+Query Builder / Abstraction Layer
+Validation + Schemas = ORM
+Migrations

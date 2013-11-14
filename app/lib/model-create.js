@@ -1,3 +1,7 @@
+/*!
+ * This should be built into model
+ *   model should pass a normalized representation of a table to sql adapter
+ */
 /*global app, define */
 define('model-create', function(require, exports, module) {
   "use strict";

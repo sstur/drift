@@ -1,0 +1,53 @@
+//implement OR
+model.findAll([{name: 'Alice'}, {name: 'Bob}], {orderBy: 'name'})
+
+Content-Disposition: attachment; filename="sanitized-file"; filename*=UTF-8''unicode%20file
+//see: http://greenbytes.de/tech/tc2231/#attfnboth
+
+remove app.cfg('virtual_url')
+specify original_url_header in app.cfg
+
+when req.autoSavePath is specified, cleanup files at req.end except those on which file.saveAs() was called
+
+method-override and x-forwarded-for allowed for specific ip
+[private-header array?]
+
+if req.method == 'get' and req.query('_method') [method override]
+if [method override] and req.query('_body') [parse body]
+
+req._super._read(bytes) no greater than 256kb at a time
+Uploads during which client disconnects should emit a 'cancel' event and handle gracefully
+bug: specifying content-length still triggers transfer-encoding: chunked
+
+watch.js starts node-watch/main.js
+path to app.asp should be in build-conf.json
+change req.url('rawPath')
+
+app.on('init') for use:
+  patching app (app.model)
+  patching modules (util.customFn = fn)
+  asp/v8cgi adapters
+
+Consistency:
+  isAjax fixes
+  Revisit http-client
+  get/set funcs should return {string} or {object} consistently
+
+SMTP SSL
+Session file store (2012-10-19/13a76ac2bcc019dce0e054b26485d8f9.json)
+
+req.getRemoteAddr should be configurable to use header
+apache app.data
+adapter request should have readRawBody() so parseReqBody can be overridden to handle XML
+Support uploads with Transfer-Encoding: chunked
+ (If request includes Content-Length or Transfer-Encoding, then it must contain Content-Type field)
+
+consolidate:
+  parseCookies, parseHeaders, parseUrl (http client)
+
+implement:
+  util.joinPath
+
+Node:
+  remove http patches and replace static-server module
+  Verify file r/w is fiber-safe

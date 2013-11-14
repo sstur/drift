@@ -16,6 +16,9 @@ define('test-runner', function(require, exports, module) {
     this.loadOption(opts, 'teardown', noop);
     this.loadOption(opts, 'beforeEach', noop);
     this.loadOption(opts, 'afterEach', noop);
+    if (hasKey(opts)) {
+
+    }
     this.testCases = opts;
   }
 
