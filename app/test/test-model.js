@@ -6,7 +6,6 @@ app.on('ready', function(require) {
   //patch Model to create/drop tables
   require('model-create');
   var Model = require('model').Model;
-  var TestRunner = require('test-runner');
 
   var Author = new Model({
     name: 'Author',
@@ -37,7 +36,7 @@ app.on('ready', function(require) {
     }
   });
 
-  var testRunner = new TestRunner({
+  app.addTestSuite('model', {
     setup: function() {
       Author.createTable({drop: true});
       Article.createTable({drop: true});
@@ -161,12 +160,6 @@ app.on('ready', function(require) {
       });
       expect(articles).to.have.length(2);
     }
-  });
-
-  app.route('/test/models', function(req, res) {
-    var output = testRunner.run({format: 'html'});
-    res.contentType('text/html');
-    res.end(output);
   });
 
   function getDate() {

@@ -6,36 +6,63 @@ define('test-runner', function(require, exports, module) {
   var util = require('util');
   var noop = function() {};
 
-  function TestRunner(opts) {
-    if (!(this instanceof TestRunner)) {
-      return new TestRunner(opts);
+  function TestSuite(cfg) {
+    if (!(this instanceof TestSuite)) {
+      return new TestSuite(cfg);
     }
-    this.output = [];
-    this.loadOption(opts, 'format');
-    this.loadOption(opts, 'setup', noop);
-    this.loadOption(opts, 'teardown', noop);
-    this.loadOption(opts, 'beforeEach', noop);
-    this.loadOption(opts, 'afterEach', noop);
-    if (hasKey(opts)) {
-
-    }
-    this.testCases = opts;
+    this.loadOption(cfg, 'name', 'unnamed');
+    this.loadOption(cfg, 'description', this.name);
+    this.loadOption(cfg, 'setup', noop);
+    this.loadOption(cfg, 'teardown', noop);
+    this.loadOption(cfg, 'beforeEach', noop);
+    this.loadOption(cfg, 'afterEach', noop);
+    this.testCases = cfg;
   }
 
-  util.extend(TestRunner.prototype, {
+  util.extend(TestSuite.prototype, {
     loadOption: function(opts, name, defaultValue) {
       this[name] = (name in opts) ? opts[name] : defaultValue;
       delete opts[name];
     },
-    format_html: function(name, error) {
-      if (this.output.length == 0) {
+    log: function() {
+      this.runner.log.apply(this.runner, arguments);
+    }
+  });
+
+  function TestRunner(opts) {
+    if (!(this instanceof TestRunner)) {
+      return new TestRunner(opts);
+    }
+    this.suites = [];
+    this.output = [];
+  }
+
+  util.extend(TestRunner.prototype, {
+    addSuite: function(suite) {
+      var suites = this.suites;
+      var array = Array.isArray(suite) ? suite : [suite];
+      array.forEach(function(cfg) {
+        suites.push(new TestSuite(cfg));
+      });
+    },
+    format_html: function(item, error) {
+      var firstTest = (this.output.length == 0);
+      if (firstTest) {
         this.writeLine('<style>.pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee } .message:before { display: block; float: left; content: "    "; height: 100% }</style>');
-        this.writeLine('<body><pre><code>');
+        this.writeLine('<body>');
       }
-      if (!error) {
-        this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + util.htmlEnc(name) + '</span>');
+      if (item instanceof TestSuite) {
+        if (!firstTest) {
+          this.writeLine('</pre></code>');
+        }
+        this.writeLine('<h1>' + util.htmlEnc(item.description) + '</h1>');
+        this.writeLine('<pre><code>');
       } else {
-        this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + util.htmlEnc(name) + '</span>\n<span class="message">' + util.htmlEnc(error.message) + '</span>');
+        if (!error) {
+          this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + util.htmlEnc(item) + '</span>');
+        } else {
+          this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + util.htmlEnc(item) + '</span>\n<span class="message">' + util.htmlEnc(error.message) + '</span>');
+        }
       }
     },
     format_text: function(name, error) {
@@ -65,19 +92,23 @@ define('test-runner', function(require, exports, module) {
       this.logResult = this['format_' + format];
       this.writeStream = opts.writeStream;
       var self = this;
-      self.setup();
-      forEach(this.testCases, function(name, fn, i) {
-        try {
-          self.beforeEach();
-          fn.call(self, name, i);
-          self.afterEach();
-        } catch(e) {
-          var error = e;
-        }
-        self.logResult(name, error);
-        return (error) ? false : null;
+      this.suites.forEach(function(suite) {
+        suite.runner = self;
+        suite.setup();
+        self.logResult(suite);
+        forEach(suite.testCases, function(name, fn, i) {
+          suite.beforeEach();
+          fn.call(suite, name, i);
+          suite.afterEach();
+          try {
+          } catch(e) {
+            var error = e;
+          }
+          self.logResult(name, error);
+          return (error) ? false : null;
+        });
+        suite.teardown();
       });
-      self.teardown();
       if (this.writeStream) {
         this.writeStream.end();
       }

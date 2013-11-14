@@ -59,6 +59,7 @@
       'app/models',
       'app/init',
       'app/lib',
+      'app/test',
       'app/controllers',
       //load testing framework (todo: not for production)
       'app/system/test',
@@ -97,6 +98,7 @@
       'app/models',
       'app/init',
       'app/lib',
+      'app/test',
       'app/controllers',
       //load testing framework (todo: not for production)
       'app/system/test',
@@ -138,6 +140,7 @@
       'app/models',
       'app/init',
       'app/lib',
+      'app/test',
       'app/controllers',
       //load testing framework (todo: not for production)
       'app/system/test',
