@@ -16,6 +16,7 @@ define('test-runner', function(require, exports, module) {
     this.loadOption(cfg, 'teardown', noop);
     this.loadOption(cfg, 'beforeEach', noop);
     this.loadOption(cfg, 'afterEach', noop);
+    this.loadOption(cfg, 'noCatch', false);
     this.testCases = cfg;
   }
 
@@ -100,12 +101,18 @@ define('test-runner', function(require, exports, module) {
         suite.setup();
         self.logResult(suite);
         forEach(suite.testCases, function(name, fn, i) {
-          try {
+          if (suite.noCatch) {
             suite.beforeEach();
             fn.call(suite, name, i);
             suite.afterEach();
-          } catch(e) {
-            var error = e;
+          } else {
+            try {
+              suite.beforeEach();
+              fn.call(suite, name, i);
+              suite.afterEach();
+            } catch(e) {
+              var error = e;
+            }
           }
           self.logResult(name, error);
           return (error) ? false : null;

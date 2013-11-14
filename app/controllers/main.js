@@ -14,21 +14,6 @@ app.on('ready', function(require) {
     res.sendFile('assets/favicon.ico');
   });
 
-  app.route('/form-post', function(req, res) {
-    var fields = req.body();
-    res.debug(fields);
-  });
-
-  app.route('/md5/:str', function(req, res, str) {
-    var MD5 = require('md5');
-    res.end(MD5.hash(str).toString('hex'));
-  });
-
-  app.route('/create-null', function(req, res) {
-    var o = Object.create(null);
-    res.end(typeof o.toString);
-  });
-
   //app.route('/redir/:i?', function(req, res, i) {
   //  var count = (+i || 0) + 1;
   //  util.log('redirecting ' + count);

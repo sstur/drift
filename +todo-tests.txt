@@ -1,8 +1,5 @@
 Routing:
-  rest-args passed at time of route: `app.route(req, res, arg1, arg2)`
-  item.opts sent with route handler: `{noAuth: true}`
   regex `this.params.$1` and named `this.params.id`
-  matchData.stop()
   pre-route, match-route, no-route
 
 

@@ -4,8 +4,8 @@ app.on('ready', function(require) {
 
   var expect = require('expect');
   var Router = require('router');
-  var Request = require('mock-request');
-  var Response = require('mock-response');
+  //var Request = require('mock-request');
+  //var Response = require('mock-response');
 
   var router;
 
