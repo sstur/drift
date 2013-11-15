@@ -97,6 +97,42 @@ app.on('ready', function(require) {
       result.length = 0;
       router.route('POST', '/a');
       expect(result.join('|')).to.be('all|post');
+    },
+    'route regex': function() {
+      this.setup();
+      router.addRoute(/\/(user|users)\/(\d+)/, function(callback, type, id) {
+        callback.call(this, type, id);
+      });
+      var done;
+      router.route('GET', '/user/1', function(type, id) {
+        expect(type).to.be('user');
+        expect(this.params.$1).to.be('user');
+        expect(id).to.be('1');
+        expect(this.params.$2).to.be('1');
+        done = true;
+      });
+      expect(done).to.be(true);
+    },
+    'route events': function() {
+      this.setup();
+      var results = [];
+      router.on('pre-route', function() {
+        results.push('a');
+      });
+      router.on('match-route', function() {
+        results.push('b');
+      });
+      router.on('no-route', function() {
+        results.push('c');
+      });
+      router.addRoute('/go', function(callback, type, id) {
+        results.push('route');
+      });
+      router.route('GET', '/go');
+      expect(results.join('|')).to.be('a|b|route|c');
+      results.length = 0;
+      router.route('GET', '/no');
+      expect(results.join('|')).to.be('a|c');
     }
   });
 
