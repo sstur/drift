@@ -14,14 +14,14 @@ define('adapter-request', function(require, exports, module) {
 
   util.extend(Request.prototype, {
     _get: function(n) {
-      var val, key = n.replace(/-/g, '_').toUpperCase();
-      val = this._super.serverVariables(key).item() || this._super.serverVariables('HTTP_' + key).item();
+      var key = n.replace(/-/g, '_').toUpperCase();
+      var val = this._super.serverVariables(key).item() || this._super.serverVariables('HTTP_' + key).item();
       return val || '';
     },
     getMethod: function() {
       var method = this._get('method');
       this.getHeaders();
-      //POST is mis-reported as GET in IIS6 404 fallback
+      //POST is mis-reported as GET when using 404 method in IIS 6
       if (method == 'GET' && this._get('Content-Type')) {
         method = 'POST';
       }
@@ -38,10 +38,7 @@ define('adapter-request', function(require, exports, module) {
       return url;
     },
     getHeaders: function() {
-      if (!this._headers) {
-        this._headers = parseHeaders(this._get('all-raw'));
-      }
-      return this._headers;
+      return this._get('all-raw');
     },
     getRemoteAddress: function() {
       return this._get('remote-addr');
@@ -69,17 +66,6 @@ define('adapter-request', function(require, exports, module) {
       return parser.parse();
     }
   });
-
-  function parseHeaders(raw) {
-    var headers = {}, all = raw.split('\r\n');
-    for (var i = 0; i < all.length; i++) {
-      var header = all[i], pos = header.indexOf(':');
-      if (pos < 0) continue;
-      var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
-      headers[key] = headers[key] ? headers[key] + ', ' + val : val;
-    }
-    return headers;
-  }
 
   module.exports = Request;
 });

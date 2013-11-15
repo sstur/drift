@@ -33,7 +33,7 @@ define('request', function(require, exports, module) {
       return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
     },
     headers: function(n) {
-      var headers = this._headers || (this._headers = this._super.getHeaders());
+      var headers = this._headers || (this._headers = parseHeaders(this._super.getHeaders()));
       if (arguments.length) {
         return headers[n.toLowerCase()] || '';
       } else {
@@ -102,6 +102,21 @@ define('request', function(require, exports, module) {
       search: search,
       qs: search.slice(1)
     };
+  }
+
+  function parseHeaders(input) {
+    if (typeof input != 'string') return input;
+    var headers = {};
+    var lines = input.split('\r\n').join('\n').split('\n');
+    for (var i = 0, len = lines.length; i < len; i++) {
+      var line = lines[i];
+      var index = line.indexOf(':');
+      if (index < 0) continue;
+      var key = line.slice(0, index).toLowerCase();
+      var value = line.slice(index + 1).trim();
+      headers[key] = headers[key] ? headers[key] + ', ' + value : value;
+    }
+    return headers;
   }
 
   function parseCookies(str) {

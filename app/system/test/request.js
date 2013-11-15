@@ -26,10 +26,13 @@ define('mock-request', function(require, exports, module) {
       return this._data.url;
     },
     getHeaders: function() {
-      var headers = {};
-      forEach(this._data.headers, function(key, value) {
-        headers[key.toLowerCase()] = value;
-      });
+      var headers = this._data.headers;
+      if (typeof headers == 'object') {
+        headers = Object.keys(headers).reduce(function(obj, key) {
+          obj[key.toLowerCase()] = headers[key];
+          return obj;
+        }, {});
+      }
       return headers;
     },
     getRemoteAddress: function() {
