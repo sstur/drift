@@ -1,12 +1,6 @@
-Routing:
-  regex `this.params.$1` and named `this.params.id`
-  pre-route, match-route, no-route
-
-
 parseHeaders
 
 db.query with various number/order params
-req.query case-insensitive
 
 Front-End Tests
   Properly report 500 Err
