@@ -50,7 +50,7 @@ app.on('ready', function(require) {
       expect(req.headers('User-Agent')).to.be('Mock');
       req = getRequest({
         url: '/',
-        headers: 'User-Agent: Mock\nX-Accel:None\r\nX-Double:a:b: c'
+        headers: 'User-Agent: Mock\nX-Accel:None\r\nX-Double :a:b: c'
       });
       expect(req.headers('user-agent')).to.be('Mock');
       expect(req.headers('X-Accel')).to.be('None');

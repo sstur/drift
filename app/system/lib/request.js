@@ -112,7 +112,7 @@ define('request', function(require, exports, module) {
       var line = lines[i];
       var index = line.indexOf(':');
       if (index < 0) continue;
-      var key = line.slice(0, index).toLowerCase();
+      var key = line.slice(0, index).trim().toLowerCase();
       var value = line.slice(index + 1).trim();
       headers[key] = headers[key] ? headers[key] + ', ' + value : value;
     }
