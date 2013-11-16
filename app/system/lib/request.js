@@ -43,7 +43,7 @@ define('request', function(require, exports, module) {
     cookies: function(n) {
       var cookies = this._cookies || (this._cookies = parseCookies(this.headers('cookie')));
       if (arguments.length) {
-        return cookies[n] || '';
+        return cookies[n.toLowerCase()] || '';
       } else {
         return cookies;
       }
@@ -121,22 +121,24 @@ define('request', function(require, exports, module) {
 
   function parseCookies(str) {
     str = (str == null) ? '' : String(str);
-    var obj = {}, split = str.split(REG_COOKIE_SEP);
-    for (var i = 0, len = split.length; i < len; i++) {
-      var part = split[i], pos = part.indexOf('=');
-      if (pos < 0) {
-        pos = part.length;
+    var cookies = {};
+    var parts = str.split(REG_COOKIE_SEP);
+    for (var i = 0, len = parts.length; i < len; i++) {
+      var part = parts[i];
+      var index = part.indexOf('=');
+      if (index < 0) {
+        index = part.length;
       }
-      var key = part.slice(0, pos).trim(), val = part.slice(pos + 1).trim();
-      if (!key) continue;
-      // quoted values
-      if (val[0] == '"') val = val.slice(1, -1);
-      // only assign once
-      if (!obj.hasOwnProperty(key)) {
-        obj[key] = qs.unescape(val);
+      var key = part.slice(0, index).trim().toLowerCase();
+      // no empty keys; no duplicates
+      if (key && !(key in cookies)) {
+        var value = part.slice(index + 1).trim();
+        // quoted values
+        if (value[0] == '"') value = value.slice(1, -1);
+        cookies[key] = qs.unescape(value);
       }
     }
-    return obj;
+    return cookies;
   }
 
   module.exports = Request;

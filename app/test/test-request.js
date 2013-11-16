@@ -55,6 +55,16 @@ app.on('ready', function(require) {
       expect(req.headers('user-agent')).to.be('Mock');
       expect(req.headers('X-Accel')).to.be('None');
       expect(req.headers('X-Double')).to.be('a:b: c');
+    },
+    'isAjax': function() {
+      var req = getRequest({url: '/', headers: 'X-Requested-With: XMLHttpRequest'});
+      expect(req.headers('x-requested-with')).to.be('XMLHttpRequest');
+      expect(req.isAjax()).to.be(true);
+    },
+    'cookie parsing': function() {
+      var req = getRequest({url: '/', headers: 'Cookie: SID=VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2; EULA=1'});
+      expect(req.cookies('sid')).to.be('VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2');
+      expect(req.cookies('EULA')).to.be('1');
     }
   });
 
