@@ -5,7 +5,6 @@ define('adapter-request', function(require, exports, module) {
   var qs = require('qs');
   var util = require('util');
   var Buffer = require('buffer').Buffer;
-  var BodyParser = require('body-parser');
 
   var special = {
     content_type: 'content-type',
@@ -44,16 +43,8 @@ define('adapter-request', function(require, exports, module) {
     getRemoteAddress: function() {
       return this._get('remote-host');
     },
-    _read: function(bytes) {
+    read: function(bytes) {
       return new Buffer(this._super.read(bytes));
-    },
-    parseReqBody: function(parent) {
-      var opts = {
-        autoSavePath: ('autoSavePath' in parent) ? parent.autoSavePath : app.cfg('auto_save_uploads')
-      };
-      var parser = new BodyParser(this.getHeaders(), this._read.bind(this), opts);
-      util.propagateEvents(parser, parent, 'file upload-progress');
-      return parser.parse();
     }
   });
 

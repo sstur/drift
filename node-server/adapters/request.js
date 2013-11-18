@@ -3,10 +3,9 @@ app.define('adapter-request', function(require, exports, module) {
   "use strict";
 
   var util = require('util');
-  var BodyParser = require('body-parser');
 
   function Request(req) {
-    //node's incoming http request instance
+    //node's incoming http request
     this._super = req;
     //pause so that we can use the body parser later
     req.pause();
@@ -25,14 +24,9 @@ app.define('adapter-request', function(require, exports, module) {
     getRemoteAddress: function() {
       return this._super.connection.remoteAddress;
     },
-    parseReqBody: function(emitter) {
-      var req = this._super;
-      var opts = {
-        autoSavePath: app.cfg('auto_save_uploads')
-      };
-      var parser = new BodyParser(req.headers, req, opts);
-      util.propagateEvents(parser, emitter, 'file upload-progress');
-      return parser.parse();
+    read: function(bytes) {
+      throw new Error('Body Parser: nodeRequest.read() not implemented');
+      //this._super.read(bytes);
     }
   });
 

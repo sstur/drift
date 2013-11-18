@@ -1,10 +1,10 @@
 /*global app, define, iis */
 define('adapter-request', function(require, exports, module) {
   "use strict";
+
   var qs = require('qs');
   var util = require('util');
   var Buffer = require('buffer').Buffer;
-  var BodyParser = require('body-parser');
 
   var REG_URL = /^([^:\/]+:\/\/)?([^\/]*)(.*)$/;
 
@@ -20,7 +20,6 @@ define('adapter-request', function(require, exports, module) {
     },
     getMethod: function() {
       var method = this._get('method');
-      this.getHeaders();
       //POST is mis-reported as GET when using 404 method in IIS 6
       if (method == 'GET' && this._get('Content-Type')) {
         method = 'POST';
@@ -43,27 +42,17 @@ define('adapter-request', function(require, exports, module) {
     getRemoteAddress: function() {
       return this._get('remote-addr');
     },
-    _read: function(bytes) {
+    read: function(bytes) {
       try {
         var bin = this._super.binaryRead(bytes);
       } catch(e) {
         throw new Error('Could not read ' + bytes + ' bytes from request body: ' + e.message);
       }
+      //ensure our request doesn't timeout while we are receiving body
+      if (!this.scriptTimeout) {
+        this.scriptTimeout = iis.server.scriptTimeout = app.cfg('upload_timeout') || 3600;
+      }
       return new Buffer(bin);
-    },
-    parseReqBody: function(parent) {
-      var opts = {
-        autoSavePath: ('autoSavePath' in parent) ? parent.autoSavePath : app.cfg('auto_save_uploads')
-      };
-      var parser = new BodyParser(this.getHeaders(), this._read.bind(this), opts);
-      var scriptTimeout;
-      parser.on('file', function() {
-        if (!scriptTimeout) {
-          scriptTimeout = iis.server.scriptTimeout = app.cfg('upload_timeout') || 3600;
-        }
-      });
-      util.propagateEvents(parser, parent, 'file upload-progress');
-      return parser.parse();
     }
   });
 

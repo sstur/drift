@@ -3,8 +3,6 @@ define('mock-request', function(require, exports, module) {
   "use strict";
   var qs = require('qs');
   var util = require('util');
-  var Buffer = require('buffer').Buffer;
-  var BodyParser = require('body-parser');
 
   function Request(data) {
     if (typeof data == 'string') {
@@ -38,17 +36,9 @@ define('mock-request', function(require, exports, module) {
     getRemoteAddress: function() {
       return this._data.remoteAddr;
     },
-    _read: function(bytes) {
+    read: function(bytes) {
       //todo: read from file-system for testing
       throw new Error('Could not read ' + bytes + ' bytes from request body');
-    },
-    parseReqBody: function(parent) {
-      var opts = {
-        autoSavePath: ('autoSavePath' in parent) ? parent.autoSavePath : app.cfg('auto_save_uploads')
-      };
-      var parser = new BodyParser(this.getHeaders(), this._read.bind(this), opts);
-      util.propagateEvents(parser, parent, 'file upload-progress');
-      return parser.parse();
     }
   });
 

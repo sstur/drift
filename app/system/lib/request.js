@@ -4,6 +4,7 @@ define('request', function(require, exports, module) {
 
   var qs = require('qs');
   var util = require('util');
+  var BodyParser = require('body-parser');
 
   var HTTP_METHODS = {GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1};
   var BODY_ALLOWED = {POST: 1, PUT: 1};
@@ -28,7 +29,7 @@ define('request', function(require, exports, module) {
         //method override (for JSONP and platforms that don't support PUT/DELETE)
         //todo: this query param (_method) should be specified/disabled in config
         var override = (this.headers('X-HTTP-Method-Override') || this.query('_method')).toUpperCase();
-        this._method = (override in HTTP_METHODS) ? override : this._super.getMethod();
+        this._method = (override in HTTP_METHODS) ? override : this._super.getMethod().toUpperCase();
       }
       return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
     },
@@ -56,28 +57,27 @@ define('request', function(require, exports, module) {
         return query;
       }
     },
-    parseReqBody: function() {
-      if (!this._body) {
-        try {
-          //passing req, ensures body-parser events propagate to request
-          this._body = (this.method() in BODY_ALLOWED) ? this._super.parseReqBody(this) : {};
-        } catch(e) {
-          if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
-            this.res.die(e);
-          } else {
-            this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
-          }
-        }
-      }
-      return this._body;
-    },
     body: function(n) {
-      var body = this.parseReqBody();
+      var body = this._body || (this._body = this._parseBody());
       if (arguments.length) {
         return body[n.toLowerCase()];
       } else {
         return body;
       }
+    },
+    //todo: merge this with parseReqBody
+    _parseBody: function() {
+      try {
+        //body-parser events will be propagated to this
+        var body = (this.method() in BODY_ALLOWED) ? parseReqBody(this) : {};
+      } catch(e) {
+        if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
+          this.res.die(e);
+        } else {
+          this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
+        }
+      }
+      return body;
     },
     isAjax: function() {
       //todo: check accepts, x-requested-with, and qs (jsonp/callback)
@@ -139,6 +139,16 @@ define('request', function(require, exports, module) {
       }
     }
     return cookies;
+  }
+
+  function parseReqBody(req) {
+    var _super = req._super;
+    var opts = {
+      autoSavePath: ('autoSavePath' in req) ? req.autoSavePath : app.cfg('auto_save_uploads')
+    };
+    var parser = new BodyParser(req.headers(), _super.read.bind(_super), opts);
+    util.propagateEvents(parser, req, 'file upload-progress');
+    return parser.parse();
   }
 
   module.exports = Request;
