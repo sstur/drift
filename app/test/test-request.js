@@ -44,6 +44,19 @@ app.on('ready', function(require) {
       expect(req.url('qs')).to.be('a=f%C3%bcr');
       expect(req.query('a')).to.be('für');
     },
+    'method': function() {
+      var req = getRequest({url: '/'});
+      expect(req.method()).to.be('GET');
+      expect(req.method('GET')).to.be(true);
+      expect(req.method('POST')).to.be(false);
+      req = getRequest({method: 'POST', url: '/'});
+      expect(req.method()).to.be('POST');
+      expect(req.method('post')).to.be(true);
+      req = getRequest({url: '/', headers: {'X-HTTP-Method-Override': 'POST'}});
+      expect(req.method()).to.be('POST');
+      req = getRequest({url: '/?_method=head'});
+      expect(req.method('head')).to.be(true);
+    },
     'headers': function() {
       var req = getRequest({url: '/', headers: {'User-Agent': 'Mock'}});
       expect(req.headers('user-agent')).to.be('Mock');
