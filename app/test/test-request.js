@@ -5,9 +5,9 @@ app.on('ready', function(require) {
   var crypto = require('crypto');
   var expect = require('expect');
   var Request = require('request');
-  //var Response = require('response');
+  var Response = require('response');
   var AdapterRequest = require('mock-request');
-  //var AdapterResponse = require('mock-response');
+  var AdapterResponse = require('mock-response');
 
   app.addTestSuite('request', {
     'url parsing': function() {
@@ -113,7 +113,12 @@ app.on('ready', function(require) {
 
   function getRequest(cfg) {
     var aReq = new AdapterRequest(cfg);
-    return new Request(aReq);
+    var req = new Request(aReq);
+    var aRes = new AdapterResponse();
+    var res = new Response(aRes);
+    req.res = res;
+    res.req = req;
+    return req;
   }
 
   function constructMultipart(cfg) {
