@@ -13,6 +13,9 @@ define('mock-request', function(require, exports, module) {
     data.method = data.method || 'GET';
     data.headers = data.headers || {};
     data.remoteAddr = data.remoteAddr || '127.0.0.1';
+    if (data.body) {
+      this.read = createReader(data.body);
+    }
     this._data = data;
   }
 
@@ -41,6 +44,15 @@ define('mock-request', function(require, exports, module) {
       throw new Error('Could not read ' + bytes + ' bytes from request body');
     }
   });
+
+  function createReader(data) {
+    var i = 0;
+    return function(bytes) {
+      var start = i;
+      i += bytes;
+      return data.slice(start, i);
+    };
+  }
 
   module.exports = Request;
 });

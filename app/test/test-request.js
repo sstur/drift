@@ -2,15 +2,12 @@
 app.on('ready', function(require) {
   "use strict";
 
+  var crypto = require('crypto');
   var expect = require('expect');
   var Request = require('request');
   //var Response = require('response');
   var AdapterRequest = require('mock-request');
   //var AdapterResponse = require('mock-response');
-
-  function getRequest(cfg) {
-    return new Request(new AdapterRequest(cfg));
-  }
 
   app.addTestSuite('request', {
     'url parsing': function() {
@@ -81,7 +78,59 @@ app.on('ready', function(require) {
       var req = getRequest({url: '/', headers: 'Cookie: SID=VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2; EULA=1'});
       expect(req.cookies('sid')).to.be('VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2');
       expect(req.cookies('EULA')).to.be('1');
+    },
+    'body parsing': function() {
+      var boundary = 'vXBUZWeMvYUeW9P6lxTi';
+      var file = new Buffer('4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B', 'hex');
+      var data = constructMultipart({
+        boundary: boundary,
+        field_name: 'username',
+        field_value: 'simo',
+        file_name: 'avatar',
+        file_value: 'image.gif',
+        file_type: 'image/gif',
+        file_data: file
+      });
+      var req = getRequest({
+        url: '/',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data; boundary=' + boundary,
+          'Content-Length': data.length
+        },
+        body: data
+      });
+      var body = req.body();
+      expect(body.username).to.be('simo');
+      expect(body.avatar.type).to.be('file');
+      expect(body.avatar.name).to.be('avatar');
+      expect(body.avatar.fileName).to.be('image.gif');
+      expect(body.avatar.contentType).to.be('image/gif');
+      expect(body.avatar.size).to.be(file.length);
+      expect(body.avatar.hash).to.be(crypto.hash('md5', file).toString('hex'));
     }
   });
+
+  function getRequest(cfg) {
+    var aReq = new AdapterRequest(cfg);
+    return new Request(aReq);
+  }
+
+  function constructMultipart(cfg) {
+    var body = '--__BOUNDARY__|Content-Disposition: form-data; name="__FIELD1_NAME__"||__FIELD1_VALUE__|--__BOUNDARY__|Content-Disposition: form-data; name="__FILE1_NAME__"; filename="__FILE1_FILENAME__"|Content-Type: __FILE1_TYPE__||__FILE1_DATA__|--__BOUNDARY__--';
+    body = body.split('|').join('\r\n');
+    body = body.split('__BOUNDARY__').join(cfg.boundary);
+    body = body.split('__FIELD1_NAME__').join(cfg.field_name);
+    body = body.split('__FIELD1_VALUE__').join(cfg.field_value);
+    body = body.split('__FILE1_NAME__').join(cfg.file_name);
+    body = body.split('__FILE1_FILENAME__').join(cfg.file_value);
+    body = body.split('__FILE1_TYPE__').join(cfg.file_type || 'application/octet-stream');
+    var data = cfg.file_data;
+    if (Buffer.isBuffer(data)) {
+      data = data.toString('binary');
+    }
+    body = body.split('__FILE1_DATA__').join(data);
+    return new Buffer(body, 'binary');
+  }
 
 });

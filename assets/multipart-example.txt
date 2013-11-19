@@ -1,0 +1,13 @@
+Content-Type: multipart/form-data; boundary=__BOUNDARY__
+Content-Length: 29278
+
+--__BOUNDARY__
+Content-Disposition: form-data; name="__FIELD1_NAME__"
+
+__FIELD1_VALUE__
+--__BOUNDARY__
+Content-Disposition: form-data; name="__FILE1_NAME__"; filename="__FILE1_FILENAME__"
+Content-Type: __FILE1_TYPE__
+
+__FILE1_DATA__
+--__BOUNDARY__--
