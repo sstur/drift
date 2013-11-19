@@ -4,7 +4,7 @@ app.on('ready', function(require) {
 
   var TestRunner = require('test-runner');
 
-  app.route('/test/:suite', function(req, res, name) {
+  app.route('/test/:suite?', function(req, res, name) {
     if (!name || name == 'all') {
       var suites = app.getTestSuite();
     } else {
