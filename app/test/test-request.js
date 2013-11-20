@@ -57,27 +57,26 @@ app.on('ready', function(require) {
       expect(req.query('a')).to.be('für');
     },
     'method': function() {
-      var req = createRequest({url: '/'});
+      var req = createRequest();
       expect(req.method()).to.be('GET');
       expect(req.method('GET')).to.be(true);
       expect(req.method('POST')).to.be(false);
-      req = createRequest({method: 'POST', url: '/'});
+      req = createRequest({method: 'POST'});
       expect(req.method()).to.be('POST');
-      req = createRequest({method: 'PUT', url: '/'});
+      req = createRequest({method: 'PUT'});
       expect(req.method('PUT')).to.be(true);
-      req = createRequest({method: 'delete', url: '/'});
+      req = createRequest({method: 'delete'});
       expect(req.method('DELETE')).to.be(true);
-      req = createRequest({url: '/', headers: {'X-HTTP-Method-Override': 'POST'}});
+      req = createRequest({headers: {'X-HTTP-Method-Override': 'POST'}});
       expect(req.method()).to.be('POST');
       req = createRequest({url: '/?_method=head'});
       expect(req.method('head')).to.be(true);
     },
     'headers': function() {
-      var req = createRequest({url: '/', headers: {'User-Agent': 'Mock'}});
+      var req = createRequest({headers: {'User-Agent': 'Mock'}});
       expect(req.headers('user-agent')).to.be('Mock');
       expect(req.headers('User-Agent')).to.be('Mock');
       req = createRequest({
-        url: '/',
         headers: 'User-Agent: Mock\nX-Accel:None\r\nX-Double :a:b: c'
       });
       expect(req.headers('user-agent')).to.be('Mock');
@@ -86,14 +85,18 @@ app.on('ready', function(require) {
       expect(req.headers('X-NotExist')).to.be('');
     },
     'isAjax': function() {
-      var req = createRequest({url: '/', headers: 'X-Requested-With: XMLHttpRequest'});
+      var req = createRequest({headers: 'X-Requested-With: XMLHttpRequest'});
       expect(req.headers('x-requested-with')).to.be('XMLHttpRequest');
       expect(req.isAjax()).to.be(true);
+      req = createRequest();
+      expect(req.isAjax()).to.be(false);
     },
     'cookie parsing': function() {
-      var req = createRequest({url: '/', headers: 'Cookie: SID=VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2; EULA=1'});
+      var req = createRequest({headers: 'Cookie: SID=VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2; EULA=1; eula=2'});
       expect(req.cookies('sid')).to.be('VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2');
-      expect(req.cookies('EULA')).to.be('1');
+      expect(req.cookies('EULA')).to.be('1, 2');
+      expect(req.cookies('eula')).to.be('1, 2');
+      expect(req.cookies('None')).to.be('');
     },
     'form body parsing': function() {
       var req = constructFormRequest([
@@ -186,7 +189,6 @@ app.on('ready', function(require) {
     });
     data = data.join('&');
     return createRequest({
-      url: '/',
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -200,7 +202,6 @@ app.on('ready', function(require) {
     cfg.boundary = cfg.boundary || 'vXBUZWeMvYUeW9P6lxTi';
     var data = constructMultipart(cfg);
     return createRequest({
-      url: '/',
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/form-data; boundary=' + cfg.boundary,

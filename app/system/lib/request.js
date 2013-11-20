@@ -111,8 +111,12 @@ define('request', function(require, exports, module) {
     for (var i = 0, len = lines.length; i < len; i++) {
       var line = lines[i];
       var index = line.indexOf(':');
-      if (index < 0) continue;
+      if (index < 0) {
+        index = line.length;
+      }
       var key = line.slice(0, index).trim().toLowerCase();
+      // no empty keys
+      if (!key) continue;
       var value = line.slice(index + 1).trim();
       headers[key] = headers[key] ? headers[key] + ', ' + value : value;
     }
@@ -130,13 +134,13 @@ define('request', function(require, exports, module) {
         index = part.length;
       }
       var key = part.slice(0, index).trim().toLowerCase();
-      // no empty keys; no duplicates
-      if (key && !(key in cookies)) {
-        var value = part.slice(index + 1).trim();
-        // quoted values
-        if (value[0] == '"') value = value.slice(1, -1);
-        cookies[key] = qs.unescape(value);
-      }
+      // no empty keys
+      if (!key) continue;
+      var value = part.slice(index + 1).trim();
+      // quoted values
+      if (value[0] == '"') value = value.slice(1, -1);
+      value = qs.unescape(value);
+      cookies[key] = cookies[key] ? cookies[key] + ', ' + value : value;
     }
     return cookies;
   }
