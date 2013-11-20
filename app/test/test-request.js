@@ -6,6 +6,7 @@
 app.on('ready', function(require) {
   "use strict";
 
+  var qs = require('qs');
   var crypto = require('crypto');
   var expect = require('expect');
   var Request = require('request');
@@ -87,6 +88,17 @@ app.on('ready', function(require) {
       expect(req.cookies('EULA')).to.be('1');
     },
     'form body parsing': function() {
+      var data = {a: 1, b: false, c: '✔'};
+      var req = createRequest({
+        url: '/',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': data.length
+        },
+        body: qs.stringify(data)
+      });
+      expect(req.body()).to.eql(data);
     },
     'multipart parsing': function() {
       var req = createMultipartRequest({
