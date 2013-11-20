@@ -27,6 +27,9 @@ define('mock-response', function(require, exports, module) {
     },
     end: function() {
       throw null;
+    },
+    getBody: function() {
+      return this.body.join('');
     }
   });
 

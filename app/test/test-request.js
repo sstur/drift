@@ -12,6 +12,9 @@ app.on('ready', function(require) {
   var Response = require('response');
   var AdapterRequest = require('mock-request');
   var AdapterResponse = require('mock-response');
+  var blob = new Array(256);
+  for (var i = 0; i < 256; i++) blob[i] = String.fromCharCode(i);
+  blob = new Buffer(blob, 'binary');
 
   app.addTestSuite('request', {
     'url parsing': function() {
@@ -83,28 +86,66 @@ app.on('ready', function(require) {
       expect(req.cookies('sid')).to.be('VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2');
       expect(req.cookies('EULA')).to.be('1');
     },
-    'body parsing': function() {
-      var file = new Buffer('4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B', 'hex');
+    'form body parsing': function() {
+    },
+    'multipart parsing': function() {
       var req = createMultipartRequest({
-        fields: [{
-          name: 'username',
-          value: 'simo'
-        }],
+        fields: [{name: 'username', value: 'admin'}],
         files: [{
           name: 'image',
           filename: 'image.gif',
           type: 'image/gif',
-          value: file
+          value: blob
         }]
       });
       var body = req.body();
-      expect(body.username).to.be('simo');
+      expect(body.username).to.be('admin');
       expect(body.image.type).to.be('file');
       expect(body.image.name).to.be('image');
       expect(body.image.fileName).to.be('image.gif');
       expect(body.image.contentType).to.be('image/gif');
-      expect(body.image.size).to.be(file.length);
-      expect(body.image.hash).to.be(crypto.hash('md5', file).toString('hex'));
+      expect(body.image.size).to.be(blob.length);
+      expect(body.image.hash).to.be(crypto.hash('md5', blob).toString('hex'));
+      req = createMultipartRequest({
+        fields: [{name: '✔', value: 'für'}]
+      });
+      body = req.body();
+      expect(body['✔']).to.be('für');
+      req = createMultipartRequest({
+        files: [{name: '✔', value: blob}]
+      });
+      var file1;
+      req.on('file', function(file) {
+        expect(file.on).to.be.a('function');
+        file1 = file;
+      });
+      body = req.body();
+      expect(body['✔']).to.be(file1);
+      expect(file1.size).to.be(256);
+      expect(file1.hash).to.be('6e2595104d0a9a2f4c66802e0f5b4273');
+    },
+    'part header overflow': function() {
+      var headers = {};
+      for (var i = 0; i < 100; i++) {
+        headers['X-Header-' + i] = 'This is a long header that should cause overflow';
+      }
+      var req = createMultipartRequest({
+        files: [{
+          name: 'file',
+          headers: headers,
+          value: blob
+        }]
+      });
+      var exception;
+      try {
+        req.body();
+      } catch(e) {
+        exception = e;
+      }
+      expect(exception).to.be(null);
+      var rawRes = req.res._super;
+      expect(rawRes.status).to.be('400 Bad Request');
+      expect(rawRes.getBody()).to.contain('Multipart Headers Too Large');
     }
   });
 
@@ -138,7 +179,8 @@ app.on('ready', function(require) {
       body.push('--' + boundary);
       body.push('Content-Disposition: form-data; name="' + encodeURI(field.name) + '"');
       body.push('');
-      body.push(field.value);
+      var value = new Buffer(field.value, 'utf8');
+      body.push(value.toString('binary'));
     });
     var files = cfg.files || [];
     files.forEach(function(file) {
