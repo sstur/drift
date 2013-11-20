@@ -46,7 +46,7 @@ define('test-runner', function(require, exports, module) {
         suites.push(new TestSuite(cfg));
       });
     },
-    format_html: function(item, error) {
+    format_html: function(item, error, time) {
       var firstTest = (this.output.length == 0);
       if (firstTest) {
         this.write('<style>body { margin: 20px } h1 { margin: 0; font-size: 120%; font-family: "Helvetica Neue", Helvetica, "Myriad Pro", "Lucida Grande", sans-serif; text-transform: uppercase } pre { margin: 10px; font-family: Consolas, "Liberation Mono", Courier, monospace; } .pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee } .message:before { display: block; float: left; content: "    "; height: 100% }</style>');
@@ -58,9 +58,12 @@ define('test-runner', function(require, exports, module) {
         }
         this.write('<h1>' + util.htmlEnc(item.description) + '</h1>');
         this.write('<pre><code>');
+      } else
+      if (item == 'summary') {
+        this.writeLine('Time Elapsed: ' + time + 'ms</span>');
       } else {
         if (!error) {
-          this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + util.htmlEnc(item) + '</span>');
+          this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + util.htmlEnc(item) + ' [' + time + ']</span>');
         } else {
           this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + util.htmlEnc(item) + '</span>\n<span class="message">' + util.htmlEnc(error.message) + '</span>');
         }
@@ -100,9 +103,11 @@ define('test-runner', function(require, exports, module) {
       for (var i = 0, len = suites.length; i < len; i++) {
         var suite = suites[i];
         suite.runner = self;
+        suite.startTime = Date.now();
         suite.setup();
         self.logResult(suite);
         forEach(suite.testCases, function(name, fn, i) {
+          var startTime = Date.now();
           if (suite.noCatch) {
             suite.beforeEach();
             fn.call(suite, name, i);
@@ -116,10 +121,13 @@ define('test-runner', function(require, exports, module) {
               suite.error = e;
             }
           }
-          self.logResult(name, suite.error);
+          var endTime = Date.now();
+          self.logResult(name, suite.error, endTime - startTime);
           return (suite.error) ? false : null;
         });
         suite.teardown();
+        suite.endTime = Date.now();
+        this.logResult('summary', null, suite.endTime - suite.startTime);
         if (suite.error) break;
       }
       if (this.writeStream) {
