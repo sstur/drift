@@ -6,24 +6,6 @@
 app.on('ready', function(require) {
   "use strict";
 
-  app.route('/multipart', function(req, res) {
-    var boundary = '__BOUNDARY__';
-    var data = constructMultipart({
-      boundary: boundary,
-      fields: [{
-        name: '__FIELD1_NAME__',
-        value: '__FIELD1_VALUE__'
-      }],
-      files: [{
-        name: '__FILE1_NAME__',
-        filename: '__FILE1_FILENAME__',
-        type: '__FILE1_TYPE__',
-        data: '__FILE1_DATA__'
-      }]
-    });
-    res.end(data.toString('binary'));
-  });
-
   var crypto = require('crypto');
   var expect = require('expect');
   var Request = require('request');
