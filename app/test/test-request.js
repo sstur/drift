@@ -1,6 +1,28 @@
+/*!
+ * todo: req body types
+ * todo: res should throw null when invalid req body
+ */
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
+
+  app.route('/multipart', function(req, res) {
+    var boundary = '__BOUNDARY__';
+    var data = constructMultipart({
+      boundary: boundary,
+      fields: [{
+        name: '__FIELD1_NAME__',
+        value: '__FIELD1_VALUE__'
+      }],
+      files: [{
+        name: '__FILE1_NAME__',
+        filename: '__FILE1_FILENAME__',
+        type: '__FILE1_TYPE__',
+        data: '__FILE1_DATA__'
+      }]
+    });
+    res.end(data.toString('binary'));
+  });
 
   var crypto = require('crypto');
   var expect = require('expect');
@@ -84,12 +106,16 @@ app.on('ready', function(require) {
       var file = new Buffer('4749463839610100010080FF00C0C0C000000021F90401000000002C00000000010001000002024401003B', 'hex');
       var data = constructMultipart({
         boundary: boundary,
-        field_name: 'username',
-        field_value: 'simo',
-        file_name: 'avatar',
-        file_value: 'image.gif',
-        file_type: 'image/gif',
-        file_data: file
+        fields: [{
+          name: 'username',
+          value: 'simo'
+        }],
+        files: [{
+          name: 'avatar',
+          filename: 'image.gif',
+          type: 'image/gif',
+          data: file
+        }]
       });
       var req = getRequest({
         url: '/',
@@ -122,19 +148,30 @@ app.on('ready', function(require) {
   }
 
   function constructMultipart(cfg) {
-    var body = '--__BOUNDARY__|Content-Disposition: form-data; name="__FIELD1_NAME__"||__FIELD1_VALUE__|--__BOUNDARY__|Content-Disposition: form-data; name="__FILE1_NAME__"; filename="__FILE1_FILENAME__"|Content-Type: __FILE1_TYPE__||__FILE1_DATA__|--__BOUNDARY__--';
-    body = body.split('|').join('\r\n');
-    body = body.split('__BOUNDARY__').join(cfg.boundary);
-    body = body.split('__FIELD1_NAME__').join(cfg.field_name);
-    body = body.split('__FIELD1_VALUE__').join(cfg.field_value);
-    body = body.split('__FILE1_NAME__').join(cfg.file_name);
-    body = body.split('__FILE1_FILENAME__').join(cfg.file_value);
-    body = body.split('__FILE1_TYPE__').join(cfg.file_type || 'application/octet-stream');
-    var data = cfg.file_data;
-    if (Buffer.isBuffer(data)) {
-      data = data.toString('binary');
-    }
-    body = body.split('__FILE1_DATA__').join(data);
+    var body = [];
+    var boundary = cfg.boundary;
+    var fields = cfg.fields || [];
+    fields.forEach(function(field) {
+      body.push('--' + boundary);
+      body.push('Content-Disposition: form-data; name="' + encodeURI(field.name) + '"');
+      body.push('');
+      body.push(field.value);
+    });
+    var files = cfg.files || [];
+    files.forEach(function(file) {
+      body.push('--' + boundary);
+      body.push('Content-Disposition: form-data; name="' + encodeURI(file.name) + '"; filename="' + encodeURI(file.filename) + '"');
+      var type = file.type || 'application/octet-stream';
+      body.push('Content-Type: ' + type);
+      body.push('');
+      var data = file.data;
+      if (Buffer.isBuffer(data)) {
+        data = data.toString('binary');
+      }
+      body.push(data);
+    });
+    body.push('--' + boundary + '--');
+    body = body.join('\r\n')
     return new Buffer(body, 'binary');
   }
 
