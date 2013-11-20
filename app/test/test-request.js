@@ -13,23 +13,6 @@ app.on('ready', function(require) {
   var AdapterRequest = require('mock-request');
   var AdapterResponse = require('mock-response');
 
-  app.route('/multipart', function(req, res) {
-    var boundary = 'vXBUZWeMvYUeW9P6lxTi';
-    var data = constructMultipart({
-      boundary: boundary,
-      fields: [{
-        name: 'username',
-        value: 'simo'
-      }],
-      files: [{
-        name: 'myfile.txt',
-        headers: {'Content-Transfer-Encoding': 'base64'},
-        value: '..........'
-      }]
-    });
-    res.end(data.toString('binary'));
-  });
-
   app.addTestSuite('request', {
     'url parsing': function() {
       var req = createRequest('/go?a=1');
