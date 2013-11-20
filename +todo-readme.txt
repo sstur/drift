@@ -6,7 +6,9 @@ Legacy Workarounds
 
 Quirks:
   req.body('a') can return undefined
-  req.query('a') always returns string
+  req.query('a') always returns string, like headers() and cookies()
+  req.query, req.headers, req.cookies and req.body[form, multipart] will concatenate dups
+  multipart parser will not
 
 why modelInstance._model and not .model
 

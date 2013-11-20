@@ -95,7 +95,6 @@ app.on('ready', function(require) {
       var req = createRequest({headers: 'Cookie: SID=VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2; EULA=1; eula=2'});
       expect(req.cookies('sid')).to.be('VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2');
       expect(req.cookies('EULA')).to.be('1, 2');
-      expect(req.cookies('eula')).to.be('1, 2');
       expect(req.cookies('None')).to.be('');
     },
     'form body parsing': function() {
@@ -112,6 +111,7 @@ app.on('ready', function(require) {
       ]);
       var body = req.body();
       expect(body).to.eql({a: '1, 2', b: '='});
+      expect(req.body('c')).to.be.an('undefined');
     },
     'multipart parsing': function() {
       var req = createMultipartRequest({
@@ -131,23 +131,40 @@ app.on('ready', function(require) {
       expect(body.image.contentType).to.be('image/gif');
       expect(body.image.size).to.be(blob.length);
       expect(body.image.hash).to.be(crypto.hash('md5', blob).toString('hex'));
+      //duplicate keys have their values concatenated
       req = createMultipartRequest({
-        fields: [{name: '✔', value: 'für'}]
+        fields: [{name: '✔', value: 'a'}, {name: '✔', value: 'für'}]
       });
       body = req.body();
-      expect(body['✔']).to.be('für');
+      expect(body['✔']).to.be('a, für');
+      //files can have unicode name/filename; req should emit file
       req = createMultipartRequest({
         files: [{name: '✔', value: blob}]
       });
-      var file1;
+      var files = [];
       req.on('file', function(file) {
         expect(file.on).to.be.a('function');
-        file1 = file;
+        files.push(file);
       });
       body = req.body();
-      expect(body['✔']).to.be(file1);
-      expect(file1.size).to.be(256);
-      expect(file1.hash).to.be('6e2595104d0a9a2f4c66802e0f5b4273');
+      expect(body['✔']).to.be(files[0]);
+      expect(files[0].size).to.be(256);
+      expect(files[0].hash).to.be('6e2595104d0a9a2f4c66802e0f5b4273');
+      //body contains only first file, but req emits both
+      req = createMultipartRequest({
+        files: [
+          {name: 'file', value: new Buffer('first')},
+          {name: 'file', value: new Buffer('second')}
+        ]
+      });
+      files = [];
+      req.on('file', function(file) {
+        files.push(file);
+      });
+      body = req.body();
+      expect(files[0].size).to.be(5);
+      expect(files[1].size).to.be(6);
+      expect(body.file.size).to.be(5);
     },
     'part header overflow': function() {
       var headers = {};
@@ -173,6 +190,7 @@ app.on('ready', function(require) {
       expect(rawRes.getBody()).to.contain('Multipart Headers Too Large');
     }
   });
+
 
   function createRequest(cfg) {
     var req = new Request(new AdapterRequest(cfg));
@@ -201,7 +219,7 @@ app.on('ready', function(require) {
   function createMultipartRequest(cfg) {
     cfg.boundary = cfg.boundary || 'vXBUZWeMvYUeW9P6lxTi';
     var data = constructMultipart(cfg);
-    return createRequest({
+    var req = createRequest({
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/form-data; boundary=' + cfg.boundary,
@@ -209,6 +227,8 @@ app.on('ready', function(require) {
       },
       body: data
     });
+    req.rawBody = data;
+    return req;
   }
 
   function constructMultipart(cfg) {
