@@ -1,7 +1,3 @@
-/*!
- * todo: req body types
- * todo: res should throw null when invalid req body
- */
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
