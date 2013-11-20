@@ -88,17 +88,19 @@ app.on('ready', function(require) {
       expect(req.cookies('EULA')).to.be('1');
     },
     'form body parsing': function() {
-      var data = {a: 1, b: false, c: '✔'};
-      var req = createRequest({
-        url: '/',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': data.length
-        },
-        body: qs.stringify(data)
-      });
-      expect(req.body()).to.eql(data);
+      var req = constructFormRequest([
+        {name: 'a', value: 1},
+        {name: 'b', value: false},
+        {name: 'c', value: '✔'}
+      ]);
+      expect(req.body()).to.eql({a: '1', b: 'false', c: '✔'});
+      req = constructFormRequest([
+        {name: 'a', value: 1},
+        {name: 'a', value: 2},
+        {name: 'b', value: '='}
+      ]);
+      var body = req.body();
+      expect(body).to.eql({a: '1, 2', b: '='});
     },
     'multipart parsing': function() {
       var req = createMultipartRequest({
@@ -167,6 +169,23 @@ app.on('ready', function(require) {
     req.res = res;
     res.req = req;
     return req;
+  }
+
+  function constructFormRequest(fields) {
+    var data = [];
+    fields.forEach(function(field) {
+      data.push(qs.escape(field.name) + '=' + qs.escape(field.value));
+    });
+    data = data.join('&');
+    return createRequest({
+      url: '/',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': data.length
+      },
+      body: data
+    });
   }
 
   function createMultipartRequest(cfg) {
