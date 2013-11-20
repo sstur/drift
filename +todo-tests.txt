@@ -1,11 +1,7 @@
-parseHeaders
-
-db.query with various number/order params
-
 Front-End Tests
   Properly report 500 Err
   Conform XHR so tests.js can be used from node and browser
-  Shims, JSON, Buffer, MD5 and BodyParser should test via request for cross-platform
+  Shims, JSON, Buffer
   req.headers(h) always returns string
 
 Command-line tests:

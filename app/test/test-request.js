@@ -26,10 +26,17 @@ app.on('ready', function(require) {
       expect(req.url('path')).to.be('/go');
       expect(req.url('search')).to.be('?a=1');
       expect(req.url('qs')).to.be('a=1');
+      req = createRequest('/');
+      expect(req.url('search')).to.be('');
+      expect(req.url('qs')).to.be('');
     },
     'qs parsing': function() {
       var req = createRequest('/go?a=1&B=2');
       expect(req.query()).to.eql({a: '1', b: '2'});
+      req = createRequest('/go?a=1&A=2');
+      expect(req.query('a')).to.be('1, 2');
+      req = createRequest('/');
+      expect(req.query('b')).to.be('');
     },
     'unicode path escaped': function() {
       var req = createRequest('/f%FCr/f%fcr?a=f%3D%3dr');
@@ -76,6 +83,7 @@ app.on('ready', function(require) {
       expect(req.headers('user-agent')).to.be('Mock');
       expect(req.headers('X-Accel')).to.be('None');
       expect(req.headers('X-Double')).to.be('a:b: c');
+      expect(req.headers('X-NotExist')).to.be('');
     },
     'isAjax': function() {
       var req = createRequest({url: '/', headers: 'X-Requested-With: XMLHttpRequest'});

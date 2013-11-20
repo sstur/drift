@@ -1,6 +1,8 @@
 //implement OR
 model.findAll([{name: 'Alice'}, {name: 'Bob}], {orderBy: 'name'})
 
+Allow access to unaltered qs/form-body as array (emit 'field'?)
+
 Content-Disposition: attachment; filename="sanitized-file"; filename*=UTF-8''unicode%20file
 //see: http://greenbytes.de/tech/tc2231/#attfnboth
 
