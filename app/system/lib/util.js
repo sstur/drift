@@ -19,6 +19,9 @@ define('util', function(require, util) {
   var REG_ENT_HEX = /&#x((?:[\dA-F]{2}){1,2});/ig;
   var REG_ENT_OTHER = /&([a-z]+);/ig;
 
+  //other regex literals
+  var PCT_SEQUENCE = /(%[0-9a-f]{2})+/ig;
+
   //type-specific clone helpers
   var CLONE = {
     'Array': function(clone) {
@@ -38,17 +41,38 @@ define('util', function(require, util) {
   };
 
   util.extend = function() {
-    var args = toArray(arguments), dest = args.shift();
-    args.forEach(function(src) {
-      if (!src) return;
-      Object.keys(src).forEach(function(key) {
+    var dest = arguments[0];
+    for (var i = 1, len = arguments.length; i < len; i++) {
+      var src = arguments[i];
+      if (!src) continue;
+      var keys = Object.keys(src);
+      for (var j = 0, l = keys.length; j < l; j++) {
+        var key = keys[j];
         dest[key] = src[key];
-      });
-    });
+      }
+    }
     return dest;
   };
 
-  util.clone = clone;
+  //deep-copy an object, similar to calling JSON.parse(JSON.stringify(obj))
+  // but preserves dates and undefined
+  util.clone = function clone(obj) {
+    if (isPrimitive(obj)) return obj;
+    if (typeof obj.toJSON == 'function') {
+      return obj.toJSON();
+    }
+    var type = toString.call(obj).slice(8, -1);
+    if (type in CLONE) {
+      return CLONE[type].call(obj, clone);
+    }
+    var copy = {};
+    var keys = Object.keys(obj);
+    for (var i = 0, len = keys.length; i < len; i++) {
+      var key = keys[i];
+      copy[key] = clone(obj[key]);
+    }
+    return copy;
+  };
 
   util.inherits = function(ctor, parent) {
     ctor.super_ = parent;
@@ -96,7 +120,7 @@ define('util', function(require, util) {
   };
 
   //log to the filesystem: util.log([logLevel], line1, [line2..], [logfile])
-  //if logLevel is specified, it will log only if logVerbosity is set at least that high
+  // if logLevel is specified, it will log only if logVerbosity is set at least that high
   util.log = function() {
     var fs = require('fs');
     var logfile, args = toArray(arguments), logLevel = 1;
@@ -125,14 +149,20 @@ define('util', function(require, util) {
 
   //parse a set of HTTP headers
   // todo: multi-line headers
-  util.parseHeaders = function(raw) {
-    //raw = raw.replace(/[ \t]*(\r\n)[ \t]+/, ' ');
-    var headers = {}, all = raw.split('\r\n');
-    for (var i = 0; i < all.length; i++) {
-      var header = all[i], pos = header.indexOf(':');
-      if (pos < 0) continue;
-      var n = header.slice(0, pos), val = header.slice(pos + 1).trim(), key = n.toLowerCase();
-      headers[key] = headers[key] ? headers[key] + ', ' + val : val;
+  util.parseHeaders = function(input) {
+    //input = input.replace(/[ \t]*(\r\n)[ \t]+/g, ' ');
+    var headers = {};
+    var lines = input.split('\r\n').join('\n').split('\n');
+    for (var i = 0, len = lines.length; i < len; i++) {
+      var line = lines[i];
+      var index = line.indexOf(':');
+      //discard lines without a :
+      if (index < 0) continue;
+      var key = line.slice(0, index).trim().toLowerCase();
+      // no empty keys
+      if (!key) continue;
+      var value = line.slice(index + 1).trim();
+      headers[key] = headers[key] ? headers[key] + ', ' + value : value;
     }
     return headers;
   };
@@ -229,6 +259,9 @@ define('util', function(require, util) {
   };
 
 
+  /*!
+   * Helpers
+   */
 
   function replacer(key, val) {
     //this function runs after .toJSON() so Buffer instances are already stringified
@@ -254,42 +287,27 @@ define('util', function(require, util) {
     return val;
   }
 
-  //escape extended characters escape sequences
+  //escape control/extended/unicode characters
   function escapeNonAscii(ch) {
     return '\\u' + ('0000' + ch.charCodeAt(0).toString(16)).slice(-4);
   }
 
-  //percent-decode (similar to qs.decode or urlDecode)
-  function pctDec(s) {
-    return s.replace(/(%[0-9a-f]{2})+/ig, function(s) {
-      try {
-        return decodeURIComponent(s);
-      } catch(e) {
-        return unescape(s);
-      }
-    });
+  //percent-decode a string (similar to qs.decode or urlDecode)
+  function pctDec(str) {
+    return str.replace(PCT_SEQUENCE, decode);
   }
 
-  //deep-copy an object, similar to calling JSON.parse(JSON.stringify(obj)) but preserves dates and undefined
-  function clone(obj) {
-    if (isPrimitive(obj)) return obj;
-    if (typeof obj.toJSON == 'function') {
-      return obj.toJSON();
+  //decode a sequence of percent-encoded entities
+  function decode(str) {
+    try {
+      return decodeURIComponent(str);
+    } catch(e) {
+      return unescape(str);
     }
-    var type = toString.call(obj).slice(8, -1);
-    if (type in CLONE) {
-      return CLONE[type].call(obj, clone);
-    }
-    var copy = {};
-    Object.keys(obj).forEach(function(key) {
-      copy[key] = clone(obj[key]);
-    });
-    return copy;
   }
 
-  function isPrimitive(o) {
-    return !(Object(o) === o);
+  function isPrimitive(obj) {
+    return (Object(obj) !== obj);
   }
-
 
 });

@@ -106,21 +106,7 @@ define('request', function(require, exports, module) {
 
   function parseHeaders(input) {
     if (typeof input != 'string') return input;
-    var headers = {};
-    var lines = input.split('\r\n').join('\n').split('\n');
-    for (var i = 0, len = lines.length; i < len; i++) {
-      var line = lines[i];
-      var index = line.indexOf(':');
-      if (index < 0) {
-        index = line.length;
-      }
-      var key = line.slice(0, index).trim().toLowerCase();
-      // no empty keys
-      if (!key) continue;
-      var value = line.slice(index + 1).trim();
-      headers[key] = headers[key] ? headers[key] + ', ' + value : value;
-    }
-    return headers;
+    return util.parseHeaders(input);
   }
 
   function parseCookies(str) {

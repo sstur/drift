@@ -2,6 +2,11 @@
 app.on('ready', function(require) {
   "use strict";
 
+  var NATIVE = /\[(native code)\]/;
+  if (String(Object.create).match(NATIVE)) {
+    return;
+  }
+
   var expect = require('expect');
 
   app.addTestSuite('polyfills', {

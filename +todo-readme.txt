@@ -1,3 +1,5 @@
+Consolas, 'Liberation Mono', Courier, monospace
+
 Globals:
   explain why we must declare in top scope *and* explicitly assign to globals object
 
