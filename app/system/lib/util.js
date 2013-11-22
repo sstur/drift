@@ -58,12 +58,15 @@ define('util', function(require, util) {
   // but preserves dates and undefined
   util.clone = function clone(obj) {
     if (isPrimitive(obj)) return obj;
-    if (typeof obj.toJSON == 'function') {
-      return obj.toJSON();
-    }
     var type = toString.call(obj).slice(8, -1);
     if (type in CLONE) {
       return CLONE[type].call(obj, clone);
+    }
+    if (typeof obj.clone == 'function') {
+      return obj.clone();
+    }
+    if (typeof obj.toJSON == 'function') {
+      return obj.toJSON();
     }
     var copy = {};
     var keys = Object.keys(obj);

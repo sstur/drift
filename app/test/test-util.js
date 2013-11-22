@@ -19,12 +19,35 @@ app.on('ready', function(require) {
       expect(d).to.eql({name: 'j', age: 40});
     },
     'util.clone': function() {
-      var original = {date: new Date(), number: Math.random(), undefined: undefined};
+      var original = {
+        string: 'testme',
+        number: Math.random(),
+        'null': null,
+        'undefined': void 0,
+        date: new Date(),
+        //buffer: new Buffer('abc'),
+        array: [1, '2', null, false, void 0, true]
+      };
       var clone = util.clone(original);
       expect(clone).to.not.be(original);
-      //expect(clone).to.eql(original);
+      expect(clone).to.eql(original);
       expect(clone.date).to.not.be(original.date);
       expect(clone.date.valueOf()).to.be(original.date.valueOf());
+      //array does not get named properties
+      var array = [1, 2, 3];
+      array.foo = 'bar';
+      clone = util.clone({array: array});
+      expect(clone).to.eql({array: [1, 2, 3]});
+      //object-wrapped primitives clone to primitives
+      clone = util.clone({
+        bool: new Boolean(true),
+        number: new Number(123),
+        string: new String('testme')
+      });
+      expect(clone).to.eql({bool: true, number: 123, string: 'testme'});
+      //function to plain object
+      clone = util.clone({func: function() {}});
+      expect(clone).to.eql({func: {}});
     },
     'util.inherits': function() {
     },

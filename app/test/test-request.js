@@ -1,3 +1,6 @@
+/*!
+ * todo: header line without : should be ignored
+ */
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
