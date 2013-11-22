@@ -50,6 +50,31 @@ app.on('ready', function(require) {
       expect(clone).to.eql({func: {}});
     },
     'util.inherits': function() {
+      function Animal(color) {
+        this.color = color;
+        this.initialized = true;
+      }
+      Animal.prototype.getColor = function() {
+        return this.color;
+      };
+      function Fox(color) {
+        this.color = color;
+      }
+      util.inherits(Fox, Animal);
+      expect(Fox.super_).to.be(Animal);
+      expect(Fox.prototype.constructor).to.be(Fox);
+      expect(Fox.prototype.getColor).to.be(Animal.prototype.getColor);
+      //changing child proto is not reflected on parent
+      Fox.prototype.getSound = function() {};
+      expect(Animal.prototype.getSound).to.be.a('undefined');
+      //changing parent proto is reflected on child proto
+      Animal.prototype.type = 1;
+      expect(Fox.prototype.type).to.be(1);
+      var fox = new Fox('red');
+      expect(fox.constructor).to.be(Fox);
+      expect(fox.getColor()).to.be('red');
+      //parent constructor is not called during child instantiation by default
+      expect(fox.initialized).to.not.be(true);
     },
     'util.propagateEvents': function() {
     },
