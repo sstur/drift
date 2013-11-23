@@ -1176,8 +1176,7 @@
          */
 
         if (supportsAccessors && (lookupGetter(object, property) ||
-          lookupSetter(object, property)))
-        {
+          lookupSetter(object, property))) {
           // As accessors are supported only on engines implementing
           // `__proto__` we can safely override `__proto__` while defining
           // a property to make sure that we don't hit an inherited
@@ -1213,8 +1212,12 @@
   // http://es5.github.com/#x15.2.3.7
   if (!Object.defineProperties) {
     Object.defineProperties = function defineProperties(object, properties) {
+      //special case 'constructor' here because JScript doesn't iterate it
+      if (owns(properties, "constructor")) {
+        Object.defineProperty(object, "constructor", properties.constructor);
+      }
       for (var property in properties) {
-        if (owns(properties, property) && property != "__proto__") {
+        if (owns(properties, property) && property != "__proto__" && property != "constructor") {
           Object.defineProperty(object, property, properties[property]);
         }
       }
