@@ -105,6 +105,15 @@ app.on('ready', function(require) {
       expect(e2.log.fifth).to.be(1);
     },
     'util.pipe': function() {
+      var blob = new Array(256);
+      for (var i = 0; i < 256; i++) blob[i] = String.fromCharCode(i);
+      blob = new Buffer(blob, 'binary');
+      var readStream = new MockReadStream(blob);
+      var writeStream = new MockWriteStream();
+      util.pipe(readStream, writeStream);
+      readStream.read();
+      expect(writeStream.output.length).to.be(16);
+      expect(writeStream.getOutput()).to.eql(blob);
     },
     'util.getUniqueHex': function() {
     },
@@ -123,6 +132,61 @@ app.on('ready', function(require) {
     'util.stringify': function() {
     },
     'util.parse': function() {
+    }
+  });
+
+
+  function MockReadStream(input, opts) {
+    this.input = input;
+    this.index = 0;
+    opts = opts || {};
+    this.chunkSize = opts.chunkSize || 16;
+    this._bytesRead = 0;
+    this._bytesTotal = input.length;
+  }
+  app.eventify(MockReadStream.prototype);
+
+  util.extend(MockReadStream.prototype, {
+    setEncoding: function(enc) {
+      throw new Error('setEncoding not implemented in MockReadStream');
+    },
+    _readBytes: function(bytes) {
+      bytes = Math.min(bytes, this._bytesTotal - this._bytesRead);
+      var start = this._bytesRead;
+      this._bytesRead += bytes;
+      return this.input.slice(start, this._bytesRead);
+    },
+    size: function() {
+      return this._bytesTotal;
+    },
+    read: function() {
+      while (this._bytesRead < this._bytesTotal) {
+        this.emit('data', this._readBytes(this.chunkSize));
+      }
+      this.emit('end');
+    }
+  });
+
+
+  function MockWriteStream() {
+    this.encoding = 'utf8';
+    this.output = [];
+  }
+
+  util.extend(MockWriteStream.prototype, {
+    setEncoding: function(enc) {
+      this.encoding = enc;
+    },
+    write: function(data, enc) {
+      if (this._finished) return;
+      var buffer = (Buffer.isBuffer(data)) ? data : new Buffer(data, enc || this.encoding);
+      this.output.push(buffer.toString('binary'));
+    },
+    end: function() {
+      this._finished = true;
+    },
+    getOutput: function() {
+      return new Buffer(this.output.join(''), 'binary');
     }
   });
 
