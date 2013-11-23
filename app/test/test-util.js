@@ -25,7 +25,7 @@ app.on('ready', function(require) {
         'null': null,
         'undefined': void 0,
         date: new Date(),
-        //buffer: new Buffer('abc'),
+        buffer: new Buffer('abc'),
         array: [1, '2', null, false, void 0, true]
       };
       var clone = util.clone(original);

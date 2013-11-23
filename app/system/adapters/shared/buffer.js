@@ -125,6 +125,9 @@ define('buffer', function(require, exports) {
     },
     toJSON: function() {
       return '<Buffer ' + rawToHex(this._raw) + '>';
+    },
+    clone: function() {
+      return new Buffer(this._raw, 'binary');
     }
   });
 
