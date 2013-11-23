@@ -8,6 +8,8 @@ app.on('ready', function(require) {
   var util = require('util');
   var expect = require('expect');
 
+  var undefined = void 0;
+
   app.addTestSuite('util', {
     'util.extend': function() {
       var a = {type: 1}, b = {name: 'j'};
@@ -23,7 +25,7 @@ app.on('ready', function(require) {
         string: 'testme',
         number: Math.random(),
         'null': null,
-        'undefined': void 0,
+        'undefined': undefined,
         date: new Date(),
         buffer: new Buffer('abc'),
         array: [1, '2', null, false, void 0, true]
@@ -66,17 +68,41 @@ app.on('ready', function(require) {
       expect(Fox.prototype.getColor).to.be(Animal.prototype.getColor);
       //changing child proto is not reflected on parent
       Fox.prototype.getSound = function() {};
-      expect(Animal.prototype.getSound).to.be.a('undefined');
+      expect(Animal.prototype.getSound).to.be(undefined);
       //changing parent proto is reflected on child proto
       Animal.prototype.type = 1;
       expect(Fox.prototype.type).to.be(1);
       var fox = new Fox('red');
       expect(fox.constructor).to.be(Fox);
       expect(fox.getColor()).to.be('red');
-      //parent constructor is not called during child instantiation by default
+      //parent constructor is not called during child instantiation
       expect(fox.initialized).to.not.be(true);
     },
     'util.propagateEvents': function() {
+      var e1 = app.eventify({});
+      var e2 = app.eventify({});
+      util.propagateEvents(e1, e2, 'first second');
+      var logEvent = function(name) {
+        var log = this.log || (this.log = {});
+        var count = log[name] || 0;
+        log[name] = count + 1;
+      };
+      e2.on('first', logEvent);
+      e1.emit('first', 'first');
+      expect(e2.log.first).to.be(1);
+      e2.on('second', logEvent);
+      e1.emit('second', 'second');
+      e1.emit('second', 'second');
+      expect(e2.log.second).to.be(2);
+      e1.on('third', logEvent);
+      e2.on('third', logEvent);
+      e1.emit('third', 'third');
+      expect(e1.log.third).to.be(1);
+      expect(e2.log.third).to.be(undefined);
+      util.propagateEvents(e1, e2, ['fourth', 'fifth']);
+      e2.on('fifth', logEvent);
+      e1.emit('fifth', 'fifth');
+      expect(e2.log.fifth).to.be(1);
     },
     'util.pipe': function() {
     },
