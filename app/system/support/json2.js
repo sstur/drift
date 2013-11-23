@@ -1,10 +1,7 @@
-//note: when compiled for server-side the whole file is wrapped in a function, so
-// implicit declaration produces a global (can be used inside eval) and when
-// compiled for client-side the comments get removed and we get a global anyway
-/*@remove{*/var JSON;/*}@*/
+var JSON;
 (function() {
 
-  JSON = {};
+  JSON = global.JSON = {};
 
   // Format integers to have at least two digits
   function f2(n) {
