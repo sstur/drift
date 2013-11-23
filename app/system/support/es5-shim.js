@@ -62,10 +62,7 @@
           // 5. Return the result of calling the [[Construct]] internal
           //   method of target providing args as the arguments.
 
-          var result = target.apply(
-            this,
-            args.concat(slice.call(arguments))
-          );
+          var result = target.apply(this, args.concat(slice.call(arguments)));
           if (Object(result) === result) {
             return result;
           }
@@ -91,10 +88,7 @@
           //   providing args as the arguments.
 
           // equiv: target.call(this, ...boundArgs, ...args)
-          return target.apply(
-            that,
-            args.concat(slice.call(arguments))
-          );
+          return target.apply(that, args.concat(slice.call(arguments)));
 
         }
 
@@ -213,18 +207,16 @@
 
   // Check failure of by-index access of string characters (IE < 9)
   // and failure of `0 in boxedString` (Rhino)
-  var boxedString = Object("a"),
-    splitString = boxedString[0] != "a" || !(0 in boxedString);
+  var boxedString = Object("a");
+  var splitString = boxedString[0] != "a" || !(0 in boxedString);
 
   if (!Array.prototype.forEach) {
     Array.prototype.forEach = function forEach(fun /*, thisp*/) {
-      var object = toObject(this),
-        self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          object,
-        thisp = arguments[1],
-        i = -1,
-        length = self.length >>> 0;
+      var object = toObject(this);
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : object;
+      var thisp = arguments[1];
+      var i = -1;
+      var length = self.length >>> 0;
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
@@ -247,13 +239,11 @@
   // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/map
   if (!Array.prototype.map) {
     Array.prototype.map = function map(fun /*, thisp*/) {
-      var object = toObject(this),
-        self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          object,
-        length = self.length >>> 0,
-        result = Array(length),
-        thisp = arguments[1];
+      var object = toObject(this);
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : object;
+      var length = self.length >>> 0;
+      var result = Array(length);
+      var thisp = arguments[1];
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
@@ -273,14 +263,12 @@
   // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/filter
   if (!Array.prototype.filter) {
     Array.prototype.filter = function filter(fun /*, thisp */) {
-      var object = toObject(this),
-        self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          object,
-        length = self.length >>> 0,
-        result = [],
-        value,
-        thisp = arguments[1];
+      var object = toObject(this);
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : object;
+      var length = self.length >>> 0;
+      var result = [];
+      var value;
+      var thisp = arguments[1];
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
@@ -304,12 +292,10 @@
   // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/every
   if (!Array.prototype.every) {
     Array.prototype.every = function every(fun /*, thisp */) {
-      var object = toObject(this),
-        self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          object,
-        length = self.length >>> 0,
-        thisp = arguments[1];
+      var object = toObject(this);
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : object;
+      var length = self.length >>> 0;
+      var thisp = arguments[1];
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
@@ -330,12 +316,10 @@
   // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/some
   if (!Array.prototype.some) {
     Array.prototype.some = function some(fun /*, thisp */) {
-      var object = toObject(this),
-        self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          object,
-        length = self.length >>> 0,
-        thisp = arguments[1];
+      var object = toObject(this);
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : object;
+      var length = self.length >>> 0;
+      var thisp = arguments[1];
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
@@ -356,11 +340,9 @@
   // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduce
   if (!Array.prototype.reduce) {
     Array.prototype.reduce = function reduce(fun /*, initial*/) {
-      var object = toObject(this),
-        self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          object,
-        length = self.length >>> 0;
+      var object = toObject(this);
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : object;
+      var length = self.length >>> 0;
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
@@ -405,11 +387,9 @@
   // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduceRight
   if (!Array.prototype.reduceRight) {
     Array.prototype.reduceRight = function reduceRight(fun /*, initial*/) {
-      var object = toObject(this),
-        self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          object,
-        length = self.length >>> 0;
+      var object = toObject(this);
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : object;
+      var length = self.length >>> 0;
 
       // If no callback function or if callback is not a callable function
       if (_toString(fun) != "[object Function]") {
@@ -453,10 +433,8 @@
   // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
   if (!Array.prototype.indexOf || ([0, 1].indexOf(1, 2) != -1)) {
     Array.prototype.indexOf = function indexOf(sought /*, fromIndex */ ) {
-      var self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          toObject(this),
-        length = self.length >>> 0;
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : toObject(this);
+      var length = self.length >>> 0;
 
       if (!length) {
         return -1;
@@ -483,10 +461,8 @@
   // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/lastIndexOf
   if (!Array.prototype.lastIndexOf || ([0, 1].lastIndexOf(0, -3) != -1)) {
     Array.prototype.lastIndexOf = function lastIndexOf(sought /*, fromIndex */) {
-      var self = splitString && _toString(this) == "[object String]" ?
-          this.split("") :
-          toObject(this),
-        length = self.length >>> 0;
+      var self = splitString && _toString(this) == "[object String]" ? this.split("") : toObject(this);
+      var length = self.length >>> 0;
 
       if (!length) {
         return -1;
@@ -515,8 +491,8 @@
   // http://es5.github.com/#x15.2.3.14
   if (!Object.keys) {
     // http://whattheheadsaid.com/2010/10/a-safer-object-keys-compatibility-implementation
-    var hasDontEnumBug = true,
-      dontEnums = [
+    var hasDontEnumBug = true;
+    var dontEnums = [
         "toString",
         "toLocaleString",
         "valueOf",
@@ -524,8 +500,8 @@
         "isPrototypeOf",
         "propertyIsEnumerable",
         "constructor"
-      ],
-      dontEnumsLength = dontEnums.length;
+      ];
+    var dontEnumsLength = dontEnums.length;
 
     for (var key in {"toString": null}) {
       hasDontEnumBug = false;
@@ -576,8 +552,8 @@
   // string format defined in 15.9.1.15. All fields are present in the String.
   // The time zone is always UTC, denoted by the suffix Z. If the time value of
   // this object is not a finite Number a RangeError exception is thrown.
-  var negativeDate = -62198755200000,
-    negativeYearString = "-000001";
+  var negativeDate = -62198755200000;
+  var negativeYearString = "-000001";
   if (
     !Date.prototype.toISOString ||
       (new Date(negativeDate).toISOString().indexOf(negativeYearString) === -1)
@@ -596,8 +572,7 @@
       month = (month % 12 + 12) % 12;
 
       // the date time string format is specified in 15.9.1.15.
-      result = [month + 1, this.getUTCDate(),
-        this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()];
+      result = [month + 1, this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()];
       year = (
         (year < 0 ? "-" : (year > 9999 ? "+" : "")) +
           ("00000" + Math.abs(year))
@@ -649,9 +624,9 @@
       // 1.  Let O be the result of calling ToObject, giving it the this
       // value as its argument.
       // 2. Let tv be toPrimitive(O, hint Number).
-      var o = Object(this),
-        tv = toPrimitive(o),
-        toISO;
+      var o = Object(this);
+      var tv = toPrimitive(o);
+      var toISO;
       // 3. If tv is a Number and is not finite, return null.
       if (typeof tv === "number" && !isFinite(tv)) {
         return null;
@@ -766,27 +741,23 @@
           // parse months, days, hours, minutes, seconds, and milliseconds
           // provide default values if necessary
           // parse the UTC offset component
-          var year = Number(match[1]),
-            month = Number(match[2] || 1) - 1,
-            day = Number(match[3] || 1) - 1,
-            hour = Number(match[4] || 0),
-            minute = Number(match[5] || 0),
-            second = Number(match[6] || 0),
-            millisecond = Number(match[7] || 0),
+          var year = Number(match[1]);
+          var month = Number(match[2] || 1) - 1;
+          var day = Number(match[3] || 1) - 1;
+          var hour = Number(match[4] || 0);
+          var minute = Number(match[5] || 0);
+          var second = Number(match[6] || 0);
+          var millisecond = Number(match[7] || 0);
           // When time zone is missed, local offset should be used
           // (ES 5.1 bug)
           // see https://bugs.ecmascript.org/show_bug.cgi?id=112
-            offset = !match[4] || match[8] ?
-              0 : Number(new NativeDate(1970, 0)),
-            signOffset = match[9] === "-" ? 1 : -1,
-            hourOffset = Number(match[10] || 0),
-            minuteOffset = Number(match[11] || 0),
-            result;
+          var offset = !match[4] || match[8] ? 0 : Number(new NativeDate(1970, 0));
+          var signOffset = match[9] === "-" ? 1 : -1;
+          var hourOffset = Number(match[10] || 0);
+          var minuteOffset = Number(match[11] || 0);
+          var result;
           if (
-            hour < (
-              minute > 0 || second > 0 || millisecond > 0 ?
-                24 : 25
-              ) &&
+            hour < (minute > 0 || second > 0 || millisecond > 0 ? 24 : 25) &&
               minute < 60 && second < 60 && millisecond < 1000 &&
               month > -1 && month < 12 && hourOffset < 24 &&
               minuteOffset < 60 && // detect invalid offsets
@@ -864,8 +835,8 @@
     // http://blog.stevenlevithan.com/archives/faster-trim-javascript
     // http://perfectionkills.com/whitespace-deviations/
     ws = "[" + ws + "]";
-    var trimBeginRegexp = new RegExp("^" + ws + ws + "*"),
-      trimEndRegexp = new RegExp(ws + ws + "*$");
+    var trimBeginRegexp = new RegExp("^" + ws + ws + "*");
+    var trimEndRegexp = new RegExp(ws + ws + "*$");
     String.prototype.trim = function trim() {
       if (this === undefined || this === null) {
         throw new Error("can't convert "+this+" to object");
