@@ -195,6 +195,10 @@ app.on('ready', function(require) {
       });
     },
     'util.htmlEnc': function() {
+      var html = util.htmlEnc('a & < > " c, \u00a0 ;');
+      expect(html).to.be('a &amp; &lt; &gt; &quot; c, &nbsp; ;');
+      html = util.htmlEnc(' & < > "', false);
+      expect(html).to.be(' &amp; &lt; &gt; "');
     },
     'util.htmlDec': function() {
     },
