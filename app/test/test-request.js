@@ -29,7 +29,7 @@ app.on('ready', function(require) {
       expect(req.url('search')).to.be('');
       expect(req.url('qs')).to.be('');
     },
-    'qs parsing': function() {
+    'query string': function() {
       var req = createRequest('/go?a=1&B=2');
       expect(req.query()).to.eql({a: '1', b: '2'});
       req = createRequest('/go?a=1&A=2');
@@ -90,29 +90,34 @@ app.on('ready', function(require) {
       req = createRequest();
       expect(req.isAjax()).to.be(false);
     },
-    'cookie parsing': function() {
+    'cookies': function() {
       var req = createRequest({headers: 'Cookie: SID=VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2; EULA=1; eula=2'});
       expect(req.cookies('sid')).to.be('VGcnZXqyEPtNSWa8Rd7fDyoJxR8OfYm2');
       expect(req.cookies('EULA')).to.be('1, 2');
       expect(req.cookies('None')).to.be('');
     },
-    'form body parsing': function() {
-      var req = constructFormRequest([
-        {name: 'a', value: 1},
-        {name: 'b', value: false},
-        {name: 'c', value: '✔'}
-      ]);
-      expect(req.body()).to.eql({a: '1', b: 'false', c: '✔'});
-      req = constructFormRequest([
-        {name: 'a', value: 1},
-        {name: 'a', value: 2},
-        {name: 'b', value: '='}
-      ]);
-      var body = req.body();
-      expect(body).to.eql({a: '1, 2', b: '='});
-      expect(req.body('c')).to.be.an('undefined');
+    'urlencoded request body': function(it) {
+      it('should parse body with unicode names and values', function() {
+        var req = constructFormRequest([
+          {name: 'a', value: 1},
+          {name: 'b', value: false},
+          {name: 'č', value: '✔'}
+        ]);
+        var body = req.body();
+        expect(body).to.eql({a: '1', b: 'false', 'č': '✔'});
+      });
+      it('should concatenate on duplicate name', function() {
+        var req = constructFormRequest([
+          {name: 'a', value: 1},
+          {name: 'a', value: 2},
+          {name: 'b', value: '='}
+        ]);
+        var body = req.body();
+        expect(body).to.eql({a: '1, 2', b: '='});
+        expect(req.body('c')).to.be.an('undefined');
+      });
     },
-    'multipart parsing': function() {
+    'multipart request body': function(it) {
       var req = createMultipartRequest({
         fields: [{name: 'username', value: 'admin'}],
         files: [{
@@ -122,71 +127,76 @@ app.on('ready', function(require) {
           value: blob
         }]
       });
-      var body = req.body();
-      expect(body.username).to.be('admin');
-      expect(body.image.type).to.be('file');
-      expect(body.image.name).to.be('image');
-      expect(body.image.fileName).to.be('image.gif');
-      expect(body.image.contentType).to.be('image/gif');
-      expect(body.image.size).to.be(blob.length);
-      expect(body.image.hash).to.be(crypto.hash('md5', blob).toString('hex'));
-      //duplicate keys have their values concatenated
-      req = createMultipartRequest({
-        fields: [{name: '✔', value: 'a'}, {name: '✔', value: 'für'}]
+      it('should parse fields and file', function() {
+        var body = req.body();
+        expect(body.username).to.be('admin');
+        expect(body.image.type).to.be('file');
+        expect(body.image.name).to.be('image');
+        expect(body.image.fileName).to.be('image.gif');
+        expect(body.image.contentType).to.be('image/gif');
+        expect(body.image.size).to.be(blob.length);
+        expect(body.image.hash).to.be(crypto.hash('md5', blob).toString('hex'));
       });
-      body = req.body();
-      expect(body['✔']).to.be('a, für');
-      //files can have unicode name/filename; req should emit file
-      req = createMultipartRequest({
-        files: [{name: '✔', value: blob}]
+      it('should concatenate on duplicate name', function() {
+        req = createMultipartRequest({
+          fields: [{name: '✔', value: 'a'}, {name: '✔', value: 'für'}]
+        });
+        var body = req.body();
+        expect(body['✔']).to.be('a, für');
       });
-      var files = [];
-      req.on('file', function(file) {
-        expect(file.on).to.be.a('function');
-        files.push(file);
+      it('should emit file and honor unicode name/filename', function() {
+        req = createMultipartRequest({
+          files: [{name: '✔', value: blob}]
+        });
+        var files = [];
+        req.on('file', function(file) {
+          expect(file.on).to.be.a('function');
+          files.push(file);
+        });
+        var body = req.body();
+        expect(body['✔']).to.be(files[0]);
+        expect(files[0].size).to.be(256);
+        expect(files[0].hash).to.be('6e2595104d0a9a2f4c66802e0f5b4273');
       });
-      body = req.body();
-      expect(body['✔']).to.be(files[0]);
-      expect(files[0].size).to.be(256);
-      expect(files[0].hash).to.be('6e2595104d0a9a2f4c66802e0f5b4273');
-      //body contains only first file, but req emits both
-      req = createMultipartRequest({
-        files: [
-          {name: 'file', value: new Buffer('first')},
-          {name: 'file', value: new Buffer('second')}
-        ]
+      it('should emit multiple files with same name but attach only first', function() {
+        req = createMultipartRequest({
+          files: [
+            {name: 'file', value: new Buffer('first')},
+            {name: 'file', value: new Buffer('second')}
+          ]
+        });
+        var files = [];
+        req.on('file', function(file) {
+          files.push(file);
+        });
+        var body = req.body();
+        expect(files[0].size).to.be(5);
+        expect(files[1].size).to.be(6);
+        expect(body.file.size).to.be(5);
       });
-      files = [];
-      req.on('file', function(file) {
-        files.push(file);
+      it('should throw 400 part headers exceed limit', function() {
+        var headers = {};
+        for (var i = 0; i < 100; i++) {
+          headers['X-Header-' + i] = 'This is a long header that should cause overflow';
+        }
+        var req = createMultipartRequest({
+          files: [{
+            name: 'file',
+            headers: headers,
+            value: blob
+          }]
+        });
+        var exception;
+        try {
+          req.body();
+        } catch(e) {
+          exception = e;
+        }
+        expect(exception).to.be(null);
+        var rawRes = req.res._super;
+        expect(rawRes.status).to.be('400 Bad Request');
+        expect(rawRes.getBody()).to.contain('Multipart Headers Too Large');
       });
-      body = req.body();
-      expect(files[0].size).to.be(5);
-      expect(files[1].size).to.be(6);
-      expect(body.file.size).to.be(5);
-    },
-    'part header overflow': function() {
-      var headers = {};
-      for (var i = 0; i < 100; i++) {
-        headers['X-Header-' + i] = 'This is a long header that should cause overflow';
-      }
-      var req = createMultipartRequest({
-        files: [{
-          name: 'file',
-          headers: headers,
-          value: blob
-        }]
-      });
-      var exception;
-      try {
-        req.body();
-      } catch(e) {
-        exception = e;
-      }
-      expect(exception).to.be(null);
-      var rawRes = req.res._super;
-      expect(rawRes.status).to.be('400 Bad Request');
-      expect(rawRes.getBody()).to.contain('Multipart Headers Too Large');
     }
   });
 

@@ -132,12 +132,11 @@ app.on('ready', function(require) {
     'util.log': function(it) {
       var file = dataPath + 'logs/test.log';
       fs.deleteFileIfExists(file);
-      var text;
       it('should log primitives and objects', function() {
         util.log(1, 2, 'three', {a: 1}, 'test');
-        text = fs.readTextFile(file);
       });
       it('should log in the correct format', function() {
+        var text = fs.readTextFile(file);
         expect(text).to.be.a('string');
         expect(text).to.match(/^\w{3}, \d\d \w{3} \d{4} \d\d:\d\d:\d\d UTC/);
         expect(condense(text)).to.be('2|three|{"a":1}');
@@ -151,6 +150,7 @@ app.on('ready', function(require) {
       fs.deleteFile(file);
     },
     'util.parseHeaders': function() {
+      var headers = util.parseHeaders('');
     },
     'util.parseHeaderValue': function() {
     },
