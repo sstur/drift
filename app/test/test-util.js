@@ -151,8 +151,8 @@ app.on('ready', function(require) {
     },
     'util.parseHeaderValue': function(it) {
       it('should lowercase keys, trim values unless in quotes', function() {
-        var parsed = util.parseHeaderValue("name=Dr. J ;value=\"s %C3%bCr \"; field*=UTF-8'en'a%20%C3%bCb");
-        expect(parsed).to.eql({name: 'Dr. J', value: 's ür ', field: 'a üb'});
+        var parsed = util.parseHeaderValue("name=Dr. J ;value=\"s %C3%bCr;1 \"; field*=UTF-8'en'a%20%C3%bCb");
+        expect(parsed).to.eql({name: 'Dr. J', value: 's ür;1 ', field: 'a üb'});
       });
       it('should allow keys with no value', function() {
         var parsed = util.parseHeaderValue('Content-Disposition: attachment; filename="sanitized-file"');
