@@ -3,6 +3,7 @@
  *   platforms not supporting ECMAScript 5 need ES5 shim loaded before this
  *
  * todo: Basic Date formatting
+ * todo: remove global.isPrimitive, Array.prototype.exists, String.parse, Date.today
  */
 
 var forEach, vartype, isPrimitive, toArray;
@@ -19,7 +20,7 @@ var forEach, vartype, isPrimitive, toArray;
    *   return false will abort the loop
    */
   forEach = function(obj, fn, context) {
-    var i, len, keys, key, type = typeof obj;
+    var i, len, keys, key;
     if (arguments.length == 3) {
       fn = fn.bind(context);
     }
@@ -28,7 +29,9 @@ var forEach, vartype, isPrimitive, toArray;
       for (i = 0; i < len; i++) {
         if (fn.call(obj, i, obj[i], i) === false) break;
       }
-    } else
+      return obj;
+    }
+    var type = (obj === null) ? 'null' : typeof obj;
     if (type == 'object' || type == 'function') {
       keys = Object.keys(obj);
       len = keys.length;
@@ -36,8 +39,10 @@ var forEach, vartype, isPrimitive, toArray;
         key = keys[i];
         if (fn.call(obj, key, obj[key], i) === false) break;
       }
+      return obj;
+    } else {
+      throw new Error('forEach called on a non-object');
     }
-    return obj;
   };
 
   Object.exists = function(obj, key) {
@@ -161,7 +166,6 @@ var forEach, vartype, isPrimitive, toArray;
   };
   String.prototype.w = String.prototype.words;
 
-  //todo: is this being used?
   String.parse = function(str, /**String=''*/ def) {
     def = (arguments.length > 1) ? def : '';
     return (str == null) ? def : (str.toString ? str.toString() : '' + str);
