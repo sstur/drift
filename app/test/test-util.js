@@ -200,9 +200,25 @@ app.on('ready', function(require) {
       html = util.htmlEnc(' & < > "', false);
       expect(html).to.be(' &amp; &lt; &gt; "');
     },
-    'util.htmlDec': function() {
+    'util.htmlDec': function(it) {
+      it('should decode basic entities', function() {
+        var text = util.htmlDec('a &amp; &amp; &lt; &gt; &quot; c, &nbsp; ;');
+        expect(text).to.be('a & & < > " c, \u00a0 ;');
+      });
+      it('should decode extended entities defined in app.cfg', function() {
+        var text = util.htmlDec(' &copy; &lt; &copy;');
+        expect(text).to.be(' © < ©');
+      });
     },
     'util.stringify': function() {
+      var date = new Date();
+      var buffer = new Buffer('ü', 'utf8');
+      var a = {a: 0, b: function() {}, c: 'string', d: null, e: undefined, f: date, g: new Error('fail'), h: false, i: buffer};
+      var b = util.extend({}, a);
+      b.g = 'new Error("fail")';
+      var util_string = util.stringify(a);
+      var JSON_string = JSON.stringify(b);
+      expect(util_string).to.be(JSON_string);
     },
     'util.parse': function() {
     }
