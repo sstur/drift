@@ -207,19 +207,26 @@ app.on('ready', function(require) {
         expect(text).to.be(' © < ©');
       });
     },
-    'util.stringify': function() {
-      var date = new Date();
-      var buffer = new Buffer('ü', 'utf8');
-      var a = {a: 0, b: function() {}, c: 'string', d: null, e: undefined, f: date, g: new Error('fail'), h: false, i: buffer};
-      var util_string = util.stringify(a);
-      var b = util.extend({}, a);
-      b.g = 'new Error("fail")';
-      var JSON_string = JSON.stringify(b);
-      expect(util_string).to.be(JSON_string);
+    'util.stringify': function(it) {
+      it('should escape unicode chars', function() {
+        var a = {a: 0, b: 'strïng', c: null};
+        var str = util.stringify(a);
+        expect(str).to.match(/str\\u00efng/);
+      });
+      it('should handle Error differently than JSON', function() {
+        var date = new Date();
+        var buffer = new Buffer('ü', 'utf8');
+        var a = {a: 0, b: function() {}, c: 'string', d: null, e: undefined, f: date, g: new Error('fail'), h: false, i: buffer};
+        var util_string = util.stringify(a);
+        var b = util.extend({}, a);
+        b.g = 'new Error("fail")';
+        var JSON_string = JSON.stringify(b);
+        expect(util_string).to.be(JSON_string);
+      });
     },
     'util.parse': function(it) {
       it('should revive null, dates, buffers and errors', function() {
-        var text = '{"a":0,"c":"string","d":null,"f":"2013-11-24T23:12:22.716Z","g":"new Error(\\"fail\\")","h":false,"i":"<Buffer c3bc>"}';
+        var text = '{"a":0,"c":"strïng","d":null,"f":"2013-11-24T23:12:22.716Z","g":"new Error(\\"fail\\")","h":false,"i":"<Buffer c3bc>"}';
         var obj = util.parse(text);
         expect(obj.d).to.be(null);
         expect(obj.f).to.be.a(Date);
