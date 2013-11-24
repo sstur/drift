@@ -149,10 +149,28 @@ app.on('ready', function(require) {
       });
       fs.deleteFile(file);
     },
-    'util.parseHeaders': function() {
-      var headers = util.parseHeaders('');
+    'util.parseHeaderValue': function(it) {
+      it('should lowercase keys, trim values unless in quotes', function() {
+        var parsed = util.parseHeaderValue("name=Dr. J ;value=\"s %C3%bCr \"; field*=UTF-8'en'a%20%C3%bCb");
+        expect(parsed).to.eql({name: 'Dr. J', value: 's ür ', field: 'a üb'});
+      });
+      it('should allow keys with no value', function() {
+        var parsed = util.parseHeaderValue('Content-Disposition: attachment; filename="sanitized-file"');
+        expect(parsed.attachment).to.be(undefined);
+        expect(parsed.filename).to.be('sanitized-file');
+      });
+      it('should overwrite (not concatenate) values', function() {
+        var parsed = util.parseHeaderValue("Content-Disposition: filename=\"sanitized-file\"; filename*=UTF-8''unïcode%20file");
+        expect(parsed.filename).to.be('unïcode file');
+      });
     },
-    'util.parseHeaderValue': function() {
+    'util.parseHeaders': function() {
+      var headers = util.parseHeaders('User-Agent: Mock\nX-Accel:None\r\nX-Double :a:b: c');
+      expect(headers['user-agent']).to.be('Mock');
+      expect(headers['User-Agent']).to.be(undefined);
+      expect(headers['x-accel']).to.be('None');
+      expect(headers['x-double']).to.be('a:b: c');
+      expect(headers['x-notexist']).to.be(undefined);
     },
     'util.stripFilename': function() {
     },
