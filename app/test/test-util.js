@@ -1,6 +1,3 @@
-/*!
- * todo: date reviver edge cases
- */
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
@@ -220,16 +217,24 @@ app.on('ready', function(require) {
       var JSON_string = JSON.stringify(b);
       expect(util_string).to.be(JSON_string);
     },
-    'util.parse': function() {
-      var text = '{"a":0,"c":"string","d":null,"f":"2013-11-24T23:12:22.716Z","g":"new Error(\\"fail\\")","h":false,"i":"<Buffer c3bc>"}';
-      var obj = util.parse(text);
-      expect(obj.d).to.be(null);
-      expect(obj.f).to.be.a(Date);
-      expect(obj.f.valueOf()).to.be(1385334742716);
-      expect(obj.i).to.be.a(Buffer);
-      expect(obj.i.toString('hex')).to.be('c3bc');
-      expect(obj.g).to.be.an(Error);
-      expect(obj.g.message).to.be('fail');
+    'util.parse': function(it) {
+      it('should revive null, dates, buffers and errors', function() {
+        var text = '{"a":0,"c":"string","d":null,"f":"2013-11-24T23:12:22.716Z","g":"new Error(\\"fail\\")","h":false,"i":"<Buffer c3bc>"}';
+        var obj = util.parse(text);
+        expect(obj.d).to.be(null);
+        expect(obj.f).to.be.a(Date);
+        expect(obj.f.valueOf()).to.be(1385334742716);
+        expect(obj.i).to.be.a(Buffer);
+        expect(obj.i.toString('hex')).to.be('c3bc');
+        expect(obj.g).to.be.an(Error);
+        expect(obj.g.message).to.be('fail');
+      });
+      it('should revive dates without milliseconds', function() {
+        var text = '{"a":0,"f":"2013-11-24T23:12:22Z"}';
+        var obj = util.parse(text);
+        expect(obj.f).to.be.a(Date);
+        expect(obj.f.valueOf()).to.be(1385334742000);
+      });
     }
   });
 
