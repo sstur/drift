@@ -16,8 +16,27 @@ define('fs', function(require, fs) {
     FSO.copyFile(app.mappath(f), app.mappath(d));
   };
 
-  fs.deleteFile = function(f) {
-    FSO.deleteFile(app.mappath(f), true);
+  fs.deleteFile = function(file) {
+    var path = app.mappath(file);
+    try {
+      FSO.deleteFile(path, true);
+    } catch(e) {
+      if (e && e.message == 'File not found') {
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
+      }
+      throw e;
+    }
+  };
+
+  fs.deleteFileIfExists = function(file) {
+    var path = app.mappath(file);
+    try {
+      FSO.deleteFile(path, true);
+    } catch(e) {
+      if (!e || e.message != 'File not found') {
+        throw e;
+      }
+    }
   };
 
   fs.createDir = function(path) {

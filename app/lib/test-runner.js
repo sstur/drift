@@ -46,26 +46,27 @@ define('test-runner', function(require, exports, module) {
         suites.push(new TestSuite(cfg));
       });
     },
-    format_html: function(item, error, time) {
+    format_html: function(item, suite, time) {
       var firstTest = (this.output.length == 0);
       if (firstTest) {
         this.write('<style>body { margin: 20px } h1 { margin: 0; font-size: 120%; font-family: "Helvetica Neue", Helvetica, "Myriad Pro", "Lucida Grande", sans-serif; text-transform: uppercase } pre { margin: 10px; font-family: Consolas, "Liberation Mono", Courier, monospace; } .pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee } .message:before { display: block; float: left; content: "    "; height: 100% }</style>');
         this.write('<body>');
       }
-      if (item instanceof TestSuite) {
+      if (item == '#description') {
         if (!firstTest) {
           this.write('</pre></code>');
         }
-        this.write('<h1>' + util.htmlEnc(item.description) + '</h1>');
+        this.write('<h1>' + util.htmlEnc(suite.description) + '</h1>');
         this.write('<pre><code>');
       } else
-      if (item == 'summary') {
+      if (item == '#summary') {
         this.writeLine('Time Elapsed: ' + time + 'ms</span>');
       } else {
-        if (!error) {
+        if (!suite.error) {
           this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + util.htmlEnc(item) + ' [' + time + ']</span>');
         } else {
-          this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + util.htmlEnc(item) + '</span>\n<span class="message">' + util.htmlEnc(error.message) + '</span>');
+          var desc = (suite.desc) ? '<span class="desc">it ' + util.htmlEnc(suite.desc) + '</span>\n' : '';
+          this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + util.htmlEnc(item) + '</span>\n' + desc + '<span class="message">' + util.htmlEnc(suite.error.message) + '</span>');
         }
       }
     },
@@ -105,7 +106,13 @@ define('test-runner', function(require, exports, module) {
         suite.runner = self;
         suite.startTime = Date.now();
         suite.setup();
-        self.logResult(suite);
+        self.logResult('#description', suite);
+        //allows us to do BDD style tests within each test case
+        var it = function(desc, fn) {
+          suite.desc = desc;
+          fn.call(self);
+          suite.desc = null;
+        };
         forEach(suite.testCases, function(name, fn, i) {
           var startTime = Date.now();
           if (suite.noCatch) {
@@ -115,19 +122,19 @@ define('test-runner', function(require, exports, module) {
           } else {
             try {
               suite.beforeEach();
-              fn.call(suite, name, i);
+              fn.call(suite, it);
               suite.afterEach();
             } catch(e) {
               suite.error = e;
             }
           }
           var endTime = Date.now();
-          self.logResult(name, suite.error, endTime - startTime);
+          self.logResult(name, suite, endTime - startTime);
           return (suite.error) ? false : null;
         });
         suite.teardown();
         suite.endTime = Date.now();
-        this.logResult('summary', null, suite.endTime - suite.startTime);
+        this.logResult('#summary', suite, suite.endTime - suite.startTime);
         if (suite.error) break;
       }
       if (this.writeStream) {

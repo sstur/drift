@@ -5,10 +5,12 @@
 app.on('ready', function(require) {
   "use strict";
 
+  var fs = require('fs');
   var util = require('util');
   var expect = require('expect');
 
   var undefined = void 0;
+  var dataPath = app.cfg('data_dir') || 'data/';
 
   app.addTestSuite('util', {
     'util.extend': function() {
@@ -116,8 +118,37 @@ app.on('ready', function(require) {
       expect(writeStream.getOutput()).to.eql(blob);
     },
     'util.getUniqueHex': function() {
+      var hex1 = util.getUniqueHex();
+      expect(hex1).to.be.a('string');
+      expect(hex1.length).to.be(32);
+      var hex2 = util.getUniqueHex();
+      expect(hex1).to.not.equal(hex2);
+      expect(hex2).to.match(/^[0-9a-f]{32}$/);
     },
     'util.hexBytes': function() {
+      var hex1 = util.hexBytes(10);
+      expect(hex1).to.match(/^[0-9a-f]{20}$/);
+    },
+    'util.log': function(it) {
+      var file = dataPath + 'logs/test.log';
+      fs.deleteFileIfExists(file);
+      var text;
+      it('should log primitives and objects', function() {
+        util.log(1, 2, 'three', {a: 1}, 'test');
+        text = fs.readTextFile(file);
+      });
+      it('should log in the correct format', function() {
+        expect(text).to.be.a('string');
+        expect(text).to.match(/^\w{3}, \d\d \w{3} \d{4} \d\d:\d\d:\d\d UTC/);
+        expect(condense(text)).to.be('2|three|{"a":1}');
+      });
+      fs.deleteFile(file);
+      it('should add file extension', function() {
+        util.log('logme', 1, 'test');
+        var text = fs.readTextFile(file);
+        expect(condense(text)).to.be('logme|1');
+      });
+      fs.deleteFile(file);
     },
     'util.parseHeaders': function() {
     },
@@ -135,6 +166,12 @@ app.on('ready', function(require) {
     }
   });
 
+
+  function condense(text) {
+    var lines = text.split(/\r\n|\r|\n/);
+    lines.shift();
+    return lines.join('|');
+  }
 
   function MockReadStream(input, opts) {
     this.input = input;
