@@ -217,7 +217,7 @@ define('util', function(require, util) {
         safe = safe.replace(ch + ch, ch);
       }
     }
-    return safe;
+    return safe.trim();
   };
 
 

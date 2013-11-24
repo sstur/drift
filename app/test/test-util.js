@@ -172,7 +172,27 @@ app.on('ready', function(require) {
       expect(headers['x-double']).to.be('a:b: c');
       expect(headers['x-notexist']).to.be(undefined);
     },
-    'util.stripFilename': function() {
+    'util.stripFilename': function(it) {
+      it('should remove unsafe, unicode and control chars', function() {
+        var filename = 'a\n\\b/c"ü"t.d';
+        var sanitized = util.stripFilename(filename);
+        expect(sanitized).to.be('abct.d');
+      });
+      it('preserve space except leading/trailing', function() {
+        var filename = ' a\n b ';
+        var sanitized = util.stripFilename(filename);
+        expect(sanitized).to.be('a b');
+      });
+      it('should replace unsafe chars', function() {
+        var filename = 'a\n\\b/c"ü"t.d';
+        var sanitized = util.stripFilename(filename, '-');
+        expect(sanitized).to.be('a-b-c-t.d');
+      });
+      it('should replace using map before strip', function() {
+        var filename = 'a "b", c';
+        var sanitized = util.stripFilename(filename, '~', {'"': '\'', ',': '-'});
+        expect(sanitized).to.be("a 'b'- c");
+      });
     },
     'util.htmlEnc': function() {
     },
