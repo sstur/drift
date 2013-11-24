@@ -214,13 +214,22 @@ app.on('ready', function(require) {
       var date = new Date();
       var buffer = new Buffer('ü', 'utf8');
       var a = {a: 0, b: function() {}, c: 'string', d: null, e: undefined, f: date, g: new Error('fail'), h: false, i: buffer};
+      var util_string = util.stringify(a);
       var b = util.extend({}, a);
       b.g = 'new Error("fail")';
-      var util_string = util.stringify(a);
       var JSON_string = JSON.stringify(b);
       expect(util_string).to.be(JSON_string);
     },
     'util.parse': function() {
+      var text = '{"a":0,"c":"string","d":null,"f":"2013-11-24T23:12:22.716Z","g":"new Error(\\"fail\\")","h":false,"i":"<Buffer c3bc>"}';
+      var obj = util.parse(text);
+      expect(obj.d).to.be(null);
+      expect(obj.f).to.be.a(Date);
+      expect(obj.f.valueOf()).to.be(1385334742716);
+      expect(obj.i).to.be.a(Buffer);
+      expect(obj.i.toString('hex')).to.be('c3bc');
+      expect(obj.g).to.be.an(Error);
+      expect(obj.g.message).to.be('fail');
     }
   });
 
