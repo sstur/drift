@@ -65,16 +65,16 @@ define('test-runner', function(require, exports, module) {
       if (logType == 'success') {
         this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + htmlEnc(testCaseName) + ' [' + time + ']</span>');
       } else {
-        var desc = (suite.desc) ? '<span class="desc">it ' + htmlEnc(suite.desc) + '</span>\n' : '';
-        this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + htmlEnc(testCaseName) + '</span>\n' + desc + '<span class="message">' + htmlEnc(suite.error.message) + '</span>');
+        var assertion = (suite.assertion) ? '<span class="assertion">it ' + htmlEnc(suite.assertion) + '</span>\n' : '';
+        this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + htmlEnc(testCaseName) + '</span>\n' + assertion + '<span class="message">' + htmlEnc(suite.error.message) + '</span>');
       }
     },
     format_text: function(logType, suite, testCaseName, time) {
       if (!error) {
         this.writeLine('✔ PASS ››› ' + testCaseName + ' [' + time + ']');
       } else {
-        var desc = (suite.desc) ? suite.desc + '\n' : '';
-        this.writeLine('✖ FAIL ‹‹‹ ' + testCaseName + '\n' + desc + suite.error.message);
+        var assertion = (suite.assertion) ? suite.assertion + '\n' : '';
+        this.writeLine('✖ FAIL ‹‹‹ ' + testCaseName + '\n' + assertion + suite.error.message);
       }
     },
     write: function(text) {
@@ -109,10 +109,10 @@ define('test-runner', function(require, exports, module) {
         suite.setup();
         self.logResult('description', suite);
         //allows us to do BDD style tests within each test case
-        var it = function(desc, fn) {
-          suite.desc = desc;
+        var it = function(assertion, fn) {
+          suite.assertion = assertion;
           fn.call(self);
-          suite.desc = null;
+          suite.assertion = null;
         };
         forEach(suite.testCases, function(name, fn, i) {
           //suite.testCase = name;
