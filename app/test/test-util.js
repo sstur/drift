@@ -10,47 +10,56 @@ app.on('ready', function(require) {
   var dataPath = app.cfg('data_dir') || 'data/';
 
   app.addTestSuite('util', {
-    'util.extend': function() {
+    'util.extend': function(it) {
       var a = {type: 1}, b = {name: 'j'};
       var c = util.extend(a, b);
-      expect(c).to.be(a);
-      expect(a).to.eql({type: 1, name: 'j'});
-      expect(b).to.eql({name: 'j'});
-      var d = util.extend({}, b, {age: 40});
-      expect(d).to.eql({name: 'j', age: 40});
-    },
-    'util.clone': function() {
-      var original = {
-        string: 'testme',
-        number: Math.random(),
-        'null': null,
-        'undefined': undefined,
-        date: new Date(),
-        buffer: new Buffer('abc'),
-        array: [1, '2', null, false, void 0, true]
-      };
-      var clone = util.clone(original);
-      expect(clone).to.not.be(original);
-      expect(clone).to.eql(original);
-      expect(clone.date).to.not.be(original.date);
-      expect(clone.date.valueOf()).to.be(original.date.valueOf());
-      //array does not get named properties
-      var array = [1, 2, 3];
-      array.foo = 'bar';
-      clone = util.clone({array: array});
-      expect(clone).to.eql({array: [1, 2, 3]});
-      //object-wrapped primitives clone to primitives
-      clone = util.clone({
-        bool: new Boolean(true),
-        number: new Number(123),
-        string: new String('testme')
+      it('should copy properties', function() {
+        expect(c).to.be(a);
+        expect(a).to.eql({type: 1, name: 'j'});
+        expect(b).to.eql({name: 'j'});
       });
-      expect(clone).to.eql({bool: true, number: 123, string: 'testme'});
-      //function to plain object
-      clone = util.clone({func: function() {}});
-      expect(clone).to.eql({func: {}});
+      it('should extend from multiple sources', function() {
+        var d = util.extend({}, b, {age: 40});
+        expect(d).to.eql({name: 'j', age: 40});
+      });
     },
-    'util.inherits': function() {
+    'util.clone': function(it) {
+      it('should clone basic types', function() {
+        var original = {
+          string: 'testme',
+          number: Math.random(),
+          'null': null,
+          'undefined': undefined,
+          date: new Date(),
+          buffer: new Buffer('abc'),
+          array: [1, '2', null, false, void 0, true]
+        };
+        var clone = util.clone(original);
+        expect(clone).to.not.be(original);
+        expect(clone).to.eql(original);
+        expect(clone.date).to.not.be(original.date);
+        expect(clone.date.valueOf()).to.be(original.date.valueOf());
+      });
+      it('should exclude named properties on array', function() {
+        var array = [1, 2, 3];
+        array.foo = 'bar';
+        var clone = util.clone({array: array});
+        expect(clone).to.eql({array: [1, 2, 3]});
+      });
+      it('should clone object-wrapped primitives to primitives', function() {
+        var clone = util.clone({
+          bool: new Boolean(true),
+          number: new Number(123),
+          string: new String('testme')
+        });
+        expect(clone).to.eql({bool: true, number: 123, string: 'testme'});
+      });
+      it('should clone function to plain object', function() {
+        var clone = util.clone({func: function() {}});
+        expect(clone).to.eql({func: {}});
+      });
+    },
+    'util.inherits': function(it) {
       function Animal(color) {
         this.color = color;
         this.initialized = true;
@@ -61,23 +70,29 @@ app.on('ready', function(require) {
       function Fox(color) {
         this.color = color;
       }
-      util.inherits(Fox, Animal);
-      expect(Fox.super_).to.be(Animal);
-      expect(Fox.prototype.constructor).to.be(Fox);
-      expect(Fox.prototype.getColor).to.be(Animal.prototype.getColor);
-      //changing child proto is not reflected on parent
-      Fox.prototype.getSound = function() {};
-      expect(Animal.prototype.getSound).to.be(undefined);
-      //changing parent proto is reflected on child proto
-      Animal.prototype.type = 1;
-      expect(Fox.prototype.type).to.be(1);
-      var fox = new Fox('red');
-      expect(fox.constructor).to.be(Fox);
-      expect(fox.getColor()).to.be('red');
-      //parent constructor is not called during child instantiation
-      expect(fox.initialized).to.not.be(true);
+      it('should replace child prototype chain', function() {
+        util.inherits(Fox, Animal);
+        expect(Fox.super_).to.be(Animal);
+        expect(Fox.prototype.constructor).to.be(Fox);
+        expect(Fox.prototype.getColor).to.be(Animal.prototype.getColor);
+      });
+      it('should not change prototype of parent when child is modified', function() {
+        Fox.prototype.getSound = function() {};
+        expect(Animal.prototype.getSound).to.be(undefined);
+      });
+      it('should reflect on child when parent prototype is changed', function() {
+        Animal.prototype.type = 1;
+        expect(Fox.prototype.type).to.be(1);
+        var fox = new Fox('red');
+        expect(fox.constructor).to.be(Fox);
+        expect(fox.getColor()).to.be('red');
+      });
+      it('should not call parent constructor during child instantiation', function() {
+        var fox = new Fox('brown');
+        expect(fox.initialized).to.not.be(true);
+      });
     },
-    'util.propagateEvents': function() {
+    'util.propagateEvents': function(it) {
       var e1 = app.eventify({});
       var e2 = app.eventify({});
       util.propagateEvents(e1, e2, 'first second');
@@ -86,41 +101,55 @@ app.on('ready', function(require) {
         var count = log[name] || 0;
         log[name] = count + 1;
       };
-      e2.on('first', logEvent);
-      e1.emit('first', 'first');
-      expect(e2.log.first).to.be(1);
-      e2.on('second', logEvent);
-      e1.emit('second', 'second');
-      e1.emit('second', 'second');
-      expect(e2.log.second).to.be(2);
-      e1.on('third', logEvent);
-      e2.on('third', logEvent);
-      e1.emit('third', 'third');
-      expect(e1.log.third).to.be(1);
-      expect(e2.log.third).to.be(undefined);
-      util.propagateEvents(e1, e2, ['fourth', 'fifth']);
-      e2.on('fifth', logEvent);
-      e1.emit('fifth', 'fifth');
-      expect(e2.log.fifth).to.be(1);
+      it('should propagate event from one to another', function() {
+        e2.on('first', logEvent);
+        e1.emit('first', 'first');
+        expect(e2.log.first).to.be(1);
+      });
+      it('should propagate events called twice', function() {
+        e2.on('second', logEvent);
+        e1.emit('second', 'second');
+        e1.emit('second', 'second');
+        expect(e2.log.second).to.be(2);
+      });
+      it('should not propagate events not specified', function() {
+        e1.on('third', logEvent);
+        e2.on('third', logEvent);
+        e1.emit('third', 'third');
+        expect(e1.log.third).to.be(1);
+        expect(e2.log.third).to.be(undefined);
+      });
+      it('should propagate events added later', function() {
+        util.propagateEvents(e1, e2, ['fourth', 'fifth']);
+        e2.on('fifth', logEvent);
+        e1.emit('fifth', 'fifth');
+        expect(e2.log.fifth).to.be(1);
+      });
     },
-    'util.pipe': function() {
+    'util.pipe': function(it) {
       var blob = new Array(256);
       for (var i = 0; i < 256; i++) blob[i] = String.fromCharCode(i);
       blob = new Buffer(blob, 'binary');
-      var readStream = new MockReadStream(blob);
-      var writeStream = new MockWriteStream();
-      util.pipe(readStream, writeStream);
-      readStream.read();
-      expect(writeStream.output.length).to.be(16);
-      expect(writeStream.getOutput()).to.eql(blob);
+      it('should pipe readStream to writeStream', function() {
+        var readStream = new MockReadStream(blob);
+        var writeStream = new MockWriteStream();
+        util.pipe(readStream, writeStream);
+        readStream.read();
+        expect(writeStream.output.length).to.be(16);
+        expect(writeStream.getOutput()).to.eql(blob);
+      });
     },
-    'util.getUniqueHex': function() {
+    'util.getUniqueHex': function(it) {
       var hex1 = util.getUniqueHex();
-      expect(hex1).to.be.a('string');
-      expect(hex1.length).to.be(32);
-      var hex2 = util.getUniqueHex();
-      expect(hex1).to.not.equal(hex2);
-      expect(hex2).to.match(/^[0-9a-f]{32}$/);
+      it('should be a string of length 32', function() {
+        expect(hex1).to.be.a('string');
+        expect(hex1.length).to.be(32);
+      });
+      it('should not produce duplicates', function() {
+        var hex2 = util.getUniqueHex();
+        expect(hex1).to.not.equal(hex2);
+        expect(hex2).to.match(/^[0-9a-f]{32}$/);
+      });
     },
     'util.hexBytes': function() {
       var hex1 = util.hexBytes(10);
