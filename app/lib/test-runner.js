@@ -65,16 +65,16 @@ define('test-runner', function(require, exports, module) {
       if (logType == 'success') {
         this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + htmlEnc(testCaseName) + ' [' + time + ']</span>');
       } else {
-        var assertion = (suite.assertion) ? '<span class="assertion">it ' + htmlEnc(suite.assertion) + '</span>\n' : '';
-        this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + htmlEnc(testCaseName) + '</span>\n' + assertion + '<span class="message">' + htmlEnc(suite.error.message) + '</span>');
+        var specDesc = (suite.specDesc) ? '<span class="spec">it ' + htmlEnc(suite.specDesc) + '</span>\n' : '';
+        this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + htmlEnc(testCaseName) + '</span>\n' + specDesc + '<span class="message">' + htmlEnc(suite.error.message) + '</span>');
       }
     },
     format_text: function(logType, suite, testCaseName, time) {
       if (!error) {
         this.writeLine('✔ PASS ››› ' + testCaseName + ' [' + time + ']');
       } else {
-        var assertion = (suite.assertion) ? suite.assertion + '\n' : '';
-        this.writeLine('✖ FAIL ‹‹‹ ' + testCaseName + '\n' + assertion + suite.error.message);
+        var specDesc = (suite.specDesc) ? suite.specDesc + '\n' : '';
+        this.writeLine('✖ FAIL ‹‹‹ ' + testCaseName + '\n' + specDesc + suite.error.message);
       }
     },
     write: function(text) {
@@ -108,23 +108,23 @@ define('test-runner', function(require, exports, module) {
         suite.startTime = Date.now();
         suite.setup();
         self.logResult('description', suite);
-        //allows us to do BDD style tests within each test case
-        var it = function(assertion, fn) {
-          suite.assertion = assertion;
-          fn.call(self);
-          suite.assertion = null;
+        //allows us to do BDD-style specs
+        var it = function(specDesc, fn) {
+          suite.specDesc = specDesc;
+          fn.call(suite);
+          suite.specDesc = null;
         };
-        forEach(suite.testCases, function(name, fn, i) {
+        forEach(suite.testCases, function(caseName, testCase) {
           //suite.testCase = name;
           var startTime = Date.now();
           if (suite.noCatch) {
             suite.beforeEach();
-            fn.call(suite, name, i);
+            testCase.call(suite, it);
             suite.afterEach();
           } else {
             try {
               suite.beforeEach();
-              fn.call(suite, it);
+              testCase.call(suite, it);
               suite.afterEach();
             } catch(e) {
               suite.error = e;
@@ -132,11 +132,11 @@ define('test-runner', function(require, exports, module) {
           }
           var endTime = Date.now();
           if (suite.error) {
-            self.logResult('error', suite, name, endTime - startTime);
+            self.logResult('error', suite, caseName, endTime - startTime);
             //don't continue
             return false;
           } else {
-            self.logResult('success', suite, name, endTime - startTime);
+            self.logResult('success', suite, caseName, endTime - startTime);
             //continue
             return true;
           }
