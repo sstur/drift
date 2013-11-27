@@ -46,7 +46,7 @@ define('response', function(require, exports, module) {
 
   var htmlRedirect = [
     '<html>',
-    '<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=URL"/></head>',
+    '<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=URL"></head>',
     '<body onload="location.replace(document.getElementsByTagName(\'meta\')[0].content.slice(6))">',
     '<noscript><p>If you are not redirected, <a href="URL">Click Here</a></p></noscript>',
     //add padding to prevent "friendly" error messages in certain browsers
@@ -102,6 +102,7 @@ define('response', function(require, exports, module) {
         forEach(n, function(n, val) {
           res.headers(n, val);
         });
+        return this;
       }
       n = (n == null) ? '' : String(n);
       var key = httpResHeaders[n.toLowerCase()] || n;
@@ -109,15 +110,18 @@ define('response', function(require, exports, module) {
         val = headers[key];
         //some header values are saved as an array
         return (val && val.join) ? val.join('; ') : val;
-      } else
+      }
       if (val === null) {
-        return (delete headers[key]);
-      } else
-      if (allowMulti[key]) {
+        delete headers[key];
+        return this;
+      }
+      val = val ? String(val) : '';
+      if (key in allowMulti) {
         headers[key] ? headers[key].push(val) : headers[key] = [val];
       } else {
         headers[key] = val;
       }
+      return this;
     },
     write: function(data) {
       //don't write anything for head requests
