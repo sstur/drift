@@ -314,6 +314,182 @@ app.on('ready', function(require) {
 //        expect((1000000000000000128).toFixed(0)).to.be('1000000000000000128');
       });
     },
+    'Object.keys': function(it) {
+      var obj = {
+        "str": "boz",
+        "obj": { },
+        "arr": [],
+        "bool": true,
+        "num": 42,
+        "null": null,
+        "undefined": undefined
+      };
+
+      var loopedValues = [];
+      for (var k in obj) {
+        loopedValues.push(k);
+      }
+
+      var keys = Object.keys(obj);
+      it('should have correct length', function () {
+        expect(keys.length).to.be(7);
+      });
+
+      it('should return an Array', function () {
+        expect(Array.isArray(keys)).to.be(true);
+      });
+
+      it('should return names which are own properties', function () {
+        keys.forEach(function (name) {
+          expect(obj.hasOwnProperty(name)).to.be(true);
+        });
+      });
+
+      it('should return names which are enumerable', function () {
+        keys.forEach(function (name) {
+          expect(loopedValues.indexOf(name)).to.not.be(-1);
+        })
+      });
+
+      it('should throw error for non object', function () {
+        var e = {};
+        //todo
+        expect(function () {
+          try {
+            Object.keys(42)
+          } catch (err) {
+            throw e;
+          }
+        }).to.throwError(e);
+      });
+    },
+    'Object.isExtensible': function(it) {
+      var obj = { };
+
+      it('should return true if object is extensible', function () {
+        expect(Object.isExtensible(obj)).to.be(true);
+      });
+
+//      it('should return false if object is not extensible', function () {
+//        expect(Object.isExtensible(Object.preventExtensions(obj))).to.be(false);
+//      });
+
+//      it('should return false if object is sealed', function () {
+//        expect(Object.isExtensible(Object.seal(obj))).to.be(false);
+//      });
+
+//      it('should return false if object is frozen', function () {
+//        expect(Object.isExtensible(Object.freeze(obj))).to.be(false);
+//      });
+
+      it('should throw error for non object', function () {
+        var e1 = {};
+        //todo
+        expect(function () {
+          try {
+            Object.isExtensible(42)
+          } catch (err) {
+            throw e1;
+          }
+        }).to.throwError(e1);
+      });
+    },
+    'Object.defineProperty': function(it) {
+      var obj;
+
+      it = beforeEach(it, function() {
+        obj = {};
+
+        Object.defineProperty(obj, 'name', {
+          value : 'Testing',
+          configurable: true,
+          enumerable: true,
+          writable: true
+        });
+      });
+
+      it('should return the initial value', function () {
+        expect(obj.hasOwnProperty('name')).to.be.ok();
+        expect(obj.name).to.be('Testing');
+      });
+
+      it('should be setable', function () {
+        obj.name = 'Other';
+        expect(obj.name).to.be('Other');
+      });
+
+      it('should return the parent initial value', function () {
+        var child = Object.create(obj, {});
+
+        expect(child.name).to.be('Testing');
+        expect(child.hasOwnProperty('name')).to.not.be.ok();
+      });
+
+      it('should not override the parent value', function () {
+        var child = Object.create(obj, {});
+
+        Object.defineProperty(child, 'name', {
+          value : 'Other'
+        });
+
+        expect(obj.name).to.be('Testing');
+        expect(child.name).to.be('Other');
+      });
+
+      it('should throw error for non object', function () {
+        expect(function () {
+          Object.defineProperty(42, 'name', {});
+        }).to.throwError();
+      });
+    },
+    'Object.getOwnPropertyDescriptor': function(it) {
+      it('should return undefined because the object does not own the property', function () {
+        var descr = Object.getOwnPropertyDescriptor({}, 'name');
+
+        expect(descr).to.be.a('undefined')
+      });
+
+      it('should return a data descriptor', function () {
+        var descr = Object.getOwnPropertyDescriptor({name: 'Testing'}, 'name');
+
+        expect(descr).to.not.be.a('undefined');
+        expect(descr.value).to.be('Testing');
+        expect(descr.writable).to.be(true);
+        expect(descr.enumerable).to.be(true);
+        expect(descr.configurable).to.be(true);
+      });
+
+      it('should return undefined because the object does not own the property', function () {
+        var descr = Object.getOwnPropertyDescriptor(Object.create({name: 'Testing'}, {}), 'name');
+
+        expect(descr).to.be.a('undefined');
+      });
+
+      it('should return a data descriptor', function () {
+        var obj = Object.create({}, {
+          name: {
+            value : 'Testing',
+            configurable: true,
+            enumerable: true,
+            writable: true
+          }
+        });
+
+        var descr = Object.getOwnPropertyDescriptor(obj, 'name');
+
+        expect(descr).to.not.be.a('undefined');
+        expect(descr.value).to.be('Testing');
+        expect(descr.writable).to.be(true);
+        expect(descr.enumerable).to.be(true);
+        expect(descr.configurable).to.be(true);
+      });
+
+      it('should throw error for non object', function () {
+        expect(function () {
+          Object.getOwnPropertyDescriptor(42, 'name');
+        }).to.throwError();
+      });
+    },
 //    'Object.create(null)': function() {
 //      var o = Object.create(null);
 //      expect(o.toString).to.be(null);
