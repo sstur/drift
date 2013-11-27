@@ -100,14 +100,12 @@ define('test-runner', function(require, exports, module) {
       var format = this.format = opts.format || this.format || 'text';
       this.logResult = this['format_' + format];
       this.writeStream = opts.writeStream;
-      var self = this;
-      var suites = this.suites;
-      for (var i = 0, len = suites.length; i < len; i++) {
-        var suite = suites[i];
-        suite.runner = self;
+      var runner = this;
+      forEach(this.suites, function(i, suite) {
+        suite.runner = runner;
         suite.startTime = Date.now();
         suite.setup();
-        self.logResult('description', suite);
+        runner.logResult('description', suite);
         //allows us to do BDD-style specs
         var it = function(specDesc, fn) {
           suite.specDesc = specDesc;
@@ -132,11 +130,11 @@ define('test-runner', function(require, exports, module) {
           }
           var endTime = Date.now();
           if (suite.error) {
-            self.logResult('error', suite, caseName, endTime - startTime);
+            runner.logResult('error', suite, caseName, endTime - startTime);
             //don't continue
             return false;
           } else {
-            self.logResult('success', suite, caseName, endTime - startTime);
+            runner.logResult('success', suite, caseName, endTime - startTime);
             //continue
             return true;
           }
@@ -144,9 +142,9 @@ define('test-runner', function(require, exports, module) {
         suite.teardown();
         suite.endTime = Date.now();
         suite.timeElapsed = suite.endTime - suite.startTime;
-        this.logResult('summary', suite);
-        if (suite.error) break;
-      }
+        runner.logResult('summary', suite);
+        return !suite.error;
+      });
       if (this.writeStream) {
         this.writeStream.end();
       }
