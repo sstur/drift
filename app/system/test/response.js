@@ -25,7 +25,7 @@ define('mock-response', function(require, exports, module) {
       }
     },
     write: function(data) {
-      this.body.push(typeof data == 'string' ? data : toString(data));
+      this.body.push(Buffer.isBuffer(data) ? data._raw : toString(data));
     },
     end: function() {
       throw null;
@@ -37,7 +37,7 @@ define('mock-response', function(require, exports, module) {
 
   var _toString = Object.prototype.toString;
   function toString(obj) {
-    return (obj == null) ? String(obj) : (typeof obj.toString == 'funtion') ? obj.toString() : _toString.call(obj);
+    return (obj == null) ? String(obj) : (typeof obj.toString == 'function') ? obj.toString() : _toString.call(obj);
   }
 
   module.exports = Response;
