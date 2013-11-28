@@ -120,8 +120,7 @@ app.on('ready', function(require) {
         res.write('ü');
         res.write(new Buffer('î', 'utf8'));
         var result = res.end();
-        this.log(result.body);
-        expect(result.body).to.be('Ã¼Ã®');
+        expect(result.body).to.be('üÃ®');
       });
       it('should stringify objects', function() {
         var res = createResponse();
