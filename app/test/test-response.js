@@ -105,6 +105,41 @@ app.on('ready', function(require) {
       });
     },
     'res.write()': function(it) {
+      it('should write primitive values', function() {
+        var res = createResponse();
+        res.write(1);
+        res.write(null);
+        res.write(undefined);
+        res.write(false);
+        res.write('string');
+        var result = res.end();
+        expect(result.body).to.be('1nullundefinedfalsestring');
+      });
+      it('should write unicode and buffers', function() {
+        var res = createResponse();
+        res.write('ü');
+        res.write(new Buffer('î', 'utf8'));
+        var result = res.end();
+        this.log(result.body);
+        expect(result.body).to.be('Ã¼Ã®');
+      });
+      it('should stringify objects', function() {
+        var res = createResponse();
+        res.write({hi: 1});
+        res.write([2, false]);
+        var result = res.end();
+        expect(result.body).to.be('{"hi":1}[2,false]');
+      });
+      it('should not write anything for HEAD requests', function() {
+      });
+    },
+    'res.clear()': function(it) {
+      var res = createResponse();
+      res.write('a');
+      res.clear();
+      res.write('b');
+      var result = res.end();
+      expect(result.body).to.be('b');
     },
     'res.contentType()': function(it) {
     },
@@ -187,14 +222,6 @@ app.on('ready', function(require) {
       });
     },
     'res.end()': function(it) {
-    },
-    'res.clear()': function(it) {
-      var res = createResponse();
-      res.write('a');
-      res.clear();
-      res.write('b');
-      var result = res.end();
-      expect(result.body).to.be('b');
     },
     'res.die()': function(it) {
     },
