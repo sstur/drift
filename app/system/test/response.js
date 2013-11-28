@@ -15,7 +15,9 @@ define('mock-response', function(require, exports, module) {
       var self = this;
       self.status = statusCode + ' ' + statusReason;
       forEach(headers, function(n, val) {
-        val = (val == null) ? '' : String(val);
+        //note: is val guaranteed to be a string or array of strings?
+        //if (val == null) val = '';
+        val = Array.isArray(val) ? val : String(val);
         self.headers[n] = val;
       });
       if (app.cfg('debug_open_connections')) {

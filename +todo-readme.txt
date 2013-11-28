@@ -14,6 +14,7 @@ Quirks:
   req.query('a') always returns string, like headers() and cookies()
   req.query, req.headers, req.cookies and req.body[form, multipart] will concatenate dups
   multipart parser will not
+  res.headers, cookes can return undefined
 
 why modelInstance._model and not .model
 

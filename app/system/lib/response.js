@@ -2,14 +2,11 @@
 define('response', function(require, exports, module) {
   "use strict";
 
-  var log_response_time = app.cfg('logging/response_time');
-
   var fs = require('fs');
   var util = require('util');
 
   var RE_CTYPE = /^[\w-]+\/[\w-]+$/;
   var RE_STATUS = /^\d{3}\b/;
-  var RE_ACCEPT_JSON = /(^|[, ])application\/json($|[,;])/i;
   var TEXT_CTYPES = /^text\/|\/json$/i;
 
   var httpResHeaders = 'Accept-Ranges Age Allow Cache-Control Connection Content-Encoding Content-Language ' +
@@ -90,36 +87,41 @@ define('response', function(require, exports, module) {
         return this.buffer.charset;
       }
     },
-    headers: function(n, val) {
+    headers: function(name, value) {
       var headers = this.buffer.headers;
       //return headers
       if (arguments.length == 0) {
         return headers;
       }
-      //set headers from name/value pairs
-      if (n && typeof n == 'object') {
+      //set multiple from name/value pairs
+      if (name && typeof name == 'object') {
         var res = this;
-        forEach(n, function(n, val) {
-          res.headers(n, val);
+        forEach(name, function(name, value) {
+          res.headers(name, value);
         });
         return this;
       }
-      n = (n == null) ? '' : String(n);
-      var key = httpResHeaders[n.toLowerCase()] || n;
+      name = String(name);
+      name = httpResHeaders[name.toLowerCase()] || name;
       if (arguments.length == 1) {
-        val = headers[key];
-        //some header values are saved as an array
-        return (val && val.join) ? val.join('; ') : val;
+        value = headers[name];
+        //certain headers allow multiple, so are saved as an array
+        return (Array.isArray(value)) ? value.join('; ') : value;
       }
-      if (val === null) {
-        delete headers[key];
+      if (value === null) {
+        delete headers[name];
         return this;
       }
-      val = val ? String(val) : '';
-      if (key in allowMulti) {
-        headers[key] ? headers[key].push(val) : headers[key] = [val];
+      value = value ? String(value) : '';
+      if (name in allowMulti && name in headers) {
+        var existing = headers[name];
+        if (Array.isArray(existing)) {
+          existing.push(value)
+        } else {
+          headers[name] = [existing, value];
+        }
       } else {
-        headers[key] = val;
+        headers[name] = value;
       }
       return this;
     },
@@ -139,41 +141,50 @@ define('response', function(require, exports, module) {
 
     //these use the methods above to manipulate the response buffer
     contentType: function(type) {
-      //hack to override application/json -> text/plain
-      //if (type == 'application/json' && !this.req.isAjax()) {}
-      //if (type == 'application/json' && !RE_ACCEPT_JSON.test(this.req.headers('accept'))) {
-      //  type = 'text/plain'
-      //}
       this.headers('Content-Type', type);
     },
-    cookies: function(n, val) {
+    cookies: function(name, value) {
       //cookies are a case-sensitive collection that will be serialized into
       // Set-Cookie header(s) when response is sent
       var cookies = this.buffer.cookies;
       if (arguments.length == 0) {
         return cookies;
       }
-      if (arguments.length == 1) {
-        return cookies[n];
-      } else
-      if (val === null) {
-        return (delete cookies[n]);
+      //set multiple from name/value pairs
+      if (name && typeof name == 'object') {
+        var res = this;
+        forEach(name, function(name, value) {
+          res.cookies(name, value);
+        });
+        return this;
       }
-      var cookie = (typeof val == 'string') ? {value: val} : val;
-      cookie.name = n;
-      cookies[n] = cookie;
+      name = String(name);
+      if (arguments.length == 1) {
+        return cookies[name];
+      }
+      if (value === null) {
+        delete cookies[name];
+        return this;
+      }
+      var cookie = (typeof value == 'object') ? value : {value: value};
+      cookie = cookie || {};
+      cookie.value = String(cookie.value);
+      cookies[name] = cookie;
+      return this;
     },
 
     //this preps the headers to be sent using _writeHead or _streamFile
     _prepHeaders: function() {
-      var headers = this.buffer.headers;
+      var res = this;
       var cookies = this.buffer.cookies;
-      Object.keys(cookies).forEach(function(n) {
-        headers['Set-Cookie'] = serializeCookie(cookies[n]);
+      forEach(cookies, function(name, cookie) {
+        res.headers('Set-Cookie', serializeCookie(name, cookie));
       });
-      headers['Content-Type'] = buildContentType(this.buffer.charset, headers['Content-Type']);
-      if (log_response_time && this.req.__init) {
-        headers['X-Response-Time'] = new Date().valueOf() - this.req.__init.valueOf();
+      var contentType = buildContentType(this.buffer.charset, res.headers('Content-Type'));
+      res.headers('Content-Type', contentType);
+      if (app.cfg('logging/response_time') && this.req.__init) {
+        var responseTime = Date.now() - this.req.__init.valueOf();
+        res.headers('X-Response-Time', responseTime);
       }
     },
 
@@ -307,18 +318,22 @@ define('response', function(require, exports, module) {
     }
   }
 
-  function serializeCookie(cookie) {
+  function serializeCookie(name, cookie) {
     var out = [];
-    out.push(cookie.name + '=' + encodeURIComponent(cookie.value));
-    if (cookie.domain)
+    out.push(name + '=' + encodeURIComponent(cookie.value));
+    if (cookie.domain) {
       out.push('Domain=' + cookie.domain);
+    }
     out.push('Path=' + (cookie.path || '/'));
-    if (cookie.expires)
+    if (cookie.expires) {
       out.push('Expires=' + cookie.expires.toGMTString());
-    if (cookie.httpOnly)
+    }
+    if (cookie.httpOnly) {
       out.push('HttpOnly');
-    if (cookie.secure)
+    }
+    if (cookie.secure) {
       out.push('Secure');
+    }
     return out.join('; ');
   }
 

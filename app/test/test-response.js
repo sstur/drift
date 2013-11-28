@@ -36,6 +36,8 @@ app.on('ready', function(require) {
           'Content-Type': 'text/plain',
           'X-Powered-By': 'Me'
         });
+        res.headers('X-Powered-By', null);
+        expect(res.headers()).to.eql({'Content-Type': 'text/plain'});
       });
       it('should stringify non-string values', function() {
         res.headers('x-number', 1);
@@ -50,21 +52,15 @@ app.on('ready', function(require) {
         res.headers('x-number', null);
         res.headers('x-undefined', null);
         res.headers('x-date', null);
-        expect(res.headers()).to.eql({
-          'Content-Type': 'text/plain',
-          'X-Powered-By': 'Me'
-        });
+        expect(res.headers()).to.eql({'Content-Type': 'text/plain'});
       });
       it('should accept an object of keys/values', function() {
         var result = res.headers({'One': 1, 'Two': 2});
         expect([res.headers('One'), res.headers('Two')]).to.eql([1, 2]);
-        expect(Object.keys(res.headers()).length).to.be(4);
+        expect(Object.keys(res.headers()).length).to.be(3);
         expect(result).to.be(res);
         res.headers({'One': null, 'Two': null});
-        expect(res.headers()).to.eql({
-          'Content-Type': 'text/plain',
-          'X-Powered-By': 'Me'
-        });
+        expect(res.headers()).to.eql({'Content-Type': 'text/plain'});
       });
       it('should allow multiple keys with different case, except reserved', function() {
         res.headers('x-number', 1);
@@ -75,10 +71,22 @@ app.on('ready', function(require) {
         res.headers('etag', 'y');
         expect([res.headers('ETag'), res.headers('etag')]).to.eql(['y', 'y']);
         res.headers('etag', null);
+        expect(res.headers()).to.eql({'Content-Type': 'text/plain'});
+      });
+      it('should allow multiple Set-Cookie and concatenate on get', function() {
+        res.headers('Set-Cookie', 'a');
         expect(res.headers()).to.eql({
           'Content-Type': 'text/plain',
-          'X-Powered-By': 'Me'
+          'Set-Cookie': 'a'
         });
+        res.headers('Set-Cookie', 'b');
+        expect(res.headers('Set-Cookie')).to.be('a; b');
+        expect(res.headers()).to.eql({
+          'Content-Type': 'text/plain',
+          'Set-Cookie': ['a', 'b']
+        });
+        res.headers('Set-Cookie', null);
+        expect(res.headers()).to.eql({'Content-Type': 'text/plain'});
       });
     },
     'res.charset()': function(it) {
@@ -101,6 +109,82 @@ app.on('ready', function(require) {
     'res.contentType()': function(it) {
     },
     'res.cookies()': function(it) {
+      var res = createResponse();
+      it('should set/get', function() {
+        expect(res.cookies('Sample')).to.be(undefined);
+        res.cookies('Sample', 'one');
+        expect(res.cookies('Sample')).to.be.an('object');
+        expect(res.cookies('Sample')).to.eql({value: 'one'});
+      });
+      it('should set multiple', function() {
+        res.cookies({'One': '1', 'Two': '2'});
+        expect(res.cookies('One')).to.eql({value: '1'});
+        expect(res.cookies('Two')).to.eql({value: '2'});
+      });
+      it('should delete', function() {
+        res.cookies('Sample', null);
+        expect(res.cookies('Sample')).to.be(undefined);
+        res.cookies({'One': null, 'Two': null});
+        expect(res.cookies()).to.eql({});
+      });
+      it('should overwrite', function() {
+        res.cookies('Sample', 'one');
+        expect(res.cookies()).to.eql({'Sample': {value: 'one'}});
+        res.cookies('Sample', 'two');
+        expect(res.cookies()).to.eql({'Sample': {value: 'two'}});
+      });
+      it('should be case-sensitive', function() {
+        res.cookies('Sample', 'one');
+        res.cookies('sample', 'two');
+        expect(res.cookies()).to.eql({'Sample': {value: 'one'}, 'sample': {value: 'two'}});
+        res.cookies({'Sample': null, 'sample': null});
+        expect(res.cookies()).to.eql({});
+      });
+      it('should be chainable', function() {
+        var result = res.cookies('Sample', 'one');
+        expect(result).to.be(res);
+        result = res.cookies({'One': '1', 'Sample': null});
+        expect(result).to.be(res);
+        expect(res.cookies()).to.eql({'One': {value: '1'}});
+      });
+      it('should coerce name to string', function() {
+        res.cookies(1, '1');
+        expect(res.cookies('1')).to.eql({value: '1'});
+        res.cookies(null, 'null');
+        expect(res.cookies('null')).to.eql({value: 'null'});
+        res.cookies({'1': null, 'null': null})
+      });
+      it('should coerce value to string if not null or object', function() {
+        res.cookies('One', 1);
+        expect(res.cookies('One').value).to.be('1');
+        res.cookies('False', false);
+        expect(res.cookies('False').value).to.be('false');
+        res.cookies('Nothing', undefined);
+        expect(res.cookies('Nothing').value).to.be('undefined');
+        res.cookies('Date', new Date());
+        expect(res.cookies('Date').value).to.be('undefined');
+        res.cookies({'One': null, 'False': null, 'Nothing': null, 'Date': null});
+        expect(res.cookies()).to.eql({});
+      });
+      it('should accept options', function() {
+        var date = new Date(Date.now() + 86400000);
+        res.cookies('Test', {
+          domain: 'example.com',
+          path: '/index.html',
+          expires: date,
+          value: 1
+        });
+        expect(res.cookies('Test')).to.eql({
+          domain: 'example.com',
+          path: '/index.html',
+          expires: date,
+          value: '1'
+        });
+        res.cookies('Test', null);
+        res.cookies('Test', {});
+        expect(res.cookies()).to.eql({'Test': {value: 'undefined'}});
+        res.cookies('Test', null);
+      });
     },
     'res.end()': function(it) {
     },
