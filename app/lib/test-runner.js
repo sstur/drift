@@ -66,7 +66,9 @@ define('test-runner', function(require, exports, module) {
         this.writeLine('<span class="pass">✔ PASS ››› </span><span class="name">' + htmlEnc(testCaseName) + ' [' + time + ']</span>');
       } else {
         var specDesc = (suite.specDesc) ? '<span class="spec">it ' + htmlEnc(suite.specDesc) + '</span>\n' : '';
-        this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + htmlEnc(testCaseName) + '</span>\n' + specDesc + '<span class="message">' + htmlEnc(suite.error.message) + '</span>');
+        var error = suite.error;
+        var message = (error != null && ('message' in error)) ? error.message : error;
+        this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + htmlEnc(testCaseName) + '</span>\n' + specDesc + '<span class="message">' + htmlEnc(message) + '</span>');
       }
     },
     format_text: function(logType, suite, testCaseName, time) {
@@ -115,6 +117,8 @@ define('test-runner', function(require, exports, module) {
         forEach(suite.testCases, function(caseName, testCase) {
           //suite.testCase = name;
           var startTime = Date.now();
+          //this actually shouldn't be necessary because we halt on error
+          delete suite.error;
           if (suite.noCatch) {
             suite.beforeEach();
             testCase.call(suite, it);
@@ -129,7 +133,7 @@ define('test-runner', function(require, exports, module) {
             }
           }
           var endTime = Date.now();
-          if (suite.error) {
+          if ('error' in suite) {
             runner.logResult('error', suite, caseName, endTime - startTime);
             //don't continue
             return false;
@@ -153,7 +157,7 @@ define('test-runner', function(require, exports, module) {
   });
 
   function htmlEnc(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   }
 
 });
