@@ -115,7 +115,7 @@ app.on('ready', function(require) {
         var result = res.end();
         expect(result.body).to.be('1nullundefinedfalsestring');
       });
-      it('should write unicode and buffers', function() {
+      it('should write unicode strings and buffers', function() {
         var res = createResponse();
         res.write('ü');
         res.write(new Buffer('î', 'utf8'));
@@ -130,6 +130,11 @@ app.on('ready', function(require) {
         expect(result.body).to.be('{"hi":1}[2,false]');
       });
       it('should not write anything for HEAD requests', function() {
+        var res = createResponse({method: 'HEAD'});
+        res.write('ü');
+        res.write({hi: 1});
+        var result = res.end();
+        expect(result.body).to.be('');
       });
     },
     'res.clear()': function(it) {
@@ -221,12 +226,79 @@ app.on('ready', function(require) {
       });
     },
     'res.end()': function(it) {
+      it('should assume single argument is body', function() {
+        var result = createResponse().end(200);
+        expect(result.body).to.be('200');
+      });
+      it('should not allow invalid status', function() {
+        var result = createResponse().end(10, 20);
+        expect(result.body).to.be('1020');
+      });
+      it('should allow numeric status and body', function() {
+        var result = createResponse().end(404, 404);
+        expect(result.status).to.be('404 Not Found');
+        expect(result.body).to.be('404');
+      });
+      it('should allow status and content type', function() {
+        var result = createResponse().end(404, 'text/html', 1);
+        expect(result.status).to.be('404 Not Found');
+        expect(result.headers).to.eql({'Content-Type': 'text/html; charset=UTF-8'});
+        expect(result.body).to.be('1');
+      });
+      it('should not allow invalid content type', function() {
+        var result = createResponse().end(404, 'html/', 1);
+        expect(result.status).to.be('404 Not Found');
+        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8'});
+        expect(result.body).to.be('html/1');
+      });
+      it('should allow content type without status', function() {
+        var result = createResponse().end('text/xml', 404);
+        expect(result.status).to.be('200 OK');
+        expect(result.headers).to.eql({'Content-Type': 'text/xml; charset=UTF-8'});
+        expect(result.body).to.be('404');
+      });
     },
     'res.die()': function(it) {
+      it('should clear and end', function() {
+        var res = createResponse();
+        res.write('abc');
+        res.die('text/xml', 1);
+        var result = res._super;
+        expect(result.status).to.be('200 OK');
+        expect(result.headers).to.eql({'Content-Type': 'text/xml; charset=UTF-8'});
+        expect(result.getBody()).to.be('1');
+      });
     },
     'res.debug()': function(it) {
+      it('should write the results of util.inspect and end', function() {
+        var res = createResponse();
+        res.debug({a: 1});
+        var result = res._super;
+        expect(result.getBody()).to.be('{ a: 1 }');
+      });
     },
     'res.getWriteStream()': function(it) {
+      var res = createResponse();
+      res.status(500);
+      res.headers('X-Test', 1);
+      var stream = res.getWriteStream();
+      it('should produce a writeable stream', function() {
+        stream.write('a');
+        stream.write('b');
+      });
+      var result = res._super;
+      it('should propogate end', function() {
+        try {
+          stream.end();
+        } catch(e) {
+          expect(e).to.be(null);
+        }
+        expect(result.getBody()).to.be('ab');
+      });
+      it('should not clear headers or status', function() {
+        expect(result.status).to.be('500 Internal Server Error');
+        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', 'X-Test': '1'});
+      });
     },
     'res.sendFile()': function(it) {
     },
