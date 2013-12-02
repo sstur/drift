@@ -1,3 +1,6 @@
+/*!
+ * todo: be sure non-text content type doesn't get charset
+ */
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
@@ -345,14 +348,29 @@ app.on('ready', function(require) {
       var text = [];
       for (var i = 0; i < 1000; i++) text.push(i);
       text = text.join('|');
-      fs.writeTextToFile(file, text, {overwrite: true});
       it('should serve file, preserving headers', function() {
+        fs.writeTextToFile(file, text, {overwrite: true});
         var res = createResponse();
         res.headers('X-Hello', 'World');
         var result = catchNull(res, 'sendFile', file);
         expect(result.status).to.be('200 OK');
         expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', 'X-Hello': 'World', 'Content-Length': '3889'});
         expect(result.body).to.be(text);
+        fs.deleteFile(file);
+      });
+      it('should preserve status and accept options', function() {
+        fs.writeTextToFile(file, 'abc');
+        var res = createResponse();
+        res.status(404);
+        var result = catchNull(res, 'sendFile', {
+          file: file,
+          contentType: 'application/blah',
+          filename: 'a.txt',
+          attachment: true
+        });
+        expect(result.status).to.be('404 Not Found');
+        expect(result.headers).to.eql({'Content-Type': 'application/blah', 'Content-Disposition': 'attachment; filename="a.txt"', 'Content-Length': '3'});
+        expect(result.body).to.be('abc');
         fs.deleteFile(file);
       });
       it('should throw if not exists', function() {
