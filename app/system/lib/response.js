@@ -250,18 +250,18 @@ define('response', function(require, exports, module) {
       if (isPrimitive(opts)) {
         opts = {file: String(opts)};
       }
-      var headers = opts.headers || {};
-      var filename = (typeof opts.filename == 'string') ? opts.filename : opts.file.split('/').pop();
       if (!opts.contentType && mimeTypes) {
+        var filename = (typeof opts.filename == 'string') ? opts.filename : opts.file.split('/').pop();
         var ext = getFileExt(filename);
         opts.contentType = mimeTypes[ext];
       }
+      var headers = opts.headers || {};
       headers['Content-Type'] = opts.contentType || 'application/octet-stream';
       var contentDisp = [];
       if (opts.attachment) contentDisp.push('attachment');
       if (opts.filename) {
         //strip double-quote and comma, replacing other invalid chars with ~
-        filename = util.stripFilename(filename, '~', {'"': '', ',': ''});
+        filename = util.stripFilename(opts.filename, '~', {'"': '', ',': ''});
         contentDisp.push('filename="' + filename + '"');
       }
       if (contentDisp.length) {
