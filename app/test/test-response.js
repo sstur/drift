@@ -2,15 +2,19 @@
 app.on('ready', function(require) {
   "use strict";
 
+  var fs = require('fs');
   var expect = require('expect');
   var Request = require('request');
   var Response = require('response');
   var AdapterRequest = require('mock-request');
   var AdapterResponse = require('mock-response');
+
   //var blob = new Array(256);
   //for (var i = 0; i < 256; i++) blob[i] = String.fromCharCode(i);
   //blob = new Buffer(blob, 'binary');
+
   var undefined;
+  var dataPath = app.cfg('data_dir') || 'data/';
 
   app.addTestSuite('response', {
     'res.status()': function(it) {
@@ -306,6 +310,11 @@ app.on('ready', function(require) {
         var result = catchNull(res, 'debug', {a: 1});
         expect(result.body).to.be('{ a: 1 }');
       });
+      it('should ignore additional args', function() {
+        var res = createResponse();
+        var result = catchNull(res, 'debug', [null, false, 0, 'hi'], true);
+        expect(result.body).to.be("[ null, false, 0, 'hi' ]");
+      });
     },
     'res.getWriteStream()': function(it) {
       var res = createResponse();
@@ -331,7 +340,27 @@ app.on('ready', function(require) {
       });
     },
     'res.sendFile()': function(it) {
-      //todo
+      var file = dataPath + 'temp/testfile.txt';
+      //create a text blob that's > 1kb to ensure there's multiple chunks
+      var text = [];
+      for (var i = 0; i < 1000; i++) text.push(i);
+      text = text.join('|');
+      fs.writeTextToFile(file, text, {overwrite: true});
+      it('should serve file, preserving headers', function() {
+        var res = createResponse();
+        res.headers('X-Hello', 'World');
+        var result = catchNull(res, 'sendFile', file);
+        expect(result.status).to.be('200 OK');
+        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', 'X-Hello': 'World', 'Content-Length': '3889'});
+        expect(result.body).to.be(text);
+        fs.deleteFile(file);
+      });
+      it('should throw if not exists', function() {
+        var sendFile = function() {
+          catchNull(createResponse(), 'sendFile', file);
+        };
+        expect(sendFile).to.throwError(/ENOENT, no such file/);
+      });
     }
   });
 
