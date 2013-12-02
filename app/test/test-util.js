@@ -164,7 +164,7 @@ app.on('ready', function(require) {
       it('should log in the correct format', function() {
         var text = fs.readTextFile(file);
         expect(text).to.be.a('string');
-        expect(text).to.match(/^\w{3}, \d\d \w{3} \d{4} \d\d:\d\d:\d\d UTC/);
+        expect(text).to.match(/^\w{3}, \d{1,2} \w{3} \d{4} \d\d:\d\d:\d\d UTC/);
         expect(condense(text)).to.be('2|three|{"a":1}');
       });
       fs.deleteFile(file);
