@@ -1,22 +1,14 @@
-Edge Cases:
-  Content-Disposition: attachment; filename=""The Life of a Bitcoin" by Robert Kieffer (Ignite Bend 11).mp4"
-
-Consolas, 'Liberation Mono', Courier, monospace
-
 Globals:
   explain why we must declare in top scope *and* explicitly assign to globals object
-
-Legacy Workarounds
-  there was some issue with compiled templates trying to access a global in IIS (because the top scope was function-wrapped)
 
 Quirks:
   req.body('a') can return undefined
   req.query('a') always returns string, like headers() and cookies()
-  req.query, req.headers, req.cookies and req.body[form, multipart] will concatenate dups
-  multipart parser will not
-  res.headers, cookes can return undefined
+  req.query, req.headers, req.cookies and req.body[form-field, multipart-field] will concatenate dups
+    multipart-file will emit dups but save first to req.body
+  unlike request, response.headers, cookies can return undefined
 
-why modelInstance._model and not .model
+why modelInstance._model and not model
 
 findAll()
 findAll(conditions)

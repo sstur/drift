@@ -1,5 +1,6 @@
 /*!
  * todo: header line without : should be ignored
+ * todo: is there a bug in which autoSaveUploads could save dups but discard only first
  */
 /*global app, define */
 app.on('ready', function(require) {
