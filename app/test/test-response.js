@@ -21,7 +21,8 @@ app.on('ready', function(require) {
       res.status('404 Not Here');
       expect(res.status()).to.be('404 Not Here');
       res.status(504);
-      expect(res.end().status).to.be('504 Gateway Time-out');
+      var result = catchNull(res, 'end');
+      expect(result.status).to.be('504 Gateway Time-out');
     },
     'res.headers()': function(it) {
       var res = createResponse();
@@ -93,14 +94,14 @@ app.on('ready', function(require) {
       it('should append to content-type', function() {
         var res = createResponse();
         res.charset('ISO-8859-1');
-        var result = res.end();
+        var result = catchNull(res, 'end');
         expect(result.headers['Content-Type']).to.be('text/plain; charset=ISO-8859-1');
       });
       it('should override to content-type', function() {
         var res = createResponse();
         res.charset('UTF-8');
         res.headers('Content-Type', 'text/plain; charset=ISO-8859-1');
-        var result = res.end();
+        var result = catchNull(res, 'end');
         expect(result.headers['Content-Type']).to.be('text/plain; charset=UTF-8');
       });
     },
@@ -112,28 +113,28 @@ app.on('ready', function(require) {
         res.write(undefined);
         res.write(false);
         res.write('string');
-        var result = res.end();
+        var result = catchNull(res, 'end');
         expect(result.body).to.be('1nullundefinedfalsestring');
       });
       it('should write unicode strings and buffers', function() {
         var res = createResponse();
         res.write('ü');
         res.write(new Buffer('î', 'utf8'));
-        var result = res.end();
+        var result = catchNull(res, 'end');
         expect(result.body).to.be('üÃ®');
       });
       it('should stringify objects', function() {
         var res = createResponse();
         res.write({hi: 1});
         res.write([2, false]);
-        var result = res.end();
+        var result = catchNull(res, 'end');
         expect(result.body).to.be('{"hi":1}[2,false]');
       });
       it('should not write anything for HEAD requests', function() {
         var res = createResponse({method: 'HEAD'});
         res.write('ü');
         res.write({hi: 1});
-        var result = res.end();
+        var result = catchNull(res, 'end');
         expect(result.body).to.be('');
       });
     },
@@ -142,7 +143,7 @@ app.on('ready', function(require) {
       res.write('a');
       res.clear();
       res.write('b');
-      var result = res.end();
+      var result = catchNull(res, 'end');
       expect(result.body).to.be('b');
     },
     'res.contentType()': function(it) {
@@ -227,54 +228,83 @@ app.on('ready', function(require) {
     },
     'res.end()': function(it) {
       it('should assume single argument is body', function() {
-        var result = createResponse().end(200);
+        var result = catchNull(createResponse(), 'end', 200);
         expect(result.body).to.be('200');
       });
       it('should not allow invalid status', function() {
-        var result = createResponse().end(10, 20);
+        var result = catchNull(createResponse(), 'end', 10, 20);
         expect(result.body).to.be('1020');
       });
       it('should allow numeric status and body', function() {
-        var result = createResponse().end(404, 404);
+        var result = catchNull(createResponse(), 'end', 404, 404);
         expect(result.status).to.be('404 Not Found');
         expect(result.body).to.be('404');
       });
       it('should allow status and content type', function() {
-        var result = createResponse().end(404, 'text/html', 1);
+        var result = catchNull(createResponse(), 'end', 404, 'text/html', 1);
         expect(result.status).to.be('404 Not Found');
         expect(result.headers).to.eql({'Content-Type': 'text/html; charset=UTF-8'});
         expect(result.body).to.be('1');
       });
       it('should not allow invalid content type', function() {
-        var result = createResponse().end(404, 'html/', 1);
+        var result = catchNull(createResponse(), 'end', 404, 'html/', 1);
         expect(result.status).to.be('404 Not Found');
         expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8'});
         expect(result.body).to.be('html/1');
       });
       it('should allow content type without status', function() {
-        var result = createResponse().end('text/xml', 404);
+        var result = catchNull(createResponse(), 'end', 'text/xml', 404);
         expect(result.status).to.be('200 OK');
         expect(result.headers).to.eql({'Content-Type': 'text/xml; charset=UTF-8'});
         expect(result.body).to.be('404');
       });
     },
+    'res.redirect()': function(it) {
+      it('should redirect using 302 as default', function() {
+        var result = catchNull(createResponse(), 'redirect', '/');
+        expect(result.status).to.be('302 Moved');
+        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', Location: '/'});
+      });
+      it('should allow type 301', function() {
+        var result = catchNull(createResponse(), 'redirect', '/a', 301);
+        expect(result.status).to.be('301 Moved Permanently');
+        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', Location: '/a'});
+      });
+      it('should allow type 303', function() {
+        var result = catchNull(createResponse(), 'redirect', '?', '303');
+        expect(result.status).to.be('303 See Other');
+        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', Location: '?'});
+      });
+      it('should allow html redirect', function() {
+        var result = catchNull(createResponse(), 'redirect', '/auth/login', 'html');
+        expect(result.status).to.be('200 OK');
+        expect(result.headers).to.eql({'Content-Type': 'text/html; charset=UTF-8'});
+        expect(result.body).to.be('<html>\r\n<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=/auth/login"></head>\r\n<body onload="location.replace(document.getElementsByTagName(\'meta\')[0].content.slice(6))">\r\n<noscript><p>If you are not redirected, <a href="/auth/login">Click Here</a></p></noscript>\r\n<!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING -->\r\n</body>\r\n</html>');
+      });
+    },
+    'res.htmlRedirect()': function(it) {
+      var res = createResponse();
+      res.status(404);
+      var result = catchNull(res, 'htmlRedirect', '/thing');
+      expect(result.status).to.be('404 Not Found');
+      expect(result.headers).to.eql({'Content-Type': 'text/html; charset=UTF-8'});
+      expect(result.body).to.be('<html>\r\n<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=/thing"></head>\r\n<body onload="location.replace(document.getElementsByTagName(\'meta\')[0].content.slice(6))">\r\n<noscript><p>If you are not redirected, <a href="/thing">Click Here</a></p></noscript>\r\n<!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING -->\r\n</body>\r\n</html>');
+    },
     'res.die()': function(it) {
       it('should clear and end', function() {
         var res = createResponse();
         res.write('abc');
-        res.die('text/xml', 1);
-        var result = res._super;
+        var result = catchNull(res, 'die', 'text/xml', 1);
         expect(result.status).to.be('200 OK');
         expect(result.headers).to.eql({'Content-Type': 'text/xml; charset=UTF-8'});
-        expect(result.getBody()).to.be('1');
+        expect(result.body).to.be('1');
       });
     },
     'res.debug()': function(it) {
       it('should write the results of util.inspect and end', function() {
         var res = createResponse();
-        res.debug({a: 1});
-        var result = res._super;
-        expect(result.getBody()).to.be('{ a: 1 }');
+        var result = catchNull(res, 'debug', {a: 1});
+        expect(result.body).to.be('{ a: 1 }');
       });
     },
     'res.getWriteStream()': function(it) {
@@ -291,7 +321,7 @@ app.on('ready', function(require) {
         try {
           stream.end();
         } catch(e) {
-          expect(e).to.be(null);
+          if (e !== null) throw e;
         }
         expect(result.getBody()).to.be('ab');
       });
@@ -301,10 +331,7 @@ app.on('ready', function(require) {
       });
     },
     'res.sendFile()': function(it) {
-    },
-    'res.redirect()': function(it) {
-    },
-    'res.htmlRedirect()': function(it) {
+      //todo
     }
   });
 
@@ -314,21 +341,22 @@ app.on('ready', function(require) {
     var res = new Response(new AdapterResponse());
     req.res = res;
     res.req = req;
-    var _end = res.end;
-    res.end = function() {
-      try {
-        _end.apply(this, arguments);
-      } catch(e) {
-        if (e !== null) throw e;
-      }
-      var result = res._super;
-      return {
-        status: result.status,
-        headers: result.headers,
-        body: result.getBody()
-      }
-    };
     return res;
+  }
+
+  function catchNull(res, method) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    try {
+      res[method].apply(res, args);
+    } catch(e) {
+      if (e !== null) throw e;
+    }
+    var result = res._super;
+    return {
+      status: result.status,
+      headers: result.headers,
+      body: result.getBody()
+    }
   }
 
 });
