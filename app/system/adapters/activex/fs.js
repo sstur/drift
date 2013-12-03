@@ -1,3 +1,7 @@
+/*!
+ * todo: why pathLib.normalize(dir)
+ * todo: removeDir(path, {deep: true, ifExists: true})
+ */
 /*global app, define */
 define('fs', function(require, fs) {
   "use strict";
@@ -16,46 +20,52 @@ define('fs', function(require, fs) {
     FSO.copyFile(app.mappath(f), app.mappath(d));
   };
 
-  fs.deleteFile = function(file) {
-    var path = app.mappath(file);
+  fs.deleteFile = function(path, opts) {
+    opts = opts || {};
     try {
-      FSO.deleteFile(path, true);
+      FSO.deleteFile(app.mappath(path), true);
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
+        if (opts.ifExists) return;
+        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT', errno: 34});
       }
-      throw e;
+      throw new Error('Error Deleting File: ' + path + '\n' + e.message);
     }
   };
 
-  fs.deleteFileIfExists = function(file) {
-    var path = app.mappath(file);
-    try {
-      FSO.deleteFile(path, true);
-    } catch(e) {
-      if (!isNotFound(e)) {
-        throw e;
-      }
-    }
+  fs.deleteFileIfExists = function(path) {
+    fs.deleteFile(path, {ifExists: true});
   };
 
   fs.createDir = function(path) {
     path = pathLib.normalize(path);
+    var parent = pathLib.dirname(path);
     try {
-      var folder = FSO.getFolder(app.mappath(pathLib.dirname(path)));
+      var folder = FSO.getFolder(app.mappath(parent));
       folder.subFolders.add(pathLib.basename(path));
     } catch(e) {
-      throw new Error('Error Creating Directory: ' + path);
+      //e.message == "Path not found"
+      //e.message == "File already exists"
+      throw new Error('Error Creating Directory: ' + path + '\n' + e.message);
     }
   };
 
-  fs.removeDir = function(path) {
+  fs.removeDir = function(path, opts) {
     path = pathLib.normalize(path);
+    opts = opts || {};
     try {
-      FSO.deleteFolder(path, true);
+      FSO.deleteFolder(app.mappath(path), true);
     } catch(e) {
-      throw new Error('Error Removing Directory: ' + path);
+      if (isNotFound(e)) {
+        if (opts.ifExists) return;
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
+      }
+      throw new Error('Error Removing Directory: ' + path + '\n' + e.message);
     }
+  };
+
+  fs.removeDirIfExists = function(path) {
+    fs.removeDir(path, {ifExists: true});
   };
 
   function FileReadStream(file, opts) {
@@ -167,7 +177,7 @@ define('fs', function(require, fs) {
     write: function(data, enc) {
       if (this._finished) return;
       var bin = (Buffer.isBuffer(data)) ? data : new Buffer(data, enc || this.opts.encoding);
-      this._stream.write(encodeBin(bin.toString('binary')));
+      this._stream.write(encodeRaw(bin.toString('binary')));
     },
     end: function() {
       if (this._finished) return;
@@ -204,8 +214,9 @@ define('fs', function(require, fs) {
 
 
   fs.readdir = function(path) {
+    if (!path) throw new Error('Invalid Path: ' + path);
+    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
     var items = [];
-    var fso = (typeof path == 'string') ? getFileOrDir(path) : path;
     walkChildren(fso, function(child) {
       items.push(child.name);
     });
@@ -218,7 +229,8 @@ define('fs', function(require, fs) {
    * can be appended to path to get the child's path.
    */
   fs.walk = function(path, fn) {
-    var fso = (typeof path == 'string') ? getFileOrDir(path) : path;
+    if (!path) throw new Error('Invalid Path: ' + path);
+    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
     walkChildren(fso, function walker(child, prefix) {
       var stat = statFSO(child);
       prefix = prefix || '';
@@ -233,11 +245,16 @@ define('fs', function(require, fs) {
    * Produce a stat of a file-system object. If `deep` then
    * directories get a non-zero `size` property and a
    * `children` array containing deep stat of each child.
+   *
+   * @param {string|FSO} path
+   * @param {boolean} [deep]
+   * @returns {object|null}
    */
   fs.stat = function(path, deep) {
-    var fso = (typeof path == 'string') ? getFileOrDir(path) : path;
-    var stat = statFSO(fso);
-    if (deep && stat.type == 'directory') {
+    if (!path) throw new Error('Invalid Path: ' + path);
+    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
+    var stat = fso ? statFSO(fso) : null;
+    if (deep && stat && stat.type == 'directory') {
       stat.children = [];
       walkChildren(fso, function(child) {
         var childStat = fs.stat(child, deep);
@@ -257,7 +274,7 @@ define('fs', function(require, fs) {
     stat.dateCreated = new Date(fso.dateCreated);
     stat.dateLastAccessed = new Date(fso.dateLastAccessed);
     stat.dateLastModified = new Date(fso.dateLastModified);
-    if (fso.type.toLowerCase() == 'file folder') {
+    if (String(fso.type).toLowerCase() == 'file folder') {
       stat.type = 'directory';
       stat.size = 0;
     } else {
@@ -285,20 +302,22 @@ define('fs', function(require, fs) {
 
   //helpers
 
-  var WIN1252_REV = {"80":"\u20AC","82":"\u201A","83":"\u0192","84":"\u201E","85":"\u2026","86":"\u2020","87":"\u2021",
-    "88":"\u02C6","89":"\u2030","8A":"\u0160","8B":"\u2039","8C":"\u0152","8E":"\u017D","91":"\u2018","92":"\u2019",
-    "93":"\u201C","94":"\u201D","95":"\u2022","96":"\u2013","97":"\u2014","98":"\u02DC","99":"\u2122","9A":"\u0161",
-    "9B":"\u203A","9C":"\u0153","9E":"\u017E","9F":"\u0178"};
-  //var INVALID = {"81":1,"8D":1,"8F":1,"90":1,"9D":1};
+  var WIN1252 = {"80":"\u20ac","82":"\u201a","83":"\u0192","84":"\u201e","85":"\u2026","86":"\u2020","87":"\u2021",
+    "88":"\u02c6","89":"\u2030","8a":"\u0160","8b":"\u2039","8c":"\u0152","8e":"\u017d","91":"\u2018","92":"\u2019",
+    "93":"\u201c","94":"\u201d","95":"\u2022","96":"\u2013","97":"\u2014","98":"\u02dc","99":"\u2122","9a":"\u0161",
+    "9b":"\u203a","9c":"\u0153","9e":"\u017e","9f":"\u0178"};
+  var EXTENDED = /[\x80-\x9F]/g;
 
-  function encodeBin(text) {
-    //remove all multi-byte characters
-    text = text.replace(/[\u0100-\uFFFF]/g, '');
-    //encode win1252 chars to multibyte equivalents
-    return text.replace(/[\x80-\x9F]/g, function(ch) {
-      var code = ch.charCodeAt(0).toString(16).toUpperCase();
-      return (code in WIN1252_REV) ? WIN1252_REV[code] : ch;
-    });
+  function encodeRaw(raw) {
+    //todo: remove multi-byte characters?
+    //raw = raw.replace(/[\u0100-\uFFFF]/g, '');
+    //encode win1252 chars to multi-byte equivalents
+    return raw.replace(EXTENDED, to1252);
+  }
+
+  function to1252(ch) {
+    var code = ch.charCodeAt(0).toString(16);
+    return (code in WIN1252) ? WIN1252[code] : ch;
   }
 
   function parseEnc(enc) {
@@ -331,15 +350,15 @@ define('fs', function(require, fs) {
 
   function enumerate(col, fn) {
     var i = 0;
-    for(var e = new Enumerator(col); !e.atEnd(); e.moveNext()) {
+    for (var e = new Enumerator(col); !e.atEnd(); e.moveNext()) {
       if (fn.call(col, i++, e.item()) === false) break;
     }
   }
 
   function isNotFound(e) {
     if (e && typeof e.message == 'string') {
-      // Path not found
-      return !!e.message.match(/File not found|could not be opened/);
+      //todo: Path not found
+      return !!e.message.match(/File not found|Path not found|could not be opened/);
     }
     return false;
   }
