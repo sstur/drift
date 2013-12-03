@@ -21,7 +21,7 @@ define('fs', function(require, fs) {
     try {
       FSO.deleteFile(path, true);
     } catch(e) {
-      if (e && e.message == 'File not found') {
+      if (isNotFound(e)) {
         throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
       }
       throw e;
@@ -33,7 +33,7 @@ define('fs', function(require, fs) {
     try {
       FSO.deleteFile(path, true);
     } catch(e) {
-      if (!e || e.message != 'File not found') {
+      if (!isNotFound(e)) {
         throw e;
       }
     }
@@ -334,6 +334,14 @@ define('fs', function(require, fs) {
     for(var e = new Enumerator(col); !e.atEnd(); e.moveNext()) {
       if (fn.call(col, i++, e.item()) === false) break;
     }
+  }
+
+  function isNotFound(e) {
+    if (e && typeof e.message == 'string') {
+      // Path not found
+      return !!e.message.match(/File not found|could not be opened/);
+    }
+    return false;
   }
 
   function eNoEnt(path) {
