@@ -76,8 +76,7 @@ define('fs', function(require, fs) {
 
 
   fs.readdir = function(path) {
-    if (!path) throw new Error('Invalid Path: ' + path);
-    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
+    var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
     var items = [];
     walkChildren(fso, function(child) {
       items.push(child.name);
@@ -91,8 +90,7 @@ define('fs', function(require, fs) {
    * can be appended to path to get the child's path.
    */
   fs.walk = function(path, fn) {
-    if (!path) throw new Error('Invalid Path: ' + path);
-    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
+    var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
     walkChildren(fso, function walker(child, prefix) {
       var stat = statFSO(child);
       prefix = prefix || '';
@@ -113,8 +111,7 @@ define('fs', function(require, fs) {
    * @returns {object|null}
    */
   fs.stat = function(path, deep) {
-    if (!path) throw new Error('Invalid Path: ' + path);
-    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
+    var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
     var stat = fso ? statFSO(fso) : null;
     if (deep && stat && stat.type == 'directory') {
       stat.children = [];
