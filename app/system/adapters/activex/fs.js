@@ -1,6 +1,6 @@
 /*!
  * todo: why pathLib.normalize(dir)
- * todo: removeDir(path, {deep: true, ifExists: true})
+ * todo: removeDir(path, {recursive: true})
  */
 /*global app, define */
 define('fs', function(require, fs) {
@@ -9,6 +9,12 @@ define('fs', function(require, fs) {
   var util = require('util');
   var Buffer = require('buffer').Buffer;
   var pathLib = require('path');
+
+  var EXTENDED = /[\x80-\x9F]/g;
+  var WIN1252 = {"80":"\u20ac","82":"\u201a","83":"\u0192","84":"\u201e","85":"\u2026","86":"\u2020","87":"\u2021",
+    "88":"\u02c6","89":"\u2030","8a":"\u0160","8b":"\u2039","8c":"\u0152","8e":"\u017d","91":"\u2018","92":"\u2019",
+    "93":"\u201c","94":"\u201d","95":"\u2022","96":"\u2013","97":"\u2014","98":"\u02dc","99":"\u2122","9a":"\u0161",
+    "9b":"\u203a","9c":"\u0153","9e":"\u017e","9f":"\u0178"};
 
   var FSO = new ActiveXObject('Scripting.FileSystemObject');
 
@@ -27,7 +33,7 @@ define('fs', function(require, fs) {
     } catch(e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
-        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT', errno: 34});
+        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
       }
       throw new Error('Error Deleting File: ' + path + '\n' + e.message);
     }
@@ -58,7 +64,7 @@ define('fs', function(require, fs) {
     } catch(e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
       }
       throw new Error('Error Removing Directory: ' + path + '\n' + e.message);
     }
@@ -66,6 +72,85 @@ define('fs', function(require, fs) {
 
   fs.removeDirIfExists = function(path) {
     fs.removeDir(path, {ifExists: true});
+  };
+
+
+  fs.readdir = function(path) {
+    if (!path) throw new Error('Invalid Path: ' + path);
+    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
+    var items = [];
+    walkChildren(fso, function(child) {
+      items.push(child.name);
+    });
+    return items;
+  };
+
+  /**
+   * Walks a directory in a depth-first fashion calling fn for
+   * each subdirectory and file and passing the "prefix" that
+   * can be appended to path to get the child's path.
+   */
+  fs.walk = function(path, fn) {
+    if (!path) throw new Error('Invalid Path: ' + path);
+    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
+    walkChildren(fso, function walker(child, prefix) {
+      var stat = statFSO(child);
+      prefix = prefix || '';
+      if (stat.type == 'directory') {
+        walkChildren(child, walker, prefix + stat.name + '/');
+      }
+      fn(stat, prefix);
+    });
+  };
+
+  /**
+   * Produce a stat of a file-system object. If `deep` then
+   * directories get a non-zero `size` property and a
+   * `children` array containing deep stat of each child.
+   *
+   * @param {string|FSO} path
+   * @param {boolean} [deep]
+   * @returns {object|null}
+   */
+  fs.stat = function(path, deep) {
+    if (!path) throw new Error('Invalid Path: ' + path);
+    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
+    var stat = fso ? statFSO(fso) : null;
+    if (deep && stat && stat.type == 'directory') {
+      stat.children = [];
+      walkChildren(fso, function(child) {
+        var childStat = fs.stat(child, deep);
+        stat.size += childStat.size;
+        stat.children.push(childStat);
+      });
+    }
+    return stat;
+  };
+
+
+  fs.createReadStream = function(file, opts) {
+    opts = opts || {};
+    return (opts.encoding) ? new TextReadStream(file, opts) : new FileReadStream(file, opts);
+  };
+
+  fs.createWriteStream = function(file, opts) {
+    return new FileWriteStream(file, opts);
+  };
+
+
+  fs.readTextFile = function(file, enc) {
+    return new TextReadStream(file, {encoding: enc}).readAll();
+  };
+
+  fs.writeTextToFile = function(file, text, opts) {
+    opts = opts || {};
+    //default is to append
+    opts.append = (opts.append !== false);
+    //overwrite option will override append
+    if (opts.overwrite === true) opts.append = false;
+    var stream = new FileWriteStream(file, opts);
+    stream.write(text);
+    stream.end();
   };
 
   function FileReadStream(file, opts) {
@@ -79,7 +164,7 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.message.match(/could not be opened/i)) {
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
       }
       throw e;
     }
@@ -125,7 +210,7 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.message.match(/could not be opened/i)) {
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT', errno: 34});
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
       }
       throw e;
     }
@@ -186,85 +271,6 @@ define('fs', function(require, fs) {
     }
   });
 
-
-  fs.createReadStream = function(file, opts) {
-    opts = opts || {};
-    return (opts.encoding) ? new TextReadStream(file, opts) : new FileReadStream(file, opts);
-  };
-
-  fs.createWriteStream = function(file, opts) {
-    return new FileWriteStream(file, opts);
-  };
-
-
-  fs.readTextFile = function(file, enc) {
-    return new TextReadStream(file, {encoding: enc}).readAll();
-  };
-
-  fs.writeTextToFile = function(file, text, opts) {
-    opts = opts || {};
-    //default is to append
-    opts.append = (opts.append !== false);
-    //overwrite option will override append
-    if (opts.overwrite === true) opts.append = false;
-    var stream = new FileWriteStream(file, opts);
-    stream.write(text);
-    stream.end();
-  };
-
-
-  fs.readdir = function(path) {
-    if (!path) throw new Error('Invalid Path: ' + path);
-    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
-    var items = [];
-    walkChildren(fso, function(child) {
-      items.push(child.name);
-    });
-    return items;
-  };
-
-  /**
-   * Walks a directory in a depth-first fashion calling fn for
-   * each subdirectory and file and passing the "prefix" that
-   * can be appended to path to get the child's path.
-   */
-  fs.walk = function(path, fn) {
-    if (!path) throw new Error('Invalid Path: ' + path);
-    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
-    walkChildren(fso, function walker(child, prefix) {
-      var stat = statFSO(child);
-      prefix = prefix || '';
-      if (stat.type == 'directory') {
-        walkChildren(child, walker, prefix + stat.name + '/');
-      }
-      fn(stat, prefix);
-    });
-  };
-
-  /**
-   * Produce a stat of a file-system object. If `deep` then
-   * directories get a non-zero `size` property and a
-   * `children` array containing deep stat of each child.
-   *
-   * @param {string|FSO} path
-   * @param {boolean} [deep]
-   * @returns {object|null}
-   */
-  fs.stat = function(path, deep) {
-    if (!path) throw new Error('Invalid Path: ' + path);
-    var fso = (typeof path == 'object') ? path : getFileOrDir(path);
-    var stat = fso ? statFSO(fso) : null;
-    if (deep && stat && stat.type == 'directory') {
-      stat.children = [];
-      walkChildren(fso, function(child) {
-        var childStat = fs.stat(child, deep);
-        stat.size += childStat.size;
-        stat.children.push(childStat);
-      });
-    }
-    return stat;
-  };
-
   /**
    * Creates a 'stat' object from a file-system object.
    */
@@ -299,14 +305,6 @@ define('fs', function(require, fs) {
     });
   }
 
-
-  //helpers
-
-  var WIN1252 = {"80":"\u20ac","82":"\u201a","83":"\u0192","84":"\u201e","85":"\u2026","86":"\u2020","87":"\u2021",
-    "88":"\u02c6","89":"\u2030","8a":"\u0160","8b":"\u2039","8c":"\u0152","8e":"\u017d","91":"\u2018","92":"\u2019",
-    "93":"\u201c","94":"\u201d","95":"\u2022","96":"\u2013","97":"\u2014","98":"\u02dc","99":"\u2122","9a":"\u0161",
-    "9b":"\u203a","9c":"\u0153","9e":"\u017e","9f":"\u0178"};
-  var EXTENDED = /[\x80-\x9F]/g;
 
   function encodeRaw(raw) {
     //todo: remove multi-byte characters?
@@ -343,7 +341,7 @@ define('fs', function(require, fs) {
       try {
         return FSO.getFile(app.mappath(path));
       } catch(e) {
-        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT', errno: 34});
+        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
       }
     }
   }

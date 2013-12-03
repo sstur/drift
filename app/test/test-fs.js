@@ -15,21 +15,21 @@ app.on('ready', function(require) {
     //noCatch: true,
     'createDir': function(it) {
       it('should create in existing', function() {
-        var path = dataPath + '/test';
+        var path = dataPath + 'test';
         fs.removeDirIfExists(path);
         fs.createDir(path);
         var stat = fs.stat(path);
         expect(stat.type).to.be('directory');
       });
       it('should throw if parent not exist', function() {
-        var path = dataPath + '/test2/test3';
+        var path = dataPath + 'test2/test3';
         expect(function() {
           fs.createDir(path);
         }).to.throwError(/Path not found/);
       });
     },
     'removeDir': function(it) {
-      var path = dataPath + '/test';
+      var path = dataPath + 'test';
       it('should remove existing', function() {
         fs.removeDir(path);
       });
