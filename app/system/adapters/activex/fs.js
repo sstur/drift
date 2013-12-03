@@ -43,6 +43,9 @@ define('fs', function(require, fs) {
     fs.deleteFile(path, {ifExists: true});
   };
 
+  /**
+   * todo: isNotFound
+   */
   fs.createDir = function(path) {
     path = pathLib.normalize(path);
     var parent = pathLib.dirname(path);
@@ -85,9 +88,9 @@ define('fs', function(require, fs) {
   };
 
   /**
-   * Walks a directory in a depth-first fashion calling fn for
-   * each subdirectory and file and passing the "prefix" that
-   * can be appended to path to get the child's path.
+   * Walks directory, depth-first, calling fn for each subdirectory and
+   * file and passing the "prefix" that can be appended to path to get
+   * the child's path.
    */
   fs.walk = function(path, fn) {
     var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
@@ -112,7 +115,7 @@ define('fs', function(require, fs) {
    */
   fs.stat = function(path, deep) {
     var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
-    var stat = fso ? statFSO(fso) : null;
+    var stat = statFSO(fso);
     if (deep && stat && stat.type == 'directory') {
       stat.children = [];
       walkChildren(fso, function(child) {
@@ -303,9 +306,10 @@ define('fs', function(require, fs) {
   }
 
 
+  /**
+   * Replace certain extended characters with their Win1252 unicode equivalents
+   */
   function encodeRaw(raw) {
-    //todo: remove multi-byte characters?
-    //raw = raw.replace(/[\u0100-\uFFFF]/g, '');
     //encode win1252 chars to multi-byte equivalents
     return raw.replace(EXTENDED, to1252);
   }
@@ -331,6 +335,9 @@ define('fs', function(require, fs) {
     return enc;
   }
 
+  /**
+   * todo: check isNotFound
+   */
   function getFileOrDir(path) {
     try {
       return FSO.getFolder(app.mappath(path));
@@ -352,7 +359,6 @@ define('fs', function(require, fs) {
 
   function isNotFound(e) {
     if (e && typeof e.message == 'string') {
-      //todo: Path not found
       return !!e.message.match(/File not found|Path not found|could not be opened/);
     }
     return false;
