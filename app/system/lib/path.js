@@ -2,12 +2,10 @@
 define('path', function(require, exports) {
   "use strict";
 
-  var RE_HEAD = /^(.*)\//;
-  var RE_TAIL = /\/([^\/]*)$/;
   var RE_SLASHES = /\/+/g;
   var RE_DOTSLASH = /\/.\//g;
   var RE_DOTDOTSLASH = /[^\/]+\/\.\.\//g;
-  var RE_TRAILING_SLASH = /\/$/;
+  var RE_TRAILING_SLASHES = /\/+$/;
 
   var slice = Array.prototype.slice;
 
@@ -30,7 +28,7 @@ define('path', function(require, exports) {
     path = path.replace(RE_SLASHES, '/');
     path = path.replace(RE_DOTSLASH, '/');
     path = path.replace(RE_DOTDOTSLASH, '');
-    path = path.replace(RE_TRAILING_SLASH, '');
+    path = path.replace(RE_TRAILING_SLASHES, '');
     return path;
   };
 
@@ -39,7 +37,9 @@ define('path', function(require, exports) {
    * /data/file.txt -> /data/
    */
   exports.dirname = function(path) {
-    return path.replace(RE_TAIL, '');
+    var split = path.replace(RE_TRAILING_SLASHES, '').split('/');
+    split.pop();
+    return split.join('/');
   };
 
   /*
@@ -47,7 +47,7 @@ define('path', function(require, exports) {
    * /data/file.txt -> file.txt
    */
   exports.basename = function(path) {
-    return path.replace(RE_HEAD, '');
+    return path.replace(RE_TRAILING_SLASHES, '').split('/').pop();
   };
 
 });
