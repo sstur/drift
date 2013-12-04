@@ -140,6 +140,11 @@ define('fs', function(require, fs) {
   };
 
   fs.createWriteStream = function(file, opts) {
+    opts = opts || {};
+    //default is to append
+    opts.append = (opts.append !== false);
+    //overwrite option will override append
+    if (opts.overwrite === true) opts.append = false;
     return new FileWriteStream(file, opts);
   };
 
@@ -149,11 +154,6 @@ define('fs', function(require, fs) {
   };
 
   fs.writeTextToFile = function(file, text, opts) {
-    opts = opts || {};
-    //default is to append
-    opts.append = (opts.append !== false);
-    //overwrite option will override append
-    if (opts.overwrite === true) opts.append = false;
     var stream = new FileWriteStream(file, opts);
     stream.write(text);
     stream.end();
