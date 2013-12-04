@@ -1,5 +1,5 @@
 /*!
- * todo: make sure all not-found errors comply with ENOENT
+ * todo: writeTextFile {overwrite: true}
  */
 /*global app, define */
 app.on('ready', function(require) {
@@ -10,6 +10,10 @@ app.on('ready', function(require) {
 
   var undefined = void 0;
   var dataPath = app.cfg('data_dir') || 'data/';
+  //create a text blob that's > 1kb to ensure there's multiple chunks
+  var textBlob = [];
+  for (var i = 0; i < 500; i++) textBlob.push(i);
+  textBlob = textBlob.join('|');
 
   app.addTestSuite('fs', {
     //noCatch: true,
@@ -59,6 +63,50 @@ app.on('ready', function(require) {
       });
     },
     'createReadStream': function(it) {
+      var path = dataPath + 'test';
+      fs.createDir(path);
+      var file = path + '/file.txt';
+      fs.writeTextToFile(file, textBlob);
+      it('should read file in chunks', function() {
+        var readStream = fs.createReadStream(file, {encoding: 'utf8'});
+        var chunks = [];
+        readStream.on('data', function(data) {
+          expect(data).to.be.a('string');
+          chunks.push(data);
+        });
+        readStream.on('end', function() {
+          chunks = chunks.join('');
+        });
+        readStream.read();
+        expect(chunks).to.be.a('string');
+        expect(chunks).to.be(textBlob);
+      });
+      it('should readAll (text stream)', function() {
+        var readStream = fs.createReadStream(file, {encoding: 'utf8'});
+        var text = readStream.readAll();
+        expect(text).to.be.a('string');
+        expect(text).to.be(text);
+      });
+      it('should read binary', function() {
+        var readStream = fs.createReadStream(file);
+        var chunks = [];
+        readStream.on('data', function(data) {
+          expect(data).to.be.a(Buffer);
+          chunks.push(data.toString());
+        });
+        readStream.on('end', function() {
+          chunks = chunks.join('');
+        });
+        readStream.read();
+        expect(chunks).to.be.a('string');
+        expect(chunks).to.be(textBlob);
+      });
+      it('should throw if not exists', function() {
+        var path = dataPath + 'test/file2.txt';
+        expect(function() {
+          fs.createReadStream(path);
+        }).to.throwError(/ENOENT/);
+      });
     },
     'createWriteStream': function(it) {
     },

@@ -187,7 +187,8 @@ define('fs', function(require, fs) {
     _readBytes: function(bytes) {
       bytes = Math.min(bytes, this._bytesTotal - this._bytesRead);
       this._bytesRead += bytes;
-      var data = new Buffer(this._stream.read(bytes)), enc = this.opts.encoding;
+      var data = new Buffer(this._stream.read(bytes));
+      var enc = this.opts.encoding;
       return (enc) ? data.toString(enc) : data;
     },
     size: function() {

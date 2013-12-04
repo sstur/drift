@@ -8,6 +8,8 @@ Quirks:
     multipart-file will emit dups but save first to req.body
   unlike request, response.headers, cookies can return undefined
 
+readStream.read() vs readStream.readAll()
+
 why modelInstance._model and not model
 
 findAll()
