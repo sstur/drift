@@ -191,6 +191,13 @@ define('fs', function(require, fs) {
       var enc = this.opts.encoding;
       return (enc) ? data.toString(enc) : data;
     },
+    readAll: function() {
+      var data = this._stream.read();
+      this._stream.close();
+      data = new Buffer(data);
+      var enc = this.opts.encoding;
+      return (enc) ? data.toString(enc) : data;
+    },
     size: function() {
       return this._bytesTotal;
     },

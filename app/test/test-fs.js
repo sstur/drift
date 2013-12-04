@@ -67,7 +67,7 @@ app.on('ready', function(require) {
       fs.createDir(path);
       var file = path + '/file.txt';
       fs.writeTextToFile(file, textBlob);
-      it('should read file in chunks', function() {
+      it('should read file in chunks (text)', function() {
         var readStream = fs.createReadStream(file, {encoding: 'utf8'});
         var chunks = [];
         readStream.on('data', function(data) {
@@ -81,13 +81,13 @@ app.on('ready', function(require) {
         expect(chunks).to.be.a('string');
         expect(chunks).to.be(textBlob);
       });
-      it('should readAll (text stream)', function() {
+      it('should readAll (text)', function() {
         var readStream = fs.createReadStream(file, {encoding: 'utf8'});
         var text = readStream.readAll();
         expect(text).to.be.a('string');
-        expect(text).to.be(text);
+        expect(text).to.be(textBlob);
       });
-      it('should read binary', function() {
+      it('should read file in chunks', function() {
         var readStream = fs.createReadStream(file);
         var chunks = [];
         readStream.on('data', function(data) {
@@ -100,6 +100,12 @@ app.on('ready', function(require) {
         readStream.read();
         expect(chunks).to.be.a('string');
         expect(chunks).to.be(textBlob);
+      });
+      it('should readAll', function() {
+        var readStream = fs.createReadStream(file);
+        var data = readStream.readAll();
+        expect(data).to.be.a(Buffer);
+        expect(data.toString()).to.be(textBlob);
       });
       it('should throw if not exists', function() {
         var path = dataPath + 'test/file2.txt';
