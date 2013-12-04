@@ -25,20 +25,32 @@ app.on('ready', function(require) {
         var path = dataPath + 'test2/test3';
         expect(function() {
           fs.createDir(path);
-        }).to.throwError(/Path not found/);
+        }).to.throwError(/ENOENT/);
+      });
+      it('should create multi-level', function() {
+        var path = dataPath + 'test2/test3';
+        fs.createDir(path, {deep: true});
+        var stat = fs.stat(path);
+        expect(stat.type).to.be('directory');
       });
     },
     'removeDir': function(it) {
-      var path = dataPath + 'test';
-      it('should remove existing', function() {
+      it('should remove simple', function() {
+        var path = dataPath + 'test';
+        fs.removeDir(path);
+      });
+      it('should remove deep', function() {
+        var path = dataPath + 'test2/test3';
         fs.removeDir(path);
       });
       it('should be gone', function() {
+        var path = dataPath + 'test';
         expect(function() {
           fs.stat(path);
         }).to.throwError(/ENOENT/);
       });
       it('should throw if not exists', function() {
+        var path = dataPath + 'test';
         expect(function() {
           fs.removeDir(path);
         }).to.throwError(/ENOENT/);

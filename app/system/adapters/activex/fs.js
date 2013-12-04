@@ -43,17 +43,23 @@ define('fs', function(require, fs) {
     fs.deleteFile(path, {ifExists: true});
   };
 
-  /**
-   * todo: isNotFound
-   */
-  fs.createDir = function(path) {
+  fs.createDir = function(path, opts) {
     path = pathLib.normalize(path);
+    opts = opts || {};
     var parent = pathLib.dirname(path);
     try {
       var folder = FSO.getFolder(app.mappath(parent));
       folder.subFolders.add(pathLib.basename(path));
     } catch(e) {
-      //e.message == "Path not found"
+      if (isNotFound(e)) {
+        if (opts.deep) {
+          fs.createDir(parent, opts);
+          //prevent endless loop
+          opts.deep = false;
+          return fs.createDir(path, opts);
+        }
+        throw util.extend(new Error(eNoEnt(parent)), {code: 'ENOENT'});
+      }
       //e.message == "File already exists"
       throw new Error('Error Creating Directory: ' + path + '\n' + e.message);
     }
