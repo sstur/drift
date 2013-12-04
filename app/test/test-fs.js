@@ -21,6 +21,7 @@ app.on('ready', function(require) {
         var stat = fs.stat(path);
         expect(stat.type).to.be('directory');
       });
+      fs.removeDirIfExists(dataPath + 'test2');
       it('should throw if parent not exist', function() {
         var path = dataPath + 'test2/test3';
         expect(function() {
@@ -39,8 +40,9 @@ app.on('ready', function(require) {
         var path = dataPath + 'test';
         fs.removeDir(path);
       });
-      it('should remove deep', function() {
+      it('should remove with contents', function() {
         var path = dataPath + 'test2/test3';
+        fs.writeTextToFile(path + '/file.txt', 'abc');
         fs.removeDir(path);
       });
       it('should be gone', function() {
