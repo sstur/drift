@@ -38,6 +38,11 @@ app.on('ready', function(require) {
           fs.stat(path);
         }).to.throwError(/ENOENT/);
       });
+      it('should throw if not exists', function() {
+        expect(function() {
+          fs.removeDir(path);
+        }).to.throwError(/ENOENT/);
+      });
     },
     'createReadStream': function(it) {
     },

@@ -67,7 +67,7 @@ define('fs', function(require, fs) {
     } catch(e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
+        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
       }
       throw new Error('Error Removing Directory: ' + path + '\n' + e.message);
     }
