@@ -1,6 +1,7 @@
 /*!
  * todo: why pathLib.normalize(dir)
  * todo: removeDir(path, {recursive: true})
+ * todo: moveDir
  */
 /*global app, define */
 define('fs', function(require, fs) {
@@ -18,8 +19,30 @@ define('fs', function(require, fs) {
 
   var FSO = new ActiveXObject('Scripting.FileSystemObject');
 
+  function isDirectory(path) {
+    try {
+      var stat = fs.stat(path);
+      if (stat.type == 'directory') {
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
   fs.moveFile = function(file, dest) {
-    FSO.moveFile(app.mappath(file), app.mappath(dest));
+    if (isDirectory(dest)) {
+      dest = pathLib.join(dest, pathLib.basename(file));
+    }
+    try {
+      FSO.moveFile(app.mappath(file), app.mappath(dest));
+    } catch(e) {
+      if (isNotFound(e)) {
+        //todo: which one doesn't exist?
+        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
+      }
+      //e.message "File already exists"
+      throw new Error('Error Moving File: ' + file + '\n' + e.message);
+    }
   };
 
   fs.copyFile = function(f, d) {
@@ -150,11 +173,12 @@ define('fs', function(require, fs) {
 
 
   fs.readTextFile = function(file, enc) {
-    return new TextReadStream(file, {encoding: enc}).readAll();
+    enc = enc || 'utf8';
+    return fs.createReadStream(file, {encoding: enc}).readAll();
   };
 
   fs.writeTextToFile = function(file, text, opts) {
-    var stream = new FileWriteStream(file, opts);
+    var stream = fs.createWriteStream(file, opts);
     stream.write(text);
     stream.end();
   };

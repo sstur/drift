@@ -1,3 +1,13 @@
+req.doAfter() or app.queueImmediate()
+
+app.route('/users/:id[int:positive]')
+ - or -
+app.route('/users/:id=int[0,]')
+ - or -
+custom defined param filters:
+  {int: /\d+/, hex: /[0-9A-Za-z]+/}
+
+
 //implement OR
 model.findAll([{name: 'Alice'}, {name: 'Bob}], {orderBy: 'name'})
 

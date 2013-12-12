@@ -1,7 +1,7 @@
-#Cross-platform Server JS
+#Drift: Cross-platform Server JS
 
-This is a small framework for writing synchronous server-side JavaScript and deploying to any of several supported
-platforms. There is a dev-server written for Node and a build script that will produce deploy files for the
+This is a small framework for writing synchronous-style server-side JavaScript and deploying to any of several supported
+platforms. There is a dev-server written for Node and a build script that will produce files for the
 various platforms.
 
 Supported platforms:
@@ -17,7 +17,7 @@ the API solidified and the various platform-specific adapters brought into compl
 build some real-world apps to see how it performs.
 
 ##Goals
-The goal of PlatformJS is not to compete with full-blown Node frameworks like Express, but to provide a minimal layer
+The goal of Drift is not to compete with full-blown Node frameworks like Express, but to provide a minimal layer
 of request routing, view templating and data modelling with a normalized API for very different underlying platforms.
 
 Because of the inconsistencies in web platforms, we have to roll our own module loader and abstraction layers for
@@ -31,10 +31,10 @@ ES5 methods are available across all supported platforms via simple polyfills. B
 EventEmitter, and the define()/require() system of module loading is sort of a hybrid between Node, CommonJS and
 RequireJS.
 
-Overall, PlatformJS tries to follow existing conventions.
+Overall, Drift tries to follow existing conventions.
 
 ##Modules / Interface Abstractions
-So far PlatformJS provides
+So far Drift provides
 
  * Normalized Request/Response instances
  * Request Body parsing (supporting form, application/json, non-buffering multipart)
@@ -72,7 +72,7 @@ lightweight.
 
 ## License (MIT)
 
-Copyright (C) 2012 Simon Sturmer.
+Copyright (C) 2013 Simon Sturmer.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction,

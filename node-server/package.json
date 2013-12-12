@@ -1,7 +1,7 @@
 {
   "name": "node-server",
   "version": "0.1.2",
-  "description": "Node module to serve platformjs web apps",
+  "description": "Node module to build and serve drift projects",
   "main": "node-server.js",
   "dependencies": {
     "fibers": "~0.6.9",

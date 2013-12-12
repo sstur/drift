@@ -1,1 +1,1 @@
-#Node module to serve platformjs web apps
+#Node module to build and serve drift projects

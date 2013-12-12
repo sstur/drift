@@ -1,0 +1,24 @@
+new Model() -> Model.create()
+Record.prototype._model -> model
+
+Document:
+  `User.create(data)` is equivalent to `new User.Record(data)`
+  (Maybe export the Record class)
+
+  var User = new Model({name: 'User, tableName: 'users', fields: {id: 0, name: ''}})
+  User instanceof Model //-> true
+
+  var user = User.create({name: 'alice'})
+  user instanceof User //-> Error: User is not a function
+  user instanceof User.Record //-> true
+  user._model === User //-> true
+
+  _model is used in case the instance has a data property 'model' (change?)
+
+
+Maybe:
+
+move logic from RecordBase.apply to Model.create/Model.createFromDB (abstract to Record.create?)
+  then accept optional named Constructor as part of module def (gives us better debug logging?)
+  var User = new Model({name: 'User, constructor: function User() {}, tableName: 'users'})
+
