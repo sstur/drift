@@ -185,8 +185,8 @@ app.on('ready', function(require) {
           fs.moveFile(dataPath + 'test/file.txt', dataPath + 'test3/file');
         }.bind(this)).to.throwError(/ENOENT/);
       });
-      //fs.removeDir(dataPath + 'test');
-      //fs.removeDir(dataPath + 'test2');
+      fs.removeDir(dataPath + 'test');
+      fs.removeDir(dataPath + 'test2');
     },
     'copyFile': function(it) {
     },
