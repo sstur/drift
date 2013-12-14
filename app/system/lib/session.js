@@ -84,7 +84,7 @@ define('session', function(require, exports, module) {
         if (!session.lastAccess) {
           var meta = db.query("SELECT * FROM [session] WHERE [guid] = CAST_GUID($1)", [token]).getOne();
           if (meta) {
-            session.lastAccess = meta.last_accessed;
+            session.lastAccess = meta.accessed_at;
           }
         }
         if (session.lastAccess && (!inst.oldest || inst.oldest < session.lastAccess)) {
@@ -121,10 +121,10 @@ define('session', function(require, exports, module) {
         }
         //Update Last-Accessed (whether we saved any data or not)
         if (!session.lastAccessUpdated) {
-          var sql = "UPDATE [session] SET [last_accessed] = NOW() WHERE [guid] = CAST_GUID($1)";
+          var sql = "UPDATE [session] SET [accessed_at] = NOW() WHERE [guid] = CAST_GUID($1)";
           var num = db.exec(sql, [session.token], true);
           if (!num) {
-            sql = "INSERT INTO [session] ([guid], [ip_addr], [http_ua], [created], [last_accessed]) VALUES (CAST_GUID($1), $2, $3, NOW(), NOW())";
+            sql = "INSERT INTO [session] ([guid], [ip_addr], [http_ua], [created_at], [accessed_at]) VALUES (CAST_GUID($1), $2, $3, NOW(), NOW())";
             db.exec(sql, [session.token, req.data('ipaddr'), req.headers('user-agent')]);
           }
           session.lastAccess = Date.now();
@@ -135,7 +135,7 @@ define('session', function(require, exports, module) {
   };
 
   function dbInit(conn) {
-    conn.exec("CREATE TABLE [session] ([guid] GUID CONSTRAINT [pk_guid] PRIMARY KEY, [ip_addr] TEXT(15), [http_ua] MEMO, [created] DATETIME, [last_accessed] DATETIME)");
+    conn.exec("CREATE TABLE [session] ([guid] GUID CONSTRAINT [pk_guid] PRIMARY KEY, [ip_addr] TEXT(15), [http_ua] MEMO, [created_at] DATETIME, [accessed_at] DATETIME)");
     conn.exec("CREATE TABLE [session_data] ([id] INTEGER IDENTITY(1234,1) CONSTRAINT [pk_id] PRIMARY KEY, [guid] GUID, [namespace] TEXT(255), [data] MEMO)");
   }
 

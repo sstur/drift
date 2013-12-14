@@ -227,6 +227,9 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
+      if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
+        data.updated_at = new Date();
+      }
       var params = {};
       params[model.idField] = this[model.idField];
       var built = new QueryBuilder(model).buildUpdate(data, params);
@@ -255,6 +258,14 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
+      //set created_ad and updated_at if present
+      var date = new Date();
+      if (model.fields.created_at && model.fields.created_at.type == 'date') {
+        data.created_at = date;
+      }
+      if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
+        data.updated_at = date;
+      }
       var built = new QueryBuilder(model).buildInsert(data);
       var db = database.open();
       var result = db.exec(built.sql, built.values, true);
