@@ -261,10 +261,10 @@ define('model', function(require, exports) {
       //set created_ad and updated_at if present
       var date = new Date();
       if (model.fields.created_at && model.fields.created_at.type == 'date') {
-        data.created_at = date;
+        if (data.created_at == null) data.created_at = date;
       }
       if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
-        data.updated_at = date;
+        if (data.updated_at == null) data.updated_at = data.created_at || date;
       }
       var built = new QueryBuilder(model).buildInsert(data);
       var db = database.open();

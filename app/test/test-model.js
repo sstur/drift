@@ -1,3 +1,6 @@
+/*!
+ * todo: test created_at, updated_at
+ */
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
