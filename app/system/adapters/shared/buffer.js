@@ -192,56 +192,55 @@ define('buffer', function(require, exports) {
 
 
   // base64 atob/btoa implementation
-  // based on browser shim by github.com/DavidChambers
-  // with optimizations from github.com/WebReflection
+  // based on browser shim: github.com/davidchambers/Base64.js
   // see jsperf.com/base64-optimized
 
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('');
-  var index = {};
-  var max = Math.max;
-  var re = /=+$/;
-  var len = chars.length;
-  var fromCharCode = String.fromCharCode;
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
-  //populate index
-  while (len--) index[chars[len]] = len;
-
-  // decoder
-  function atob(string) {
-    if (string.length % 4) throw new Error('Invalid Character');
-    string = string.replace(re, '').split('');
-    var a, b, c, b1, b2, b3, b4, i = 0, j = 0, len = string.length, result = [];
-    while (i < len) {
-      b1 = index[string[i++]];
-      b2 = index[string[i++]];
-      b3 = index[string[i++]];
-      b4 = index[string[i++]];
-      a = ((b1 & 0x3F) << 2) | ((b2 >> 4) & 0x3);
-      b = ((b2 & 0xF) << 4) | ((b3 >> 2) & 0xF);
-      c = ((b3 & 0x3) << 6) | (b4 & 0x3F);
-      result[j++] = fromCharCode(a);
-      b && (result[j++] = fromCharCode(b));
-      c && (result[j++] = fromCharCode(c));
+  // Base64 encoder
+  // [https://gist.github.com/999166] by [https://github.com/nignag]
+  function btoa(input) {
+    for (
+      // initialize result and counter
+        var block, charCode, idx = 0, map = chars, output = '';
+      // if the next input index does not exist:
+      //   change the mapping table to "="
+      //   check if d has no fractional digits
+        input.charAt(idx | 0) || (map = '=', idx % 1);
+      // "8 - idx % 1 * 8" generates the sequence 2, 4, 6, 8
+        output += map.charAt(63 & block >> 8 - idx % 1 * 8)
+        ) {
+      charCode = input.charCodeAt(idx += 3 / 4);
+      if (charCode > 0xFF) {
+        throw new Error('Invalid Character');
+      }
+      block = block << 8 | charCode;
     }
-    return result.join('');
+    return output;
   }
 
-  // encoder
-  function btoa(string) {
-    var a, b, c, b1, b2, b3, b4, i = 0, len = string.length, result = [];
-    while (i < len) {
-      a = string.charCodeAt(i++) || 0;
-      b = string.charCodeAt(i++) || 0;
-      c = string.charCodeAt(i++) || 0;
-      if (0xFF < max(a, b, c)) throw new Error('Invalid Character');
-      b1 = (a >> 2) & 0x3F;
-      b2 = ((a & 0x3) << 4) | ((b >> 4) & 0xF);
-      b3 = ((b & 0xF) << 2) | ((c >> 6) & 0x3);
-      b4 = c & 0x3F;
-      b ? (c ? 0 : b4 = 64) : (b3 = b4 = 64);
-      result.push(chars[b1], chars[b2], chars[b3], chars[b4]);
+  // Base64 decoder
+  // [https://gist.github.com/1020396] by [https://github.com/atk]
+  function atob(input) {
+    input = input.replace(/=+$/, '')
+    if (input.length % 4 == 1) {
+      throw new Error('Invalid Base64 String');
     }
-    return result.join('');
+    for (
+      // initialize result and counters
+        var bc = 0, bs, buffer, idx = 0, output = '';
+      // get next character
+        buffer = input.charAt(idx++);
+      // character found in table? initialize bit storage and add its ascii value;
+        ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+          // and if not first of each 4 characters,
+          // convert the first 8 bits to one ascii character
+            bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+        ) {
+      // try to find character in table (0-63, not found => -1)
+      buffer = chars.indexOf(buffer);
+    }
+    return output;
   }
 
   exports.Buffer = Buffer;
