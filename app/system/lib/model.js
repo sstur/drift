@@ -213,10 +213,16 @@ define('model', function(require, exports) {
       if (data) {
         //filter data
         data = filterObject(data, model.fieldNames);
+        if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
+          if (data.updated_at == null) data.updated_at = new Date();
+        }
         //remove id field
         delete data[model.idField];
         util.extend(this, data);
       } else {
+        if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
+          this.updated_at = new Date();
+        }
         //get data from this
         data = filterObject(this, model.fieldNames);
         delete data[model.idField];
@@ -227,9 +233,6 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
-      if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
-        data.updated_at = new Date();
-      }
       var params = {};
       params[model.idField] = this[model.idField];
       var built = new QueryBuilder(model).buildUpdate(data, params);
@@ -246,10 +249,19 @@ define('model', function(require, exports) {
     },
     insert: function() {
       var model = this._model;
+      var isAutoId = (model.autoIncrement !== false);
+      //set created_at and updated_at if present
+      var date = new Date();
+      if (model.fields.created_at && model.fields.created_at.type == 'date') {
+        if (this.created_at == null) this.created_at = date;
+      }
+      if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
+        if (this.updated_at == null) this.updated_at = this.created_at || date;
+      }
       //filter data
       var data = filterObject(this, model.fieldNames);
       //remove id field
-      if (model.autoIncrement !== false) {
+      if (isAutoId) {
         delete data[model.idField];
       }
       //stringify json fields
@@ -258,18 +270,12 @@ define('model', function(require, exports) {
           data[fieldName] = util.stringify(data[fieldName]);
         }
       });
-      //set created_ad and updated_at if present
-      var date = new Date();
-      if (model.fields.created_at && model.fields.created_at.type == 'date') {
-        if (data.created_at == null) data.created_at = date;
-      }
-      if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
-        if (data.updated_at == null) data.updated_at = data.created_at || date;
-      }
       var built = new QueryBuilder(model).buildInsert(data);
       var db = database.open();
-      var result = db.exec(built.sql, built.values, true);
-      this[model.idField] = result;
+      var result = db.exec(built.sql, built.values, isAutoId);
+      if (isAutoId) {
+        this[model.idField] = result;
+      }
     },
     toJSON: function() {
       var result = {}, self = this;
