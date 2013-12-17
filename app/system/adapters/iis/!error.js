@@ -103,7 +103,7 @@
     if (err.message.indexOf('>>>>') == 0) return;
     var errorText = renderError(err);
     opts.textBody = errorText;
-    opts.htmlBody = '<pre><code>' + errortext.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</code></pre>';
+    opts.htmlBody = '<pre><code>' + errorText.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</code></pre>';
     sendEmail(opts);
   }
 
