@@ -257,7 +257,9 @@ define('util', function(require, util) {
   //extend JSON.stringify to special case Error
   //and always encode extended characters to ascii
   util.stringify = function(obj) {
-    return JSON.stringify(obj, replacer).replace(REG_CHARS, escapeNonAscii);
+    var result = JSON.stringify(obj, replacer);
+    //JSON.stringify(undefined) is undefined
+    return String(result).replace(REG_CHARS, escapeNonAscii);
   };
 
   //extend JSON.parse to handle Date, Buffer and Error
