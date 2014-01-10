@@ -22,6 +22,7 @@ app.on('init', function(require) {
 
     var routeMap = {};
     routeMap['GET:' + path] = '$index';
+    //note: /new will be checked before before /:id
     routeMap['GET:' + path + '/new'] = '$new';
     routeMap['POST:' + path] = '$create';
     routeMap['GET:' + path + '/:id'] = '$show';
@@ -45,23 +46,28 @@ app.on('init', function(require) {
       var controller = new Controller(req, res, params);
       if (params.id != null) {
         if (controller.validateID) {
-          var id = controller.validateID(params.id);
-          if (id == null) return;
+          params.id = controller.validateID(params.id);
+          if (params.id == null) return;
         }
-        params.id = id;
       }
       if (controller.authenticate) {
         controller.authenticate();
       }
       //id param, if it exists, gets special treatment here
-      controller[action](req, res, id);
+      controller[action](req, res, params.id);
     }
 
-    forEach(routeMap, function(url, action) {
+    //todo: static routes should be attached first
+    // so GET:/x/new will be called before GET:/x/:id
+    forEach(routeMap, function(path, action) {
+      if (Array.isArray(action)) {
+        var opts = action[1];
+        action = action[0];
+      }
       if (config[action]) {
-        app.route(url, function(req, res) {
+        app.route(path, function(req, res) {
           route.call(this, action, req, res);
-        });
+        }, opts);
       }
     });
 

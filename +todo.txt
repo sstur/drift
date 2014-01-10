@@ -1,3 +1,5 @@
+Maybe throw when modelInstance.update({some_non_exist: 'foo'})
+
 req.doAfter() or app.queueImmediate()
 
 app.route('/users/:id[int:positive]')
