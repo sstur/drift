@@ -1,4 +1,7 @@
-Maybe throw when modelInstance.update({some_non_exist: 'foo'})
+Ignore or throw? when modelInstance.update({some_non_exist: 'foo'})
+should not throw:
+  inspect({connection: new ActiveXObject('ADODB.Connection')})
+
 
 req.doAfter() or app.queueImmediate()
 

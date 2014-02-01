@@ -190,6 +190,12 @@ define('mysql', function(require, exports) {
       }
       return s;
     });
+    // MySQL will not allow syntax: SELECT * WHERE `foo` = NULL
+    sql = sql.replace(/WHERE (.*)/, function(sql) {
+      sql = sql.replace(/!= NULL/g, 'IS NOT NULL');
+      sql = sql.replace(/= NULL/g, 'IS NULL');
+      return sql;
+    });
     //misc sql transforms
     sql = sql.replace(/\bNOW\(\)/ig, toSQLVal(date));
     //replace special CAST values

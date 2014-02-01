@@ -69,7 +69,7 @@ app.on('ready', function(require) {
       Author.insert({name: 'George', rating: 5});
       Author.insert({name: 'Bill', rating: 7});
       Author.insert({name: 'George', rating: 3});
-      Author.insert({name: 'Barak', rating: 6});
+      Author.insert({name: 'Barak'});
       var authors = Author.findAll();
       expect(authors).to.have.length(6);
       authors = Author.findAll({name: 'George'});
@@ -98,6 +98,14 @@ app.on('ready', function(require) {
         authors.push(author);
       });
       expect(authors[0].rating).to.be(5);
+      //should be able to select based on null; and update inside iterator
+      authors.length = 0;
+      Author.findAll({rating: null}, function(author) {
+        authors.push(author);
+        author.update({rating: 6});
+      });
+      expect(authors).to.have.length(1);
+      expect(authors[0].rating).to.be(6);
     },
     'destroy a record by instance': function() {
       var author = Author.find({name: 'George', rating: 5});

@@ -44,7 +44,7 @@ define('model', function(require, exports) {
         var value = definition;
         definition = fields[name] = {
           value: value,
-          type: (value === null) ? 'null' : typeof value
+          type: (value == null) ? 'null' : typeof value
         };
       }
       if (definition.type == 'json') {
