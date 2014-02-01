@@ -10,13 +10,15 @@ define('model-create', function(require, exports, module) {
   var Model = require('model').Model;
 
   var typeMap = {
-    'date': 'timestamp',
-    'json': 'text',
-    'text': 'text',
+    //number will map to int because it's likely determined by type inference
+    'number': 'int(10)',
+    'boolean': 'bit(1)',
     'string': 'varchar(255)',
+    'text': 'text',
     'int': 'int(10)',
     'float': 'real',
-    'boolean': 'bit(1)'
+    'date': 'timestamp',
+    'json': 'text'
   };
 
   Model.prototype.createTable = function(opts) {
@@ -26,11 +28,14 @@ define('model-create', function(require, exports, module) {
       db.exec('DROP TABLE IF EXISTS ' + q(model.tableName));
     }
     var fieldDefs = [];
-    forEach(model.fields, function(name, value) {
-      var def = (value && typeof value == 'object') ? value : inferDef(value);
-      var str = q(name) + ' ' + typeMap[def.type];
+    forEach(model.fields, function(name, def) {
+      var type = typeMap[def.type];
+      var str = q(name) + ' ' + type;
       if (name == model.idField) {
-        str += ' unsigned NOT NULL';
+        if (type == 'int(10)') {
+          str += ' unsigned';
+        }
+        str += ' NOT NULL';
         if (model.autoIncrement !== false) {
           str += ' AUTO_INCREMENT';
         }
@@ -51,28 +56,6 @@ define('model-create', function(require, exports, module) {
     var db = database.open();
     db.exec('DROP TABLE IF EXISTS ' + q(model.tableName));
   };
-
-  function inferDef(value) {
-    return {
-      type: inferType(value),
-      defaultValue: value
-    }
-  }
-
-  function inferType(value) {
-    var type = (value === null) ? 'null' : typeof value;
-    if (type == 'object') {
-      return (value instanceof Date) ? 'date' : 'json'
-    } else
-    if (type == 'boolean') {
-      return 'boolean';
-    } else
-    if (type == 'string') {
-      return 'string';
-    } else {
-      return 'int';
-    }
-  }
 
   function q(identifier) {
     return '`' + identifier + '`';

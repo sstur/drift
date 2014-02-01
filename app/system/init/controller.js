@@ -3,14 +3,6 @@ app.on('init', function(require) {
   "use strict";
   var util = require('util');
 
-  // GET    /items -> Items.$index
-  // GET    /items/new -> Items.$new
-  // POST   /items -> Items.$create
-  // GET    /items/:id -> Items.$show
-  // GET    /items/:id/edit -> Items.$edit
-  // POST   /items/:id -> Items.$update
-  // POST   /items/:id/delete -> Items.$destroy
-
   var controllers = app.controllers = {};
 
   app.getController = function(name) {

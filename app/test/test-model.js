@@ -1,13 +1,12 @@
 /*!
  * todo: test created_at, updated_at
+ * todo: test json and text/string types
  */
 /*global app, define */
 app.on('ready', function(require) {
   "use strict";
 
   var expect = require('expect');
-  //patch Model to create/drop tables
-  require('model-create');
   var Model = require('model').Model;
 
   var Author = new Model({
@@ -48,22 +47,26 @@ app.on('ready', function(require) {
       Author.dropTable();
       Article.dropTable();
     },
-    'find by id': function() {
+    'create': function() {
+      var author = Author.create({name: 'Jimmy', rating: 5, age: 50});
+      expect(author).to.not.have.property('id');
+      expect(author.name).to.be('Jimmy');
+      expect(author).to.not.have.property('age');
+      //date stamps do not get added at create (despite the name)
+      expect(author).to.not.have.property('created_at');
+    },
+    'insert/find by id': function() {
       var author1 = Author.insert({name: 'Jimmy', rating: 5, created_at: getDate()});
       expect(author1.id).to.be.a('number');
       var author1a = Author.find({id: author1.id});
       expect(author1).to.eql(author1a);
       var author2 = Author.insert({id: 99, name: 'Ronald', rating: 9});
-      expect(author2).to.not.have.property('created_at');
       expect(author2.id).to.not.be(99);
-    },
-    'database auto set date': function() {
-      var author = Author.insert({name: 'George', rating: 5});
-      expect(author).to.not.have.property('created_at');
-      author = Author.find({id: author.id});
-      expect(author.created_at).to.be.a(Date);
+      //date stamps get added at insert
+      expect(author2.created_at).to.be.a(Date);
     },
     'findAll': function() {
+      Author.insert({name: 'George', rating: 5});
       Author.insert({name: 'Bill', rating: 7});
       Author.insert({name: 'George', rating: 3});
       Author.insert({name: 'Barak', rating: 6});

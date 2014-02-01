@@ -16,7 +16,21 @@ define('model', function(require, exports) {
     $in: 'IN',
     $nin: 'NOT IN'
   };
+  var TYPE_MAP = {
+    //number maps to int because it was likely set by typeof
+    'number': 'int(10)',
+    'boolean': 'bit(1)',
+    'string': 'varchar(255)',
+    'text': 'text',
+    'int': 'int(10)',
+    'float': 'real',
+    'date': 'timestamp',
+    'json': 'text'
+  };
 
+  //fields: name<str>, tableName<str>, fields<map>, fieldNames<arr>, idField<str>,
+  // dbIdField<str>, jsonFields<arr>, Record<const>
+  // optional: autoIncrement<bool>, dbToFields<map>, fieldsToDb<map>
   function Model(opts) {
     if (!(this instanceof Model)) return new Model(opts);
     this.tableName = opts.tableName || error('Invalid Table Name');
@@ -26,7 +40,14 @@ define('model', function(require, exports) {
     this.idField = opts.idField || getFirstKey(fields) || error('Invalid ID Field');
     var jsonFields = this.jsonFields = [];
     forEach(fields, function(name, definition) {
-      if (definition && definition.type == 'json') {
+      if (isPrimitive(definition)) {
+        var value = definition;
+        definition = fields[name] = {
+          value: value,
+          type: (value === null) ? 'null' : typeof value
+        };
+      }
+      if (definition.type == 'json') {
         jsonFields.push(name);
       }
     });
@@ -70,13 +91,9 @@ define('model', function(require, exports) {
     _getTableField: function(field) {
       return q(this.tableName) + '.' + q(this._mapToDB(field));
     },
-    create: function(rec) {
+    create: function(data) {
+      var rec = filterObject(data, this.fieldNames);
       return new this.Record(rec);
-    },
-    createFromDB: function(rec) {
-      var data = this.dbToFields ? mapKeys(rec, this.dbToFields) : rec;
-      reviveFields(data, this.jsonFields);
-      return this.create(data);
     },
     insert: function(data) {
       var instance = this.create(data);
@@ -129,6 +146,40 @@ define('model', function(require, exports) {
     join: function() {
       var joinedSet = new JoinedSet(this);
       return joinedSet.join.apply(joinedSet, arguments);
+    },
+    createTable: function(opts) {
+      var model = this;
+      var db = database.open();
+      if (opts.drop) {
+        db.exec('DROP TABLE IF EXISTS ' + q(model.tableName));
+      }
+      var fieldDefs = [];
+      forEach(model.fields, function(name, def) {
+        var dbType = TYPE_MAP[def.type];
+        var str = q(name) + ' ' + dbType;
+        if (name == model.idField) {
+          if (dbType == 'int(10)') {
+            str += ' unsigned';
+          }
+          str += ' NOT NULL';
+          if (model.autoIncrement !== false) {
+            str += ' AUTO_INCREMENT';
+          }
+        }
+        fieldDefs.push(str);
+      });
+      fieldDefs.push('PRIMARY KEY (' + q(model.idField) + ')');
+      var sql = 'CREATE TABLE ' + q(model.tableName) + ' (' + fieldDefs.join(', ') + ')';
+      if (typeof model.autoIncrement == 'number') {
+        sql += ' AUTO_INCREMENT=' + model.autoIncrement;
+      }
+      sql += ' DEFAULT CHARSET=utf8';
+      db.exec(sql);
+    },
+    dropTable: function() {
+      var model = this;
+      var db = database.open();
+      db.exec('DROP TABLE IF EXISTS ' + q(model.tableName));
     }
   });
 
@@ -499,7 +550,9 @@ define('model', function(require, exports) {
     });
     var instances = models.map(function(model) {
       var data = results[model.name] || {};
-      return model.createFromDB(data);
+      data = model.dbToFields ? mapKeys(data, model.dbToFields) : data;
+      reviveFields(data, model.jsonFields);
+      return new model.Record(data);
     });
     return (instances.length == 1) ? instances[0] : instances;
   }

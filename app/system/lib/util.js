@@ -9,6 +9,8 @@ define('util', function(require, util) {
   //0: log all, 1: errors only, 2: warnings, 3: trace
   var logVerbosity = app.cfg('logging/verbosity');
 
+  //48-bit integer max
+  var INT_48 = Math.pow(2, 48);
   //regex for json helpers
   var REG_CHARS = /[^\x20-\x7E]/g;
   var REG_ERROR = /^new Error\((.*)\)$/;
@@ -113,13 +115,23 @@ define('util', function(require, util) {
   };
 
   //returns random bytes as hex
-  //  todo: we need to somehow seed this; maybe an incrementer stored in app.data()
   util.hexBytes = function(bytes) {
-    var hex = '', n = bytes * 2;
-    for (var i = 0; i < n; i++) {
+    //seed should give us the first 6 bytes
+    var seed = util.getSeed();
+    var hex = ('000000000000' + seed.toString(16)).slice(-12);
+    var n = bytes * 2;
+    while (hex.length < n) {
       hex += Math.floor(Math.random() * 16).toString(16);
     }
-    return hex;
+    return hex.slice(0 - n);
+  };
+
+  //returns a seed which is always a number between 0 and 2^48
+  util.getSeed = function() {
+    var seed = app.data('seed') || Math.floor(Math.random() * INT_48);
+    var newSeed = seed + Math.floor(Math.random() * INT_48);
+    app.data('seed', newSeed % INT_48);
+    return seed;
   };
 
   //log to the filesystem: util.log([logLevel], line1, [line2..], [logfile])
