@@ -28,9 +28,9 @@ define('model', function(require, exports) {
     'json': 'text'
   };
 
-  //fields: name<str>, tableName<str>, fields<map>, fieldNames<arr>, idField<str>,
+  //properties: name<str>, tableName<str>, fields<map>, fieldNames<arr>, idField<str>,
   // dbIdField<str>, jsonFields<arr>, Record<const>
-  // optional: autoIncrement<bool>, dbToFields<map>, fieldsToDb<map>
+  // [optional] autoIncrement<bool>, dbToFields<map>, fieldsToDb<map>
   function Model(opts) {
     if (!(this instanceof Model)) return new Model(opts);
     this.tableName = opts.tableName || error('Invalid Table Name');
