@@ -109,17 +109,24 @@ define('util', function(require, util) {
     });
   };
 
-  //returns a unique 16 byte value in hex
-  util.getUniqueHex = function() {
-    return (Date.now().toString(16) + util.hexBytes(11)).slice(0, 32);
+  //returns a unique hex string starting with a timestamp
+  util.getUniqueHex = function(numBytes) {
+    if (typeof numBytes != 'number' || !isFinite(numBytes) || numBytes < 5) {
+      numBytes = 16;
+    }
+    var timestamp = Math.floor(Date.now() / 1000) % 0xFFFFFFFF;
+    return (timestamp.toString(16) + util.hexBytes(numBytes - 4)).slice(0, numBytes * 2);
   };
 
   //returns random bytes as hex
-  util.hexBytes = function(bytes) {
+  util.hexBytes = function(numBytes) {
+    if (typeof numBytes != 'number' || !isFinite(numBytes) || numBytes < 1) {
+      numBytes = 16;
+    }
     //seed should give us the first 6 bytes
     var seed = util.getSeed();
     var hex = ('000000000000' + seed.toString(16)).slice(-12);
-    var n = bytes * 2;
+    var n = numBytes * 2;
     while (hex.length < n) {
       hex += Math.floor(Math.random() * 16).toString(16);
     }
@@ -129,7 +136,7 @@ define('util', function(require, util) {
   //returns a seed which is always a number between 0 and 2^48
   util.getSeed = function() {
     var seed = app.data('seed') || Math.floor(Math.random() * INT_48);
-    var newSeed = seed + Math.floor(Math.random() * INT_48);
+    var newSeed = seed + Math.floor(Math.random() * (INT_48 - 1));
     app.data('seed', newSeed % INT_48);
     return seed;
   };
@@ -321,10 +328,6 @@ define('util', function(require, util) {
     } catch(e) {
       return unescape(str);
     }
-  }
-
-  function isPrimitive(obj) {
-    return (Object(obj) !== obj);
   }
 
 });
