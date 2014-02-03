@@ -1,3 +1,7 @@
+/*!
+ * Notes:
+ *   Record#normalize is called before data is appended to instance (including from db)
+ */
 /*global app, define */
 define('model', function(require, exports) {
   "use strict";
@@ -92,8 +96,8 @@ define('model', function(require, exports) {
       return q(this.tableName) + '.' + q(this._mapToDB(field));
     },
     create: function(data) {
-      var rec = filterObject(data, this.fieldNames);
-      return new this.Record(rec);
+      data = filterObject(data, this.fieldNames);
+      return new this.Record(data);
     },
     insert: function(data) {
       var instance = this.create(data);
@@ -252,6 +256,7 @@ define('model', function(require, exports) {
    * Used as a base class for each model's Record class
    */
   function RecordBase(data) {
+    if (this.normalize) this.normalize(data);
     util.extend(this, data);
     if (this.init) this.init();
   }
@@ -259,45 +264,6 @@ define('model', function(require, exports) {
 
   util.extend(RecordBase.prototype, {
     __super__: RecordBase.prototype,
-    update: function(data) {
-      var model = this._model;
-      if (data) {
-        //filter data
-        data = filterObject(data, model.fieldNames);
-        if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
-          if (data.updated_at == null) data.updated_at = new Date();
-        }
-        //remove id field
-        delete data[model.idField];
-        util.extend(this, data);
-      } else {
-        if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
-          this.updated_at = new Date();
-        }
-        //get data from this
-        data = filterObject(this, model.fieldNames);
-        delete data[model.idField];
-      }
-      //stringify json fields
-      model.jsonFields.forEach(function(fieldName) {
-        if (fieldName in data) {
-          data[fieldName] = util.stringify(data[fieldName]);
-        }
-      });
-      var params = {};
-      params[model.idField] = this[model.idField];
-      var built = new QueryBuilder(model).buildUpdate(data, params);
-      var db = database.open();
-      db.exec(built.sql, built.values);
-    },
-    destroy: function() {
-      var model = this._model;
-      var params = {};
-      params[model.idField] = this[model.idField];
-      var built = new QueryBuilder(model).buildDelete(params);
-      var db = database.open();
-      db.exec(built.sql, built.values);
-    },
     insert: function() {
       var model = this._model;
       var isAutoId = (model.autoIncrement !== false);
@@ -327,6 +293,46 @@ define('model', function(require, exports) {
       if (isAutoId) {
         this[model.idField] = result;
       }
+    },
+    update: function(data) {
+      var model = this._model;
+      if (data) {
+        //filter data
+        data = filterObject(data, model.fieldNames);
+        if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
+          if (data.updated_at == null) data.updated_at = new Date();
+        }
+        //remove id field
+        delete data[model.idField];
+        if (this.normalize) this.normalize(data);
+        util.extend(this, data);
+      } else {
+        if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
+          this.updated_at = new Date();
+        }
+        //get data from this
+        data = filterObject(this, model.fieldNames);
+        delete data[model.idField];
+      }
+      //stringify json fields
+      model.jsonFields.forEach(function(fieldName) {
+        if (fieldName in data) {
+          data[fieldName] = util.stringify(data[fieldName]);
+        }
+      });
+      var params = {};
+      params[model.idField] = this[model.idField];
+      var built = new QueryBuilder(model).buildUpdate(data, params);
+      var db = database.open();
+      db.exec(built.sql, built.values);
+    },
+    destroy: function() {
+      var model = this._model;
+      var params = {};
+      params[model.idField] = this[model.idField];
+      var built = new QueryBuilder(model).buildDelete(params);
+      var db = database.open();
+      db.exec(built.sql, built.values);
     },
     toJSON: function() {
       var result = {}, self = this;
