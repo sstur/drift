@@ -129,7 +129,7 @@ define('http', function(require, exports) {
     if (!(code in redirectCodes)) {
       return res;
     }
-    var loc = res.headers['location'];
+    var loc = res.headers.location;
     if (!loc) {
       return res;
     }

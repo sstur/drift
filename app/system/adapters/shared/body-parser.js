@@ -235,7 +235,7 @@ define('body-parser', function(require, exports, module) {
     this.size = (this.size || 0) + data.length;
     if (this.type == 'file') {
       this._hash.update(data);
-      if (this._events && this._events['data']) {
+      if (this._events && this._events.data) {
         var enc = this._encoding;
         this.emit('data', (enc) ? data.toString(enc) : data);
       }

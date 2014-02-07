@@ -207,7 +207,8 @@ define('response', function(require, exports, module) {
         _super.streamFile(status.code, status.reason, this.buffer.headers, path);
       } else {
         var readStream = fs.createReadStream(path);
-        headers['Content-Length'] = readStream.size();
+        //todo: we can only set content-length if the server is smart enough to turn off chunked when this header is present (cfg option?)
+        //headers['Content-Length'] = readStream.size();
         this.headers(headers);
         util.pipe(readStream, this.getWriteStream());
         readStream.read();

@@ -12,7 +12,7 @@ define('util', function(require, util) {
   //48-bit integer max
   var INT_48 = Math.pow(2, 48);
   //regex for json helpers
-  var REG_CHARS = /[^\x20-\x7E]/g;
+  var REG_CHARS = /[\u007F-\uFFFF]/g;
   var REG_ERROR = /^new Error\((.*)\)$/;
   var REG_ISODATE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)Z$/;
 
@@ -215,6 +215,7 @@ define('util', function(require, util) {
 
   //strip a filename to be ascii-safe
   // used in Content-Disposition header
+  // will not encode space or: !#$'()+-.;=@[]^_`{}
   util.stripFilename = function(filename, ch, map) {
     ch = ch || '';
     var safe = String(filename);
@@ -275,8 +276,8 @@ define('util', function(require, util) {
 
   //extend JSON.stringify to special case Error
   //and always encode extended characters to ascii
-  util.stringify = function(obj) {
-    var result = JSON.stringify(obj, replacer);
+  util.stringify = function(obj, opts) {
+    var result = JSON.stringify(obj, replacer, opts);
     //JSON.stringify(undefined) is undefined
     return String(result).replace(REG_CHARS, escapeNonAscii);
   };

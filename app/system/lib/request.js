@@ -9,6 +9,8 @@ define('request', function(require, exports, module) {
   var HTTP_METHODS = {GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1};
   var BODY_ALLOWED = {POST: 1, PUT: 1};
 
+  var remoteAddrHeader = app.cfg('remote_addr_header');
+
   function Request(req) {
     this._super = req;
   }
@@ -32,6 +34,10 @@ define('request', function(require, exports, module) {
         this._method = (override in HTTP_METHODS) ? override : this._super.getMethod().toUpperCase();
       }
       return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
+    },
+    getRemoteIP: function() {
+      var connectionAddress = this._super.getRemoteAddress();
+      return remoteAddrHeader ? this.headers(remoteAddrHeader) : connectionAddress;
     },
     headers: function(n) {
       var headers = this._headers || (this._headers = parseHeaders(this._super.getHeaders()));
