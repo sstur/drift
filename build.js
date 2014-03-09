@@ -1,5 +1,5 @@
 /**
- * Build and optionally uglify/mangle the entire application to
+ * Build and optionally minify the entire application to
  * one platform-specific script file.
  *
  */
@@ -13,7 +13,7 @@
 
   var join = path.join;
 
-  //files beginning with these chars are excluded
+  //files beginning with these chars are ignored
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
   //this whole literal matching is flawed; it would match `var a = 1/2, b = 'c/d';` and now we have an unterminated string
   var COMMENT_OR_LITERAL = /\/\*([\s\S]*?)\*\/|'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/(\\.|[^\/\n])+\/|\/\/(.*)/gm;
@@ -21,9 +21,8 @@
 
   try {
     var uglifyjs = require('uglify-js');
+    var debugify = require('debugify');
   } catch(e) {}
-
-  var debugify = require('debugify');
 
   var REG_NL = /\r\n|\r|\n/g;
 
@@ -283,8 +282,8 @@
     }
     items.forEach(function(item) {
       if (item.charAt(0) in EXCLUDE) return;
-      var fullpath = join(path, item)
-        , stat = fs.statSync(fullpath);
+      var fullpath = join(path, item);
+      var stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
         loadPath(join(dir, item));
       } else

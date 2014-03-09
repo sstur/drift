@@ -263,6 +263,7 @@ define('body-parser', function(require, exports, module) {
     delete this._events;
   };
 
+  //todo: remove this (used to differentiate between {"type": "file"}, and an actual file)
   Part.prototype.isFile = function() {
     return (this.type == 'file');
   };

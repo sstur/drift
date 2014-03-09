@@ -45,6 +45,9 @@ app.on('init', function(require) {
       if (controller.authenticate) {
         controller.authenticate();
       }
+      if (controller.init) {
+        controller.init();
+      }
       //id param, if it exists, gets special treatment here
       controller[action](req, res, params.id);
     }

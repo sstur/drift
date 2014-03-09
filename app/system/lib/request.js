@@ -9,7 +9,7 @@ define('request', function(require, exports, module) {
   var HTTP_METHODS = {GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1};
   var BODY_ALLOWED = {POST: 1, PUT: 1};
 
-  var remoteAddrHeader = app.cfg('remote_addr_header');
+  var remoteAddrHeaders = (app.cfg('remote_addr_header') || '').split('|');
 
   function Request(req) {
     this._super = req;
@@ -36,8 +36,17 @@ define('request', function(require, exports, module) {
       return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
     },
     getRemoteIP: function() {
-      var connectionAddress = this._super.getRemoteAddress();
-      return remoteAddrHeader ? this.headers(remoteAddrHeader) : connectionAddress;
+      var remoteAddress;
+      //allow for multiple headers that may contain the remote address
+      for (var i = 0, len = remoteAddrHeaders.length; i < len; i++) {
+        remoteAddress = remoteAddress || this.headers(remoteAddrHeaders[i]);
+      }
+      if (remoteAddress) {
+        remoteAddress = remoteAddress.split(',').pop().trim();
+      } else {
+        remoteAddress = this._super.getRemoteAddress();
+      }
+      return remoteAddress;
     },
     headers: function(n) {
       var headers = this._headers || (this._headers = parseHeaders(this._super.getHeaders()));
