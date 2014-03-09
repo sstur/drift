@@ -1,14 +1,14 @@
-/*global process, require, module, exports */
+/*global global, process, require, exports, module */
 (function() {
   var fs = require('fs');
   var path = require('path');
   var http = require('http');
-  var child_process = require('child_process');
+  var childProcess = require('child_process');
 
   var args = process.argv;
 
-  //this is used by modules reading relative paths
-  var basePath = global.basePath = path.dirname(args[1]);
+  //this is used to compute relative paths
+  var basePath = global.basePath || process.cwd();
 
   if (args[2] == 'keepalive') {
     spawnChild();
@@ -17,7 +17,7 @@
   }
 
   function spawnChild() {
-    var child = child_process.fork(args[1], args.slice(3));
+    var child = childProcess.fork(args[1], args.slice(3));
     var pidFile = path.join(basePath, 'server.pid');
     fs.writeFile(pidFile, child.pid, function() {
       console.log('Spawned child process ' + child.pid);

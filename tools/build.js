@@ -1,7 +1,11 @@
 /**
  * Build and optionally minify the entire application to
  * one platform-specific script file.
- *
+ * opts:
+ *  -q [quiet]
+ *  -m [minify]
+ *  --mangle [mangle variable names]
+ *  --debug [enable stack trace on iis]
  */
 /*global process, require, module, exports */
 (function() {
@@ -9,9 +13,13 @@
 
   var fs = require('fs');
   var path = require('path');
-  var child_process = require('child_process');
+  var childProcess = require('child_process');
 
   var join = path.join;
+
+  var opts = global.opts || {};
+  var args = opts._ || process.argv.slice(2);
+  var basePath = opts.p || process.cwd();
 
   //files beginning with these chars are ignored
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
@@ -26,11 +34,7 @@
 
   var REG_NL = /\r\n|\r|\n/g;
 
-  var basePath = path.dirname(process.argv[1]);
-
-  var opts = process.argv.slice(2).reduce(function(opts, el) {
-    return (opts[el.replace(/^-+/, '')] = 1) && opts;
-  }, {});
+  opts.platform = args.shift();
 
   var config;
   try {
@@ -38,7 +42,7 @@
   } catch(e) {}
   config = JSON.parse(config || '{}');
 
-  if (opts.apache) {
+  if (opts.platform == 'apache') {
     opts.platform = 'apache/v8cgi';
     opts._pre = [''];
     opts._head = ['global.platform = "apache/v8cgi";'];
@@ -69,7 +73,7 @@
     opts._end = [];
     opts.target = config.target ? config.target + '.asp' : 'build/app.sjs';
   }
-  if (opts.iis) {
+  if (opts.platform == 'iis') {
     opts.platform = 'iis/asp';
     opts._pre = [
       '<%@LANGUAGE="JAVASCRIPT" CODEPAGE="65001" ENABLESESSIONSTATE="FALSE"%>'
@@ -180,14 +184,14 @@
   if (opts.m) {
     throw new Error('minification code needs to be fixed');
     if (!uglifyjs) {
-      console.err('Cannot find module uglify-js.');
+      console.error('Cannot find module uglify-js.');
       process.exit();
     }
     var mangle = ('mangle' in opts);
     sourceLines = [uglify(sourceLines.join('\n'), mangle)];
   } else {
     sourceLines = stripSource(sourceLines);
-    if (opts.apache) {
+    if (opts.platform == 'apache/v8cgi') {
       //we intentionally have a blank line for this
       opts._pre[0] = 'var offsets = ' + JSON.stringify(lineOffsets) + ', map = ' + JSON.stringify(sourceFiles) + ';';
     } else {
@@ -234,7 +238,7 @@
 
   function exec(cmd) {
     console.log('--START EXEC: ' + cmd);
-    child_process.exec(cmd, function(err, stdout, stderr) {
+    childProcess.exec(cmd, function(err, stdout, stderr) {
       if (err) throw err;
       if (stderr && stderr.match(/\S/)) {
         console.error(stderr);
