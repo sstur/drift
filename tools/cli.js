@@ -8,26 +8,17 @@ var opts = require('optimist')
   .argv;
 
 var DIRECTIVES = {
-  init: 1,
-  build: 1,
-  serve: 1
+  init: './init.js',
+  build: './build.js',
+  serve: './server.js'
 };
 
-var args = opts._;
-var directive = args.shift();
+global.opts = opts;
+
+var directive = opts._.shift();
 if (!(directive in DIRECTIVES)) {
   console.error('You must specify one of the following directives: ' + Object.keys(DIRECTIVES).join(', '));
   process.exit(1);
 }
 
-global.opts = opts;
-
-if (directive == 'init') {
-  require('./init.js');
-} else
-if (directive == 'build') {
-  require('./build.js');
-} else
-if (directive == 'serve') {
-  require('./server.js');
-}
+require(DIRECTIVES[directive]);
