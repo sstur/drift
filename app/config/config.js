@@ -12,7 +12,7 @@ app.cfg({
   mysql: {
     utc_dates: true,
     connections: {
-      'default': 'DRIVER={MySQL ODBC 3.51 Driver};SERVER=localhost;DATABASE=test_js;UID=test_js;PWD=p4uTAU9qla;CHARSET=UTF8'
+      'default': {server: 'localhost', database: 'test_js', username: 'test_js', password: 'p4uTAU9qla'}
     }
   },
 

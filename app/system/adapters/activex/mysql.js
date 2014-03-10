@@ -20,12 +20,12 @@ define('mysql', function(require, exports) {
   var REG_DATE_2 = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/;
 
 
-  var connectionStrings = app.cfg('mysql/connections') || {};
+  var namedConnections = app.cfg('mysql/connections') || {};
   var adodbConnections = {};
   var connections = [];
 
-  function Connection(connStr) {
-    //todo: build connection string from connection uri
+  function Connection(config) {
+    var connStr = parseConnectionConfig(config);
     this._cstr = connStr;
     this._conn = adodbConnections[connStr] || (adodbConnections[connStr] = new ActiveXObject('ADODB.Connection'));
     try {
@@ -351,6 +351,27 @@ define('mysql', function(require, exports) {
     return message.replace(/^(\[(.*?)\])+/, '');
   }
 
+  function parseConnectionConfig(config) {
+    var type = vartype(config);
+    if (type == 'string') {
+      var connStr = config;
+    } else
+    if (type == 'object') {
+      var params = [
+        'DRIVER={MySQL ODBC 3.51 Driver}',
+        'SERVER=' + (config.server || 'localhost'),
+        'DATABASE=' + config.database,
+        'UID=' + config.username,
+        'PWD=' + config.password,
+        'CHARSET=UTF8'
+      ];
+      connStr = params.join(';');
+    } else {
+      throw new Error('Invalid database connection config: ' + config);
+    }
+    return connStr;
+  }
+
   app.on('end', function() {
     forEach(connections, function(i, connection) {
       connection.close();
@@ -358,11 +379,11 @@ define('mysql', function(require, exports) {
   });
 
   exports.open = function(name) {
-    var connStr = connectionStrings[name || 'default'];
-    if (!connStr) {
+    var config = namedConnections[name || 'default'];
+    if (!config) {
       throw new Error('MySQL: Invalid Named Connection: ' + name);
     }
-    return new Connection(connStr);
+    return new Connection(config);
   };
 
 });
