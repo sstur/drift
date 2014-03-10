@@ -10,7 +10,14 @@ var opts = require('optimist')
 var DIRECTIVES = {
   init: './init.js',
   build: './build.js',
-  serve: './server.js'
+  serve: './server.js',
+  assemble: function() {
+    var assembler = require('assembler');
+    //argv should look something like: ["node", "drift", "assemble", "path/to/conf"]
+    assembler.exec({
+      args: process.argv.slice(3)
+    });
+  }
 };
 
 global.opts = opts;
@@ -21,4 +28,13 @@ if (!(directive in DIRECTIVES)) {
   process.exit(1);
 }
 
-require(DIRECTIVES[directive]);
+(function() {
+  var module = DIRECTIVES[directive];
+  var type = typeof module;
+  if (type == 'string') {
+    require(module);
+  } else
+  if (type == 'function') {
+    module();
+  }
+})();
