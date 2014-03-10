@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "drift": "git+ssh://git@bitbucket.org:sstur/driftjs.git#v1-stable"
+  }
+}

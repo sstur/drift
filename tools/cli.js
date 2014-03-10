@@ -23,8 +23,7 @@ if (!(directive in DIRECTIVES)) {
 global.opts = opts;
 
 if (directive == 'init') {
-  //require('./init.js');
-  console.error('not implemented');
+  require('./init.js');
 } else
 if (directive == 'build') {
   require('./build.js');

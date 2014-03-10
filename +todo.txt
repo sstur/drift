@@ -2,6 +2,8 @@ Ignore or throw? when modelInstance.update({some_non_exist: 'foo'})
 should not throw:
   inspect({connection: new ActiveXObject('ADODB.Connection')})
 
+DRIVER={MySQL ODBC 3.51 Driver};SERVER=localhost;DATABASE=database;UID=user;PWD=password;CHARSET=UTF8
+-> {server: 'localhost', database: 'database', username: 'username', password: 'password'}
 
 req.doAfter() or app.queueImmediate()
 

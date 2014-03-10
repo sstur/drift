@@ -19,7 +19,7 @@
 
   var opts = global.opts || {};
   var args = opts._ || process.argv.slice(2);
-  var basePath = opts.p || process.cwd();
+  var basePath = path.join('/', opts.p, '.') || process.cwd();
 
   //files beginning with these chars are ignored
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
