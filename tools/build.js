@@ -19,7 +19,7 @@
 
   var opts = global.opts || {};
   var args = opts._ || process.argv.slice(2);
-  var basePath = path.join('/', opts.p, '.') || process.cwd();
+  var projectPath = path.join('/', opts.p, '.') || process.cwd();
 
   //files beginning with these chars are ignored
   var EXCLUDE = {'_': 1, '.': 1, '!': 1};
@@ -38,7 +38,7 @@
 
   var config;
   try {
-    config = fs.readFileSync(join(basePath, 'build-conf.json'), 'utf8');
+    config = fs.readFileSync(join(projectPath, 'build-conf.json'), 'utf8');
   } catch(e) {}
   config = JSON.parse(config || '{}');
 
@@ -196,7 +196,7 @@
       opts._pre[0] = 'var offsets = ' + JSON.stringify(lineOffsets) + ', map = ' + JSON.stringify(sourceFiles) + ';';
     } else {
       //for iis the error handling goes in a separate file
-      var errhandler = fs.readFileSync(join(basePath, 'app/system/adapters/iis/!error.js'), 'utf8');
+      var errhandler = fs.readFileSync(join(projectPath, 'app/system/adapters/iis/!error.js'), 'utf8');
       errhandler = errhandler.replace('[/*SRCMAP*/]', JSON.stringify(lineOffsets) + ', ' + JSON.stringify(sourceFiles));
       errhandler = errhandler.replace('{/*CONFIG*/}', JSON.stringify({emailErrors: config.emailErrors}));
       var errfile = [
@@ -206,7 +206,7 @@
         '<\/script>'
       ];
       var errorHandler = config.errorHandler ? config.errorHandler + '.asp' : 'build/err.asp';
-      fs.writeFileSync(join(basePath, errorHandler), errfile.join('\r\n'), 'utf8');
+      fs.writeFileSync(join(projectPath, errorHandler), errfile.join('\r\n'), 'utf8');
     }
   }
 
@@ -221,7 +221,7 @@
   sourceLines.push.apply(sourceLines, opts._end);
 
   var source = sourceLines.join('\r\n');
-  fs.writeFileSync(join(basePath, opts.target), source, 'utf8');
+  fs.writeFileSync(join(projectPath, opts.target), source, 'utf8');
 
   var action = config['action:after'];
   if (action && action.type == 'exec') {
@@ -252,7 +252,7 @@
   }
 
   function loadFile(path) {
-    var fullpath = join(basePath, path);
+    var fullpath = join(projectPath, path);
     var exclude = config.exclude || [], shortpath = path.replace(/^app\//, ''), skip = false;
     //console.log(exclude, shortpath);
     exclude.forEach(function(excl) {
@@ -275,7 +275,7 @@
   }
 
   function loadPath(dir) {
-    var path = join(basePath, dir);
+    var path = join(projectPath, dir);
     try {
       var items = fs.readdirSync(path);
     } catch(e) {
@@ -298,7 +298,7 @@
   }
 
   function readCompiledView(path, views) {
-    var fullpath = join(basePath, path);
+    var fullpath = join(projectPath, path);
     if (!opts.q) console.log('read compiled view', path);
     //todo: remove extension from path?
     views[path] = fs.readFileSync(fullpath, 'utf8');
@@ -306,7 +306,7 @@
 
   function readCompiledViews(dir, views) {
     views = views || {};
-    var path = join(basePath, dir);
+    var path = join(projectPath, dir);
     var items = fs.readdirSync(path);
     items.forEach(function(item) {
       if (item.charAt(0) in EXCLUDE) return;

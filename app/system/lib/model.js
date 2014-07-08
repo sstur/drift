@@ -1,6 +1,9 @@
 /*!
  * Notes:
  *   Record#normalize is called before data is appended to instance (including from db)
+ * Todo:
+ *   dissallow returnAffected (it's unreliable in some cases)
+ *   alias find -> findOne
  */
 /*global app, define */
 define('model', function(require, exports) {
@@ -43,6 +46,7 @@ define('model', function(require, exports) {
     this.fieldNames = Object.keys(fields);
     this.idField = opts.idField || getFirstKey(fields) || error('Invalid ID Field');
     var jsonFields = this.jsonFields = [];
+    var boolFields = this.boolFields = [];
     forEach(fields, function(name, definition) {
       if (isPrimitive(definition)) {
         var value = definition;
@@ -53,6 +57,9 @@ define('model', function(require, exports) {
       }
       if (definition.type == 'json') {
         jsonFields.push(name);
+      } else
+      if (definition.type == 'boolean') {
+        boolFields.push(name);
       }
     });
     //opts term not clear here
@@ -96,7 +103,9 @@ define('model', function(require, exports) {
       return q(this.tableName) + '.' + q(this._mapToDB(field));
     },
     create: function(data) {
+      data = data || {};
       data = filterObject(data, this.fieldNames);
+      //todo: replace missing fields with defaults
       return new this.Record(data);
     },
     insert: function(data) {
@@ -116,6 +125,7 @@ define('model', function(require, exports) {
       var db = database.open();
       return db.exec(built.sql, built.values, opts.returnAffected);
     },
+    //todo: alias this as findOne
     find: function(params, opts) {
       opts = opts || {};
       opts.limit = 1;
@@ -128,8 +138,8 @@ define('model', function(require, exports) {
     findAll: function(params, opts, fn) {
       var args = toArray(arguments);
       fn = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
-      params = args[0] || {};
       opts = args[1] || {};
+      params = args[0] || {};
       var built = new QueryBuilder(this).buildSelect(params, opts);
       var db = database.open();
       var query = db.query(built.sql, built.values, {array: true});
@@ -557,7 +567,8 @@ define('model', function(require, exports) {
     var instances = models.map(function(model) {
       var data = results[model.name] || {};
       data = model.dbToFields ? mapKeys(data, model.dbToFields) : data;
-      reviveFields(data, model.jsonFields);
+      reviveJSONFields(data, model.jsonFields);
+      reviveBooleanFields(data, model.boolFields);
       return new model.Record(data);
     });
     return (instances.length == 1) ? instances[0] : instances;
@@ -616,7 +627,7 @@ define('model', function(require, exports) {
     return '%' + text.toLowerCase().replace(/[^\w]+/g, ' ').trim().replace(/\s+/g, '%') + '%';
   }
 
-  function reviveFields(data, keys) {
+  function reviveJSONFields(data, keys) {
     keys.forEach(function(key) {
       if (typeof data[key] == 'string') {
         try {
@@ -625,6 +636,15 @@ define('model', function(require, exports) {
       }
       data[key] = value || {}; //catch null
     });
+  }
+
+  function reviveBooleanFields(data, keys) {
+    for (var i = 0, len = keys.length; i < len; i++) {
+      var key = keys[i];
+      if (data[key] != null) {
+        data[key] = !!data[key];
+      }
+    }
   }
 
   function error(str) {

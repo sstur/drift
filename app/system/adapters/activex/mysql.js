@@ -359,7 +359,7 @@ define('mysql', function(require, exports) {
     if (type == 'object') {
       var params = [
         'DRIVER={MySQL ODBC 3.51 Driver}',
-        'SERVER=' + (config.server || 'localhost'),
+        'SERVER=' + (config.hostname || config.server || 'localhost'),
         'DATABASE=' + config.database,
         'UID=' + config.username,
         'PWD=' + config.password,
