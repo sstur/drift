@@ -421,11 +421,18 @@
     });
 
     if (debugify && opts.debug) {
-      var old = result, sliced = result.slice(2, -2);
-      result = debugify(sliced.join('\n'), 4).split('\n');
-      result.unshift.apply(result, old.slice(0, 2));
+      var offset = {top: 1, bottom: -1};
+      var old = result, sliced = result.slice(offset.top, offset.bottom);
+      var sourceToTransform = sliced.join('\n');
+      try {
+        result = debugify(sourceToTransform, 4).split('\n');
+      } catch(e) {
+        fs.writeFileSync('./build-debug.log', sourceToTransform);
+        throw new Error('Could not debugify source; see ./build-debug.log');
+      }
+      result.unshift.apply(result, old.slice(0, offset.top));
       result.push("function hErr(error, lineNumber) { if (error == null) throw error; var msg = error.message || error.description; var source = hErr['caller'].toString(); var match = source.match(/^function (\\w+)/) || []; var name = match[1] || ''; name = name ? 'function [' + name + ']' : 'function'; var e = new Error(msg + '\\n' + 'in ' + name + ' @line:{' + lineNumber + '}'); for (var n in error) if (error.hasOwnProperty(n) && n != 'message' && n != 'description') e[n] = error[n]; throw e }");
-      result.push.apply(result, old.slice(-2));
+      result.push.apply(result, old.slice(offset.bottom));
     }
     return result;
   }

@@ -71,11 +71,12 @@ define('mysql', function(require, exports) {
       return this.exec(sql, values, returnAffected);
     },
     exec: function(str, params, returnAffected) {
-      var i, conn = this._conn, sql = buildSQL(str, params);
+      var conn = this._conn, sql = buildSQL(str, params);
       util.log(3, sql, 'mysql');
       try {
-        if (returnAffected) {
-          i = executeSqlAndReturnNumRowsAffected(conn, sql);
+        //todo: this is a workaround until we can remove this feature completely
+        if (returnAffected && typeof executeSqlAndReturnNumRowsAffected !== 'undefined') {
+          var i = executeSqlAndReturnNumRowsAffected(conn, sql);
         } else {
           conn.execute(sql, null, 128);
         }
@@ -83,15 +84,14 @@ define('mysql', function(require, exports) {
         throw new Error('SQL Statement Could not be executed. ' + cleanError(e) + '\r\n' + sql);
       }
       if (returnAffected) {
-        if (String(sql).match(/^INSERT/i)) {
-          sql = 'SELECT LAST_INSERT_ID() AS `val`';
-        } else {
-          return Number.parseInt(i);
+        if (!sql.match(/^INSERT/i)) {
+          if (typeof i === 'undefined') {
+            throw new Error('Cannot determine number of rows affected; method not available.');
+          }
+          return parseInt(i, 10) || null;
         }
-        this.query(sql, function(rec) {
-          i = rec.val
-        });
-        return Number.parseInt(i);
+        var result = this.query('SELECT LAST_INSERT_ID()', [], {array: true}).getOne();
+        return parseInt(result[0], 10) || null;
       }
     },
     close: function() {
