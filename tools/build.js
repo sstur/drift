@@ -427,7 +427,7 @@
       try {
         result = debugify(sourceToTransform, 4).split('\n');
       } catch(e) {
-        fs.writeFileSync('./build-debug.log', sourceToTransform);
+        //fs.writeFileSync('./build-debug.log', sourceToTransform);
         throw new Error('Could not debugify source; see ./build-debug.log');
       }
       result.unshift.apply(result, old.slice(0, offset.top));
