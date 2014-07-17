@@ -45,6 +45,19 @@ var forEach, vartype, isPrimitive, toArray;
     }
   };
 
+  Object.assign = function(target, source) {
+    var to = Object(target);
+    var objectCount = arguments.length;
+    for (var i = 1; i < objectCount; i++) {
+      var from = Object(arguments[i]);
+      var keys = Object.keys(from);
+      for (var j = 0, len = keys.length; j < len; j++) {
+        to[keys[j]] = from[keys[j]];
+      }
+    }
+    return to;
+  };
+
   Object.exists = function(obj, key) {
     return hasOwnProperty.call(obj, key);
   };
@@ -56,10 +69,12 @@ var forEach, vartype, isPrimitive, toArray;
   Object.remove = function(obj, key) {
     var type = Object.vartype(key);
     if (type == 'array') {
-      for (var i = 0; i < key.length; i++)
-        Object.remove(obj, key[i]);
+      var keys = key;
+      for (var i = 0, len = keys.length; i < len; i++) {
+        delete obj[keys[i]];
+      }
     } else
-    if (type == 'string' && Object.exists(obj, key)) {
+    if (type == 'string') {
       delete obj[key];
     }
     return obj;
@@ -83,7 +98,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   Array.prototype.exists = function(el) {
-    return (this.indexOf(el) >= 0);
+    return (this.indexOf(el) !== -1);
   };
 
   Array.toArray = function(obj) {
