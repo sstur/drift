@@ -5,15 +5,17 @@
   //patch some built-in methods
   require('./support/patch');
 
-  var fs = require('fs')
-    , join = require('path').join
-    , Fiber = require('./lib/fiber');
+  var fs = require('fs');
+  var join = require('path').join;
+  var Fiber = require('./lib/fiber');
 
   //framework files beginning with these chars are excluded
   var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
 
   //used in modules and app.mappath
-  var basePath = global.basePath || join(process.argv[1], '..');
+  //todo: differentiate projectPath from driftPath
+  var basePath = global.basePath || process.cwd();
+  console.log('basePath', basePath);
 
   global.platform = 'node';
 
@@ -44,15 +46,23 @@
     });
   };
 
-  //load node adapter modules
-  loadPathSync('node-server/adapters');
+  //load config
   loadPathSync('app/system/config');
   loadPathSync('app/config');
+  //load node adapter modules
+  //todo: use serverPath
+  loadPathSync('tools/node-server/adapters');
 
   //load framework modules
+  loadPathSync('app/system/init');
   loadPathSync('app/system/lib');
   loadPathSync('app/helpers');
+  loadPathSync('app/models');
+  loadPathSync('app/init');
+  loadPathSync('app/lib');
+  loadPathSync('app/tests');
   loadPathSync('app/controllers');
+  loadPathSync('app/system/test');
 
   //all modules loaded
   app.emit('init', app.require);
@@ -101,11 +111,16 @@
   //helper for loading framework files
   function loadPathSync(dir, callback) {
     var path = join(basePath, dir);
-    var files = fs.readdirSync(path);
+    try {
+      var files = fs.readdirSync(path);
+    } catch(e) {
+      console.log('not found', path);
+      return;
+    }
     files.forEach(function(file) {
       if (file.charAt(0) in EXCLUDE_FILES) return;
-      var fullpath = join(path, file)
-        , stat = fs.statSync(fullpath);
+      var fullpath = join(path, file);
+      var stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
         loadPathSync(join(dir, file));
       } else

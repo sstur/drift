@@ -1,13 +1,13 @@
+file-based session store:
+  5324e71223dc1548ecaea108.json (first 8 is seconds in hex) [cfm]
+  2012-10-19/13a76ac2bcc019dce0e054b26485d8f9.json
 config.js to get version from package.json on build
 move db-init and devtools (from sendfleet, wfm, cfm)
 move compile-views
 
-Ignore or throw? when modelInstance.update({some_non_exist: 'foo'})
+Ignore or throw? modelInstance.update({some_non_exist: 'foo'})
 should not throw:
   inspect({connection: new ActiveXObject('ADODB.Connection')})
-
-DRIVER={MySQL ODBC 3.51 Driver};SERVER=localhost;DATABASE=database;UID=user;PWD=password;CHARSET=UTF8
--> {server: 'localhost', database: 'database', username: 'username', password: 'password'}
 
 req.doAfter() or app.queueImmediate()
 
@@ -16,7 +16,7 @@ app.route('/users/:id[int:positive]')
 app.route('/users/:id=int[0,]')
  - or -
 custom defined param filters:
-  {int: /\d+/, hex: /[0-9A-Za-z]+/}
+  {int: /^\d+$/, hex: /^[0-9A-Za-z]+$/}
 
 
 //implement OR
@@ -42,26 +42,19 @@ req._super._read(bytes) no greater than 256kb at a time
 Uploads during which client disconnects should emit a 'cancel' event and handle gracefully
 bug: specifying content-length still triggers transfer-encoding: chunked
 
-watch.js starts node-watch/main.js
-path to app.asp should be in build-conf.json
-change req.url('rawPath')
+`drift watch` starts node-watch/main.js
 
-app.on('init') for use:
+app.on('init') used for:
   patching app (app.model)
   patching modules (util.customFn = fn)
   asp/v8cgi adapters
 
 Consistency:
-  isAjax fixes
   Revisit http-client
-  get/set funcs should return {string} or {object} consistently
 
 SMTP SSL
-Session file store (2012-10-19/13a76ac2bcc019dce0e054b26485d8f9.json)
-
-req.getRemoteAddr should be configurable to use header
 apache app.data
-adapter request should have readRawBody() so parseReqBody can be overridden to handle XML
+allow parseReqBody to handle custom format like XML (adapterRequest.readRawBody()?)
 Support uploads with Transfer-Encoding: chunked
  (If request includes Content-Length or Transfer-Encoding, then it must contain Content-Type field)
 

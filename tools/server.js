@@ -32,12 +32,12 @@
     var utils = require('./node-server/support/utils');
     var SyncServer = require('./node-server');
 
-    var server = http.createServer(SyncServer.requestHandler);
+    var port = 8080;
+    var server = http.createServer();
 
-    server.listen(8080, function() {
-      var url = 'http://localhost:8080/';
+    server.on('listening', function() {
+      var url = 'http://localhost:' + port + '/';
       console.log('Server running at ' + url);
-
       utils.handleKeypress(process.stdin, function(key) {
         if (key.ctrl && key.name == 'l') {
           console.log('Launching ' + url);
@@ -45,8 +45,20 @@
         }
       });
       console.log('Press Ctrl+L to launch in browser');
-
     });
+
+    server.on('request', SyncServer.requestHandler);
+
+    server.on('error', function(e) {
+      if (e.code === 'EADDRINUSE') {
+        port++;
+        server.listen(port);
+      } else {
+        throw e;
+      }
+    });
+
+    server.listen(port);
   }
 
 })();

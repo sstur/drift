@@ -1,4 +1,7 @@
 {
+  "target": "build/app",
+  "errorHandler": "build/err",
+  "compileViews": false,
   "appendLines": [
     "<script runat=\"server\" language=\"vbscript\">",
     "function executeSqlAndReturnNumRowsAffected(connection, sql)",
@@ -10,6 +13,6 @@
   ],
   "action:after": {
     "type": "exec",
-    "command": "cp build/*.* deploy/build/"
+    "command": "if [ -d ./deploy/build ]; then cp build/*.* deploy/build/; fi"
   }
 }
