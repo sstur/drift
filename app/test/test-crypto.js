@@ -5,6 +5,10 @@ app.on('ready', function(require) {
   var crypto = require('crypto');
   var expect = require('expect');
 
+  if (crypto.nativeImplementation) {
+    return;
+  }
+
   var hash, result, key, keyBuffer;
 
   app.addTestSuite('crypto', {

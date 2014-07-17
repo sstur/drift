@@ -1,16 +1,21 @@
-/*global app, define */
+/*global app, define, Buffer */
 app.on('ready', function(require) {
   "use strict";
 
-  var NATIVE = /\[(native code)\]/;
-  if (String(Buffer).match(NATIVE)) {
+  var buffer = require('buffer');
+  if (buffer.nativeImplementation) {
     return;
   }
 
   var expect = require('expect');
-  var undefined;
 
   app.addTestSuite('buffer', {
+
+    'Buffer': function(it) {
+      it('should be a global', function () {
+        expect(buffer.Buffer).to.be(Buffer);
+      });
+    },
 
     '_base64': function(it) {
       it('should base64 encode', function () {

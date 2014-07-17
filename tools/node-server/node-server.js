@@ -15,7 +15,6 @@
   //used in modules and app.mappath
   //todo: differentiate projectPath from driftPath
   var basePath = global.basePath || process.cwd();
-  console.log('basePath', basePath);
 
   global.platform = 'node';
 
@@ -60,7 +59,7 @@
   loadPathSync('app/models');
   loadPathSync('app/init');
   loadPathSync('app/lib');
-  loadPathSync('app/tests');
+  loadPathSync('app/test');
   loadPathSync('app/controllers');
   loadPathSync('app/system/test');
 
@@ -72,8 +71,8 @@
   var syncHandler = function(http) {
     var Request = app.require('adapter-request');
     var Response = app.require('adapter-response');
-    var req = new Request(http.req)
-      , res = new Response(http.res);
+    var req = new Request(http.req);
+    var res = new Response(http.res);
     sleep(1); //for debugging
     app.route(req, res);
     throw new Error('Router returned without handling request.');
@@ -94,8 +93,8 @@
     res.req = req;
     //attempt to serve static file
     res.tryStaticPath('assets/', function() {
-      console.log('fibers created: ' + Fiber.fibersCreated);
       var fiber = Fiber(syncHandler);
+      console.log('fiber count: ' + Fiber.fibersCreated);
       fiber.onError = res.sendError.bind(res);
       fiber.run({req: req, res: res});
     });

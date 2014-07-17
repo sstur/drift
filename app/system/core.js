@@ -210,19 +210,21 @@ var app, define;
     }
   }
 
-  function routeRequest(_req, _res) {
+  function routeRequest(adapterRequest, adapterResponse) {
     var util = require('util');
     var Router = require('router');
     var Request = require('request');
     var Response = require('response');
-    var req = new Request(_req);
-    var res = new Response(_res);
+    var req = new Request(adapterRequest);
+    var res = new Response(adapterResponse);
     //cross-reference request and response
     req.res = res;
     res.req = req;
     req.__init = Date.now();
     app.emit('request', req, res);
-    router = new Router(routes);
+    if (!router) {
+      router = new Router(routes);
+    }
     var method = req.method();
     //get raw (encoded) path
     var path = req.url('rawPath');

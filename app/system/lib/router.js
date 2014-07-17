@@ -49,11 +49,11 @@ define('router', function(require, exports, module) {
     };
     this.emit('pre-route', routeData);
     forEach(this._routes, function(i, item) {
-      if (item.method && item.method != method) {
+      if (item.method && item.method !== method) {
         return true; //continue
       }
-      if (typeof item.route == 'string') {
-        var matches = (item.route == url) ? [] : null;
+      if (typeof item.route === 'string') {
+        var matches = (item.route === url) ? [] : null;
       } else {
         matches = item.route.exec(url);
       }

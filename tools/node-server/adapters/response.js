@@ -14,8 +14,8 @@ app.define('adapter-response', function(require, exports, module) {
     writeHead: function(statusCode, statusReason, headers) {
       this._super.writeHead(statusCode, statusReason || '', headers);
     },
-    write: function(chunk) {
-      this._super.write(Buffer.isBuffer(chunk) ? chunk : new Buffer(chunk));
+    write: function(data) {
+      this._super.write(Buffer.isBuffer(data) ? data : new Buffer(data));
     },
     end: function() {
       this._super.end();
