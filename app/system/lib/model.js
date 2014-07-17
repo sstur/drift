@@ -4,6 +4,7 @@
  * Todo:
  *   dissallow returnAffected (it's unreliable in some cases)
  *   alias find -> findOne
+ *   allow to export schema to JSON
  */
 /*global app, define */
 define('model', function(require, exports) {
@@ -165,7 +166,7 @@ define('model', function(require, exports) {
       var model = this;
       var db = database.open();
       if (opts.drop) {
-        db.exec('DROP TABLE IF EXISTS ' + q(model.tableName));
+        this.dropTable();
       }
       var fieldDefs = [];
       forEach(model.fields, function(name, def) {

@@ -8,7 +8,6 @@ app.on('ready', function(require) {
   var fs = require('fs');
   var expect = require('expect');
 
-  var undefined = void 0;
   var dataPath = app.cfg('data_dir') || 'data/';
   //create a text blob that's > 1kb to ensure there's multiple chunks
   var textBlob = [];
