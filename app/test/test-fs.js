@@ -13,7 +13,10 @@ app.on('ready', function(require) {
   var dataPath = app.cfg('data_dir') || 'data/';
   //create a text blob that's > 1kb to ensure there's multiple chunks
   var textBlob = [];
-  for (var i = 0; i < 500; i++) textBlob.push(i);
+  var textBlobMax = 30;
+  for (var i = 0; i <= textBlobMax; i++) {
+    textBlob.push(i);
+  }
   textBlob = textBlob.join('|');
 
   app.addTestSuite('fs', {
@@ -142,10 +145,10 @@ app.on('ready', function(require) {
       });
       it('should append chunks', function() {
         var writeStream = fs.createWriteStream(file);
-        for (var i = 0; i < 499; i++) {
+        for (var i = 0; i < textBlobMax; i++) {
           writeStream.write(i + '|');
         }
-        writeStream.write(new Buffer('499'));
+        writeStream.write(new Buffer(textBlobMax.toString()));
         writeStream.end();
         var data = fs.readTextFile(file);
         expect(data).to.be('ΩΩ' + textBlob);

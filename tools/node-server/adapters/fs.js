@@ -160,22 +160,22 @@ adapter.define('fs', function(require, fs) {
 
 
 
-  fs.createReadStream = function(file, opts) {
-    return new FileReadStream(file, opts);
+  fs.createReadStream = function(path, opts) {
+    return new FileReadStream(path, opts);
   };
 
-  fs.createWriteStream = function(file, opts) {
+  fs.createWriteStream = function(path, opts) {
     opts = opts || {};
     //default is to append
     opts.append = (opts.append !== false);
     //overwrite option will override append
     if (opts.overwrite === true) opts.append = false;
-    return new FileWriteStream(file, opts);
+    return new FileWriteStream(path, opts);
   };
 
 
-  function FileReadStream(file, opts) {
-    this.file = file;
+  function FileReadStream(path, opts) {
+    this.path = path;
     opts = opts || {};
     //todo: do we care about chunkSize?
     //opts.chunkSize = opts.chunkSize || 1024;
@@ -193,7 +193,7 @@ adapter.define('fs', function(require, fs) {
       return this._bytesTotal;
     },
     init_: function(callback) {
-      var path = app.mappath(this.file);
+      var path = app.mappath(this.path);
       this._bytesRead = 0;
       _fs.stat(path, function(err, stat) {
         if (err) return callback(err);
@@ -202,7 +202,7 @@ adapter.define('fs', function(require, fs) {
       }.bind(this));
     },
     read_: function(callback) {
-      var path = app.mappath(this.file);
+      var path = app.mappath(this.path);
       var opts = {encoding: this.opts.encoding};
       var self = this;
       var stream = _fs.createReadStream(path, opts);
@@ -225,10 +225,42 @@ adapter.define('fs', function(require, fs) {
     },
     readAll: function() {
       if (this.opts.encoding) {
-        return fs.readTextFile(this.file, this.opts.encoding);
+        return fs.readTextFile(this.path, this.opts.encoding);
       } else {
-        return fs.readFile(this.file);
+        return fs.readFile(this.path);
       }
+    }
+  });
+
+
+  function FileWriteStream(path, opts) {
+    this.path = path;
+    this.opts = opts || {};
+  }
+  fs.FileWriteStream = FileWriteStream;
+
+  util.extend(FileWriteStream.prototype, {
+    setEncoding: function(enc) {
+      this.opts.encoding = enc;
+    },
+    write_: function(data, enc, callback) {
+      if (this._finished) {
+        callback();
+      } else
+      if (this._stream) {
+        this._stream.write(data, enc, callback);
+      } else {
+        openWriteStream(mappath(this.path), this.opts, function(err, stream) {
+          if (err) return callback(err);
+          this._stream = stream;
+          this._stream.write(data, enc, callback);
+        }.bind(this));
+      }
+    },
+    end_: function(callback) {
+      if (this._finished) return;
+      this._finished = true;
+      this._stream.end(callback);
     }
   });
 
@@ -242,6 +274,26 @@ adapter.define('fs', function(require, fs) {
       //todo: unlink?
       _fs.rmdir(path, callback);
     }
+  }
+
+  function openWriteStream(path, opts, callback) {
+    var flags = (opts.append) ? 'r+' : 'w';
+    var encoding = opts.encoding || 'utf8';
+    var stream = _fs.createWriteStream(path, {flags: flags, encoding: encoding});
+    stream.on('error', function(err) {
+      if (err.code === 'ENOENT') {
+        console.log('could not open write stream; ENOENT;', path);
+      }
+      //if trying to append file, but it doesn't exist, create it
+      if (opts.append && err.code === 'ENOENT') {
+        openWriteStream(path, {encoding: encoding}, callback);
+      } else {
+        callback(err);
+      }
+    });
+    stream.on('open', function() {
+      callback(null, stream);
+    });
   }
 
   function writeFile(path, data, opts, callback) {
