@@ -1,3 +1,6 @@
+/**
+ * todo: optionally, include stack in http response
+ */
 /*global app, define */
 define('test-runner', function(require, exports, module) {
   "use strict";
@@ -67,7 +70,7 @@ define('test-runner', function(require, exports, module) {
       } else {
         var specDesc = (suite.specDesc) ? '<span class="spec">it ' + htmlEnc(suite.specDesc) + '</span>\n' : '';
         var error = suite.error;
-        var message = (error != null && ('message' in error)) ? error.message : error;
+        var message = (!isPrimitive(error) && ('message' in error)) ? error.message : error;
         this.writeLine('<span class="fail">✖ FAIL ‹‹‹ </span><span class="name">' + htmlEnc(testCaseName) + '</span>\n' + specDesc + '<span class="message">' + htmlEnc(message) + '</span>');
       }
     },
@@ -129,6 +132,11 @@ define('test-runner', function(require, exports, module) {
               testCase.call(suite, it);
               suite.afterEach();
             } catch(e) {
+              //todo: should this be in response instead?
+              if (e instanceof Error && e.stack) {
+                console.log('Test threw:');
+                console.log(e.stack);
+              }
               suite.error = e;
             }
           }

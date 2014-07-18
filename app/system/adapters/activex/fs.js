@@ -2,6 +2,7 @@
  * todo: why pathLib.normalize(dir)
  * todo: removeDir(path, {recursive: true})
  * todo: moveDir
+ * todo: throw ENOTEMPTY, rmdir 'path/to/file'
  */
 /*global app, define */
 define('fs', function(require, fs) {
@@ -22,11 +23,8 @@ define('fs', function(require, fs) {
   function isDirectory(path) {
     try {
       var stat = fs.stat(path);
-      if (stat.type == 'directory') {
-        return true;
-      }
     } catch(e) {}
-    return false;
+    return (stat && stat.type === 'directory') ? true : false;
   }
 
   fs.moveFile = function(file, dest) {
@@ -118,18 +116,18 @@ define('fs', function(require, fs) {
 
   /**
    * Walks directory, depth-first, calling fn for each subdirectory and
-   * file and passing the "prefix" that can be appended to path to get
+   * file and passing the "prefix" that can be appended to src to get
    * the child's path.
    */
-  fs.walk = function(path, fn) {
-    var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
+  fs.walk = function(src, fn) {
+    var fso = (src && typeof src == 'object') ? src : getFileOrDir(src);
     walkChildren(fso, function walker(child, prefix) {
-      var stat = statFSO(child);
+      var info = statFSO(child);
       prefix = prefix || '';
-      if (stat.type == 'directory') {
-        walkChildren(child, walker, prefix + stat.name + '/');
+      if (info.type == 'directory') {
+        walkChildren(child, walker, prefix + info.name + '/');
       }
-      fn(stat, prefix);
+      fn(info, prefix);
     });
   };
 
@@ -138,22 +136,22 @@ define('fs', function(require, fs) {
    * directories get a non-zero `size` property and a
    * `children` array containing deep stat of each child.
    *
-   * @param {string|FSO} path
+   * @param {string|FSO} src
    * @param {boolean} [deep]
    * @returns {object|null}
    */
-  fs.stat = function(path, deep) {
-    var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
-    var stat = statFSO(fso);
-    if (deep && stat && stat.type == 'directory') {
-      stat.children = [];
+  fs.stat = function(src, deep) {
+    var fso = (src && typeof src == 'object') ? src : getFileOrDir(src);
+    var info = statFSO(fso);
+    if (deep && info && info.type == 'directory') {
+      info.children = [];
       walkChildren(fso, function(child) {
         var childStat = fs.stat(child, deep);
-        stat.size += childStat.size;
-        stat.children.push(childStat);
+        info.size += childStat.size;
+        info.children.push(childStat);
       });
     }
-    return stat;
+    return info;
   };
 
 
@@ -310,22 +308,22 @@ define('fs', function(require, fs) {
   });
 
   /**
-   * Creates a 'stat' object from a file-system object.
+   * Creates an info object from an FSO file/directory.
    */
   function statFSO(fso) {
-    var stat = {};
-    stat.name = fso.name;
-    stat.dateCreated = new Date(fso.dateCreated);
-    stat.dateLastAccessed = new Date(fso.dateLastAccessed);
-    stat.dateLastModified = new Date(fso.dateLastModified);
+    var info = {};
+    info.name = fso.name;
+    info.dateCreated = new Date(fso.dateCreated);
+    info.dateLastAccessed = new Date(fso.dateLastAccessed);
+    info.dateLastModified = new Date(fso.dateLastModified);
     if (String(fso.type).toLowerCase() == 'file folder') {
-      stat.type = 'directory';
-      stat.size = 0;
+      info.type = 'directory';
+      info.size = 0;
     } else {
-      stat.type = 'file';
-      stat.size = fso.size;
+      info.type = 'file';
+      info.size = fso.size;
     }
-    return stat;
+    return info;
   }
 
   /**

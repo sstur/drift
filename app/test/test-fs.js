@@ -1,5 +1,7 @@
 /*!
- * todo: writeTextFile {overwrite: true}
+ * todo:
+ *   test fs.writeTextFile with {overwrite: true}
+ *   test fs.createDir where dir already exists (throws EEXIST)
  */
 /*global app, define */
 app.on('ready', function(require) {
@@ -17,14 +19,19 @@ app.on('ready', function(require) {
   app.addTestSuite('fs', {
     //noCatch: true,
     'createDir': function(it) {
+      fs.removeDirIfExists(dataPath + 'test', true);
       it('should create in existing', function() {
         var path = dataPath + 'test';
-        fs.removeDirIfExists(path);
         fs.createDir(path);
         var stat = fs.stat(path);
         expect(stat.type).to.be('directory');
       });
-      fs.removeDirIfExists(dataPath + 'test2');
+      fs.removeDirIfExists(dataPath + 'test2', true);
+      it('should not have directory after deletion', function() {
+        expect(function() {
+          fs.stat(dataPath + 'test2');
+        }).to.throwError(/ENOENT/);
+      });
       it('should throw if parent not exist', function() {
         var path = dataPath + 'test2/test3';
         expect(function() {
@@ -43,10 +50,11 @@ app.on('ready', function(require) {
         var path = dataPath + 'test';
         fs.removeDir(path);
       });
+      //todo: should throw on removeDir with contents
       it('should remove with contents', function() {
         var path = dataPath + 'test2/test3';
         fs.writeTextToFile(path + '/file.txt', 'abc');
-        fs.removeDir(path);
+        fs.removeDir(path, true);
       });
       it('should be gone', function() {
         var path = dataPath + 'test';
@@ -112,7 +120,7 @@ app.on('ready', function(require) {
           fs.createReadStream(file);
         }).to.throwError(/ENOENT/);
       });
-      fs.removeDir(path);
+      fs.removeDir(path, true);
       it('should throw if folder not exists', function() {
         expect(function() {
           fs.createReadStream(file);
@@ -161,7 +169,7 @@ app.on('ready', function(require) {
       it('should rename file', function() {
         fs.moveFile(dataPath + 'test/file.txt', dataPath + 'test/file2.txt');
       });
-      fs.removeDir(dataPath + 'test2');
+      fs.removeDir(dataPath + 'test2', true);
       fs.createDir(dataPath + 'test2');
       it('should move file if destination is directory', function() {
         fs.moveFile(dataPath + 'test/file2.txt', dataPath + 'test2');
@@ -184,8 +192,8 @@ app.on('ready', function(require) {
           fs.moveFile(dataPath + 'test/file.txt', dataPath + 'test3/file');
         }.bind(this)).to.throwError(/ENOENT/);
       });
-      fs.removeDir(dataPath + 'test');
-      fs.removeDir(dataPath + 'test2');
+      fs.removeDir(dataPath + 'test', true);
+      fs.removeDir(dataPath + 'test2', true);
     },
     'copyFile': function(it) {
     },

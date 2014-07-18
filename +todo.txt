@@ -1,3 +1,4 @@
+fs.stat -> fs.getInfo
 file-based session store:
   5324e71223dc1548ecaea108.json (first 8 is seconds in hex) [cfm]
   2012-10-19/13a76ac2bcc019dce0e054b26485d8f9.json

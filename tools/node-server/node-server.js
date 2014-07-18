@@ -13,7 +13,7 @@
   var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
 
   //used in modules and app.mappath
-  //todo: differentiate projectPath from driftPath
+  //todo: differentiate projectPath from fxPath from modulePath
   var basePath = global.basePath || process.cwd();
 
   global.platform = 'node';

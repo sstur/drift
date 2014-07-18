@@ -55,6 +55,7 @@
   };
 
   //log/report exception (http 50x)
+  //todo: don't send full file paths in response
   res.sendError = function(err) {
     var req = this.req, res = this;
     console.log(err.stack || err.toString());

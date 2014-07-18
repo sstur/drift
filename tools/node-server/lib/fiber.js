@@ -3,7 +3,9 @@
   "use strict";
 
   var Fiber = require('fibers');
+  var _slice = Array.prototype.slice;
 
+  //todo: skip this if some flag is set on app/adapter (from a command-line flag)
   //patch fiber.run() to send errors to fiber.onError()
   var _run = Fiber.prototype.run;
   Fiber.prototype.run = function() {
@@ -33,15 +35,17 @@
    *
    */
   Fiber.fiberize = function(fn, obj /* arguments */) {
-    var dynamicBinding = (arguments.length == 1);
+    var dynamicBinding = (arguments.length === 1);
+    var arity = fn.length;
+    var bindArgs = _slice.call(arguments, 2);
 
-    var bindArgs = Array.prototype.slice.call(arguments, 2);
     return function() {
-      var args = Array.prototype.slice.call(arguments)
-        , fiber = Fiber.current
-        , err, result
-        , yielded = false;
+      var fiber = Fiber.current;
+      var err;
+      var result;
+      var yielded = false;
 
+      var args = _slice.call(arguments);
       args = bindArgs.concat(args);
 
       // virtual callback
@@ -55,7 +59,7 @@
         } else {
           // Handle situation when callback returns many values
           if (arguments.length > 2) {
-            callbackResult = Array.prototype.slice.call(arguments, 1);
+            callbackResult = _slice.call(arguments, 1);
           }
 
           // Assign callback result
@@ -66,8 +70,12 @@
         if (yielded) fiber.run();
       }
 
-      // push it as last argument
-      args.push(syncCallback);
+      // in case of optional arguments, make sure the callback is at the index expected
+      if (args.length + 1 < arity) {
+        args[arity - 1] = syncCallback;
+      } else {
+        args.push(syncCallback);
+      }
 
       // call async function
       fn.apply(dynamicBinding ? this : obj, args);
