@@ -4,6 +4,7 @@
   "description": "Node module to build and serve drift projects",
   "main": "node-server.js",
   "dependencies": {
+    "cpr": "^0.3.2",
     "fibers": "~0.6.9",
     "formidable": "~1.0.11",
     "mkdirp": "^0.5.0",

@@ -1,12 +1,13 @@
 /*global adapter, app, require */
-var fs = require('fs');
+var _fs = require('fs');
 var mkdirp = require('mkdirp');
 var rimraf = require('rimraf'); //recursive rmdir
 
-adapter.define('fs', function(require, exports) {
+adapter.define('fs', function(require, fs) {
   "use strict";
 
   var path = require('path');
+  var util = require('util');
 
   var join = path.join;
   var basename = path.basename;
@@ -14,37 +15,37 @@ adapter.define('fs', function(require, exports) {
   //convenient access to mappath
   var mappath = app.mappath;
 
-  exports.isFile_ = function(path, callback) {
+  fs.isFile_ = function(path, callback) {
     path = mappath(path);
-    fs.stat(path, function(err, stat) {
+    _fs.stat(path, function(err, stat) {
       callback(null, !err && stat.isFile());
     });
   };
 
-  exports.isDir_ = function(path, callback) {
+  fs.isDir_ = function(path, callback) {
     path = mappath(path);
-    fs.stat(path, function(err, stat) {
+    _fs.stat(path, function(err, stat) {
       callback(null, !err && stat.isDirectory());
     });
   };
 
-  exports.readFile_ = function(path, callback) {
+  fs.readFile_ = function(path, callback) {
     path = mappath(path);
-    fs.readFile(path, callback);
+    _fs.readFile(path, callback);
   };
 
-  exports.readTextFile_ = function(path, enc, callback) {
+  fs.readTextFile_ = function(path, enc, callback) {
     path = mappath(path);
     enc = enc || 'utf8';
-    fs.readFile(path, enc, callback);
+    _fs.readFile(path, enc, callback);
   };
 
-  exports.writeFile_ = function(path, data, opts, callback) {
+  fs.writeFile_ = function(path, data, opts, callback) {
     path = mappath(path);
     writeFile(path, data, opts, callback)
   };
 
-  exports.writeTextToFile_ = function(path, text, opts, callback) {
+  fs.writeTextToFile_ = function(path, text, opts, callback) {
     path = mappath(path);
     if (typeof text !== 'string') {
       text = (text == null || typeof text.toString !== 'function') ? Object.prototype.toString.call(text) : text.toString();
@@ -52,15 +53,15 @@ adapter.define('fs', function(require, exports) {
     writeFile(path, text, opts, callback);
   };
 
-  exports.copyFile_ = function(path, dest, callback) {
+  fs.copyFile_ = function(path, dest, callback) {
     //todo: ENOENT error
     path = mappath(path);
     dest = mappath(dest);
-    fs.stat(path, function(err, stat) {
+    _fs.stat(path, function(err, stat) {
       if (err || !stat.isFile()) {
         return callback(err || new Error('Source path is not a file'));
       }
-      fs.stat(dest, function(err, stat) {
+      _fs.stat(dest, function(err, stat) {
         if (err) {
           return callback(err);
         }
@@ -72,34 +73,34 @@ adapter.define('fs', function(require, exports) {
     });
   };
 
-  exports.moveFile_ = function(path, dest, callback) {
+  fs.moveFile_ = function(path, dest, callback) {
     //todo: ENOENT error
     path = mappath(path);
     dest = mappath(dest);
-    fs.stat(path, function(err, stat) {
+    _fs.stat(path, function(err, stat) {
       if (err || !stat.isFile()) {
         return callback(err || new Error('Source path is not a file'));
       }
-      fs.stat(dest, function(err, stat) {
+      _fs.stat(dest, function(err, stat) {
         if (err) {
           return callback(err);
         }
         if (stat.isDirectory()) {
           dest = join(dest, basename(path));
         }
-        fs.rename(path, dest, callback);
+        _fs.rename(path, dest, callback);
       });
     });
   };
 
-  exports.deleteFile_ = function(path, callback) {
+  fs.deleteFile_ = function(path, callback) {
     path = mappath(path);
-    fs.unlink(path, callback);
+    _fs.unlink(path, callback);
   };
 
-  exports.deleteFileIfExists_ = function(path, callback) {
+  fs.deleteFileIfExists_ = function(path, callback) {
     path = mappath(path);
-    fs.unlink(path, function(err) {
+    _fs.unlink(path, function(err) {
       var wasRemoved = !!err;
       if (err && err.code === 'ENOENT') {
         err = null;
@@ -108,21 +109,21 @@ adapter.define('fs', function(require, exports) {
     });
   };
 
-  exports.createDir_ = function(path, deep, callback) {
+  fs.createDir_ = function(path, deep, callback) {
     path = mappath(path);
     if (deep) {
       mkdirp(path, callback);
     } else {
-      fs.mkdir(path, callback);
+      _fs.mkdir(path, callback);
     }
   };
 
-  exports.removeDir_ = function(path, deep, callback) {
+  fs.removeDir_ = function(path, deep, callback) {
     path = mappath(path);
     rmdir(path, deep, callback);
   };
 
-  exports.removeDirIfExists_ = function(path, deep, callback) {
+  fs.removeDirIfExists_ = function(path, deep, callback) {
     path = mappath(path);
     rmdir(path, deep, function(err) {
       var wasRemoved = !!err;
@@ -136,9 +137,9 @@ adapter.define('fs', function(require, exports) {
   //todo: readdir
 
   //todo: we should treat symlinks as their target
-  exports.stat_ = function(src, deep, callback) {
+  fs.stat_ = function(src, deep, callback) {
     var fullPath = mappath(src);
-    fs.stat(src, function(err, stats) {
+    _fs.stat(src, function(err, stats) {
       if (err) return callback(err);
       var isDirectory = stats.isDirectory();
       if (!isDirectory && !stats.isFile()) {
@@ -157,9 +158,79 @@ adapter.define('fs', function(require, exports) {
 
   //todo: walk
 
-  //todo: createReadStream
 
-  //todo: createWriteStream
+
+  fs.createReadStream = function(file, opts) {
+    return new FileReadStream(file, opts);
+  };
+
+  fs.createWriteStream = function(file, opts) {
+    opts = opts || {};
+    //default is to append
+    opts.append = (opts.append !== false);
+    //overwrite option will override append
+    if (opts.overwrite === true) opts.append = false;
+    return new FileWriteStream(file, opts);
+  };
+
+
+  function FileReadStream(file, opts) {
+    this.file = file;
+    opts = opts || {};
+    //todo: do we care about chunkSize?
+    //opts.chunkSize = opts.chunkSize || 1024;
+    this.opts = opts;
+    this.init();
+  }
+  fs.FileReadStream = FileReadStream;
+  app.eventify(FileReadStream.prototype);
+
+  util.extend(FileReadStream.prototype, {
+    setEncoding: function(enc) {
+      this.opts.encoding = enc;
+    },
+    size: function() {
+      return this._bytesTotal;
+    },
+    init_: function(callback) {
+      var path = app.mappath(this.file);
+      this._bytesRead = 0;
+      _fs.stat(path, function(err, stat) {
+        if (err) return callback(err);
+        this._bytesTotal = stat.size;
+        callback();
+      }.bind(this));
+    },
+    read_: function(callback) {
+      var path = app.mappath(this.file);
+      var opts = {encoding: this.opts.encoding};
+      var self = this;
+      var stream = _fs.createReadStream(path, opts);
+      stream.on('error', callback);
+      stream.on('open', function() {
+        stream.on('readable', drain);
+        stream.on('end', function() {
+          self.emit('end');
+          callback();
+        });
+        drain();
+      });
+      //drain the bytes in the buffer (resets readable flag)
+      var drain = function() {
+        var chunk;
+        while (null !== (chunk = stream.read())) {
+          self.emit('data', chunk);
+        }
+      };
+    },
+    readAll: function() {
+      if (this.opts.encoding) {
+        return fs.readTextFile(this.file, this.opts.encoding);
+      } else {
+        return fs.readFile(this.file);
+      }
+    }
+  });
 
 
 
@@ -169,7 +240,7 @@ adapter.define('fs', function(require, exports) {
       rimraf(path, callback);
     } else {
       //todo: unlink?
-      fs.rmdir(path, callback);
+      _fs.rmdir(path, callback);
     }
   }
 
@@ -177,15 +248,15 @@ adapter.define('fs', function(require, exports) {
     opts = opts || {};
     opts.encoding = opts.encoding || opts.enc || 'utf8';
     if (opts.overwrite) {
-      fs.writeFile(path, data, opts, callback);
+      _fs.writeFile(path, data, opts, callback);
     } else {
-      fs.appendFile(path, data, opts, callback);
+      _fs.appendFile(path, data, opts, callback);
     }
   }
 
   function copyFile(sourcePath, destPath, callback) {
-    var source = fs.createReadStream(sourcePath);
-    var dest = fs.createWriteStream(destPath);
+    var source = _fs.createReadStream(sourcePath);
+    var dest = _fs.createWriteStream(destPath);
     source.on('error', callback);
     source.on('close', function() {
       callback();

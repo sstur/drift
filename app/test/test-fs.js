@@ -104,7 +104,7 @@ app.on('ready', function(require) {
         readStream.on('end', function() {
           chunks = chunks.join('');
         });
-        readStream.read();
+        var result = readStream.read();
         expect(chunks).to.be.a('string');
         expect(chunks).to.be(textBlob);
       });
