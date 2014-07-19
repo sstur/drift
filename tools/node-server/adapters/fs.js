@@ -277,13 +277,10 @@ adapter.define('fs', function(require, fs) {
   }
 
   function openWriteStream(path, opts, callback) {
-    var flags = (opts.append) ? 'r+' : 'w';
+    var flags = (opts.append) ? 'a' : 'w';
     var encoding = opts.encoding || 'utf8';
     var stream = _fs.createWriteStream(path, {flags: flags, encoding: encoding});
     stream.on('error', function(err) {
-      if (err.code === 'ENOENT') {
-        console.log('could not open write stream; ENOENT;', path);
-      }
       //if trying to append file, but it doesn't exist, create it
       if (opts.append && err.code === 'ENOENT') {
         openWriteStream(path, {encoding: encoding}, callback);
