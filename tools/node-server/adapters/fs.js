@@ -15,6 +15,12 @@ adapter.define('fs', function(require, fs) {
   //convenient access to mappath
   var mappath = app.mappath;
 
+  var ERROR_NO = {
+    EXDEV: 52,
+    EISDIR: 28, //illegal operation on a directory
+    EEXIST: 47
+  };
+
   fs.isFile_ = function(path, callback) {
     path = mappath(path);
     _fs.stat(path, function(err, stat) {
@@ -53,42 +59,26 @@ adapter.define('fs', function(require, fs) {
     writeFile(path, text, opts, callback);
   };
 
-  fs.copyFile_ = function(path, dest, callback) {
-    //todo: ENOENT error
-    path = mappath(path);
+  fs.copyFile_ = function(src, dest, callback) {
+    src = mappath(src);
     dest = mappath(dest);
-    _fs.stat(path, function(err, stat) {
-      if (err || !stat.isFile()) {
-        return callback(err || new Error('Source path is not a file'));
-      }
-      _fs.stat(dest, function(err, stat) {
-        if (err) {
-          return callback(err);
-        }
-        if (stat.isDirectory()) {
-          dest = join(dest, basename(path));
-        }
-        copyFile(path, dest, callback);
-      });
+    checkCopyFile(src, dest, function(err, src, dest) {
+      if (err) return callback(err);
+      copyFile(src, dest, callback);
     });
   };
 
-  fs.moveFile_ = function(path, dest, callback) {
-    //todo: ENOENT error
-    path = mappath(path);
+  fs.moveFile_ = function(src, dest, callback) {
+    src = mappath(src);
     dest = mappath(dest);
-    _fs.stat(path, function(err, stat) {
-      if (err || !stat.isFile()) {
-        return callback(err || new Error('Source path is not a file'));
-      }
-      _fs.stat(dest, function(err, stat) {
-        if (err) {
-          return callback(err);
+    checkCopyFile(src, dest, function(err, src, dest) {
+      if (err) return callback(err);
+      _fs.rename(src, dest, function(err) {
+        //tried to rename across devices
+        if (err && err.code === 'EXDEV') {
+          return moveFileSlow(src, dest, callback);
         }
-        if (stat.isDirectory()) {
-          dest = join(dest, basename(path));
-        }
-        _fs.rename(path, dest, callback);
+        callback(err);
       });
     });
   };
@@ -303,14 +293,62 @@ adapter.define('fs', function(require, fs) {
     }
   }
 
-  function copyFile(sourcePath, destPath, callback) {
-    var source = _fs.createReadStream(sourcePath);
+  //make sure src is a file and destination either doesn't exist or is a directory
+  function checkCopyFile(src, dest, callback) {
+    _fs.stat(src, function(err, stat) {
+      if (err) return callback(err);
+      if (!stat.isFile()) {
+        var errCode = stat.isDirectory() ? 'EISDIR' : 'ENOENT';
+        return callback(posixError(errCode, {path: src}));
+      }
+      _fs.stat(dest, function(err, stat) {
+        if (err && err.code !== 'ENOENT') {
+          return callback(err);
+        }
+        if (!err) {
+          //destination exists
+          if (stat.isDirectory()) {
+            dest = join(dest, basename(src));
+          } else {
+            return callback(posixError('EEXIST', {path: dest}));
+          }
+        }
+        callback(null, src, dest);
+      });
+    });
+  }
+
+  function copyFile(srcPath, destPath, callback) {
+    var src = _fs.createReadStream(srcPath);
     var dest = _fs.createWriteStream(destPath);
-    source.on('error', callback);
-    source.on('close', function() {
+    src.on('error', callback);
+    src.on('close', function() {
       callback();
     });
-    source.pipe(dest);
+    src.pipe(dest);
+  }
+
+  function moveFileSlow(srcPath, destPath, callback) {
+    copyFile(srcPath, destPath, function(err) {
+      if (err) {
+        callback(err);
+      } else {
+        _fs.unlink(srcPath, callback);
+      }
+    });
+  }
+
+  function posixError(code, opts) {
+    var message = code;
+    if (opts.path) {
+      message += ', ' + (opts.syscall ? opts.syscall + ' ' : '') + opts.path;
+    }
+    var e = new Error(message);
+    e.code = code;
+    e.errno = ERROR_NO[code];
+    if (opts.path) e.path = opts.path;
+    if (opts.syscall) e.syscall = opts.syscall;
+    return e;
   }
 
 });
