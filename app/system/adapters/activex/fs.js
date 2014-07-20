@@ -1,12 +1,13 @@
 /*!
  * todo:
- *  removeFile, removeDir: consolidate to helper for ifExists
+ *  deleteFile, removeDir: consolidate to helper for ifExists
  *  throw ENOTEMPTY, rmdir 'path/to/file'
  *  removeDir(path, {recursive: true}) [or deep]
  *  moveDir, copyDir
  *  rename fs.stat -> fs.getInfo
  *  rename fs.readdir -> fs.getDirContents
  *  rename dateCreated, dateLastAccessed, dateLastModified (remove date prefix)
+ *  rename deleteFile -> removeFile (add alias)
  *  replace eNoEnt() with new Error('ENOENT') + source transform
  */
 /*global app, define */
@@ -138,20 +139,15 @@ define('fs', function(require, fs) {
    * file and passing `info` object and `prefix` which can be prepended to
    * info.name to get relative path.
    */
-  fs.walk = function(src, fn) {
-    var fso = FSO.getFolder(app.mappath(src));
-    //todo: technically we should do all directories before the first file
-    //  should we stat deep and then walk?
-    walkDeep(fso, fn, '');
+  fs.walk = function(path, fn) {
+    var fso = FSO.getFolder(app.mappath(path));
+    var info = getInfo(fso, true);
+    walkDeep(info, fn, '');
   };
 
   /**
    * Get info for a file/directory. If `deep` then directories get a non-zero
-   * `size` property and a `children` array containing stat of each child.
-   *
-   * @param {string|FSO} path
-   * @param {boolean} [deep]
-   * @returns {object|null}
+   * `size` property and a `children` array.
    */
   fs.stat = function(path, deep) {
     return getInfo(getFileOrDir(path), deep);
@@ -335,7 +331,7 @@ define('fs', function(require, fs) {
   }
 
   /**
-   * This is essentially fs.stat but takes an fso object
+   * This essentially just wraps fso2Info with support for `deep`
    */
   function getInfo(fso, deep) {
     var info = fso2Info(fso);
@@ -363,12 +359,10 @@ define('fs', function(require, fs) {
     };
   }
 
-  function walkDeep(fso, fn, prefix) {
-    var info = fso2Info(fso);
-    if (info.type == 'directory') {
-      var children = getChildren(fso);
-      children.forEach(function(child) {
-        walkDeep(child, fn, prefix + info.name + '/');
+  function walkDeep(info, fn, prefix) {
+    if (info.children) {
+      info.children.forEach(function(childInfo) {
+        walkDeep(childInfo, fn, prefix + info.name + '/');
       });
     }
     fn(info, prefix);

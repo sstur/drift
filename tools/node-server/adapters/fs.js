@@ -130,16 +130,9 @@ adapter.define('fs', function(require, fs) {
   };
 
   //todo: we should treat symlinks as their target
-  fs.stat_ = function(src, deep, callback) {
-    var fullPath = mappath(src);
-    _fs.stat(src, function(err, stat) {
-      if (err) return callback(err);
-      var isDirectory = stat.isDirectory();
-      if (!isDirectory && !stat.isFile()) {
-        return callback(null, null);
-      }
-      callback(null, fileInfo(basename(fullPath), stat));
-    });
+  fs.stat_ = function(path, deep, callback) {
+    var fullPath = mappath(path);
+    getInfo(fullPath, deep, callback);
   };
 
   fs.readdir_ = function(path, callback) {
@@ -154,11 +147,17 @@ adapter.define('fs', function(require, fs) {
    * info.name to get relative path.
    */
   fs.walk_ = function(path, fn, callback) {
-    path = mappath(path);
-    walkDir(path, fn, '', callback);
+    var fullPath = mappath(path);
+    getInfo(fullPath, true, function(err, info) {
+      if (err) return callback(err);
+      if (info.type !== 'directory') {
+        //todo: posix
+        return callback(new Error('Not a directory: ' + path))
+      }
+      walkDeep(info, fn, '');
+      callback();
+    });
   };
-
-
 
   fs.createReadStream = function(path, opts) {
     return new FileReadStream(path, opts);
@@ -274,7 +273,27 @@ adapter.define('fs', function(require, fs) {
     }
   }
 
-  function walkDir(path, fn, prefix, callback) {
+  //todo: what if it's not a file or directory?
+  function getInfo(path, deep, callback) {
+    _fs.stat(path, function(err, stat) {
+      if (err) return callback(err);
+      var info = fileInfo(basename(path), stat);
+      if (deep && info.type === 'directory') {
+        var fullPath = join(path, info.name);
+        getChildrenInfo(fullPath, deep, function(err, children) {
+          info.children = children;
+          children.forEach(function(childInfo) {
+            info.size += childInfo.size;
+          });
+          callback(null, info);
+        });
+      } else {
+        callback(null, info);
+      }
+    });
+  }
+
+  function getChildrenInfo(path, deep, callback) {
     _fs.readdir(path, function(err, names) {
       var files = [];
       var directories = [];
@@ -298,19 +317,24 @@ adapter.define('fs', function(require, fs) {
         });
       });
       list.on('done', function() {
-        var list = new AsyncList(directories);
-        list.forEach(function(name, done) {
-          var pathName = join(path, name);
-          walkDir(pathName, fn, prefix + name + '/', function() {
-            fn(fileInfo(name, results[name]), prefix);
-            done();
+        var children = [];
+        directories.forEach(function(name) {
+          children.push(fileInfo(name, results[name]));
+        });
+        files.forEach(function(name) {
+          children.push(fileInfo(name, results[name]));
+        });
+        if (!deep) return callback(null, children);
+        var list = new AsyncList(children);
+        list.forEach(function(childInfo, done) {
+          if (childInfo.type !== 'directory') return done();
+          var fullPath = join(path, childInfo.name);
+          getChildrenInfo(fullPath, deep, function(err, children) {
+            childInfo.children = children;
           });
         });
         list.on('done', function() {
-          files.forEach(function(name) {
-            fn(fileInfo(name, results[name]), prefix);
-          });
-          callback();
+          callback(null, children);
         });
       });
     });
@@ -326,6 +350,15 @@ adapter.define('fs', function(require, fs) {
       type: isDirectory ? 'directory' : 'file',
       size: isDirectory ? 0 : file.size
     };
+  }
+
+  function walkDeep(info, fn, prefix) {
+    if (info.children) {
+      info.children.forEach(function(childInfo) {
+        walkDeep(childInfo, fn, prefix + info.name + '/');
+      });
+    }
+    fn(info, prefix);
   }
 
   function openWriteStream(path, opts, callback) {
