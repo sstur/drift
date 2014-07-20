@@ -1,8 +1,13 @@
 /*!
- * todo: why pathLib.normalize(dir)
- * todo: removeDir(path, {recursive: true})
- * todo: moveDir
- * todo: throw ENOTEMPTY, rmdir 'path/to/file'
+ * todo:
+ *  removeFile, removeDir: consolidate to helper for ifExists
+ *  throw ENOTEMPTY, rmdir 'path/to/file'
+ *  removeDir(path, {recursive: true}) [or deep]
+ *  moveDir, copyDir
+ *  rename fs.stat -> fs.getInfo
+ *  rename fs.readdir -> fs.getDirContents
+ *  rename dateCreated, dateLastAccessed, dateLastModified (remove date prefix)
+ *  replace eNoEnt() with new Error('ENOENT') + source transform
  */
 /*global app, define */
 define('fs', function(require, fs) {
@@ -20,31 +25,48 @@ define('fs', function(require, fs) {
 
   var FSO = new ActiveXObject('Scripting.FileSystemObject');
 
-  function isDirectory(path) {
+  fs.moveFile = function(src, dest) {
     try {
-      var stat = fs.stat(path);
-    } catch(e) {}
-    return (stat && stat.type === 'directory') ? true : false;
-  }
-
-  fs.moveFile = function(file, dest) {
-    if (isDirectory(dest)) {
-      dest = pathLib.join(dest, pathLib.basename(file));
-    }
-    try {
-      FSO.moveFile(app.mappath(file), app.mappath(dest));
+      var fso = FSO.getFile(app.mappath(src));
     } catch(e) {
       if (isNotFound(e)) {
-        //todo: which one doesn't exist?
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
+        throw util.extend(new Error(eNoEnt(src)), {code: 'ENOENT'});
       }
-      //e.message "File already exists"
-      throw new Error('Error Moving File: ' + file + '\n' + e.message);
+      throw new Error('Error opening file: ' + src + '\n' + e.message);
+    }
+    if (isDirectory(dest)) {
+      dest = pathLib.join(dest, pathLib.basename(src));
+    }
+    try {
+      fso.move(app.mappath(dest));
+    } catch(e) {
+      if (isNotFound(e)) {
+        throw util.extend(new Error(eNoEnt(dest)), {code: 'ENOENT'});
+      }
+      throw new Error('Error moving file ' + src + ' to ' + dest + '\n' + e.message);
     }
   };
 
-  fs.copyFile = function(f, d) {
-    FSO.copyFile(app.mappath(f), app.mappath(d));
+  fs.copyFile = function(src, dest) {
+    try {
+      var fso = FSO.getFile(app.mappath(src));
+    } catch(e) {
+      if (isNotFound(e)) {
+        throw util.extend(new Error(eNoEnt(src)), {code: 'ENOENT'});
+      }
+      throw new Error('Error opening file: ' + src + '\n' + e.message);
+    }
+    if (isDirectory(dest)) {
+      dest = pathLib.join(dest, pathLib.basename(src));
+    }
+    try {
+      fso.copy(app.mappath(dest));
+    } catch(e) {
+      if (isNotFound(e)) {
+        throw util.extend(new Error(eNoEnt(dest)), {code: 'ENOENT'});
+      }
+      throw new Error('Error copying file ' + src + ' to ' + dest + '\n' + e.message);
+    }
   };
 
   fs.deleteFile = function(path, opts) {
@@ -65,7 +87,6 @@ define('fs', function(require, fs) {
   };
 
   fs.createDir = function(path, opts) {
-    path = pathLib.normalize(path);
     opts = opts || {};
     var parent = pathLib.dirname(path);
     try {
@@ -87,7 +108,6 @@ define('fs', function(require, fs) {
   };
 
   fs.removeDir = function(path, opts) {
-    path = pathLib.normalize(path);
     opts = opts || {};
     try {
       FSO.deleteFolder(app.mappath(path), true);
@@ -106,52 +126,35 @@ define('fs', function(require, fs) {
 
 
   fs.readdir = function(path) {
-    var fso = (path && typeof path == 'object') ? path : getFileOrDir(path);
-    var items = [];
-    walkChildren(fso, function(child) {
-      items.push(child.name);
+    var fso = getFileOrDir(path);
+    var children = getChildren(fso);
+    return children.map(function(fso) {
+      return fso.name;
     });
-    return items;
   };
 
   /**
    * Walks directory, depth-first, calling fn for each subdirectory and
-   * file and passing the "prefix" that can be appended to src to get
-   * the child's path.
+   * file and passing `info` object and `prefix` which can be prepended to
+   * info.name to get relative path.
    */
   fs.walk = function(src, fn) {
-    var fso = (src && typeof src == 'object') ? src : getFileOrDir(src);
-    walkChildren(fso, function walker(child, prefix) {
-      var info = statFSO(child);
-      prefix = prefix || '';
-      if (info.type == 'directory') {
-        walkChildren(child, walker, prefix + info.name + '/');
-      }
-      fn(info, prefix);
-    });
+    var fso = FSO.getFolder(app.mappath(src));
+    //todo: technically we should do all directories before the first file
+    //  should we stat deep and then walk?
+    walkDeep(fso, fn, '');
   };
 
   /**
-   * Produce a stat of a file-system object. If `deep` then
-   * directories get a non-zero `size` property and a
-   * `children` array containing deep stat of each child.
+   * Get info for a file/directory. If `deep` then directories get a non-zero
+   * `size` property and a `children` array containing stat of each child.
    *
-   * @param {string|FSO} src
+   * @param {string|FSO} path
    * @param {boolean} [deep]
    * @returns {object|null}
    */
-  fs.stat = function(src, deep) {
-    var fso = (src && typeof src == 'object') ? src : getFileOrDir(src);
-    var info = statFSO(fso);
-    if (deep && info && info.type == 'directory') {
-      info.children = [];
-      walkChildren(fso, function(child) {
-        var childStat = fs.stat(child, deep);
-        info.size += childStat.size;
-        info.children.push(childStat);
-      });
-    }
-    return info;
+  fs.stat = function(path, deep) {
+    return getInfo(getFileOrDir(path), deep);
   };
 
 
@@ -307,44 +310,84 @@ define('fs', function(require, fs) {
     }
   });
 
+
+
+  //todo: check isNotFound
+  function getFileOrDir(path) {
+    path = app.mappath(path);
+    try {
+      return FSO.getFolder(path);
+    } catch(e) {
+      try {
+        return FSO.getFile(path);
+      } catch(e) {
+        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
+      }
+    }
+  }
+
+  function isDirectory(path) {
+    path = app.mappath(path);
+    try {
+      var fso = FSO.getFolder(path);
+    } catch(e) {}
+    return (fso) ? true : false;
+  }
+
   /**
-   * Creates an info object from an FSO file/directory.
+   * This is essentially fs.stat but takes an fso object
    */
-  function statFSO(fso) {
-    var info = {};
-    info.name = fso.name;
-    info.dateCreated = new Date(fso.dateCreated);
-    info.dateLastAccessed = new Date(fso.dateLastAccessed);
-    info.dateLastModified = new Date(fso.dateLastModified);
-    if (String(fso.type).toLowerCase() == 'file folder') {
-      info.type = 'directory';
-      info.size = 0;
-    } else {
-      info.type = 'file';
-      info.size = fso.size;
+  function getInfo(fso, deep) {
+    var info = fso2Info(fso);
+    if (deep && info.type === 'directory') {
+      var children = getChildren(fso);
+      info.children = children.map(function(child) {
+        var childInfo = getInfo(child, deep);
+        info.size += childInfo.size;
+        return childInfo;
+      });
     }
     return info;
   }
 
-  /**
-   * Walk children of a file-system object, folders first,
-   * calling fn on each object with any additional args
-   * passed to walkChildren.
-   */
-  function walkChildren(fso, fn) {
-    var args = toArray(arguments).slice(2);
-    enumerate(fso.subFolders, function(i, item) {
-      fn.apply(null, [item].concat(args));
+  //Create an info object from an FSO object
+  function fso2Info(fso) {
+    var isDirectory = (String(fso.type).toLowerCase() === 'file folder');
+    return {
+      name: fso.name,
+      dateCreated: new Date(fso.dateCreated),
+      dateLastAccessed: new Date(fso.dateLastAccessed),
+      dateLastModified: new Date(fso.dateLastModified),
+      type: isDirectory ? 'directory' : 'file',
+      size: isDirectory ? 0 : fso.size
+    };
+  }
+
+  function walkDeep(fso, fn, prefix) {
+    var info = fso2Info(fso);
+    if (info.type == 'directory') {
+      var children = getChildren(fso);
+      children.forEach(function(child) {
+        walkDeep(child, fn, prefix + info.name + '/');
+      });
+    }
+    fn(info, prefix);
+  }
+
+  //Get children of a file-system object, folders first.
+  function getChildren(fso) {
+    var children = [];
+    enumerate(fso.subFolders, function(i, folder) {
+      children.push(folder);
     });
-    enumerate(fso.files, function(i, item) {
-      fn.apply(null, [item].concat(args));
+    enumerate(fso.files, function(i, file) {
+      children.push(file);
     });
+    return children;
   }
 
 
-  /**
-   * Replace certain extended characters with their Win1252 unicode equivalents
-   */
+  //Replace certain extended characters with their Win1252 unicode equivalents
   function encodeRaw(raw) {
     //encode win1252 chars to multi-byte equivalents
     return raw.replace(EXTENDED, to1252);
@@ -369,21 +412,6 @@ define('fs', function(require, fs) {
       enc = 'UTF-8';
     }
     return enc;
-  }
-
-  /**
-   * todo: check isNotFound
-   */
-  function getFileOrDir(path) {
-    try {
-      return FSO.getFolder(app.mappath(path));
-    } catch(e) {
-      try {
-        return FSO.getFile(app.mappath(path));
-      } catch(e) {
-        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
-      }
-    }
   }
 
   function enumerate(col, fn) {

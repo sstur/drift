@@ -1,3 +1,8 @@
+/*!
+ * todo:
+ *  rename fs.stat -> fs.getInfo
+ *  rename fs.readdir -> fs.getDirContents
+ */
 /*global adapter, app, require */
 var _fs = require('fs');
 var mkdirp = require('mkdirp');
@@ -124,29 +129,34 @@ adapter.define('fs', function(require, fs) {
     });
   };
 
-  //todo: readdir
-
   //todo: we should treat symlinks as their target
   fs.stat_ = function(src, deep, callback) {
     var fullPath = mappath(src);
-    _fs.stat(src, function(err, stats) {
+    _fs.stat(src, function(err, stat) {
       if (err) return callback(err);
-      var isDirectory = stats.isDirectory();
-      if (!isDirectory && !stats.isFile()) {
+      var isDirectory = stat.isDirectory();
+      if (!isDirectory && !stat.isFile()) {
         return callback(null, null);
       }
-      callback(null, {
-        name: path.basename(fullPath),
-        dateCreated: stats.ctime,
-        dateLastAccessed: stats.atime,
-        dateLastModified: stats.mtime,
-        type: isDirectory ? 'directory' : 'file',
-        size: isDirectory ? 0 : stats.size
-      });
+      callback(null, fileInfo(basename(fullPath), stat));
     });
   };
 
-  //todo: walk
+  fs.readdir_ = function(path, callback) {
+    path = mappath(path);
+    _fs.readdir(path, callback);
+  };
+
+
+  /**
+   * Walks directory, depth-first, calling fn for each subdirectory and
+   * file and passing `info` object and `prefix` which can be prepended to
+   * info.name to get relative path.
+   */
+  fs.walk_ = function(path, fn, callback) {
+    path = mappath(path);
+    walkDir(path, fn, '', callback);
+  };
 
 
 
@@ -167,8 +177,6 @@ adapter.define('fs', function(require, fs) {
   function FileReadStream(path, opts) {
     this.path = path;
     opts = opts || {};
-    //todo: do we care about chunkSize?
-    //opts.chunkSize = opts.chunkSize || 1024;
     this.opts = opts;
     this.init();
   }
@@ -266,6 +274,60 @@ adapter.define('fs', function(require, fs) {
     }
   }
 
+  function walkDir(path, fn, prefix, callback) {
+    _fs.readdir(path, function(err, names) {
+      var files = [];
+      var directories = [];
+      var errors = [];
+      var results = {};
+      var list = new AsyncList(names);
+      list.forEach(function(name, done) {
+        var pathName = join(path, name);
+        _fs.stat(pathName, function(err, stat) {
+          if (err) {
+            errors.push(name);
+          } else
+          if (stat.isFile()) {
+            files.push(name);
+          } else
+          if (stat.isDirectory()) {
+            directories.push(name);
+          }
+          results[name] = err || stat;
+          done();
+        });
+      });
+      list.on('done', function() {
+        var list = new AsyncList(directories);
+        list.forEach(function(name, done) {
+          var pathName = join(path, name);
+          walkDir(pathName, fn, prefix + name + '/', function() {
+            fn(fileInfo(name, results[name]), prefix);
+            done();
+          });
+        });
+        list.on('done', function() {
+          files.forEach(function(name) {
+            fn(fileInfo(name, results[name]), prefix);
+          });
+          callback();
+        });
+      });
+    });
+  }
+
+  function fileInfo(name, file) {
+    var isDirectory = file.isDirectory();
+    return {
+      name: name,
+      dateCreated: file.ctime,
+      dateLastAccessed: file.atime,
+      dateLastModified: file.mtime,
+      type: isDirectory ? 'directory' : 'file',
+      size: isDirectory ? 0 : file.size
+    };
+  }
+
   function openWriteStream(path, opts, callback) {
     var flags = (opts.append) ? 'a' : 'w';
     var encoding = opts.encoding || 'utf8';
@@ -350,5 +412,30 @@ adapter.define('fs', function(require, fs) {
     if (opts.syscall) e.syscall = opts.syscall;
     return e;
   }
+
+  /**
+   * very simple abstraction to do a list of things in parallel and emit 'done'
+   * event when all have completed
+   */
+  function AsyncList(list) {
+    this.list = list;
+  }
+  app.eventify(AsyncList.prototype);
+  AsyncList.prototype.forEach = function(fn) {
+    var list = this.list;
+    var doneCount = 0;
+    var done = this.emit.bind(this, 'done');
+    var defer = true; //defer the done event
+    var callback = function() {
+      doneCount += 1;
+      if (doneCount === list.length) {
+        defer ? process.nextTick(done) : done();
+      }
+    }.bind(this);
+    list.forEach(function(item) {
+      fn(item, callback);
+    });
+    defer = false;
+  };
 
 });
