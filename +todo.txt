@@ -10,6 +10,10 @@ config.js to get version from package.json on build
 move db-init and devtools (from sendfleet, wfm, cfm)
 move compile-views
 
+eslint/jshint:
+  catch == and !=
+  catch multiple var declarations
+
 Ignore or throw? modelInstance.update({some_non_exist: 'foo'})
 should not throw:
   inspect({connection: new ActiveXObject('ADODB.Connection')})

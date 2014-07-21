@@ -1,9 +1,0 @@
-/*global app, define */
-app.on('ready', function(require) {
-  "use strict";
-
-  app.route('/', function(req, res) {
-    res.end('Hello World');
-  });
-
-});
