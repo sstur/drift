@@ -3,6 +3,7 @@ app.define('adapter-request', function(require, exports, module) {
   "use strict";
 
   var util = require('util');
+  var BodyParser = require('body-parser');
 
   function Request(req) {
     //node's incoming http request
@@ -23,6 +24,9 @@ app.define('adapter-request', function(require, exports, module) {
     },
     getRemoteAddress: function() {
       return this._super.connection.remoteAddress;
+    },
+    getBodyParser: function(opts) {
+      return new BodyParser(this.getHeaders(), this._super, opts);
     },
     read: function(bytes) {
       throw new Error('Body Parser: nodeRequest.read() not implemented');

@@ -80,15 +80,17 @@ define('request', function(require, exports, module) {
         return body;
       }
     },
-    //todo: merge this with parseReqBody
+    //todo: merge this with parseReqBody?
     _parseBody: function() {
       try {
         //body-parser events will be propagated to this
         var body = (this.method() in BODY_ALLOWED) ? parseReqBody(this) : {};
       } catch(e) {
+        //todo: req.emit('parse-error', e);
         if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
           this.res.die(e);
         } else {
+          //todo: flag on app to throw (resulting in 500) instead?
           this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
         }
       }
@@ -120,7 +122,10 @@ define('request', function(require, exports, module) {
   }
 
   function parseHeaders(input) {
-    if (typeof input != 'string') return input;
+    //headers might already be parsed by _super.getHeaders()
+    if (typeof input !== 'string') {
+      return input;
+    }
     return util.parseHeaders(input);
   }
 
@@ -149,9 +154,15 @@ define('request', function(require, exports, module) {
   function parseReqBody(req) {
     var _super = req._super;
     var opts = {
+      //this allows us to turn on auto save at runtime before calling req.body()
       autoSavePath: ('autoSavePath' in req) ? req.autoSavePath : app.cfg('auto_save_uploads')
     };
-    var parser = new BodyParser(req.headers(), _super.read.bind(_super), opts);
+    //allow adapter request to instantiate its own parser
+    if (_super.getBodyParser) {
+      var parser = _super.getBodyParser(opts);
+    } else {
+      parser = new BodyParser(req.headers(), _super.read.bind(_super), opts);
+    }
     util.propagateEvents(parser, req, 'file upload-progress');
     return parser.parse();
   }
