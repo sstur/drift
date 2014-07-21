@@ -20,7 +20,6 @@ app.on('ready', function(require) {
   textBlob = textBlob.join('|');
 
   app.addTestSuite('fs', {
-    //noCatch: true,
     'createDir': function(it) {
       fs.removeDirIfExists(dataPath + 'test', true);
       it('should create in existing', function() {
