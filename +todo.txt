@@ -1,3 +1,5 @@
+allow config/mysql/connections to be specified in build-conf
+allow build-conf to be named app-conf (for cases where we use drift for db-init, but build for deployment)
 Allow cli flags for `drift serve` that would get added via app.cfg()
   like --debug-tests which could turn on the noCatch flag for the test runner
 
