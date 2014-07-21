@@ -19,7 +19,7 @@ define('body-parser', function(require, exports, module) {
     this.opts = opts || {};
     this._headers = headers;
     this._binaryRead = read;
-    this.bytesRead = 0;
+    this.bytesReceived = 0;
     this.parsed = {}
   }
   module.exports = BodyParser;
@@ -27,11 +27,11 @@ define('body-parser', function(require, exports, module) {
   app.eventify(BodyParser.prototype);
 
   BodyParser.prototype.parse = function() {
-    this.length = parseInt(this._headers['content-length'], 10);
-    if (isNaN(this.length)) {
+    this.bytesExpected = parseInt(this._headers['content-length'], 10);
+    if (isNaN(this.bytesExpected)) {
       throw '411 Length Required';
     } else
-    if (this.length === 0) {
+    if (this.bytesExpected === 0) {
       //nothing to parse
       return this.parsed;
     }
@@ -59,7 +59,7 @@ define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype.processFormBody = function() {
-    if (this.length > MAX_BUFFER_SIZE) {
+    if (this.bytesExpected > MAX_BUFFER_SIZE) {
       throw '413 Request Entity Too Large';
     }
     var body = this._read(MAX_BUFFER_SIZE, 'utf8');
@@ -67,7 +67,7 @@ define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype.processJSONBody = function() {
-    if (this.length > MAX_BUFFER_SIZE) {
+    if (this.bytesExpected > MAX_BUFFER_SIZE) {
       throw '413 Request Entity Too Large';
     }
     var body = this._read(MAX_BUFFER_SIZE, 'utf8');
@@ -158,12 +158,12 @@ define('body-parser', function(require, exports, module) {
     }
   };
 
-  BodyParser.prototype._read = function(bytes, enc) {
-    bytes = bytes || CHUNK_SIZE;
-    var left = this.length - this.bytesRead;
-    var chunk = this._binaryRead(Math.min(bytes, left));
-    this.bytesRead += chunk.length;
-    this.emit('upload-progress', this.bytesRead, this.length);
+  BodyParser.prototype._read = function(chunkSize, enc) {
+    chunkSize = chunkSize || CHUNK_SIZE;
+    var bytesRemaining = this.bytesExpected - this.bytesReceived;
+    var chunk = this._binaryRead(Math.min(chunkSize, bytesRemaining));
+    this.bytesReceived += chunk.length;
+    this.emit('upload-progress', this.bytesReceived, this.bytesExpected);
     return (enc) ? chunk.toString(enc) : chunk;
   };
 

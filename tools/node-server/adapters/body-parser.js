@@ -13,7 +13,7 @@ adapter.define('body-parser', function(require, exports, module) {
   var MAX_BUFFER_SIZE = 1048576;
 
   var join = path.join;
-  var hasOwn = Object.hasOwnProperty;
+  var hasOwnProperty = Object.hasOwnProperty;
 
   function BodyParser(headers, readStream, opts) {
     EventEmitter.call(this);
@@ -145,7 +145,7 @@ adapter.define('body-parser', function(require, exports, module) {
     }
     parser.on('field', function(name, val) {
       var parsed = self.parsed, key = name.toLowerCase();
-      if (hasOwn.call(parsed, key)) {
+      if (hasOwnProperty.call(parsed, key)) {
         parsed[key] += ', ' + qs.unescape(val);
       } else {
         parsed[key] = qs.unescape(val);
@@ -241,7 +241,7 @@ adapter.define('body-parser', function(require, exports, module) {
   util.inherits(File, EventEmitter);
 
   File.prototype.toString = function() {
-    return '' + (this.fileName || '');
+    return (typeof this.fileName === 'string') ? this.fileName : '';
   };
 
   function getGuid() {
