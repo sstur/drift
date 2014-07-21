@@ -1,4 +1,8 @@
+Allow cli flags for `drift serve` that would get added via app.cfg()
+  like --debug-tests which could turn on the noCatch flag for the test runner
+
 fs.stat -> fs.getInfo
+fs.readdir -> fs.getDirContents
 file-based session store:
   5324e71223dc1548ecaea108.json (first 8 is seconds in hex) [cfm]
   2012-10-19/13a76ac2bcc019dce0e054b26485d8f9.json
@@ -67,4 +71,7 @@ implement:
 
 Node:
   remove http patches and replace static-server module
+  replace formidable with dicer
+    busboy is based on dicer
+    multipart is fork of formidable (adding streams2 support)
   Verify file r/w is fiber-safe
