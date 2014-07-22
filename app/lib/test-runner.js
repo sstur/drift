@@ -13,6 +13,8 @@ define('test-runner', function(require, exports, module) {
     if (!(this instanceof TestSuite)) {
       return new TestSuite(cfg);
     }
+    //loadOption will mutate cfg, so we first shallow clone it
+    cfg = util.extend({}, cfg);
     this.loadOption(cfg, 'name', 'unnamed');
     this.loadOption(cfg, 'description', this.name);
     this.loadOption(cfg, 'setup', noop);
