@@ -20,7 +20,9 @@ adapter.define('body-parser', function(require, exports, module) {
     EventEmitter.call(this);
     this.init(src);
     this.headers = headers;
-    this.opts = opts || {};
+    opts = opts || {};
+    this.hashType = (opts.hash === false) ? null : (opts.hash || 'md5');
+    this.opts = opts;
     this.parsed = {};
     //to work properly with formidable
     if (!this.readStream.headers) {
@@ -155,7 +157,7 @@ adapter.define('body-parser', function(require, exports, module) {
   BodyParser.prototype.processMultiPartBody = function() {
     var self = this, readStream = this.readStream, opts = this.opts;
     var parser = new formidable.IncomingForm();
-    parser.hash = 'md5';
+    parser.hash = this.hashType;
     parser.maxFieldsSize = MAX_BUFFER_SIZE;
     if (opts.autoSavePath) {
       parser.uploadDir = global.mappath(opts.autoSavePath);
@@ -191,7 +193,7 @@ adapter.define('body-parser', function(require, exports, module) {
         file.emit('data', data);
       });
       _file.on('end', function() {
-        file.md5 = _file.hash;
+        file.hash = _file.hash;
         if (_file.path && _file.size == 0) {
           fs.unlink(_file.path);
         } else
@@ -216,7 +218,9 @@ adapter.define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.processBinaryBody = function() {
     var self = this, readStream = self.readStream, headers = this.headers, opts = self.opts;
-    var hash = crypto.createHash('md5');
+    if (this.hashType) {
+      var hash = crypto.createHash(this.hashType);
+    }
 
     var contentDisp = util.parseHeaderValue(headers['content-disposition']);
     var fieldName = contentDisp.name || headers['x-name'] || 'file';
@@ -242,12 +246,15 @@ adapter.define('body-parser', function(require, exports, module) {
     }
 
     readStream.on('data', function(data) {
-      hash.update(data);
+      if (hash) hash.update(data);
       file.size += data.length;
       file.emit('data', data);
     });
     readStream.on('end', function() {
-      file.md5 = hash.digest('hex');
+      if (hash) {
+        file.hash = hash.digest('hex');
+        file[self.hashType] = file.hash;
+      }
       file.emit('end');
       self.emit('end');
     });
