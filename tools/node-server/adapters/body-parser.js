@@ -15,15 +15,21 @@ adapter.define('body-parser', function(require, exports, module) {
   var join = path.join;
   var hasOwnProperty = Object.hasOwnProperty;
 
-  function BodyParser(headers, readStream, opts) {
+  //src can be either a readStream or a path to file
+  function BodyParser(headers, src, opts) {
     EventEmitter.call(this);
-    this.readStream = readStream;
+    if (typeof src === 'string') {
+      console.log('parsing req body from file:', src);
+      this.readStream = fs.createReadStream(app.mappath(src));
+    } else {
+      this.readStream = src;
+    }
     this.headers = headers;
     this.opts = opts || {};
     this.parsed = {};
     //to work properly with formidable
-    if (!readStream.headers) {
-      readStream.headers = headers;
+    if (!this.readStream.headers) {
+      this.readStream.headers = headers;
     }
     this.on('end', function() {
       this._finished = true;
@@ -171,6 +177,7 @@ adapter.define('body-parser', function(require, exports, module) {
       self.emit('file', file);
       _file.on('data', function(data) {
         file.size += data.length;
+        console.log('received data chunk for file:', file.name, file.size);
         file.emit('data', data);
       });
       _file.on('end', function() {
@@ -181,6 +188,7 @@ adapter.define('body-parser', function(require, exports, module) {
         if (_file.path) {
           file.fullpath = _file.path;
         }
+        console.log('file finished:', file.name, file.size);
         file.emit('end');
       });
 

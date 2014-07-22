@@ -1,8 +1,12 @@
-/*global app, define */
+/*global app, define, Buffer */
 define('mock-request', function(require, exports, module) {
   "use strict";
+  var fs = require('fs');
   var qs = require('qs');
   var util = require('util');
+  var BodyParser = require('body-parser');
+
+  var dataPath = app.cfg('data_dir') || 'data/';
 
   function Request(data) {
     if (typeof data == 'string') {
@@ -13,8 +17,15 @@ define('mock-request', function(require, exports, module) {
     data.method = data.method || 'GET';
     data.headers = data.headers || {};
     data.remoteAddr = data.remoteAddr || '127.0.0.1';
-    if (data.body) {
-      this.read = createReader(data.body);
+    //body can be path to file or raw data (Buffer)
+    if (typeof data.body === 'string') {
+      this._bodyFile = data.body;
+    } else
+    if (Buffer.isBuffer(data.body)) {
+      var fileName = Math.floor(Math.random() * Math.pow(2, 53)).toString(36);
+      this._bodyFile = dataPath + 'temp/' + fileName;
+      fs.writeFile(this._bodyFile, data.body);
+      //todo: delete file on req end
     }
     this._data = data;
   }
@@ -39,20 +50,13 @@ define('mock-request', function(require, exports, module) {
     getRemoteAddress: function() {
       return this._data.remoteAddr;
     },
-    read: function(bytes) {
-      //todo: read from file-system for testing
-      throw new Error('Could not read ' + bytes + ' bytes from request body');
+    getBodyParser: function(opts) {
+      return new BodyParser(this.getHeaders(), this._bodyFile, opts);
+    },
+    read: function() {
+      throw new Error('Body Parser: request.read() not implemented');
     }
   });
-
-  function createReader(data) {
-    var i = 0;
-    return function(bytes) {
-      var start = i;
-      i += bytes;
-      return data.slice(start, i);
-    };
-  }
 
   module.exports = Request;
 });

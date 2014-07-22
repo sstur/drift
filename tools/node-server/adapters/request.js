@@ -29,8 +29,7 @@ app.define('adapter-request', function(require, exports, module) {
       return new BodyParser(this.getHeaders(), this._super, opts);
     },
     read: function(bytes) {
-      throw new Error('Body Parser: nodeRequest.read() not implemented');
-      //this._super.read(bytes);
+      throw new Error('Body Parser: request.read() not implemented');
     }
   });
 

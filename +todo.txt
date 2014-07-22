@@ -3,6 +3,13 @@ allow build-conf to be named app-conf (for cases where we use drift for db-init,
 Allow cli flags for `drift serve` that would get added via app.cfg()
   like --debug-tests which could turn on the noCatch flag for the test runner
 
+are the test libraries (system/test) going into every build?
+
+app/system
+  move core modules to core/
+  libraries like session, auth, mysql, localdb -> lib/
+  include optional libraries only if require'd in system/core or app/
+
 fs.stat -> fs.getInfo
 fs.readdir -> fs.getDirContents
 file-based session store:

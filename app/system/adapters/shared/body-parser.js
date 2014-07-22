@@ -15,10 +15,15 @@ define('body-parser', function(require, exports, module) {
   var join = path.join;
   var _hasOwnProperty = Object.hasOwnProperty;
 
-  function BodyParser(headers, read, opts) {
+  function BodyParser(headers, src, opts) {
     this.opts = opts || {};
     this._headers = headers;
-    this._binaryRead = read;
+    if (typeof src === 'string') {
+      var readStream = fs.createReadStream(src);
+      this._readBytes = readStream.readBytes.bind(readStream);
+    } else {
+      this._readBytes = src;
+    }
     this.bytesReceived = 0;
     this.parsed = {}
   }
@@ -161,7 +166,7 @@ define('body-parser', function(require, exports, module) {
   BodyParser.prototype._read = function(chunkSize, enc) {
     chunkSize = chunkSize || CHUNK_SIZE;
     var bytesRemaining = this.bytesExpected - this.bytesReceived;
-    var chunk = this._binaryRead(Math.min(chunkSize, bytesRemaining));
+    var chunk = this._readBytes(Math.min(chunkSize, bytesRemaining));
     this.bytesReceived += chunk.length;
     this.emit('upload-progress', this.bytesReceived, this.bytesExpected);
     return (enc) ? chunk.toString(enc) : chunk;

@@ -86,7 +86,7 @@ define('request', function(require, exports, module) {
         //body-parser events will be propagated to this
         var body = (this.method() in BODY_ALLOWED) ? parseReqBody(this) : {};
       } catch(e) {
-        //todo: req.emit('parse-error', e);
+        this.emit('parse-error', e);
         if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
           this.res.die(e);
         } else {

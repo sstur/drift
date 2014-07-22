@@ -1,3 +1,5 @@
+request: body parsing tests need to allow req.body() to throw null (HTTP 4XX)
+
 Test:
   Models revive boolean fields from DB (which stores as int)
   Globals, Buffer

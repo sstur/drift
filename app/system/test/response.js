@@ -32,12 +32,26 @@ define('mock-response', function(require, exports, module) {
     },
     getBody: function() {
       return this.body.join('');
+    },
+    getFullResponse: function() {
+      var lines = [this.status].concat(serializeHeaders(this.headers));
+      lines.push('');
+      lines.push(this.getBody());
+      return lines.join('\n');
     }
   });
 
   var _toString = Object.prototype.toString;
   function toString(obj) {
     return (obj == null) ? String(obj) : (typeof obj.toString == 'function') ? obj.toString() : _toString.call(obj);
+  }
+
+  function serializeHeaders(headers) {
+    var lines = [];
+    forEach(headers, function(name, value) {
+      lines.push(name + ': ' + value);
+    });
+    return lines;
   }
 
   module.exports = Response;

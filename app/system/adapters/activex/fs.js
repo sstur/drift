@@ -153,6 +153,22 @@ define('fs', function(require, fs) {
     return getInfo(getFileOrDir(path), deep);
   };
 
+  fs.readFile = function(file) {
+    return fs.createReadStream(file).readAll();
+  };
+
+  fs.readTextFile = function(file, enc) {
+    enc = enc || 'utf8';
+    return fs.createReadStream(file, {encoding: enc}).readAll();
+  };
+
+  fs.writeFile = function(file, data, opts) {
+    var stream = fs.createWriteStream(file, opts);
+    stream.write(data);
+    stream.end();
+  };
+
+  fs.writeTextToFile = fs.writeFile;
 
   fs.createReadStream = function(file, opts) {
     opts = opts || {};
@@ -166,18 +182,6 @@ define('fs', function(require, fs) {
     //overwrite option will override append
     if (opts.overwrite === true) opts.append = false;
     return new FileWriteStream(file, opts);
-  };
-
-
-  fs.readTextFile = function(file, enc) {
-    enc = enc || 'utf8';
-    return fs.createReadStream(file, {encoding: enc}).readAll();
-  };
-
-  fs.writeTextToFile = function(file, text, opts) {
-    var stream = fs.createWriteStream(file, opts);
-    stream.write(text);
-    stream.end();
   };
 
   function FileReadStream(file, opts) {
@@ -205,12 +209,14 @@ define('fs', function(require, fs) {
     setEncoding: function(enc) {
       this.opts.encoding = enc;
     },
-    _readBytes: function(bytes) {
+    readBytes: function(bytes) {
       bytes = Math.min(bytes, this._bytesTotal - this._bytesRead);
-      this._bytesRead += bytes;
-      var data = new Buffer(this._stream.read(bytes));
-      var enc = this.opts.encoding;
-      return (enc) ? data.toString(enc) : data;
+      if (bytes > 0) {
+        this._bytesRead += bytes;
+        var data = new Buffer(this._stream.read(bytes));
+        var enc = this.opts.encoding;
+        return (enc) ? data.toString(enc) : data;
+      }
     },
     readAll: function() {
       var data = this._stream.read();
@@ -224,7 +230,7 @@ define('fs', function(require, fs) {
     },
     read: function() {
       while (this._bytesRead < this._bytesTotal) {
-        this.emit('data', this._readBytes(this.opts.chunkSize));
+        this.emit('data', this.readBytes(this.opts.chunkSize));
       }
       this._stream.close();
       this.emit('end');

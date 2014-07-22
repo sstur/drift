@@ -354,7 +354,7 @@ app.on('ready', function(require) {
         res.headers('X-Hello', 'World');
         var result = catchNull(res, 'sendFile', file);
         expect(result.status).to.be('200 OK');
-        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', 'X-Hello': 'World', 'Content-Length': '3889'});
+        expect(result.headers).to.eql({'Content-Type': 'text/plain; charset=UTF-8', 'X-Hello': 'World'});
         expect(result.body).to.be(text);
         fs.deleteFile(file);
       });
@@ -369,7 +369,7 @@ app.on('ready', function(require) {
           attachment: true
         });
         expect(result.status).to.be('404 Not Found');
-        expect(result.headers).to.eql({'Content-Type': 'application/blah', 'Content-Disposition': 'attachment; filename="a.txt"', 'Content-Length': '3'});
+        expect(result.headers).to.eql({'Content-Type': 'application/blah', 'Content-Disposition': 'attachment; filename="a.txt"'});
         expect(result.body).to.be('abc');
         fs.deleteFile(file);
       });

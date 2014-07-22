@@ -198,6 +198,9 @@ adapter.define('fs', function(require, fs) {
         callback();
       }.bind(this));
     },
+    readBytes_: function(bytes, callback) {
+      throw new Error('Not implemented: readStream.readBytes()');
+    },
     read_: function(callback) {
       var path = app.mappath(this.path);
       var opts = {encoding: this.opts.encoding};
