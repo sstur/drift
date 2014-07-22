@@ -223,9 +223,12 @@ app.on('ready', function(require) {
     return req;
   }
 
-  function createFormRequest(fields) {
+  function createFormRequest(cfg) {
+    if (Array.isArray(cfg)) {
+      cfg = {fields: cfg};
+    }
     var data = [];
-    fields.forEach(function(field) {
+    cfg.fields.forEach(function(field) {
       data.push(qs.escape(field.name) + '=' + qs.escape(field.value));
     });
     return createRequest({
@@ -235,7 +238,7 @@ app.on('ready', function(require) {
         'Content-Length': data.length
       },
       body: new Buffer(data.join('&')),
-      //catchParseError: cfg.catchParseError
+      catchParseError: cfg.catchParseError
     });
   }
 
