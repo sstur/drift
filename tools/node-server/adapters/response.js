@@ -1,10 +1,9 @@
-/*global global, require, app, adapter, Fiber */
+/*global global, require, app, adapter, Fiber, Buffer */
 var fs = require('fs');
 app.define('adapter-response', function(require, exports, module) {
   "use strict";
 
   var util = require('util');
-  var Buffer = require('buffer').Buffer;
 
   function Response(httpRes) {
     this._super = httpRes;

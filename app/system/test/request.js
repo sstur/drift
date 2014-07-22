@@ -25,7 +25,6 @@ define('mock-request', function(require, exports, module) {
       var fileName = Math.floor(Math.random() * Math.pow(2, 53)).toString(36);
       this._bodyFile = dataPath + 'temp/' + fileName;
       fs.writeFile(this._bodyFile, data.body);
-      //todo: delete file on req end
     }
     this._data = data;
   }
@@ -55,6 +54,12 @@ define('mock-request', function(require, exports, module) {
     },
     read: function() {
       throw new Error('Body Parser: request.read() not implemented');
+    },
+    //this is called in our tests on res.end
+    cleanup: function() {
+      if (this._bodyFile) {
+        fs.deleteFile(this._bodyFile);
+      }
     }
   });
 

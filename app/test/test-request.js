@@ -112,6 +112,7 @@ app.on('ready', function(require) {
           if (e !== null) throw e;
         }
         expect(body).to.eql({a: '1', b: 'false', 'č': '✔'});
+        req.cleanup();
       });
       it('should concatenate on duplicate name', function() {
         var req = createFormRequest([
@@ -122,6 +123,7 @@ app.on('ready', function(require) {
         var body = req.body();
         expect(body).to.eql({a: '1, 2', b: '='});
         expect(req.body('c')).to.be.an('undefined');
+        req.cleanup();
       });
     },
     'multipart request body': function(it) {
@@ -144,12 +146,14 @@ app.on('ready', function(require) {
         expect(body.image.size).to.be(blob.length);
         expect(body.image.hash).to.be(crypto.hash('md5', blob).toString('hex'));
       });
+      req.cleanup();
       it('should concatenate on duplicate name', function() {
         req = createMultipartRequest({
           fields: [{name: '✔', value: 'a'}, {name: '✔', value: 'für'}]
         });
         var body = req.body();
         expect(body['✔']).to.be('a, für');
+        req.cleanup();
       });
       it('should emit file and honor unicode name/filename', function() {
         req = createMultipartRequest({
@@ -164,6 +168,7 @@ app.on('ready', function(require) {
         expect(body['✔']).to.be(files[0]);
         expect(files[0].size).to.be(256);
         expect(files[0].hash).to.be('6e2595104d0a9a2f4c66802e0f5b4273');
+        req.cleanup();
       });
       it('should emit multiple files with same name but attach only first', function() {
         req = createMultipartRequest({
@@ -180,6 +185,7 @@ app.on('ready', function(require) {
         expect(files[0].size).to.be(5);
         expect(files[1].size).to.be(6);
         expect(body.file.size).to.be(5);
+        req.cleanup();
       });
       it('should throw 400 if part headers too large', function() {
         var headers = {};
@@ -204,6 +210,7 @@ app.on('ready', function(require) {
         expect(rawRes.status).to.be('400 Bad Request');
         //todo: node-formidable throws a different error: parser error, __ of __ bytes parsed
         //expect(rawRes.getBody()).to.contain('Multipart Headers Too Large');
+        req.cleanup();
       });
     }
   });
@@ -220,6 +227,9 @@ app.on('ready', function(require) {
         throw e;
       });
     }
+    req.cleanup = function() {
+      req._super.cleanup();
+    };
     return req;
   }
 
