@@ -18,12 +18,7 @@ adapter.define('body-parser', function(require, exports, module) {
   //src can be either a readStream or a path to file
   function BodyParser(headers, src, opts) {
     EventEmitter.call(this);
-    if (typeof src === 'string') {
-      console.log('parsing req body from file:', src);
-      this.readStream = fs.createReadStream(app.mappath(src));
-    } else {
-      this.readStream = src;
-    }
+    this.init(src);
     this.headers = headers;
     this.opts = opts || {};
     this.parsed = {};
@@ -37,6 +32,22 @@ adapter.define('body-parser', function(require, exports, module) {
   }
 
   util.inherits(BodyParser, EventEmitter);
+
+  BodyParser.prototype.init_ = function(src, callback) {
+    if (typeof src === 'string') {
+      var readStream = this.readStream = fs.createReadStream(app.mappath(src));
+      readStream.on('error', callback);
+      readStream.on('open', function() {
+        callback();
+      });
+      //pause immediately since we may not attach data listener until later
+      readStream.pause();
+      readStream._paused = true;
+    } else {
+      this.readStream = src;
+      callback();
+    }
+  };
 
   BodyParser.prototype.parse_ = function(callback) {
     //enable callback syntax
@@ -177,7 +188,6 @@ adapter.define('body-parser', function(require, exports, module) {
       self.emit('file', file);
       _file.on('data', function(data) {
         file.size += data.length;
-        console.log('received data chunk for file:', file.name, file.size);
         file.emit('data', data);
       });
       _file.on('end', function() {
@@ -188,11 +198,11 @@ adapter.define('body-parser', function(require, exports, module) {
         if (_file.path) {
           file.fullpath = _file.path;
         }
-        console.log('file finished:', file.name, file.size);
         file.emit('end');
       });
 
     });
+    //parser.on('error', function() {});
     //todo: socket timeout or close
     //parser.on('aborted', function() {});
     parser.parse(readStream, function(err) {
