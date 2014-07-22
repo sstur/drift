@@ -1,4 +1,4 @@
-/*global app, define */
+/*global app, define, Buffer */
 define('body-parser', function(require, exports, module) {
   "use strict";
 
@@ -13,7 +13,7 @@ define('body-parser', function(require, exports, module) {
   var MAX_BUFFER_SIZE = 1048576; //1 MB
 
   var join = path.join;
-  var _hasOwnProperty = Object.hasOwnProperty;
+  var hasOwnProperty = Object.hasOwnProperty;
 
   function BodyParser(headers, src, opts) {
     this.opts = opts || {};
@@ -174,8 +174,9 @@ define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype._finalizePart = function(part) {
     part.end();
-    var parsed = this.parsed, key = part.name.toLowerCase();
-    var exists = _hasOwnProperty.call(parsed, key);
+    var parsed = this.parsed;
+    var key = part.name.toLowerCase();
+    var exists = hasOwnProperty.call(parsed, key);
     if (part.type == 'file') {
       //append a number to key if we have multiple with the same name
       if (exists) key = getUniqueKey(parsed, key);
@@ -297,7 +298,7 @@ define('body-parser', function(require, exports, module) {
       return '';
     });
     id += 1;
-    while (_hasOwnProperty.call(obj, key + id)) id += 1;
+    while (hasOwnProperty.call(obj, key + id)) id += 1;
     return key + id;
   }
 

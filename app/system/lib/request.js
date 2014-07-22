@@ -80,7 +80,6 @@ define('request', function(require, exports, module) {
         return body;
       }
     },
-    //todo: merge this with parseReqBody?
     _parseBody: function() {
       try {
         //body-parser events will be propagated to this
@@ -90,7 +89,6 @@ define('request', function(require, exports, module) {
         if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
           this.res.die(e);
         } else {
-          //todo: flag on app to throw (resulting in 500) instead?
           this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
         }
       }

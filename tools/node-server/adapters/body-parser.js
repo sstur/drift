@@ -156,6 +156,7 @@ adapter.define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.processMultiPartBody = function() {
     var self = this, readStream = this.readStream, opts = this.opts;
+    //todo: we should use formidable.MultipartParser directly
     var parser = new formidable.IncomingForm();
     parser.hash = this.hashType;
     parser.maxFieldsSize = MAX_BUFFER_SIZE;
@@ -163,7 +164,8 @@ adapter.define('body-parser', function(require, exports, module) {
       parser.uploadDir = global.mappath(opts.autoSavePath);
     }
     parser.on('field', function(name, val) {
-      var parsed = self.parsed, key = name.toLowerCase();
+      var parsed = self.parsed;
+      var key = qs.unescape(name).toLowerCase();
       if (hasOwnProperty.call(parsed, key)) {
         parsed[key] += ', ' + qs.unescape(val);
       } else {
@@ -171,7 +173,8 @@ adapter.define('body-parser', function(require, exports, module) {
       }
     });
     parser.on('fileBegin', function(name, _file) {
-      var guid = getGuid(), key = name.toLowerCase();
+      var guid = getGuid();
+      var key = qs.unescape(name).toLowerCase();
       if (opts.autoSavePath) {
         _file.path = join(parser.uploadDir, guid);
       } else {
@@ -180,7 +183,7 @@ adapter.define('body-parser', function(require, exports, module) {
           _file._writeStream = new DummyWriteStream();
         };
       }
-      var file = self.parsed[key] = new File();
+      var file = new File();
       file.guid = guid;
       file.name = name; //field name
       file.fileName = _file.name; //original file name as uploaded
@@ -202,6 +205,11 @@ adapter.define('body-parser', function(require, exports, module) {
         }
         file.emit('end');
       });
+      var exists = hasOwnProperty.call(self.parsed, key);
+      if (exists) {
+        key = getUniqueKey(self.parsed, key);
+      }
+      self.parsed[key] = file;
 
     });
     //parser.on('error', function() {});
@@ -285,6 +293,20 @@ adapter.define('body-parser', function(require, exports, module) {
   DummyWriteStream.prototype.end = function(callback) {
     callback();
   };
+
+
+  //Helper functions
+
+  function getUniqueKey(obj, key) {
+    var id = 0;
+    key = key.replace(/\d+$/, function(key, num) {
+      id = parseInt(num, 10);
+      return '';
+    });
+    id += 1;
+    while (hasOwnProperty.call(obj, key + id)) id += 1;
+    return key + id;
+  }
 
   module.exports = BodyParser;
 
