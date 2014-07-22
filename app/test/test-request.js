@@ -99,31 +99,31 @@ app.on('ready', function(require) {
       expect(req.cookies('EULA')).to.be('1, 2');
       expect(req.cookies('None')).to.be('');
     },
-//    'urlencoded request body': function(it) {
-//      it('should parse body with unicode names and values', function() {
-//        var req = constructFormRequest([
-//          {name: 'a', value: 1},
-//          {name: 'b', value: false},
-//          {name: 'č', value: '✔'}
-//        ]);
-//        try {
-//          var body = req.body();
-//        } catch(e) {
-//          if (e !== null) throw e;
-//        }
-//        expect(body).to.eql({a: '1', b: 'false', 'č': '✔'});
-//      });
-//      it('should concatenate on duplicate name', function() {
-//        var req = constructFormRequest([
-//          {name: 'a', value: 1},
-//          {name: 'a', value: 2},
-//          {name: 'b', value: '='}
-//        ]);
-//        var body = req.body();
-//        expect(body).to.eql({a: '1, 2', b: '='});
-//        expect(req.body('c')).to.be.an('undefined');
-//      });
-//    },
+    'urlencoded request body': function(it) {
+      it('should parse body with unicode names and values', function() {
+        var req = constructFormRequest([
+          {name: 'a', value: 1},
+          {name: 'b', value: false},
+          {name: 'č', value: '✔'}
+        ]);
+        try {
+          var body = req.body();
+        } catch(e) {
+          if (e !== null) throw e;
+        }
+        expect(body).to.eql({a: '1', b: 'false', 'č': '✔'});
+      });
+      it('should concatenate on duplicate name', function() {
+        var req = constructFormRequest([
+          {name: 'a', value: 1},
+          {name: 'a', value: 2},
+          {name: 'b', value: '='}
+        ]);
+        var body = req.body();
+        expect(body).to.eql({a: '1, 2', b: '='});
+        expect(req.body('c')).to.be.an('undefined');
+      });
+    },
     'multipart request body': function(it) {
       var req = createMultipartRequest({
         fields: [{name: 'username', value: 'admin'}],
@@ -136,7 +136,6 @@ app.on('ready', function(require) {
       });
       it('should parse fields and file', function() {
         var body = req.body();
-        console.log(body);
         expect(body.username).to.be('admin');
         expect(body.image.type).to.be('file');
         expect(body.image.name).to.be('image');
