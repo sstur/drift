@@ -1,7 +1,8 @@
-/*global app, define */
+/*global global, app, define, Buffer, Fiber */
 define('mock-response', function(require, exports, module) {
   "use strict";
 
+  var fs = require('fs');
   var util = require('util');
 
   function Response() {
@@ -15,7 +16,7 @@ define('mock-response', function(require, exports, module) {
       var self = this;
       self.status = statusCode + ' ' + statusReason;
       forEach(headers, function(n, val) {
-        //note: is val guaranteed to be a string or array of strings?
+        //note: is val guaranteed to be a string/array of strings?
         //if (val == null) val = '';
         val = Array.isArray(val) ? val : String(val);
         self.headers[n] = val;
@@ -25,7 +26,7 @@ define('mock-response', function(require, exports, module) {
       }
     },
     write: function(data) {
-      this.body.push(Buffer.isBuffer(data) ? data._raw : toString(data));
+      this.body.push(Buffer.isBuffer(data) ? data.toString('binary') : toString(data));
     },
     end: function() {
       throw null;
@@ -38,6 +39,12 @@ define('mock-response', function(require, exports, module) {
       lines.push('');
       lines.push(this.getBody());
       return lines.join('\n');
+    },
+    streamFile: function(statusCode, statusReason, headers, path) {
+      var data = fs.readFile(path);
+      this.writeHead(statusCode, statusReason, headers);
+      this.write(data);
+      this.end();
     }
   });
 

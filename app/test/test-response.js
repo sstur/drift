@@ -377,7 +377,7 @@ app.on('ready', function(require) {
         var sendFile = function() {
           catchNull(createResponse(), 'sendFile', file);
         };
-        expect(sendFile).to.throwError(/ENOENT, no such file/);
+        expect(sendFile).to.throwError(/ENOENT/);
       });
     }
   });
