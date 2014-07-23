@@ -5,6 +5,8 @@ define('buffer', function(require, exports) {
   var util = require('util');
   var _super = (typeof _require != 'undefined') && _require('binary').Buffer;
 
+  var SHOW_MAX = 51;
+
   //patch for platforms supporting CommonJS Binary/F
   if (_super) {
     _super.prototype.toRaw = function() {
@@ -125,6 +127,13 @@ define('buffer', function(require, exports) {
     },
     toJSON: function() {
       return '<Buffer ' + rawToHex(this._raw) + '>';
+    },
+    inspect: function() {
+      if (this.length > SHOW_MAX) {
+        return '<Buffer ' + rawToHex(this.slice(0, SHOW_MAX)._raw) + '...>';
+      } else {
+        return '<Buffer ' + rawToHex(this._raw) + '>';
+      }
     },
     clone: function() {
       return new Buffer(this._raw, 'binary');

@@ -18,9 +18,14 @@
   //var INVALID_CHARS = /[\x00-\x1F\\\/:*?<>|&%",\u007E-\uFFFF]/g;
   var INVALID_CHARS = /[^\w\d!#$'()+,\-;=@\[\]^`{}~]/g;
 
+  //todo: should this be in adapters/buffer.js
   //Patch buffer to serialize nicely to JSON
   Buffer.prototype.toJSON = function() {
     return '<Buffer ' + this.toString('hex') + '>';
+  };
+  //Patch buffer to work with util.clone
+  Buffer.prototype.clone = function() {
+    return this.slice(0);
   };
 
   //Patch ServerRequest to save unmodified copy of headers
