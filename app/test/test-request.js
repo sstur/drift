@@ -17,7 +17,7 @@ app.on('ready', function(require) {
   for (var i = 0; i < 256; i++) {
     blob[i] = String.fromCharCode(i);
   }
-  blob = new Buffer(blob, 'binary');
+  blob = new Buffer(blob.join(''), 'binary');
 
   app.addTestSuite('request', {
     'url parsing': function() {
@@ -167,7 +167,7 @@ app.on('ready', function(require) {
         var body = req.body();
         expect(body['✔']).to.be(files[0]);
         expect(files[0].size).to.be(256);
-        expect(files[0].hash).to.be('6e2595104d0a9a2f4c66802e0f5b4273');
+        expect(files[0].hash).to.be('e2c865db4162bed963bfaa9ef6ac18f0');
         req.cleanup();
       });
       it('should emit multiple files with same name but attach only first', function() {
@@ -241,13 +241,14 @@ app.on('ready', function(require) {
     cfg.fields.forEach(function(field) {
       data.push(qs.escape(field.name) + '=' + qs.escape(field.value));
     });
+    data = data.join('&');
     return createRequest({
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': data.length
       },
-      body: new Buffer(data.join('&')),
+      body: new Buffer(data),
       catchParseError: cfg.catchParseError
     });
   }

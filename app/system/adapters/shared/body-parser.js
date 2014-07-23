@@ -67,7 +67,7 @@ define('body-parser', function(require, exports, module) {
     if (this.bytesExpected > MAX_BUFFER_SIZE) {
       throw '413 Request Entity Too Large';
     }
-    var body = this._read(MAX_BUFFER_SIZE, 'utf8');
+    var body = this._read(MAX_BUFFER_SIZE, 'utf8') || '';
     util.extend(this.parsed, qs.parse(body));
   };
 
@@ -75,7 +75,7 @@ define('body-parser', function(require, exports, module) {
     if (this.bytesExpected > MAX_BUFFER_SIZE) {
       throw '413 Request Entity Too Large';
     }
-    var body = this._read(MAX_BUFFER_SIZE, 'utf8');
+    var body = this._read(MAX_BUFFER_SIZE, 'utf8') || '';
     try {
       var parsed = JSON.parse(body);
     } catch(e) {
@@ -167,9 +167,13 @@ define('body-parser', function(require, exports, module) {
     chunkSize = chunkSize || CHUNK_SIZE;
     var bytesRemaining = this.bytesExpected - this.bytesReceived;
     var chunk = this._readBytes(Math.min(chunkSize, bytesRemaining));
-    this.bytesReceived += chunk.length;
-    this.emit('upload-progress', this.bytesReceived, this.bytesExpected);
-    return (enc) ? chunk.toString(enc) : chunk;
+    if (chunk) {
+      this.bytesReceived += chunk.length;
+      this.emit('upload-progress', this.bytesReceived, this.bytesExpected);
+      return (enc) ? chunk.toString(enc) : chunk;
+    } else {
+      return null;
+    }
   };
 
   BodyParser.prototype._finalizePart = function(part) {

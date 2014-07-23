@@ -1,4 +1,4 @@
-/*global app, define */
+/*global app, define, isDev */
 app.on('ready', function(require) {
   "use strict";
 
@@ -12,6 +12,15 @@ app.on('ready', function(require) {
 
   app.route('/favicon.ico', function(req, res) {
     res.sendFile('assets/favicon.ico');
+  });
+
+  //todo: put is_dev check in init for all routes begining with ~
+  //todo: this is only for iis; move to before route events?
+  app.route('/~log', function(req, res) {
+    if (!app.cfg('is_dev')) return;
+    if (!console.getLog) return;
+    var log = console.getLog();
+    res.end('text/plain', log.join('\n'));
   });
 
   //app.route('/redir/:i?', function(req, res, i) {

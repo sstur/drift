@@ -3,6 +3,9 @@ app.cfg({
   //Filesystem directory for data (logs, uploads, etc)
   data_dir: 'data/',
 
+  //todo: this should be set dynamically
+  is_dev: true,
+
   //Model persistence
   models: {
     database: 'mysql'

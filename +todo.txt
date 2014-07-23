@@ -4,6 +4,8 @@ Allow cli flags for `drift serve` that would get added via app.cfg()
   like --debug-tests which could turn on the noCatch flag for the test runner
 
 util.log should be async in node-adapter
+replace getEnv with __DEV__ ?
+getEnv() should be guaranteed in all adapters
 
 are the test libraries (system/test) going into every build?
 

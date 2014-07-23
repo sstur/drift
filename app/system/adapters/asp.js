@@ -11,14 +11,20 @@ function getEnv() {
 
   Buffer = global.Buffer = require('buffer').Buffer;
 
+  //todo: use newline-separated json blobs instead of json array
   console = global.console = {
-    _log: [],
+    getLog: function() {
+      var log = app.data('_log') || [];
+      app.data('_log', null);
+      return log;
+    },
     log: function() {
-      var args = toArray(arguments);
-      for (var i = 0; i < args.length; i++) {
-        args[i] = util.inspect(args[i]);
-      }
-      console._log.push(args);
+      var log = app.data('_log') || [];
+      var args = toArray(arguments).map(function(arg) {
+        return isPrimitive(arg) ? String(arg) : util.inspect(arg);
+      });
+      log.push(args.join(' '));
+      app.data('_log', log);
     }
   };
 
