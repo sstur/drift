@@ -60,8 +60,11 @@ define('router', function(require, exports, module) {
       if (matches) {
         var matchData = Object.create(routeData);
         matchData.opts = item.opts || {};
-        var values = matchData.values = matches.slice(1);
-        var params = matchData.params = assignNames(item.paramNames, values);
+        var values = matches.slice(1).map(function(value) {
+          return value || '';
+        });
+        matchData.values = values;
+        matchData.params = assignNames(item.paramNames, values);
         router.emit('match-route', matchData);
         item.handler(matchData, routeArgs);
       }
