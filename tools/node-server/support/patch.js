@@ -2,31 +2,22 @@
 (function() {
   "use strict";
 
-  var http = require('http')
-    , req = http.IncomingMessage.prototype
-    , res = http.ServerResponse.prototype
-    , fs = require('fs')
-    , qs = require('querystring')
-    , path = require('path')
-    , mimeTypes = require('../lib/mime')
-    , utils = require('./http-utils')
-    , inspect = require('util').inspect
-    , Buffer = require('buffer').Buffer;
+  var http = require('http');
+  var req = http.IncomingMessage.prototype;
+  var res = http.ServerResponse.prototype;
+  var fs = require('fs');
+  var qs = require('querystring');
+  var path = require('path');
+  var mimeTypes = require('../lib/mime');
+  var utils = require('./http-utils');
+  var inspect = require('util').inspect;
 
-  var join = path.join, basename = path.basename, extname = path.extname, normalize = path.normalize;
+  var join = path.join;
+  var basename = path.basename;
+  var normalize = path.normalize;
 
   //var INVALID_CHARS = /[\x00-\x1F\\\/:*?<>|&%",\u007E-\uFFFF]/g;
   var INVALID_CHARS = /[^\w\d!#$'()+,\-;=@\[\]^`{}~]/g;
-
-  //todo: should this be in adapters/buffer.js
-  //Patch buffer to serialize nicely to JSON
-  Buffer.prototype.toJSON = function() {
-    return '<Buffer ' + this.toString('hex') + '>';
-  };
-  //Patch buffer to work with util.clone
-  Buffer.prototype.clone = function() {
-    return this.slice(0);
-  };
 
   //Patch ServerRequest to save unmodified copy of headers
   var _addHeaderLine = req._addHeaderLine;
