@@ -11,20 +11,19 @@ function getEnv() {
 
   Buffer = global.Buffer = require('buffer').Buffer;
 
-  //todo: use newline-separated json blobs instead of json array
   console = global.console = {
     getLog: function() {
-      var log = app.data('_log') || [];
-      app.data('_log', null);
+      var log = iis.app.contents('~log') || '';
+      iis.app.contents.remove('~log');
       return log;
     },
     log: function() {
-      var log = app.data('_log') || [];
       var args = toArray(arguments).map(function(arg) {
         return isPrimitive(arg) ? String(arg) : util.inspect(arg);
       });
-      log.push(args.join(' '));
-      app.data('_log', log);
+      var log = iis.app.contents('~log') || '';
+      log = log ? '\n' + args.join(' ') : args.join(' ');
+      iis.app.contents('~log')/*@cc_on@if(0)*/[0]/*@end@*/ = log;
     }
   };
 
@@ -56,18 +55,25 @@ function getEnv() {
   app.data = function(n, val) {
     if (arguments.length == 2) {
       var str = (val == null) ? '' : util.stringify(val);
-      iis.app('JSON:' + n)/*@cc_on@if(0)*/[0]/*@end@*/ = str;
+      iis.app.contents('JSON:' + n)/*@cc_on@if(0)*/[0]/*@end@*/ = str;
       return val;
     } else {
-      val = iis.app('JSON:' + n);
+      val = iis.app.contents('JSON:' + n);
       return (val) ? util.parse(val) : '';
     }
   };
 
+  var req = new Request();
+  var res = new Response();
+  if (req.getURL() === '/~log' && req.getMethod() === 'GET' && getEnv() === 'development') {
+    res.writeHead('200', 'OK', {'Content-Type': 'text/plain'});
+    res.write(console.getLog());
+    res.end();
+  }
   app.emit('init', require);
   app.emit('ready', require);
 
-  app.route(new Request(), new Response());
+  app.route(req, res);
   throw new Error('Router returned without ending request');
 
 })(app.require);
