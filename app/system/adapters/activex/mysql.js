@@ -1,6 +1,7 @@
 /*!
  * MySQL library for ActiveX/ADODB
  * todo: remove executeSqlAndReturnNumRowsAffected
+ * todo: deprecate connection string
  */
 /*global app, define, Buffer, Enumerator, executeSqlAndReturnNumRowsAffected */
 define('mysql', function(require, exports) {
