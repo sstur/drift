@@ -1,4 +1,5 @@
 /*global app, define, Buffer */
+/*jshint -W053 */
 app.on('ready', function(require) {
   "use strict";
 
@@ -6,7 +7,7 @@ app.on('ready', function(require) {
   var util = require('util');
   var expect = require('expect');
 
-  var undefined = void 0;
+  var undef;
   var dataPath = app.cfg('data_dir') || 'data/';
 
   app.addTestSuite('util', {
@@ -29,7 +30,7 @@ app.on('ready', function(require) {
           string: 'testme',
           number: Math.random(),
           'null': null,
-          'undefined': undefined,
+          'undefined': undef,
           date: new Date(),
           buffer: new Buffer('abc'),
           array: [1, '2', null, false, void 0, true]
@@ -78,7 +79,7 @@ app.on('ready', function(require) {
       });
       it('should not change prototype of parent when child is modified', function() {
         Fox.prototype.getSound = function() {};
-        expect(Animal.prototype.getSound).to.be(undefined);
+        expect(Animal.prototype.getSound).to.be(undef);
       });
       it('should reflect on child when parent prototype is changed', function() {
         Animal.prototype.type = 1;
@@ -117,7 +118,7 @@ app.on('ready', function(require) {
         e2.on('third', logEvent);
         e1.emit('third', 'third');
         expect(e1.log.third).to.be(1);
-        expect(e2.log.third).to.be(undefined);
+        expect(e2.log.third).to.be(undef);
       });
       it('should propagate events added later', function() {
         util.propagateEvents(e1, e2, ['fourth', 'fifth']);
@@ -182,7 +183,7 @@ app.on('ready', function(require) {
       });
       it('should allow keys with no value', function() {
         var parsed = util.parseHeaderValue('Content-Disposition: attachment; filename="sanitized-file"');
-        expect(parsed.attachment).to.be(undefined);
+        expect(parsed.attachment).to.be(undef);
         expect(parsed.filename).to.be('sanitized-file');
       });
       it('should overwrite (not concatenate) values', function() {
@@ -193,10 +194,10 @@ app.on('ready', function(require) {
     'util.parseHeaders': function() {
       var headers = util.parseHeaders('User-Agent: Mock\nX-Accel:None\r\nX-Double :a:b: c');
       expect(headers['user-agent']).to.be('Mock');
-      expect(headers['User-Agent']).to.be(undefined);
+      expect(headers['User-Agent']).to.be(undef);
       expect(headers['x-accel']).to.be('None');
       expect(headers['x-double']).to.be('a:b: c');
-      expect(headers['x-notexist']).to.be(undefined);
+      expect(headers['x-notexist']).to.be(undef);
     },
     'util.stripFilename': function(it) {
       it('should remove unsafe, unicode and control chars', function() {
@@ -245,7 +246,7 @@ app.on('ready', function(require) {
       it('should handle Error differently than JSON', function() {
         var date = new Date();
         var buffer = new Buffer('ü', 'utf8');
-        var a = {a: 0, b: function() {}, c: 'string', d: null, e: undefined, f: date, g: new Error('fail'), h: false, i: buffer};
+        var a = {a: 0, b: function() {}, c: 'string', d: null, e: undef, f: date, g: new Error('fail'), h: false, i: buffer};
         var util_string = util.stringify(a);
         var b = util.extend({}, a);
         b.g = 'new Error("fail")';

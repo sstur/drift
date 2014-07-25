@@ -1,4 +1,5 @@
 /*global app, define, global */
+/*jshint -W054 */
 define('views', function(require, exports, module) {
   "use strict";
   var fs = require('fs');
@@ -30,7 +31,7 @@ define('views', function(require, exports, module) {
     if (file in views) {
       return views[file];
     }
-    return views[file] = fs.readTextFile(file, 'utf8');
+    return (views[file] = fs.readTextFile(file, 'utf8'));
   }
 
   function getCompiledTemplate(name) {
@@ -54,7 +55,7 @@ define('views', function(require, exports, module) {
       compiled = tmplEngine.compile(source);
     }
     //compiled should now have a .render() method
-    return compiledViews[file] = compiled;
+    return (compiledViews[file] = compiled);
   }
 
   //override render function

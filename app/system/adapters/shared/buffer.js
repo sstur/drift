@@ -1,4 +1,5 @@
 /*global app, define, _require */
+/*jshint -W084 */
 define('buffer', function(require, exports) {
   "use strict";
 

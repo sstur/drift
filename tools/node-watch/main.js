@@ -72,7 +72,7 @@
 
     var done = function() {
       log.forEach(function(line) {
-        console.log(line)
+        console.log(line);
       });
       console.log('Watching ' + paths.length + ' paths.');
       console.log('------');

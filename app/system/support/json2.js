@@ -1,3 +1,4 @@
+/*jshint -W020, -W054, -W079 */
 var JSON;
 (function() {
 

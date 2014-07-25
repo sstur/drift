@@ -1,4 +1,5 @@
 /*global app, define */
+/*jshint -W053 */
 app.on('ready', function(require) {
   "use strict";
 
@@ -98,7 +99,7 @@ app.on('ready', function(require) {
         canParse("-" + value, "");
       });
       // `08` and `018` are invalid octal values.
-      var values = ["00", "01", "02", "03", "04", "05", "06", "07", "011", "08", "018"];
+      values = ["00", "01", "02", "03", "04", "05", "06", "07", "011", "08", "018"];
       values.forEach(function (value) {
         //Octal escape sequence in a string
         parseError('"\\' + value + '"', "");
@@ -361,7 +362,7 @@ app.on('ready', function(require) {
       });
 
       it("should Arrays are serialized recursively", function() {
-        serializes("[false,1,\"Kit\"]", [new Boolean, new Number(1), new String("Kit")]);
+        serializes("[false,1,\"Kit\"]", [new Boolean(), new Number(1), new String("Kit")]);
       });
       it("should `[undefined]` is serialized as `[null]`", function() {
         serializes("[null]", [void 0]);

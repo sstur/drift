@@ -1,7 +1,9 @@
 /*global app, define */
+/*jshint -W014, -W083 */
 define('expect', function(require, exports, module) {
   var util = require('util');
   var inspect = util.inspect;
+  var undef;
 
   module.exports = expect;
   expect.Assertion = Assertion;
@@ -28,7 +30,7 @@ define('expect', function(require, exports, module) {
     this.obj = obj;
     this.flags = {};
 
-    if (undefined != parent) {
+    if (undef != parent) {
       this.flags[flag] = true;
 
       for (var i in parent.flags) {
@@ -42,11 +44,11 @@ define('expect', function(require, exports, module) {
     var self = this;
 
     if ($flags) {
-      for (var i = 0, l = $flags.length; i < l; i++) {
+      for (var j = 0, l = $flags.length; j < l; j++) {
         // avoid recursion
-        if (this.flags[$flags[i]]) continue;
+        if (this.flags[$flags[j]]) continue;
 
-        var name = $flags[i];
+        var name = $flags[j];
         var assertion = new Assertion(this.obj, name, this);
 
         if ('function' == typeof Assertion.prototype[name]) {
@@ -75,7 +77,7 @@ define('expect', function(require, exports, module) {
    */
 
   Assertion.prototype.assert = function(truth, msg, error, expected) {
-    var msg = this.flags.not ? error : msg;
+    msg = this.flags.not ? error : msg;
     var ok = this.flags.not ? !truth : truth;
     var err;
 
@@ -402,8 +404,8 @@ define('expect', function(require, exports, module) {
       return this;
     }
 
-    if (this.flags.not && undefined !== val) {
-      if (undefined === this.obj[name]) {
+    if (this.flags.not && undef !== val) {
+      if (undef === this.obj[name]) {
         throw new Error(inspect(this.obj) + ' has no property ' + inspect(name));
       }
     } else {
@@ -411,7 +413,7 @@ define('expect', function(require, exports, module) {
       try {
         hasProp = name in this.obj;
       } catch (e) {
-        hasProp = undefined !== this.obj[name];
+        hasProp = undef !== this.obj[name];
       }
 
       this.assert(
@@ -424,7 +426,7 @@ define('expect', function(require, exports, module) {
           });
     }
 
-    if (undefined !== val) {
+    if (undef !== val) {
       this.assert(
           val === this.obj[name]
           , function() {
@@ -627,7 +629,7 @@ define('expect', function(require, exports, module) {
   };
 
   function isUndefinedOrNull(value) {
-    return value === null || value === undefined;
+    return value === null || value === undef;
   }
 
   function isArguments(object) {

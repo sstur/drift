@@ -197,7 +197,7 @@ adapter.define('body-parser', function(require, exports, module) {
       });
       _file.on('end', function() {
         file.hash = _file.hash;
-        if (_file.path && _file.size ==0 0) {
+        if (_file.path && _file.size === 0) {
           fs.unlink(_file.path);
         } else
         if (_file.path) {

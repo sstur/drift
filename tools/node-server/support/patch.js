@@ -85,7 +85,7 @@
   res.tryStaticPath = function(path, fallback) {
     var req = this.req, res = this, url = req.url.split('?')[0];
     var assetPrefix = urlJoin('/', path, '/').toLowerCase();
-    if (url.toLowerCase().indexOf(assetPrefix) == 0) {
+    if (url.toLowerCase().indexOf(assetPrefix) === 0) {
       //root here is filesystem path
       var opts = {root: join(global.basePath, path), path: url.slice(assetPrefix.length)};
       res.serveAsset(opts, fallback);
@@ -125,7 +125,7 @@
     path = normalize(join(root, path));
 
     // malicious path
-    if (root && path.indexOf(root) != 0) {
+    if (root && path.indexOf(root) !== 0) {
       return res.httpError(403);
     }
 
@@ -157,7 +157,11 @@
         return;
       } else
       if (stat.isDirectory()) {
-        fallback ? fallback() : res.sendError(new Error('Specified resource is a directory'));
+        if (fallback) {
+          fallback();
+        } else {
+          res.sendError(new Error('Specified resource is a directory'));
+        }
         return;
       }
 

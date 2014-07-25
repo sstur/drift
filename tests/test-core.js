@@ -27,7 +27,7 @@
     });
 
     it('should add event-handling to an object', function() {
-      var obj = {}, count = 0, fn = function(i) { count += i };
+      var obj = {}, count = 0, fn = function(i) { count += i; };
       app.eventify(obj);
       expect(obj).to.have.property('on').and.have.property('emit');
       expect(obj.on).to.be.a('function');
@@ -37,7 +37,7 @@
       obj.emit('foo', 2);
       expect(count).to.equal(2);
       //add a second handler for same event
-      obj.on('foo', function() { count++ });
+      obj.on('foo', function() { count++; });
       obj.emit('foo', 1);
       expect(count).to.equal(4);
     });

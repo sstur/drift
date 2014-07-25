@@ -1,4 +1,5 @@
 /*global app */
+/*jshint -W040 */
 app.on('init', function(require) {
   "use strict";
   var util = require('util');

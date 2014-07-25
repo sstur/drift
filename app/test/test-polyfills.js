@@ -1,4 +1,5 @@
 /*global app, define */
+/*jshint -W040 */
 app.on('ready', function(require) {
   "use strict";
 
@@ -8,7 +9,7 @@ app.on('ready', function(require) {
   }
 
   var expect = require('expect');
-  var undefined;
+  var undef;
   var testSubject;
 
   function createArrayLikeFromArray(arr) {
@@ -30,7 +31,7 @@ app.on('ready', function(require) {
   app.addTestSuite('polyfills', {
     //note: this is only used for array tests
     beforeEach: function() {
-      testSubject = [2, 3, undefined, true, 'hej', null, false, 0];
+      testSubject = [2, 3, undef, true, 'hej', null, false, 0];
       delete testSubject[1];
     },
 
@@ -220,7 +221,7 @@ app.on('ready', function(require) {
         testSubject.func = function() {
           a = Array.prototype.slice.call(arguments);
           context = this;
-        }.bind(undefined, 1,2,3);
+        }.bind(undef, 1,2,3);
         testSubject.func(1,2,3);
         expect(a).to.eql([1,2,3,1,2,3]);
         expect(context).to.be(function() {return this;}.call());
@@ -250,7 +251,7 @@ app.on('ready', function(require) {
         testSubject.func = function() {
           context = this;
           return Array.prototype.slice.call(arguments);
-        }.bind(undefined, 1,2,3);
+        }.bind(undef, 1,2,3);
         actual = testSubject.func(1,2,3);
         expect(context).to.be(function() {return this;}.call());
         expect(actual).to.eql([1,2,3,1,2,3]);
@@ -279,53 +280,53 @@ app.on('ready', function(require) {
       });
       it('returns the return value of the bound function when called as a constructor', function () {
         var oracle = [1, 2, 3];
-        var subject = function () {
+        var Subject = function () {
           return oracle;
         }.bind(null);
-        var result = new subject;
+        var result = new Subject();
         expect(result).to.be(oracle);
       });
       it('returns the correct value if constructor returns primitive', function() {
         var oracle = [1, 2, 3];
-        var subject = function () {
+        var Subject = function () {
           return oracle;
         }.bind(null);
-        var result = new subject;
+        var result = new Subject();
         expect(result).to.be(oracle);
 
         oracle = {};
-        result = new subject;
+        result = new Subject();
         expect(result).to.be(oracle);
 
         oracle = function() {};
-        result = new subject;
+        result = new Subject();
         expect(result).to.be(oracle);
 
         oracle = "asdf";
-        result = new subject;
+        result = new Subject();
         expect(result).not.to.be(oracle);
 
         oracle = null;
-        result = new subject;
+        result = new Subject();
         expect(result).not.to.be(oracle);
 
         oracle = true;
-        result = new subject;
+        result = new Subject();
         expect(result).not.to.be(oracle);
 
         oracle = 1;
-        result = new subject;
+        result = new Subject();
         expect(result).not.to.be(oracle);
       });
       it('returns the value that instance of original "class" when called as a constructor', function() {
-        var classA = function(x) {
+        var ClassA = function(x) {
           this.name = x || "A";
         };
-        var classB = classA.bind(null, "B");
+        var ClassB = ClassA.bind(null, "B");
 
-        var result = new classB;
-        expect(result instanceof classA).to.be(true);
-        expect(result instanceof classB).to.be(true);
+        var result = new ClassB();
+        expect(result instanceof ClassA).to.be(true);
+        expect(result instanceof ClassB).to.be(true);
       });
     },
 
@@ -347,7 +348,7 @@ app.on('ready', function(require) {
         "bool": true,
         "num": 42,
         "null": null,
-        "undefined": undefined
+        "undefined": undef
       };
 
       var loopedValues = [];
@@ -831,9 +832,9 @@ app.on('ready', function(require) {
       var actual, expected, testSubject;
 
       it = beforeEach(it, function() {
-        testSubject = [2, 3, undefined, true, 'hej', null, 2, false, 0];
+        testSubject = [2, 3, undef, true, 'hej', null, 2, false, 0];
         //note: for some reason (2 in testSubject) is false
-        testSubject[2] = undefined;
+        testSubject[2] = undef;
         delete testSubject[1];
       });
 
@@ -849,12 +850,12 @@ app.on('ready', function(require) {
       });
       it('should find undefined as well', function() {
         expected = -1;
-        actual = testSubject.indexOf(undefined);
+        actual = testSubject.indexOf(undef);
         expect(actual).not.to.be(expected);
       });
       it('should skip unset indexes', function() {
         expected = 2;
-        actual = testSubject.indexOf(undefined);
+        actual = testSubject.indexOf(undef);
         expect(actual).to.be(expected);
       });
       it('should use a strict test', function() {
@@ -886,9 +887,9 @@ app.on('ready', function(require) {
       var actual, expected, testSubject;
 
       it = beforeEach(it, function() {
-        testSubject = [2, 3, undefined, true, 'hej', null, 2, false, 0];
+        testSubject = [2, 3, undef, true, 'hej', null, 2, false, 0];
         //note: for some reason (2 in testSubject) is false
-        testSubject[2] = undefined;
+        testSubject[2] = undef;
         delete testSubject[1];
       });
 
@@ -896,9 +897,9 @@ app.on('ready', function(require) {
           testAL;
       it = beforeEach(it, function() {
         testAL = {};
-        testSubject = [2, 3, undefined, true, 'hej', null, 2, false, 0];
+        testSubject = [2, 3, undef, true, 'hej', null, 2, false, 0];
         //note: for some reason (2 in testSubject) is false
-        testSubject[2] = undefined;
+        testSubject[2] = undef;
         testSubject.forEach(function (o,i) {
           testAL[i] = o;
         });
@@ -916,12 +917,12 @@ app.on('ready', function(require) {
       });
       it('should find undefined as well (array-like)', function() {
         expected = -1;
-        actual = indexOf.call(testAL, undefined);
+        actual = indexOf.call(testAL, undef);
         expect(actual).not.to.be(expected);
       });
       it('should skip unset indexes (array-like)', function() {
         expected = 2;
-        actual = indexOf.call(testAL, undefined);
+        actual = indexOf.call(testAL, undef);
         expect(actual).to.be(expected);
       });
       it('should use a strict test (array-like)', function() {
@@ -952,9 +953,9 @@ app.on('ready', function(require) {
       var actual, expected, testSubject, testAL;
 
       it = beforeEach(it, function() {
-        testSubject = [2, 3, undefined, true, 'hej', null, 2, 3, false, 0];
+        testSubject = [2, 3, undef, true, 'hej', null, 2, 3, false, 0];
         //note: for some reason (2 in testSubject) is false
-        testSubject[2] = undefined;
+        testSubject[2] = undef;
         delete testSubject[1];
         delete testSubject[7];
       });
@@ -971,12 +972,12 @@ app.on('ready', function(require) {
       });
       it('should find undefined as well', function() {
         expected = -1;
-        actual = testSubject.lastIndexOf(undefined);
+        actual = testSubject.lastIndexOf(undef);
         expect(actual).not.to.be(expected);
       });
       it('should skip unset indexes', function() {
         expected = 2;
-        actual = testSubject.lastIndexOf(undefined);
+        actual = testSubject.lastIndexOf(undef);
         expect(actual).to.be(expected);
       });
       it('should use a strict test', function() {
@@ -1005,12 +1006,12 @@ app.on('ready', function(require) {
 
     'Array lastIndexOf (array-like)': function(it) {
       var actual, expected, testSubject, testAL;
-      var lastIndexOf = Array.prototype.lastIndexOf, testAL;
+      var lastIndexOf = Array.prototype.lastIndexOf;
 
       it = beforeEach(it, function() {
-        testSubject = [2, 3, undefined, true, 'hej', null, 2, 3, false, 0];
+        testSubject = [2, 3, undef, true, 'hej', null, 2, 3, false, 0];
         //note: for some reason (2 in testSubject) is false
-        testSubject[2] = undefined;
+        testSubject[2] = undef;
         delete testSubject[1];
         delete testSubject[7];
         testAL = {};
@@ -1032,12 +1033,12 @@ app.on('ready', function(require) {
       });
       it('should find undefined as well (array-like)', function() {
         expected = -1;
-        actual = lastIndexOf.call(testAL, undefined);
+        actual = lastIndexOf.call(testAL, undef);
         expect(actual).not.to.be(expected);
       });
       it('should skip unset indexes (array-like)', function() {
         expected = 2;
-        actual = lastIndexOf.call(testAL, undefined);
+        actual = lastIndexOf.call(testAL, undef);
         expect(actual).to.be(expected);
       });
       it('should use a strict test (array-like)', function() {
@@ -1071,9 +1072,9 @@ app.on('ready', function(require) {
       };
 
       it = beforeEach(it, function() {
-        testSubject = [2, 3, undefined, true, 'hej', 3, null, false, 0];
+        testSubject = [2, 3, undef, true, 'hej', 3, null, false, 0];
         delete testSubject[1];
-        filteredArray = [2, undefined, 'hej', null, false, 0];
+        filteredArray = [2, undef, 'hej', null, false, 0];
       });
 //      it('should call the callback with the proper arguments', function() {
 //        var callback = createSpy('callback'),
@@ -1146,9 +1147,9 @@ app.on('ready', function(require) {
       };
 
       it = beforeEach(it, function() {
-        testSubject = [2, 3, undefined, true, 'hej', 3, null, false, 0];
+        testSubject = [2, 3, undef, true, 'hej', 3, null, false, 0];
         delete testSubject[1];
-        filteredArray = [2, undefined, 'hej', null, false, 0];
+        filteredArray = [2, undef, 'hej', null, false, 0];
         testSubject = createArrayLikeFromArray(testSubject);
       });
 
@@ -1185,7 +1186,7 @@ app.on('ready', function(require) {
       });
       it('should set the right context when given none', function() {
         var context;
-        Array.prototype.filter.call(createArrayLikeFromArray([1]), function() {context = this;}, undefined);
+        Array.prototype.filter.call(createArrayLikeFromArray([1]), function() {context = this;}, undef);
         expect(context).to.be(function() {return this;}.call());
       });
       it('should pass the right context to the filter', function() {
@@ -1358,7 +1359,7 @@ app.on('ready', function(require) {
           i++;
           if (i <= 4) {
             arr.push(a+3);
-          };
+          }
           return b;
         });
         expect(arr).to.eql([1,2,3,4,5]);
@@ -1429,7 +1430,7 @@ app.on('ready', function(require) {
           i++;
           if (i <= 4) {
             arr[i+2] = a+3;
-          };
+          }
           return b;
         });
         expect(arr).to.eql({
@@ -1507,7 +1508,7 @@ app.on('ready', function(require) {
           i++;
           if (i <= 4) {
             arr.push(a+3);
-          };
+          }
           return b;
         });
         expect(arr).to.eql([1,2,3,6,5]);
@@ -1586,7 +1587,7 @@ app.on('ready', function(require) {
           i++;
           if (i <= 4) {
             arr[i+2] = a+3;
-          };
+          }
           return b;
         });
         expect(arr).to.eql({
@@ -1683,7 +1684,8 @@ app.on('ready', function(require) {
         prefix = prefix || "";
         var a = [];
         while (l--) {
-          a.unshift(prefix + Array(l + 1).join(" ") + l);
+          var b = new Array(l + 1).join(" ");
+          a.unshift(prefix + b + l);
         }
         return a;
       };

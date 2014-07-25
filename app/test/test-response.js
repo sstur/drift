@@ -16,7 +16,7 @@ app.on('ready', function(require) {
   //for (var i = 0; i < 256; i++) blob[i] = String.fromCharCode(i);
   //blob = new Buffer(blob, 'binary');
 
-  var undefined;
+  var undef;
   var dataPath = app.cfg('data_dir') || 'data/';
 
   app.addTestSuite('response', {
@@ -50,7 +50,7 @@ app.on('ready', function(require) {
       it('should stringify non-string values', function() {
         res.headers('x-number', 1);
         expect(res.headers('x-number')).to.be('1');
-        res.headers('x-undefined', undefined);
+        res.headers('x-undefined', undef);
         expect(res.headers('x-undefined')).to.be('');
         var date = new Date();
         res.headers('x-date', date);
@@ -117,7 +117,7 @@ app.on('ready', function(require) {
         var res = createResponse();
         res.write(1);
         res.write(null);
-        res.write(undefined);
+        res.write(undef);
         res.write(false);
         res.write('string');
         var result = catchNull(res, 'end');
@@ -158,7 +158,7 @@ app.on('ready', function(require) {
     'res.cookies()': function(it) {
       var res = createResponse();
       it('should set/get', function() {
-        expect(res.cookies('Sample')).to.be(undefined);
+        expect(res.cookies('Sample')).to.be(undef);
         res.cookies('Sample', 'one');
         expect(res.cookies('Sample')).to.be.an('object');
         expect(res.cookies('Sample')).to.eql({value: 'one'});
@@ -170,7 +170,7 @@ app.on('ready', function(require) {
       });
       it('should delete', function() {
         res.cookies('Sample', null);
-        expect(res.cookies('Sample')).to.be(undefined);
+        expect(res.cookies('Sample')).to.be(undef);
         res.cookies({'One': null, 'Two': null});
         expect(res.cookies()).to.eql({});
       });
@@ -199,14 +199,14 @@ app.on('ready', function(require) {
         expect(res.cookies('1')).to.eql({value: '1'});
         res.cookies(null, 'null');
         expect(res.cookies('null')).to.eql({value: 'null'});
-        res.cookies({'1': null, 'null': null})
+        res.cookies({'1': null, 'null': null});
       });
       it('should coerce value to string if not null or object', function() {
         res.cookies('One', 1);
         expect(res.cookies('One').value).to.be('1');
         res.cookies('False', false);
         expect(res.cookies('False').value).to.be('false');
-        res.cookies('Nothing', undefined);
+        res.cookies('Nothing', undef);
         expect(res.cookies('Nothing').value).to.be('undefined');
         res.cookies('Date', new Date());
         expect(res.cookies('Date').value).to.be('undefined');
@@ -403,7 +403,7 @@ app.on('ready', function(require) {
       status: result.status,
       headers: result.headers,
       body: result.getBody()
-    }
+    };
   }
 
 });

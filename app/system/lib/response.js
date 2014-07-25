@@ -82,7 +82,7 @@ define('response', function(require, exports, module) {
     },
     charset: function(charset) {
       if (arguments.length) {
-        return this.buffer.charset = charset;
+        return (this.buffer.charset = charset);
       } else {
         return this.buffer.charset;
       }
@@ -90,7 +90,7 @@ define('response', function(require, exports, module) {
     headers: function(name, value) {
       var headers = this.buffer.headers;
       //return headers
-      if (arguments.length == 0) {
+      if (arguments.length === 0) {
         return headers;
       }
       //set multiple from name/value pairs
@@ -116,7 +116,7 @@ define('response', function(require, exports, module) {
       if (name in allowMulti && name in headers) {
         var existing = headers[name];
         if (Array.isArray(existing)) {
-          existing.push(value)
+          existing.push(value);
         } else {
           headers[name] = [existing, value];
         }
@@ -147,7 +147,7 @@ define('response', function(require, exports, module) {
       //cookies are a case-sensitive collection that will be serialized into
       // Set-Cookie header(s) when response is sent
       var cookies = this.buffer.cookies;
-      if (arguments.length == 0) {
+      if (arguments.length === 0) {
         return cookies;
       }
       //set multiple from name/value pairs
@@ -316,7 +316,7 @@ define('response', function(require, exports, module) {
     return {
       code: statusCode,
       reason: status.slice(4) || statusCodes[statusCode]
-    }
+    };
   }
 
   function serializeCookie(name, cookie) {

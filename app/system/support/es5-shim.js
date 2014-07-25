@@ -2,7 +2,7 @@
  Copyright (c) 2009, 280 North Inc. http://280north.com/
  MIT License. http://github.com/280north/narwhal/blob/master/README.md
  */
-
+/*jshint -W014, -W020, -W103, -W107 */
 (function() {
 
   /**
@@ -529,10 +529,10 @@
         throw new Error("Object.keys called on a non-object");
       }
 
-      var keys = [];
+      var keysArray = [];
       for (var name in object) {
         if (owns(object, name)) {
-          keys.push(name);
+          keysArray.push(name);
         }
       }
 
@@ -544,11 +544,11 @@
             continue;
           }
           if (owns(object, dontEnum)) {
-            keys.push(dontEnum);
+            keysArray.push(dontEnum);
           }
         }
       }
-      return keys;
+      return keysArray;
     };
 
   }

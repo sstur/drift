@@ -10,11 +10,11 @@
    * @api private
    */
   exports.modified = function(req, res, headers) {
-    headers = headers || res._headers || {}
+    headers = headers || res._headers || {};
     var modifiedSince = req.headers['if-modified-since']
       , lastModified = headers['last-modified']
       , noneMatch = req.headers['if-none-match']
-      , etag = headers['etag'];
+      , etag = headers.etag;
 
     if (noneMatch) noneMatch = noneMatch.split(/ *, */);
 
@@ -44,7 +44,7 @@
    */
   exports.removeContentHeaders = function(res) {
     Object.keys(res._headers).forEach(function(field) {
-      if (0 == field.indexOf('content')) {
+      if (0 === field.indexOf('content')) {
         res.removeHeader(field);
       }
     });
@@ -58,8 +58,7 @@
    * @api private
    */
   exports.conditionalGET = function(req) {
-    return req.headers['if-modified-since']
-      || req.headers['if-none-match'];
+    return req.headers['if-modified-since'] || req.headers['if-none-match'];
   };
 
   /**
