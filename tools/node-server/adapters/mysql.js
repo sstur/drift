@@ -1,10 +1,8 @@
 /**
  * todo: handle errors: PROTOCOL_CONNECTION_LOST
- * todo: connection pooling
  */
 /*global require, app, adapter, Buffer */
 var mysql = require('mysql');
-var SqlString = require('mysql/lib/protocol/SqlString');
 
 var TIMEZONE = '+00:00';
 var CONNECTION_LIMIT = 10;
@@ -25,27 +23,14 @@ adapter.define('mysql', function(require, exports) {
   function Connection(name, config) {
     this.name = name;
     this.config = config;
-    try {
-      this.dbConnection = this.open();
-    } catch(e) {
-      throw new Error('Error opening MySQL connection:\n' + e.message);
-    }
   }
 
   util.extend(Connection.prototype, {
-    open_: function(callback) {
+    _getPooledConnection: function() {
       var name = this.name;
-      var pool = connectionPools[name] || (connectionPools[name] = this.createPool());
-      pool.getConnection(function(err, connection) {
-        if (err) return callback(err);
-        if (app.cfg('debug_open_connections')) {
-          var openConnections = app.data('debug:open_connections') || 0;
-          app.data('debug:open_connections', openConnections + 1);
-        }
-        callback(null, connection);
-      });
+      return connectionPools[name] || (connectionPools[name] = this._createPool());
     },
-    createPool: function() {
+    _createPool: function() {
       var config = this.config;
       return mysql.createPool({
         connectionLimit: CONNECTION_LIMIT,
@@ -65,7 +50,7 @@ adapter.define('mysql', function(require, exports) {
       }
       var opts = (args.length > 2) ? args.pop() : {};
       var params = (args.length > 1) ? args.pop() : [];
-      var query = new Query(this.dbConnection, str, params, opts);
+      var query = new Query(this, str, params, opts);
       if (func) query.each(func);
       return query;
     },
@@ -74,17 +59,17 @@ adapter.define('mysql', function(require, exports) {
       var sql = [], names = [], values = [];
       Object.keys(data).forEach(function(key) {
         sql.push('?');
-        names.push('`' + key + '`');
+        names.push(escIdentifier(key));
         values.push(data[key]);
       });
-      sql = 'INSERT INTO `' + table + '` (' + names.join(', ') + ') VALUES (' + sql.join(', ') + ')';
+      sql = 'INSERT INTO ' + escIdentifier(table) + ' (' + names.join(', ') + ') VALUES (' + sql.join(', ') + ')';
       this.exec(sql, values, returnId, callback);
     },
     exec_: function(str, params, returnAffected, callback) {
-      var dbConnection = this.dbConnection;
+      var connection = this._getPooledConnection();
       var sql = buildSQL(str, params);
       //util.log(3, sql, 'mysql');
-      dbConnection.query(str, params, function(err, result) {
+      connection.query(str, params, function(err, result) {
         if (err) {
           //err.message = 'SQL Statement Could not be executed:\n' + sql + '\n' + err.message;
           return callback(err);
@@ -102,21 +87,14 @@ adapter.define('mysql', function(require, exports) {
         }
       });
     },
-    close_: function(callback) {
-      var dbConnection = this.dbConnection;
-      dbConnection.end(function(err) {
-        if (err) return callback(err);
-        if (app.cfg('debug_open_connections')) {
-          var openConnections = app.data('debug:open_connections') || 1;
-          app.data('debug:open_connections', openConnections - 1);
-        }
-      });
+    close: function() {
+      //we don't actually close any connections; they're managed by the connection pooling
     }
   });
 
 
-  function Query(dbConnection, str, params, opts) {
-    this.dbConnection = dbConnection;
+  function Query(connection, str, params, opts) {
+    this.connection = connection;
     this.str = str;
     this.params = params;
     this.opts = opts || {};
@@ -150,7 +128,8 @@ adapter.define('mysql', function(require, exports) {
   function getAll(query, callback) {
     var sql = query.getSQL();
     //util.log(3, sql, 'mysql');
-    query.dbConnection.query(sql, function(err, rows, fields) {
+    var connection = query.connection._getPooledConnection();
+    connection.query(sql, function(err, rows, fields) {
       if (err) {
         //err.message = 'SQL Statement Could not be executed:\n' + sql + '\n' + err.message;
         return callback(err);
@@ -192,7 +171,7 @@ adapter.define('mysql', function(require, exports) {
       }
       return s;
     });
-    // MySQL will not allow syntax: SELECT * WHERE `foo` = NULL
+    // MySQL will not allow syntax: SELECT * WHERE foo = NULL
     sql = sql.replace(/WHERE (.*)/, function(sql) {
       sql = sql.replace(/!= NULL/g, 'IS NOT NULL');
       sql = sql.replace(/= NULL/g, 'IS NULL');
@@ -202,7 +181,7 @@ adapter.define('mysql', function(require, exports) {
     sql = sql.replace(/\bNOW\(\)/ig, toSQLVal(date));
     //replace special CAST values
     sql = sql.replace(/(\w+)\(\$(\d)\)/, function(s, n, i) {
-      var val = arr[Number.parseInt(i)];
+      var val = arr[+i];
       var sql = s.replace('$' + i, val);
       if (n == 'CAST_DATE') {
         sql = toSQLVal(parseDate(val.slice(1, -1)));
@@ -212,8 +191,7 @@ adapter.define('mysql', function(require, exports) {
     });
     //re-insert subbed-out entities
     sql = sql.replace(/\$(\d+)/g, function(s, i) {
-      i = Number.parseInt(i);
-      return arr[i];
+      return arr[+i];
     });
     return sql;
   }
@@ -236,15 +214,14 @@ adapter.define('mysql', function(require, exports) {
     if (Buffer.isBuffer(val)) {
       return "x'" + val.toString('hex') + "'";
     }
-    if (Array.isArray(val) || type == 'object') {
+    if (type == 'object' || Array.isArray(val)) {
       val = (val.toString) ? val.toString() : Object.prototype.toString.call(val);
     }
-    return escSqlString(val);
+    return escString(val);
   }
 
   function formatDate(date) {
-    //Dates are stored in DB as UTC
-    //format is: {yyyy}-{mm}-{dd} {HH}:{nn}:{ss}
+    //we store dates as UTC as format {yyyy}-{mm}-{dd} {HH}:{nn}:{ss}
     return date.getUTCFullYear() + '-' +
       pad(date.getUTCMonth() + 1) + '-' +
       pad(date.getUTCDate()) + ' ' +
@@ -276,35 +253,24 @@ adapter.define('mysql', function(require, exports) {
     throw new Error('Not a date: ' + input);
   }
 
-  function escSqlString(value) {
-    return SqlString.escape(value, false, TIMEZONE);
+  function escString(val) {
+    val = val.replace(/[\0\n\r\b\t\\'\x1A]/g, function(s) {
+      switch(s) {
+        case "\0": return "\\0";
+        case "\n": return "\\n";
+        case "\r": return "\\r";
+        case "\b": return "\\b";
+        case "\t": return "\\t";
+        case "\x1a": return "\\Z";
+        default: return "\\" + s;
+      }
+    });
+    return "'" + val + "'";
   }
 
-
-
-  //  'CREATE TABLE {tableName} ( ',
-  //  '"id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ',
-  //  '"first_name" TEXT NOT NULL, ',
-  //  '"last_name" TEXT NOT NULL, ',
-  //  '"nickname" TEXT, ',
-  //  '"birth_date" TEXT NOT NULL, ',
-  //  '"num_children" INTEGER NOT NULL DEFAULT (0), ',
-  //  '"enabled" INTEGER NOT NULL );'
-
-  //var getTableCreationSql = function(tableName, fields) {
-  //  var defs = [];
-  //  for (var n in fields) {
-  //    var attrs = fields[n], parts = [];
-  //    parts.push('"' + n + '"');
-  //    for (var i = 0; i < attrs.length; i++) {
-  //      parts.push(attrs[i]);
-  //    }
-  //    defs.push(parts.join(' '));
-  //  }
-  //  return 'CREATE TABLE ' + tableName + ' (' + defs.join(', ') + ');';
-  //};
-
-
+  function escIdentifier(val) {
+    return '`' + val.replace(/`/g, '``') + '`';
+  }
 
   exports.Query = Query;
   exports.Connection = Connection;

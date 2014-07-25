@@ -7,6 +7,7 @@ app.on('ready', function(require) {
   "use strict";
 
   var expect = require('expect');
+  var Model = require('model').Model;
 
   var Author = new Model({
     name: 'Author',
