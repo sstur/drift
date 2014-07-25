@@ -5,7 +5,7 @@
  *  -q [quiet]
  *  -m [minify]
  *  --mangle [mangle variable names]
- *  --debug [enable stack trace on iis]
+ *  --debug [code transform for stack trace workaround]
  */
 /*global process, require, module, exports */
 (function() {
@@ -16,6 +16,7 @@
   var childProcess = require('child_process');
 
   var join = path.join;
+  var dirname = path.dirname;
 
   var opts = global.opts || {};
   var args = opts._ || process.argv.slice(2);
@@ -36,11 +37,8 @@
 
   opts.platform = args.shift();
 
-  var config;
-  try {
-    config = fs.readFileSync(join(projectPath, 'build-conf.json'), 'utf8');
-  } catch(e) {}
-  config = JSON.parse(config || '{}');
+  var config = readJSON(join(projectPath, 'build-conf.json'));
+  var pkgConfig = readJSON(join(projectPath, 'package.json'));
 
   if (opts.platform == 'apache') {
     opts.platform = 'apache/v8cgi';
@@ -253,7 +251,10 @@
 
   function loadFile(path) {
     var fullpath = join(projectPath, path);
-    var exclude = config.exclude || [], shortpath = path.replace(/^app\//, ''), skip = false;
+    var exclude = config.exclude || [];
+    var shortpath = path.replace(/^app\//, '');
+    var skip = false;
+    var isConfig = (dirname(path).split('/').pop() === 'config');
     //console.log(exclude, shortpath);
     exclude.forEach(function(excl) {
       if (excl === shortpath) skip = true;
@@ -264,6 +265,13 @@
     if (skip) return;
     if (!opts.q) console.log('load file', path);
     var filedata = fs.readFileSync(fullpath, 'utf8');
+    if (isConfig) {
+      //allow config files to reference package.json
+      filedata = filedata.replace(/('|")\{\{package:(.*?)\}\}\1/g, function(str, _, key) {
+        var value = (pkgConfig[key] == null) ? '' : pkgConfig[key];
+        return JSON.stringify(value);
+      });
+    }
     filedata = escapeSource(filedata);
     var lines = filedata.split(REG_NL);
     sourceFiles.push({
@@ -465,6 +473,13 @@
       return w.walk(ast);
     });
     return ast;
+  }
+
+  function readJSON(path) {
+    try {
+      var result = fs.readFileSync(path, 'utf8');
+    } catch(e) {}
+    return JSON.parse(result || '{}');
   }
 
 })();

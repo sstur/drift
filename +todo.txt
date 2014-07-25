@@ -1,40 +1,35 @@
+config.js to get version from package.json in node-server
+move db-init/compile-views/devtools (from sendfleet, wfm, cfm)
+util.log should be async in node-adapter
+getEnv() should be guaranteed in all adapters
+replace getEnv with __DEV__ ?
+req.isUpload()
+should not throw:
+  inspect({connection: new ActiveXObject('ADODB.Connection')})
+
 allow config/mysql/connections to be specified in build-conf
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)
 Allow cli flags for `drift serve` that would get added via app.cfg()
   like --debug-tests which could turn on the noCatch flag for the test runner
-
-consolidate mime list between app/system/config/mime.js and /tools/node-server/lib/mime.js
-util.log should be async in node-adapter
-replace getEnv with __DEV__ ?
-getEnv() should be guaranteed in all adapters
-_examples/ is required bu tools/init.js
-adapters/activex/mysql: deprecate connection string
+req.doAfter() or app.queueImmediate()
 
 are the test libraries (system/test) going into every build?
-
 app/system
-  move core modules to core/
+  move core modules -> core/
   libraries like session, auth, mysql, localdb -> lib/
   include optional libraries only if require'd in system/core or app/
+
+_examples/ is required bu tools/init.js
+adapters/activex/mysql: deprecate connection string
+Ignore or throw? modelInstance.update({some_non_exist: 'foo'})
 
 fs.stat -> fs.getInfo
 fs.readdir -> fs.getDirContents
 file-based session store:
   5324e71223dc1548ecaea108.json (first 8 is seconds in hex) [cfm]
   2012-10-19/13a76ac2bcc019dce0e054b26485d8f9.json
-config.js to get version from package.json on build
-move db-init and devtools (from sendfleet, wfm, cfm)
-move compile-views
 
-eslint/jshint:
-  catch == and !=
-  catch multiple var declarations
 
-Ignore or throw? modelInstance.update({some_non_exist: 'foo'})
-should not throw:
-  inspect({connection: new ActiveXObject('ADODB.Connection')})
-
-req.doAfter() or app.queueImmediate()
 
 app.route('/users/:id[int:positive]')
  - or -
@@ -65,9 +60,6 @@ if [method override] and req.query('_body') [parse body]
 
 req._super._read(bytes) no greater than 256kb at a time
 Uploads during which client disconnects should emit a 'cancel' event and handle gracefully
-bug: specifying content-length still triggers transfer-encoding: chunked
-
-`drift watch` starts node-watch/main.js
 
 app.on('init') used for:
   patching app (app.model)

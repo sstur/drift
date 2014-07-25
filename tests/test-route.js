@@ -6,8 +6,8 @@
 
   require('../app/system/core');
 
-  require('../node-server/adapters/buffer');
-  require('../node-server/adapters/inspector');
+  require('../tools/node-server/adapters/buffer');
+  require('../tools/node-server/adapters/inspector');
 
   require('../app/system/config/defaults');
   require('../app/config/config');

@@ -1,10 +1,10 @@
 /*global app */
 app.cfg({
+  //this references package.json
+  version: '{{package:version}}',
+
   //Filesystem directory for data (logs, uploads, etc)
   data_dir: 'data/',
-
-  //todo: this should be set dynamically
-  is_dev: true,
 
   //Model persistence
   models: {

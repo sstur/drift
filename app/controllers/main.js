@@ -12,6 +12,10 @@ app.on('ready', function(require) {
     res.sendFile('assets/favicon.ico');
   });
 
+  app.route('/version', function(req, res) {
+    res.end('Application version: ' + app.cfg('version'));
+  });
+
   //app.route('/test-get-redir', function(req, res) {
   //  var http = require('http'), host = req.headers('host');
   //  var response = http.get({

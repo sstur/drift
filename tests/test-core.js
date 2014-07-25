@@ -43,7 +43,8 @@
     });
 
     it('should get and set config options', function() {
-      app.environments.push('test1');
+      //add a test platform
+      app.platforms.test1 = 1;
       app.cfg('test1', {a: {a: 1, b: false}});
       app.cfg('test1', {a: {a: 1, b: false}});
       app.cfg({a: {d: 'test'}});

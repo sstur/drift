@@ -2,15 +2,6 @@
   "target": "build/app",
   "errorHandler": "build/err",
   "compileViews": false,
-  "appendLines": [
-    "<script runat=\"server\" language=\"vbscript\">",
-    "function executeSqlAndReturnNumRowsAffected(connection, sql)",
-    "  dim count",
-    "  connection.execute sql, count",
-    "  executeSqlAndReturnNumRowsAffected = count",
-    "end function",
-    "</script>"
-  ],
   "action:after": {
     "type": "exec",
     "command": "if [ -d ./deploy/build ]; then cp build/*.* deploy/build/; fi"
