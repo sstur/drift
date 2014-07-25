@@ -7,67 +7,55 @@ var mysql = require('mysql');
 var SqlString = require('mysql/lib/protocol/SqlString');
 
 var TIMEZONE = '+00:00';
+var CONNECTION_LIMIT = 10;
 
 adapter.define('mysql', function(require, exports) {
   "use strict";
 
   var util = require('util');
 
-  //var DBWrapper = dbi.DBWrapper;
-
-  //function NewDBWrapper(type, opts) {
-  //  DBWrapper.apply(this, arguments);
-  //}
-  //util.inherits(NewDBWrapper, DBWrapper);
-  //
-  //var asyncMethods = 'connect close query fetchAll fetchRow fetchCol fetchOne insert update remove'.split(' ');
-  //asyncMethods.split(' ').forEach(function(methodName) {
-  //  NewDBWrapper.prototype[methodName + '_'] = DBWrapper.prototype[methodName];
-  //});
-  //
-  //NewDBWrapper.prototype.createTable = function(tableName, fields) {
-  //  var sql = getTableCreationSql(tableName, fields);
-  //  return this.query(sql, null);
-  //};
-
-
-
-  var RE_NONASCII = /[\x00-\x1f\x7f-\xff\u0100-\uffff]+/g;
   var REG_SQL_ENTITIES = /('(''|[^'])*'|\[(\\.|[^\]])*\]|\$\d+|\?|[A-Z_]+\(\))/gim;
   var REG_DATE_1 = /^(\d{4})-(\d{2})-(\d{2})\s*T?([\d:]+)(\.\d+)?($|[Z\s+-].*)$/i;
   var REG_DATE_2 = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/;
 
 
   var namedConnections = app.cfg('mysql/connections') || {};
-  var connections = [];
+  var connectionPools = {};
 
-  function Connection(config) {
-    this.dbConnection = mysql.createConnection({
-      host: config.hostname || config.server || 'localhost',
-      user: config.username,
-      password: config.password,
-      database: config.database,
-      //dateStrings: true,
-      timezone: TIMEZONE,
-      charset: 'UTF8_GENERAL_CI'
-    });
-    //todo: postpone open?
+  function Connection(name, config) {
+    this.name = name;
+    this.config = config;
     try {
-      this.open();
+      this.dbConnection = this.open();
     } catch(e) {
       throw new Error('Error opening MySQL connection:\n' + e.message);
     }
-    connections.push(this);
   }
 
   util.extend(Connection.prototype, {
     open_: function(callback) {
-      this.dbConnection.connect(function(err) {
-        if (!err && app.cfg('debug_open_connections')) {
+      var name = this.name;
+      var pool = connectionPools[name] || (connectionPools[name] = this.createPool());
+      pool.getConnection(function(err, connection) {
+        if (err) return callback(err);
+        if (app.cfg('debug_open_connections')) {
           var openConnections = app.data('debug:open_connections') || 0;
           app.data('debug:open_connections', openConnections + 1);
         }
-        callback(err);
+        callback(null, connection);
+      });
+    },
+    createPool: function() {
+      var config = this.config;
+      return mysql.createPool({
+        connectionLimit: CONNECTION_LIMIT,
+        host: config.hostname || config.server || 'localhost',
+        user: config.username,
+        password: config.password,
+        database: config.database,
+        //dateStrings: true,
+        timezone: TIMEZONE,
+        charset: 'UTF8_GENERAL_CI'
       });
     },
     query: function(str /*, [params], [opts], [func] */) {
@@ -318,22 +306,16 @@ adapter.define('mysql', function(require, exports) {
 
 
 
-  //todo: connections should be closed on request end/disconnect
-  app.on('end', function() {
-    forEach(connections, function(i, connection) {
-      connection.close();
-    });
-  });
-
   exports.Query = Query;
   exports.Connection = Connection;
 
   exports.open = function(name) {
-    var config = namedConnections[name || 'default'];
+    name = name || 'default';
+    var config = namedConnections[name];
     if (!config) {
       throw new Error('MySQL: Invalid Named Connection: ' + name);
     }
-    return new Connection(config);
+    return new Connection(name, config);
   };
 
 

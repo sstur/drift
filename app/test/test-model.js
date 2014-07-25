@@ -7,12 +7,6 @@ app.on('ready', function(require) {
   "use strict";
 
   var expect = require('expect');
-  //todo: remove the try/catch
-  try {
-    var Model = require('model').Model;
-  } catch(e) {
-    return;
-  }
 
   var Author = new Model({
     name: 'Author',
