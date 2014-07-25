@@ -47,14 +47,14 @@ app.on('ready', function(require) {
       Author.dropTable();
       Article.dropTable();
     },
-//    'create': function() {
-//      var author = Author.create({name: 'Jimmy', rating: 5, age: 50});
-//      expect(author).to.not.have.property('id');
-//      expect(author.name).to.be('Jimmy');
-//      expect(author).to.not.have.property('age');
-//      //date stamps do not get added at create (despite the name)
-//      expect(author).to.not.have.property('created_at');
-//    },
+    'create': function() {
+      var author = Author.create({name: 'Jimmy', rating: 5, age: 50});
+      expect(author).to.not.have.property('id');
+      expect(author.name).to.be('Jimmy');
+      expect(author).to.not.have.property('age');
+      //date stamps do not get added at create (despite the name)
+      expect(author).to.not.have.property('created_at');
+    },
     'insert/find by id': function() {
       var author1 = Author.insert({name: 'Jimmy', rating: 5, created_at: getDate()});
       expect(author1.id).to.be.a('number');

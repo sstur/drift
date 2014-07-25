@@ -94,7 +94,6 @@
     //attempt to serve static file
     res.tryStaticPath('assets/', function() {
       var fiber = Fiber(syncHandler);
-      console.log('fiber count: ' + Fiber.fibersCreated);
       fiber.onError = res.sendError.bind(res);
       fiber.run({req: req, res: res});
     });
