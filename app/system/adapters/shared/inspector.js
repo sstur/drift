@@ -95,7 +95,7 @@ define('inspector', function(require, exports) {
       base = ' ' + formatError(value);
     }
 
-    if (keys.length === 0 && (!array || value.length == 0)) {
+    if (keys.length === 0 && (!array || value.length === 0)) {
       return braces[0] + base + braces[1];
     }
 

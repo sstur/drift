@@ -8,7 +8,7 @@
   var join = path.join, basename = path.basename;
 
   function walk(dir, options, callback) {
-    if (!callback) {callback = options; options = {}}
+    if (!callback) {callback = options; options = {};}
     if (!callback.files) callback.files = {};
     if (!callback.pending) callback.pending = 0;
     callback.pending += 1;
@@ -106,7 +106,7 @@
   };
 
   exports.watchTree = function(root, options, callback) {
-    if (!callback) {callback = options; options = {}}
+    if (!callback) {callback = options; options = {};}
     fs.stat(root, function(err, stat) {
       if (err) return callback(err);
       fileWatcher({}, root, stat, callback);
@@ -121,7 +121,7 @@
   };
 
   exports.createMonitor = function(root, options, cb) {
-    if (!cb) {cb = options; options = {}}
+    if (!cb) {cb = options; options = {};}
     var monitor = new events.EventEmitter();
     exports.watchTree(root, options, function(f, curr, prev) {
       if (typeof f == "object" && prev == null && curr === null) {
@@ -135,7 +135,7 @@
         return monitor.emit("removed", f, curr);
       }
       monitor.emit("changed", f, curr, prev);
-    })
+    });
   };
 
   exports.walk = walk;

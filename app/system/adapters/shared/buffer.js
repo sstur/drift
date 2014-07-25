@@ -3,21 +3,21 @@ define('buffer', function(require, exports) {
   "use strict";
 
   var util = require('util');
-  var _super = (typeof _require != 'undefined') && _require('binary').Buffer;
+  var C_Buffer = (typeof _require != 'undefined') && _require('binary').Buffer;
 
   var SHOW_MAX = 51;
 
   //patch for platforms supporting CommonJS Binary/F
-  if (_super) {
-    _super.prototype.toRaw = function() {
+  if (C_Buffer) {
+    C_Buffer.prototype.toRaw = function() {
       var len = this.length, arr = new Array(len);
       for (var i = 0; i < len; i++) {
         arr[i] = String.fromCharCode(this[i]);
       }
       return arr.join('');
     };
-    _super.fromRaw = function(str) {
-      var len = str.length, b = new _super(len);
+    C_Buffer.fromRaw = function(str) {
+      var len = str.length, b = new C_Buffer(len);
       for (var i = 0; i < len; i++) {
         b[i] = str.charCodeAt(i);
       }
@@ -56,7 +56,7 @@ define('buffer', function(require, exports) {
     if (Array.isArray(subject)) {
       this._raw = arrToRaw(subject);
     } else
-    if (_super && (subject instanceof _super)) {
+    if (C_Buffer && (subject instanceof C_Buffer)) {
       this._raw = subject.toRaw();
     } else
     if (type == 'unknown') {
@@ -68,7 +68,7 @@ define('buffer', function(require, exports) {
         this._raw = '';
       }
     } else {
-      throw new Error('Invalid parameters to construct Buffer')
+      throw new Error('Invalid parameters to construct Buffer');
     }
     this.length = this._raw.length;
   }
@@ -99,7 +99,7 @@ define('buffer', function(require, exports) {
         len = this.length - start;
       }
       var s = this._raw;
-      this._raw = ((start == 0) ? '' : s.slice(0, start)) + data + s.slice(start + len + 1);
+      this._raw = ((start === 0) ? '' : s.slice(0, start)) + data + s.slice(start + len + 1);
       return len;
     },
     slice: function(start, end) {
@@ -123,7 +123,7 @@ define('buffer', function(require, exports) {
       return s;
     },
     toBin: function() {
-      return (_super) ? _super.fromRaw(this._raw) : rawToAdo(this._raw);
+      return (C_Buffer) ? C_Buffer.fromRaw(this._raw) : rawToAdo(this._raw);
     },
     toJSON: function() {
       return '<Buffer ' + rawToHex(this._raw) + '>';
@@ -231,7 +231,7 @@ define('buffer', function(require, exports) {
   // Base64 decoder
   // [https://gist.github.com/1020396] by [https://github.com/atk]
   function atob(input) {
-    input = input.replace(/=+$/, '')
+    input = input.replace(/=+$/, '');
     if (input.length % 4 == 1) {
       throw new Error('Invalid Base64 String');
     }

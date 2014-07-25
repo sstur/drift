@@ -147,7 +147,11 @@ define('model', function(require, exports) {
       var results = [], self = this, i = 0;
       query.each(function(rec) {
         var instance = parseResult(rec, self, built.fields);
-        fn ? fn.call(null, instance, i++) : results.push(instance);
+        if (fn) {
+          fn.call(null, instance, i++);
+        } else {
+          results.push(instance);
+        }
       });
       return fn ? null : results;
     },
@@ -237,7 +241,11 @@ define('model', function(require, exports) {
       var results = [], i = 0;
       query.each(function(rec) {
         var items = parseResult(rec, self.models, built.fields);
-        fn ? fn.apply(null, items.concat(i++)) : results.push(items);
+        if (fn) {
+          fn.apply(null, items.concat(i++));
+        } else {
+          results.push(items);
+        }
       });
       return fn ? null : results;
     }

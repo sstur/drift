@@ -183,12 +183,12 @@
 
   if (opts.m) {
     throw new Error('minification code needs to be fixed');
-    if (!uglifyjs) {
-      console.error('Cannot find module uglify-js.');
-      process.exit();
-    }
-    var mangle = ('mangle' in opts);
-    sourceLines = [uglify(sourceLines.join('\n'), mangle)];
+    //if (!uglifyjs) {
+    //  console.error('Cannot find module uglify-js.');
+    //  process.exit();
+    //}
+    //var mangle = ('mangle' in opts);
+    //sourceLines = [uglify(sourceLines.join('\n'), mangle)];
   } else {
     sourceLines = stripSource(sourceLines);
     if (opts.platform == 'apache/v8cgi') {
@@ -377,15 +377,15 @@
         var type = 'special_comment';
       } else
       if (str.slice(0, 2) == '/*') {
-        type = 'block_comment'
+        type = 'block_comment';
       } else
       if (str.slice(0, 2) == '//') {
-        type = 'line_comment'
+        type = 'line_comment';
       } else
       if (str.charAt(0) == '/') {
-        type = 'regular_expression'
+        type = 'regular_expression';
       } else {
-        type = 'string'
+        type = 'string';
       }
       if (type == 'line_comment' && str.slice(0, 11) === '//DEBUGGER:') {
         debuggerCode = str.slice(11);

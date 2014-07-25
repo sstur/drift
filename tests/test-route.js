@@ -37,7 +37,7 @@
 
     it('should execute route', function() {
       var count = 0;
-      var fn = function() { count++ };
+      var fn = function() { count++; };
       router.addRoute('/two', fn);
       complete = false;
       router.route('GET', '/two');
@@ -47,7 +47,7 @@
 
     it('should execute verb route', function() {
       var count = 0;
-      var fn = function() { count++ };
+      var fn = function() { count++; };
       router.addRoute('POST:/post', fn);
       router.addRoute('GET:/post', fn);
       complete = false;
@@ -58,7 +58,7 @@
 
     it('should execute multiple route handlers', function() {
       var count = 0;
-      var fn = function() { count++ };
+      var fn = function() { count++; };
       router.addRoute('/three', fn);
       router.addRoute('/three/:opt?', fn);
       complete = false;
@@ -69,8 +69,8 @@
 
     it('should stop routing', function() {
       var count = 0;
-      var fn1 = function() { count++; this.stop() };
-      var fn2 = function() { count++ };
+      var fn1 = function() { count++; this.stop(); };
+      var fn2 = function() { count++; };
       router.addRoute('/four', fn1);
       router.addRoute('/four', fn2);
       complete = false;

@@ -43,14 +43,15 @@
     //if we are in debug mode, we will have a stack
     var stack = err.message.split('\n');
     var origin;
+    var replacer = function(str, lineNum) {
+      var result = parseLine(+lineNum);
+      if (!origin) origin = result;
+      return '@line ' + result.line + ' in "' + result.file + '"';
+    };
     for (var i = 0; i < stack.length; i++) {
       var item = stack[i];
       if (item.match(/^in function /)) {
-        stack[i] = item.replace(/@line:\{(\d+)\}/, function(str, lineNum) {
-          var result = parseLine(+lineNum);
-          if (!origin) origin = result;
-          return '@line ' + result.line + ' in "' + result.file + '"';
-        });
+        stack[i] = item.replace(/@line:\{(\d+)\}/, replacer);
       }
     }
     err.message = stack.join('\n');
@@ -100,7 +101,7 @@
 
   function emailError(err, opts) {
     //this allows our app.debug() exceptions to pass through
-    if (err.message.indexOf('>>>>') == 0) return;
+    if (err.message.indexOf('>>>>') === 0) return;
     var errorText = renderError(err);
     opts.textBody = errorText;
     opts.htmlBody = '<pre><code>' + errorText.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</code></pre>';

@@ -175,7 +175,7 @@
         return array_splice.apply(this, [
           start === void 0 ? 0 : start,
           deleteCount === void 0 ? (this.length - start) : deleteCount
-        ].concat(slice.call(arguments, 2)))
+        ].concat(slice.call(arguments, 2)));
       }
     };
   }
@@ -696,11 +696,11 @@
           return date;
         }
         return NativeDate.apply(this, arguments);
-      };
+      }
 
       // 15.9.1.15 Date Time String Format.
       var isoDateExpression = new RegExp("^" +
-        "(\\d{4}|[\+\-]\\d{6})" + // four-digit year capture or sign +
+        "(\\d{4}|[+-]\\d{6})" + // four-digit year capture or sign +
         // 6-digit extended year
         "(?:-(\\d{2})" + // optional month capture
         "(?:-(\\d{2})" + // optional day capture
@@ -743,7 +743,7 @@
 
       // Copy "native" methods explicitly; they may be non-enumerable
       Date.now = NativeDate.now;
-      Date.UTC = NativeDate['UTC'];
+      Date.UTC = NativeDate.UTC;
       Date.prototype = NativeDate.prototype;
       Date.prototype.constructor = Date;
 
@@ -795,7 +795,7 @@
           }
           return NaN;
         }
-        return NativeDate['parse'].apply(this, arguments);
+        return NativeDate.parse.apply(this, arguments);
       };
 
       return Date;
@@ -836,7 +836,7 @@
         start < 0 ? (start = this.length + start) < 0 ? 0 : start : start,
         length
       );
-    }
+    };
   }
 
   // ES5 15.5.4.20
@@ -1122,7 +1122,7 @@
 
   if (!Object.defineProperty || definePropertyFallback) {
     var ERR_NON_OBJECT_DESCRIPTOR = "Property description must be an object: ";
-    var ERR_NON_OBJECT_TARGET = "Object.defineProperty called on non-object: "
+    var ERR_NON_OBJECT_TARGET = "Object.defineProperty called on non-object: ";
     var ERR_ACCESSORS_NOT_SUPPORTED = "getters & setters can not be defined " +
       "on this javascript engine";
 

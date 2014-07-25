@@ -42,7 +42,7 @@ define('mysql', function(require, exports) {
   util.extend(Connection.prototype, {
     open: function() {
       var conn = this._conn;
-      if (conn.state == 0) {
+      if (conn.state === 0) {
         conn.open(this._cstr);
         if (app.cfg('debug_open_connections')) {
           var openConnections = app.data('debug:open_connections') || 0;
@@ -97,7 +97,7 @@ define('mysql', function(require, exports) {
     },
     close: function() {
       var conn = this._conn;
-      if (conn.state != 0) {
+      if (conn.state !== 0) {
         conn.close();
         if (app.cfg('debug_open_connections')) {
           var openConnections = app.data('debug:open_connections') || 1;
@@ -130,16 +130,18 @@ define('mysql', function(require, exports) {
       var abort = false, i = 0;
       if (rs.state) {
         var opts = this.opts;
+        var rec;
+        var iterator = function(i, field) {
+          var value = fromADO(field.value);
+          if (opts.array) {
+            rec.push(value);
+          } else {
+            rec[field.name] = value;
+          }
+        };
         while (!rs.eof && !abort) {
-          var rec = opts.array ? [] : {};
-          enumerate(rs.fields, function(i, field) {
-            var value = fromADO(field.value);
-            if (opts.array) {
-              rec.push(value);
-            } else {
-              rec[field.name] = value;
-            }
-          });
+          rec = opts.array ? [] : {};
+          enumerate(rs.fields, iterator);
           abort = (func(rec, i++) === false);
           rs.movenext();
         }

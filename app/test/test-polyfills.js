@@ -24,7 +24,7 @@ app.on('ready', function(require) {
     return function it(name, fn) {
       do_before.call(this);
       return old_it.apply(this, arguments);
-    }
+    };
   }
 
   app.addTestSuite('polyfills', {
@@ -183,7 +183,7 @@ app.on('ready', function(require) {
       it('should return the isoString when stringified', function () {
         var date = new Date();
         expect(JSON.stringify(date.toISOString())).to.be(JSON.stringify(date));
-      })
+      });
     },
 
     'Function bind': function(it) {
@@ -213,7 +213,7 @@ app.on('ready', function(require) {
           context = this;
         }.bind();
         testSubject.func();
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
       it('binds properly without a context, and still supplies bound arguments', function() {
         var a, context;
@@ -223,7 +223,7 @@ app.on('ready', function(require) {
         }.bind(undefined, 1,2,3);
         testSubject.func(1,2,3);
         expect(a).to.eql([1,2,3,1,2,3]);
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
       it('binds a context properly', function() {
         testSubject.func = func.bind(actual);
@@ -243,7 +243,7 @@ app.on('ready', function(require) {
           return this;
         }.bind();
         var context = testSubject.func();
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
       it('returns properly without binding a context, and still supplies bound arguments', function() {
         var context;
@@ -252,7 +252,7 @@ app.on('ready', function(require) {
           return Array.prototype.slice.call(arguments);
         }.bind(undefined, 1,2,3);
         actual = testSubject.func(1,2,3);
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
         expect(actual).to.eql([1,2,3,1,2,3]);
       });
       it('returns properly while binding a context properly', function() {
@@ -320,7 +320,7 @@ app.on('ready', function(require) {
       it('returns the value that instance of original "class" when called as a constructor', function() {
         var classA = function(x) {
           this.name = x || "A";
-        }
+        };
         var classB = classA.bind(null, "B");
 
         var result = new classB;
@@ -373,7 +373,7 @@ app.on('ready', function(require) {
       it('should return names which are enumerable', function () {
         keys.forEach(function (name) {
           expect(loopedValues.indexOf(name)).to.not.be(-1);
-        })
+        });
       });
 
       it('should throw error for non object', function () {
@@ -381,7 +381,7 @@ app.on('ready', function(require) {
         //todo
         expect(function () {
           try {
-            Object.keys(42)
+            Object.keys(42);
           } catch (err) {
             throw e;
           }
@@ -413,7 +413,7 @@ app.on('ready', function(require) {
         //todo
         expect(function () {
           try {
-            Object.isExtensible(42)
+            Object.isExtensible(42);
           } catch (err) {
             throw e1;
           }
@@ -474,7 +474,7 @@ app.on('ready', function(require) {
       it('should return undefined because the object does not own the property', function () {
         var descr = Object.getOwnPropertyDescriptor({}, 'name');
 
-        expect(descr).to.be.a('undefined')
+        expect(descr).to.be.a('undefined');
       });
 
       it('should return a data descriptor', function () {
@@ -543,7 +543,6 @@ app.on('ready', function(require) {
     },
 
     'Array forEach': function(it) {
-      "use strict";
       var expected, actual;
 
       it = beforeEach(it, function() {
@@ -570,7 +569,7 @@ app.on('ready', function(require) {
       it('should set the right context when given none', function() {
         var context;
         [1].forEach(function() {context = this;});
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
       it('should iterate all', function() {
         testSubject.forEach(function(obj, index) {
@@ -662,7 +661,7 @@ app.on('ready', function(require) {
       it('should set the right context when given none', function() {
         var context;
         [1].some(function() {context = this;});
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
 
       it('should return false if it runs to the end', function() {
@@ -758,7 +757,7 @@ app.on('ready', function(require) {
       it('should set the right context when given none', function() {
         var context;
         [1].every(function() {context = this;});
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
 
       it('should return true if the array is empty', function() {
@@ -829,7 +828,6 @@ app.on('ready', function(require) {
     },
 
     'Array indexOf': function(it) {
-      "use strict";
       var actual, expected, testSubject;
 
       it = beforeEach(it, function() {
@@ -885,7 +883,6 @@ app.on('ready', function(require) {
     },
 
     'Array indexOf (array-like)': function(it) {
-      "use strict";
       var actual, expected, testSubject;
 
       it = beforeEach(it, function() {
@@ -952,7 +949,6 @@ app.on('ready', function(require) {
     },
 
     'Array lastIndexOf': function(it) {
-      "use strict";
       var actual, expected, testSubject, testAL;
 
       it = beforeEach(it, function() {
@@ -1008,7 +1004,6 @@ app.on('ready', function(require) {
     },
 
     'Array lastIndexOf (array-like)': function(it) {
-      "use strict";
       var actual, expected, testSubject, testAL;
       var lastIndexOf = Array.prototype.lastIndexOf, testAL;
 
@@ -1122,7 +1117,7 @@ app.on('ready', function(require) {
       it('should set the right context when given none', function() {
         var context;
         [1].filter(function() {context = this;});
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
 // note: this throws: expected [ 2, 'hej', null, false, 0 ] to sort of equal [ 2, , 'hej', null, false, 0 ]
 //      it('should remove only the values for which the callback returns false', function() {
@@ -1191,7 +1186,7 @@ app.on('ready', function(require) {
       it('should set the right context when given none', function() {
         var context;
         Array.prototype.filter.call(createArrayLikeFromArray([1]), function() {context = this;}, undefined);
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
       it('should pass the right context to the filter', function() {
         var passedValues = {};
@@ -1241,7 +1236,7 @@ app.on('ready', function(require) {
       it('should set the right context when given none', function() {
         var context;
         [1].map(function() {context = this;});
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
       it('should not change the array it is called on', function() {
         var copy = testSubject.slice();
@@ -1305,7 +1300,7 @@ app.on('ready', function(require) {
       it('should set the right context when given none', function() {
         var context;
         Array.prototype.map.call(createArrayLikeFromArray([1]), function() {context = this;});
-        expect(context).to.be(function() {return this}.call());
+        expect(context).to.be(function() {return this;}.call());
       });
       it('should not change the array it is called on', function() {
         var copy = createArrayLikeFromArray(testSubject);
@@ -1688,9 +1683,9 @@ app.on('ready', function(require) {
         prefix = prefix || "";
         var a = [];
         while (l--) {
-          a.unshift(prefix + Array(l + 1).join(" ") + l)
+          a.unshift(prefix + Array(l + 1).join(" ") + l);
         }
-        return a
+        return a;
       };
 
       it = beforeEach(it, function() {

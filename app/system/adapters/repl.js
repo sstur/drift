@@ -1,4 +1,5 @@
 /*global app, WScript */
+/*jshint evil:true */
 var require = app.require, console, Buffer;
 (function() {
   Buffer = require('buffer').Buffer;
@@ -71,15 +72,15 @@ try {
       delete repl.err;
       try {
         repl.out = eval('(' + repl.line + ')');
-      } catch (e) {
-        if (e instanceof SyntaxError) {
+      } catch (e1) {
+        if (e1 instanceof SyntaxError) {
           try {
             repl.out = eval(repl.line);
-          } catch (e) {
-            repl.err = e;
+          } catch (e2) {
+            repl.err = e2;
           }
         } else {
-          repl.err = e;
+          repl.err = e1;
         }
       }
       if (repl.err) {

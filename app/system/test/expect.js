@@ -47,7 +47,7 @@ define('expect', function(require, exports, module) {
         if (this.flags[$flags[i]]) continue;
 
         var name = $flags[i];
-        var assertion = new Assertion(this.obj, name, this)
+        var assertion = new Assertion(this.obj, name, this);
 
         if ('function' == typeof Assertion.prototype[name]) {
           // clone the function, make sure we dont touch the prot reference
@@ -102,10 +102,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         !!this.obj
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be truthy'
+          return 'expected ' + inspect(this.obj) + ' to be truthy';
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be falsy'
+          return 'expected ' + inspect(this.obj) + ' to be falsy';
         });
   };
 
@@ -163,10 +163,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         thrown
         , function() {
-          return 'expected ' + name + ' to throw an exception'
+          return 'expected ' + name + ' to throw an exception';
         }
         , function() {
-          return 'expected ' + name + ' not to throw an exception'
+          return 'expected ' + name + ' not to throw an exception';
         });
   };
 
@@ -197,10 +197,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         expectation
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be empty'
+          return 'expected ' + inspect(this.obj) + ' to be empty';
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to not be empty'
+          return 'expected ' + inspect(this.obj) + ' to not be empty';
         });
     return this;
   };
@@ -215,10 +215,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         obj === this.obj
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to equal ' + inspect(obj)
+          return 'expected ' + inspect(this.obj) + ' to equal ' + inspect(obj);
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to not equal ' + inspect(obj)
+          return 'expected ' + inspect(this.obj) + ' to not equal ' + inspect(obj);
         });
     return this;
   };
@@ -233,10 +233,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         expect.eql(this.obj, obj)
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to sort of equal ' + inspect(obj)
+          return 'expected ' + inspect(this.obj) + ' to sort of equal ' + inspect(obj);
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to sort of not equal ' + inspect(obj)
+          return 'expected ' + inspect(this.obj) + ' to sort of not equal ' + inspect(obj);
         }
         , obj);
     return this;
@@ -255,10 +255,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         this.obj >= start && this.obj <= finish
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be within ' + range
+          return 'expected ' + inspect(this.obj) + ' to be within ' + range;
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to not be within ' + range
+          return 'expected ' + inspect(this.obj) + ' to not be within ' + range;
         });
     return this;
   };
@@ -282,10 +282,10 @@ define('expect', function(require, exports, module) {
                       ? 'object' == typeof this.obj && null !== this.obj
                       : type == typeof this.obj
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to be a' + n + ' ' + type
+            return 'expected ' + inspect(this.obj) + ' to be a' + n + ' ' + type;
           }
           , function() {
-            return 'expected ' + inspect(this.obj) + ' not to be a' + n + ' ' + type
+            return 'expected ' + inspect(this.obj) + ' not to be a' + n + ' ' + type;
           });
     } else {
       // instanceof
@@ -293,10 +293,10 @@ define('expect', function(require, exports, module) {
       this.assert(
           this.obj instanceof type
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to be an instance of ' + name
+            return 'expected ' + inspect(this.obj) + ' to be an instance of ' + name;
           }
           , function() {
-            return 'expected ' + inspect(this.obj) + ' not to be an instance of ' + name
+            return 'expected ' + inspect(this.obj) + ' not to be an instance of ' + name;
           });
     }
 
@@ -314,10 +314,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         this.obj > n
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be above ' + n
+          return 'expected ' + inspect(this.obj) + ' to be above ' + n;
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be below ' + n
+          return 'expected ' + inspect(this.obj) + ' to be below ' + n;
         });
     return this;
   };
@@ -333,10 +333,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         this.obj < n
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be below ' + n
+          return 'expected ' + inspect(this.obj) + ' to be below ' + n;
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to be above ' + n
+          return 'expected ' + inspect(this.obj) + ' to be above ' + n;
         });
     return this;
   };
@@ -352,10 +352,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         regexp.exec(this.obj)
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to match ' + regexp
+          return 'expected ' + inspect(this.obj) + ' to match ' + regexp;
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' not to match ' + regexp
+          return 'expected ' + inspect(this.obj) + ' not to match ' + regexp;
         });
     return this;
   };
@@ -373,10 +373,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         n == len
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to have a length of ' + n + ' but got ' + len
+          return 'expected ' + inspect(this.obj) + ' to have a length of ' + n + ' but got ' + len;
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to not have a length of ' + len
+          return 'expected ' + inspect(this.obj) + ' to not have a length of ' + len;
         });
     return this;
   };
@@ -394,10 +394,10 @@ define('expect', function(require, exports, module) {
       this.assert(
           Object.prototype.hasOwnProperty.call(this.obj, name)
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to have own property ' + inspect(name)
+            return 'expected ' + inspect(this.obj) + ' to have own property ' + inspect(name);
           }
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to not have own property ' + inspect(name)
+            return 'expected ' + inspect(this.obj) + ' to not have own property ' + inspect(name);
           });
       return this;
     }
@@ -409,18 +409,18 @@ define('expect', function(require, exports, module) {
     } else {
       var hasProp;
       try {
-        hasProp = name in this.obj
+        hasProp = name in this.obj;
       } catch (e) {
-        hasProp = undefined !== this.obj[name]
+        hasProp = undefined !== this.obj[name];
       }
 
       this.assert(
           hasProp
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to have a property ' + inspect(name)
+            return 'expected ' + inspect(this.obj) + ' to have a property ' + inspect(name);
           }
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to not have a property ' + inspect(name)
+            return 'expected ' + inspect(this.obj) + ' to not have a property ' + inspect(name);
           });
     }
 
@@ -429,11 +429,11 @@ define('expect', function(require, exports, module) {
           val === this.obj[name]
           , function() {
             return 'expected ' + inspect(this.obj) + ' to have a property ' + inspect(name)
-                + ' of ' + inspect(val) + ', but got ' + inspect(this.obj[name])
+                + ' of ' + inspect(val) + ', but got ' + inspect(this.obj[name]);
           }
           , function() {
             return 'expected ' + inspect(this.obj) + ' to not have a property ' + inspect(name)
-                + ' of ' + inspect(val)
+                + ' of ' + inspect(val);
           });
     }
 
@@ -453,19 +453,19 @@ define('expect', function(require, exports, module) {
       this.assert(
           ~this.obj.indexOf(obj)
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to contain ' + inspect(obj)
+            return 'expected ' + inspect(this.obj) + ' to contain ' + inspect(obj);
           }
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to not contain ' + inspect(obj)
+            return 'expected ' + inspect(this.obj) + ' to not contain ' + inspect(obj);
           });
     } else {
       this.assert(
           ~indexOf(this.obj, obj)
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to contain ' + inspect(obj)
+            return 'expected ' + inspect(this.obj) + ' to contain ' + inspect(obj);
           }
           , function() {
-            return 'expected ' + inspect(this.obj) + ' to not contain ' + inspect(obj)
+            return 'expected ' + inspect(this.obj) + ' to not contain ' + inspect(obj);
           });
     }
     return this;
@@ -521,10 +521,10 @@ define('expect', function(require, exports, module) {
     this.assert(
         ok
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to ' + str
+          return 'expected ' + inspect(this.obj) + ' to ' + str;
         }
         , function() {
-          return 'expected ' + inspect(this.obj) + ' to not ' + str
+          return 'expected ' + inspect(this.obj) + ' to not ' + str;
         });
 
     return this;
@@ -539,7 +539,7 @@ define('expect', function(require, exports, module) {
   Assertion.prototype.fail = function(msg) {
     var error = function() {
       return msg || "explicit failure";
-    }
+    };
     this.assert(false, error, error);
     return this;
   };

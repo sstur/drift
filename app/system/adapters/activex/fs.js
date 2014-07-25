@@ -274,7 +274,7 @@ define('fs', function(require, fs) {
     },
     read: function() {
       var text;
-      while (text = this._stream.readText(this.opts.chunkSize)) {
+      while ((text = this._stream.readText(this.opts.chunkSize))) {
         this.emit('data', text);
       }
       this._stream.close();
@@ -319,10 +319,10 @@ define('fs', function(require, fs) {
     path = app.mappath(path);
     try {
       return FSO.getFolder(path);
-    } catch(e) {
+    } catch(e1) {
       try {
         return FSO.getFile(path);
-      } catch(e) {
+      } catch(e2) {
         throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
       }
     }

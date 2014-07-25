@@ -17,13 +17,6 @@ app.on('ready', function(require) {
       });
     },
 
-    '_base64': function(it) {
-      it('should base64 encode', function () {
-        //strange bug where this would equal 2MQ=VPJb
-        expect(new Buffer('d8c40054f25b', 'hex').toString('base64')).to.be('2MQAVPJb');
-      });
-    },
-
     'base64': function(it) {
       var atob = function(str) {
         return new Buffer(str, 'base64').toString('ascii');
@@ -78,6 +71,11 @@ app.on('ready', function(require) {
         expect(function() {
           atob('a');
         }).to.throwError();
+      });
+
+      it('should work for special case', function () {
+        //strange bug where this would equal 2MQ=VPJb
+        expect(new Buffer('d8c40054f25b', 'hex').toString('base64')).to.be('2MQAVPJb');
       });
     }
 

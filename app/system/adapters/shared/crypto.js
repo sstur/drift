@@ -183,8 +183,8 @@ define('crypto', function (require, crypto) {
         }
       } else if (thatWords.length > 0xffff) {
         // Copy one word at a time
-        for (var i = 0; i < thatSigBytes; i += 4) {
-          thisWords[(thisSigBytes + i) >>> 2] = thatWords[i >>> 2];
+        for (var j = 0; j < thatSigBytes; j += 4) {
+          thisWords[(thisSigBytes + j) >>> 2] = thatWords[j >>> 2];
         }
       } else {
         // Copy all words at once
@@ -623,7 +623,8 @@ define('crypto', function (require, crypto) {
       function isPrime(n) {
         var sqrtN = Math.sqrt(n);
         for (var factor = 2; factor <= sqrtN; factor++) {
-          if (!(n % factor)) {
+          var mod = n % factor;
+          if (!mod) {
             return false;
           }
         }
@@ -793,27 +794,27 @@ define('crypto', function (require, crypto) {
         var d = H[3];
 
         // Computation
-        for (var i = 0; i < 64; i += 4) {
-          if (i < 16) {
-            a = FF(a, b, c, d, M[offset + i],     7,  T[i]);
-            d = FF(d, a, b, c, M[offset + i + 1], 12, T[i + 1]);
-            c = FF(c, d, a, b, M[offset + i + 2], 17, T[i + 2]);
-            b = FF(b, c, d, a, M[offset + i + 3], 22, T[i + 3]);
-          } else if (i < 32) {
-            a = GG(a, b, c, d, M[offset + ((i + 1) % 16)],  5,  T[i]);
-            d = GG(d, a, b, c, M[offset + ((i + 6) % 16)],  9,  T[i + 1]);
-            c = GG(c, d, a, b, M[offset + ((i + 11) % 16)], 14, T[i + 2]);
-            b = GG(b, c, d, a, M[offset + (i % 16)],        20, T[i + 3]);
-          } else if (i < 48) {
-            a = HH(a, b, c, d, M[offset + ((i * 3 + 5) % 16)],  4,  T[i]);
-            d = HH(d, a, b, c, M[offset + ((i * 3 + 8) % 16)],  11, T[i + 1]);
-            c = HH(c, d, a, b, M[offset + ((i * 3 + 11) % 16)], 16, T[i + 2]);
-            b = HH(b, c, d, a, M[offset + ((i * 3 + 14) % 16)], 23, T[i + 3]);
+        for (var j = 0; j < 64; j += 4) {
+          if (j < 16) {
+            a = FF(a, b, c, d, M[offset + j],     7,  T[j]);
+            d = FF(d, a, b, c, M[offset + j + 1], 12, T[j + 1]);
+            c = FF(c, d, a, b, M[offset + j + 2], 17, T[j + 2]);
+            b = FF(b, c, d, a, M[offset + j + 3], 22, T[j + 3]);
+          } else if (j < 32) {
+            a = GG(a, b, c, d, M[offset + ((j + 1) % 16)],  5,  T[j]);
+            d = GG(d, a, b, c, M[offset + ((j + 6) % 16)],  9,  T[j + 1]);
+            c = GG(c, d, a, b, M[offset + ((j + 11) % 16)], 14, T[j + 2]);
+            b = GG(b, c, d, a, M[offset + (j % 16)],        20, T[j + 3]);
+          } else if (j < 48) {
+            a = HH(a, b, c, d, M[offset + ((j * 3 + 5) % 16)],  4,  T[j]);
+            d = HH(d, a, b, c, M[offset + ((j * 3 + 8) % 16)],  11, T[j + 1]);
+            c = HH(c, d, a, b, M[offset + ((j * 3 + 11) % 16)], 16, T[j + 2]);
+            b = HH(b, c, d, a, M[offset + ((j * 3 + 14) % 16)], 23, T[j + 3]);
           } else /* if (i < 64) */ {
-            a = II(a, b, c, d, M[offset + ((i * 3) % 16)],      6,  T[i]);
-            d = II(d, a, b, c, M[offset + ((i * 3 + 7) % 16)],  10, T[i + 1]);
-            c = II(c, d, a, b, M[offset + ((i * 3 + 14) % 16)], 15, T[i + 2]);
-            b = II(b, c, d, a, M[offset + ((i * 3 + 5) % 16)],  21, T[i + 3]);
+            a = II(a, b, c, d, M[offset + ((j * 3) % 16)],      6,  T[j]);
+            d = II(d, a, b, c, M[offset + ((j * 3 + 7) % 16)],  10, T[j + 1]);
+            c = II(c, d, a, b, M[offset + ((j * 3 + 14) % 16)], 15, T[j + 2]);
+            b = II(b, c, d, a, M[offset + ((j * 3 + 5) % 16)],  21, T[j + 3]);
           }
         }
 

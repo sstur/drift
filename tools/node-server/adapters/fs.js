@@ -53,7 +53,7 @@ adapter.define('fs', function(require, fs) {
 
   fs.writeFile_ = function(path, data, opts, callback) {
     path = mappath(path);
-    writeFile(path, data, opts, callback)
+    writeFile(path, data, opts, callback);
   };
 
   fs.writeTextToFile_ = function(path, text, opts, callback) {
@@ -152,7 +152,7 @@ adapter.define('fs', function(require, fs) {
       if (err) return callback(err);
       if (info.type !== 'directory') {
         //todo: posix
-        return callback(new Error('Not a directory: ' + path))
+        return callback(new Error('Not a directory: ' + path));
       }
       walkDeep(info, fn, '');
       callback();
@@ -465,7 +465,11 @@ adapter.define('fs', function(require, fs) {
     var callback = function() {
       doneCount += 1;
       if (doneCount === list.length) {
-        defer ? process.nextTick(done) : done();
+        if (defer) {
+          process.nextTick(done);
+        } else {
+          done();
+        }
       }
     }.bind(this);
     list.forEach(function(item) {

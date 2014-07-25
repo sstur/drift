@@ -25,7 +25,7 @@ define('body-parser', function(require, exports, module) {
       this._readBytes = src;
     }
     this.bytesReceived = 0;
-    this.parsed = {}
+    this.parsed = {};
   }
   module.exports = BodyParser;
 
@@ -103,7 +103,7 @@ define('body-parser', function(require, exports, module) {
     while ((chunk = this._read(CHUNK_SIZE)) && chunk.length) {
       part.write(chunk);
     }
-    this._finalizePart(part)
+    this._finalizePart(part);
   };
 
   BodyParser.prototype.processMultiPartBody = function() {
@@ -116,7 +116,7 @@ define('body-parser', function(require, exports, module) {
     var boundary2 = '\r\n--' + boundary;
     var buffer = '', currentPart, nomatch;
     while (1) {
-      if (nomatch || buffer.length == 0) {
+      if (nomatch || buffer.length === 0) {
         //read more data or else we're done
         var data = this._read(CHUNK_SIZE, 'binary');
         if (data) {

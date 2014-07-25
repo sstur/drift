@@ -52,7 +52,7 @@ define('test-runner', function(require, exports, module) {
       });
     },
     format_html: function(logType, suite, testCaseName, time) {
-      var firstTest = (this.output.length == 0);
+      var firstTest = (this.output.length === 0);
       if (firstTest) {
         this.write('<style>body { margin: 20px } h1 { margin: 0; font-size: 120%; font-family: "Helvetica Neue", Helvetica, "Myriad Pro", "Lucida Grande", sans-serif; text-transform: uppercase } pre { margin: 10px; font-family: Consolas, "Liberation Mono", Courier, monospace; } .pass { color: #090 } .fail { color: #900 } .message { display: block; background: #eee ; overflow-x: auto } /*.message:before { display: block; float: left; content: "    "; height: 100% }*/</style>');
         this.write('<body>');
@@ -91,7 +91,7 @@ define('test-runner', function(require, exports, module) {
       }
     },
     writeLine: function(text) {
-      this.write(text + '\n')
+      this.write(text + '\n');
     },
     log: function() {
       var self = this;

@@ -27,7 +27,11 @@
   var data = {};
   app.data = function(n, val) {
     if (arguments.length == 2) {
-      (val == null) ? delete data[n] : data[n] = val;
+      if (val == null) {
+        delete data[n];
+      } else {
+        data[n] = val;
+      }
     } else {
       val = data[n];
     }
@@ -93,7 +97,7 @@
     res.req = req;
     //attempt to serve static file
     res.tryStaticPath('assets/', function() {
-      var fiber = Fiber(syncHandler);
+      var fiber = new Fiber(syncHandler);
       fiber.onError = res.sendError.bind(res);
       fiber.run({req: req, res: res});
     });

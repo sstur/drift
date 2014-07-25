@@ -21,7 +21,7 @@ var console, Buffer, _require = function(path) { return require(path); };
   var Response = require('adapter-response');
 
   //filesystem path including trailing slash
-  var basePath = system.env['DOCUMENT_ROOT'], sep = (~basePath.indexOf('/')) ? '/' : '\\';
+  var basePath = system.env.DOCUMENT_ROOT, sep = (~basePath.indexOf('/')) ? '/' : '\\';
   if (basePath.slice(-1) != sep) basePath += sep;
 
   app.mappath = function(path) {
