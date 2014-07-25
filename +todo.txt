@@ -3,9 +3,12 @@ allow build-conf to be named app-conf (for cases where we use drift for db-init,
 Allow cli flags for `drift serve` that would get added via app.cfg()
   like --debug-tests which could turn on the noCatch flag for the test runner
 
+consolidate mime list between app/system/config/mime.js and /tools/node-server/lib/mime.js
 util.log should be async in node-adapter
 replace getEnv with __DEV__ ?
 getEnv() should be guaranteed in all adapters
+_examples/ is required bu tools/init.js
+adapters/activex/mysql: deprecate connection string
 
 are the test libraries (system/test) going into every build?
 

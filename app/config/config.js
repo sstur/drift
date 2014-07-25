@@ -15,7 +15,7 @@ app.cfg({
   mysql: {
     utc_dates: true,
     connections: {
-      'default': {server: 'localhost', database: 'test_js', username: 'test_js', password: 'p4uTAU9qla'}
+      'default': {server: 'mysql2', database: 'test_js', username: 'test_js', password: 'p4uTAU9qla'}
     }
   },
 
