@@ -49,6 +49,11 @@ define('inspector', function(require, exports) {
       return primitive;
     }
 
+    if (typeof value === 'object' && !(value instanceof Object)) {
+      //some object from another scope or a non-js type
+      return ctx.stylize('[object Object]', 'special');
+    }
+
     // Look up the keys of the object.
     var keys = Object.keys(value);
 

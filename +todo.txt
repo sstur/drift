@@ -3,8 +3,6 @@ move db-init/compile-views/devtools (from sendfleet, wfm, cfm)
 util.log should be async in node-adapter
 getEnv() should be guaranteed in all adapters
 replace getEnv with __DEV__ ?
-should not throw:
-  inspect({connection: new ActiveXObject('ADODB.Connection')})
 
 allow config/mysql/connections to be specified in build-conf
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)
