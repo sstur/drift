@@ -9,6 +9,8 @@
   var join = require('path').join;
   var Fiber = require('./lib/fiber');
 
+  var pkgConfig = require('../../package.json');
+
   //framework files beginning with these chars are excluded
   var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
 
@@ -22,6 +24,12 @@
   require(join(basePath, 'app/system/core'));
 
   app.mappath = global.mappath = mappath;
+  app.transformConfig = function(path, value) {
+    if (typeof value !== 'string') return value;
+    return value.replace(/\{\{package:(.*?)\}\}/g, function(str, key) {
+      return (pkgConfig[key] == null) ? '' : pkgConfig[key];
+    });
+  };
 
   //in-memory application data
   var data = {};

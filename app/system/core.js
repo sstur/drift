@@ -1,3 +1,4 @@
+/*global global */
 var app, define;
 (function() {
   "use strict";
@@ -166,7 +167,7 @@ var app, define;
   function mergeCfg(data, stack) {
     Object.keys(data).forEach(function(key) {
       var value = data[key];
-      var type = value ? toString.call(value) : typeof value;
+      var type = toString.call(value);
       var path = stack.concat(key.split('/'));
       if (type == '[object Object]') {
         mergeCfg(value, path);
@@ -185,6 +186,9 @@ var app, define;
     for (var i = 0; i < path.length - 1; i++) {
       var key = path[i];
       obj = obj[key] || (obj[key] = {});
+    }
+    if (app.transformConfig) {
+      value = app.transformConfig(path.join(), value);
     }
     obj[path[i]] = value;
   }

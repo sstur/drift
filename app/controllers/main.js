@@ -1,4 +1,4 @@
-/*global app, define, isDev */
+/*global app, define */
 app.on('ready', function(require) {
   "use strict";
 

@@ -1,8 +1,7 @@
-config.js to get version from package.json in node-server
 move db-init/compile-views/devtools (from sendfleet, wfm, cfm)
 util.log should be async in node-adapter
 getEnv() should be guaranteed in all adapters
-replace getEnv with __DEV__ ?
+replace isDev, getEnv with __DEV__ ?
 
 allow config/mysql/connections to be specified in build-conf
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)
@@ -17,14 +16,13 @@ app/system
   include optional libraries only if require'd in system/core or app/
 
 _examples/ is required bu tools/init.js
-adapters/activex/mysql: deprecate connection string
-Ignore or throw? modelInstance.update({some_non_exist: 'foo'})
 
 file-based session store:
   5324e71223dc1548ecaea108.json (first 8 is seconds in hex) [cfm]
   2012-10-19/13a76ac2bcc019dce0e054b26485d8f9.json
 
-
+adapters/activex/mysql: deprecate connection string
+Ignore or throw? modelInstance.update({some_non_exist: 'foo'})
 
 app.route('/users/:id[int:positive]')
  - or -
