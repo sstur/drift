@@ -27,7 +27,6 @@ define('body-parser', function(require, exports, module) {
     this.bytesReceived = 0;
     this.parsed = {};
   }
-  module.exports = BodyParser;
 
   app.eventify(BodyParser.prototype);
 
@@ -273,17 +272,19 @@ define('body-parser', function(require, exports, module) {
     delete this._events;
   };
 
-  //todo: remove this (used to differentiate between {"type": "file"}, and an actual file)
-  Part.prototype.isFile = function() {
-    return (this.type == 'file');
-  };
-
   Part.prototype.saveTo = function(path) {
+    if (this.type !== 'file') {
+      throw new Error('part.saveTo() called on non-file');
+    }
     fs.moveFile(this.fullpath, path);
     this.fullpath = path;
   };
 
 
+
+  function isUpload(item) {
+    return (item instanceof Part && item.type === 'file');
+  }
 
   function parsePartHeaders(headers) {
     var contentDisp = util.parseHeaderValue(headers['content-disposition'] || '');
@@ -305,5 +306,8 @@ define('body-parser', function(require, exports, module) {
     while (hasOwnProperty.call(obj, key + id)) id += 1;
     return key + id;
   }
+
+  module.exports = BodyParser;
+  BodyParser.isUpload = isUpload;
 
 });

@@ -1,5 +1,5 @@
 /*global global, require, app, adapter */
-var fs = require('fs');
+var _fs = require('fs');
 var path = require('path');
 var crypto = require('crypto');
 var formidable = require('formidable');
@@ -7,6 +7,7 @@ var EventEmitter = require('events').EventEmitter;
 adapter.define('body-parser', function(require, exports, module) {
   "use strict";
 
+  var fs = require('fs');
   var qs = require('qs');
   var util = require('util');
 
@@ -37,7 +38,7 @@ adapter.define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.init_ = function(src, callback) {
     if (typeof src === 'string') {
-      var readStream = this.readStream = fs.createReadStream(app.mappath(src));
+      var readStream = this.readStream = _fs.createReadStream(app.mappath(src));
       readStream.on('error', callback);
       readStream.on('open', function() {
         callback();
@@ -198,7 +199,7 @@ adapter.define('body-parser', function(require, exports, module) {
       _file.on('end', function() {
         file.hash = _file.hash;
         if (_file.path && _file.size === 0) {
-          fs.unlink(_file.path);
+          _fs.unlink(_file.path);
         } else
         if (_file.path) {
           file.fullpath = _file.path;
@@ -245,7 +246,7 @@ adapter.define('body-parser', function(require, exports, module) {
 
     if (opts.autoSavePath) {
       file.path = join(opts.autoSavePath, getGuid());
-      var outStream = fs.createWriteStream(global.mappath(file.path));
+      var outStream = _fs.createWriteStream(global.mappath(file.path));
       outStream.on('error', function(err) {
         self.emit('error', err);
         console.log('write stream error', err);
@@ -277,15 +278,13 @@ adapter.define('body-parser', function(require, exports, module) {
     return (typeof this.fileName === 'string') ? this.fileName : '';
   };
 
-  function getGuid() {
-    var chars = '';
-    for (var i = 0; i < 32; i++) {
-      chars += Math.floor(Math.random() * 16).toString(16);
-    }
-    return chars;
-  }
+  File.prototype.saveTo = function(path) {
+    fs.moveFile(this.fullpath, path);
+    this.fullpath = path;
+  };
 
 
+  //todo: remove this and use formidable.MultipartParser directly (or dicer)
   function DummyWriteStream() {}
   DummyWriteStream.prototype.write = function(data, callback) {
     callback();
@@ -296,6 +295,17 @@ adapter.define('body-parser', function(require, exports, module) {
 
 
   //Helper functions
+  function isUpload(item) {
+    return (item instanceof File);
+  }
+
+  function getGuid() {
+    var chars = '';
+    for (var i = 0; i < 32; i++) {
+      chars += Math.floor(Math.random() * 16).toString(16);
+    }
+    return chars;
+  }
 
   function getUniqueKey(obj, key) {
     var id = 0;
@@ -309,5 +319,6 @@ adapter.define('body-parser', function(require, exports, module) {
   }
 
   module.exports = BodyParser;
+  BodyParser.isUpload = isUpload;
 
 });

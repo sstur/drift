@@ -3,7 +3,6 @@ move db-init/compile-views/devtools (from sendfleet, wfm, cfm)
 util.log should be async in node-adapter
 getEnv() should be guaranteed in all adapters
 replace getEnv with __DEV__ ?
-req.isUpload()
 should not throw:
   inspect({connection: new ActiveXObject('ADODB.Connection')})
 

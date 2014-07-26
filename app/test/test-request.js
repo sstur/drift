@@ -1,6 +1,7 @@
 /*!
  * todo: header line without : should be ignored
- * todo: is there a bug in which autoSaveUploads could save dups but discard only first
+ * todo: is there a bug in which autoSaveUploads could save dups but discard only first?
+ * todo: test opts.autoSavePath and upload.saveTo()
  */
 /*global app, define, Buffer */
 app.on('ready', function(require) {
@@ -139,6 +140,8 @@ app.on('ready', function(require) {
       it('should parse fields and file', function() {
         var body = req.body();
         expect(body.username).to.be('admin');
+        expect(req.isUpload(body.username)).to.be(false);
+        expect(req.isUpload(body.image)).to.be(true);
         expect(body.image.type).to.be('file');
         expect(body.image.name).to.be('image');
         expect(body.image.fileName).to.be('image.gif');
