@@ -4,8 +4,6 @@
  *  throw ENOTEMPTY, rmdir 'path/to/file'
  *  removeDir(path, {recursive: true}) [or deep]
  *  moveDir, copyDir
- *  rename fs.stat -> fs.getInfo
- *  rename fs.readdir -> fs.getDirContents
  *  rename dateCreated, dateLastAccessed, dateLastModified (remove date prefix)
  *  rename deleteFile -> removeFile (add alias)
  *  replace eNoEnt() with new Error('ENOENT') + source transform
@@ -126,7 +124,7 @@ define('fs', function(require, fs) {
   };
 
 
-  fs.readdir = function(path) {
+  fs.getDirContents = function(path) {
     var fso = getFileOrDir(path);
     var children = getChildren(fso);
     return children.map(function(fso) {
@@ -149,7 +147,7 @@ define('fs', function(require, fs) {
    * Get info for a file/directory. If `deep` then directories get a non-zero
    * `size` property and a `children` array.
    */
-  fs.stat = function(path, deep) {
+  fs.getInfo = function(path, deep) {
     return getInfo(getFileOrDir(path), deep);
   };
 

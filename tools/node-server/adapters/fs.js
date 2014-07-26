@@ -1,8 +1,3 @@
-/*!
- * todo:
- *  rename fs.stat -> fs.getInfo
- *  rename fs.readdir -> fs.getDirContents
- */
 /*global adapter, app, require */
 var _fs = require('fs');
 var mkdirp = require('mkdirp');
@@ -130,12 +125,12 @@ adapter.define('fs', function(require, fs) {
   };
 
   //todo: we should treat symlinks as their target
-  fs.stat_ = function(path, deep, callback) {
+  fs.getInfo_ = function(path, deep, callback) {
     var fullPath = mappath(path);
     getInfo(fullPath, deep, callback);
   };
 
-  fs.readdir_ = function(path, callback) {
+  fs.getDirContents_ = function(path, callback) {
     path = mappath(path);
     _fs.readdir(path, callback);
   };
