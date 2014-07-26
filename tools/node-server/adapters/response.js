@@ -23,7 +23,6 @@ app.define('adapter-response', function(require, exports, module) {
     streamFile: function(statusCode, statusReason, headers, path) {
       var _super = this._super;
       var fullpath = global.mappath(path);
-      console.log('stream file: ' + fullpath);
       this.writeHead(statusCode, statusReason, headers);
       Fiber.current.abort(function() {
         fs.createReadStream(fullpath).pipe(_super);

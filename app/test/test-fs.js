@@ -25,13 +25,13 @@ app.on('ready', function(require) {
       it('should create in existing', function() {
         var path = dataPath + 'test';
         fs.createDir(path);
-        var stat = fs.stat(path);
-        expect(stat.type).to.be('directory');
+        var info = fs.getInfo(path);
+        expect(info.type).to.be('directory');
       });
       fs.removeDirIfExists(dataPath + 'test2', true);
       it('should not have directory after deletion', function() {
         expect(function() {
-          fs.stat(dataPath + 'test2');
+          fs.getInfo(dataPath + 'test2');
         }).to.throwError(/ENOENT/);
       });
       it('should throw if parent not exist', function() {
@@ -43,8 +43,8 @@ app.on('ready', function(require) {
       it('should create multi-level', function() {
         var path = dataPath + 'test2/test3';
         fs.createDir(path, {deep: true});
-        var stat = fs.stat(path);
-        expect(stat.type).to.be('directory');
+        var info = fs.getInfo(path);
+        expect(info.type).to.be('directory');
       });
     },
     'removeDir': function(it) {
@@ -61,7 +61,7 @@ app.on('ready', function(require) {
       it('should be gone', function() {
         var path = dataPath + 'test';
         expect(function() {
-          fs.stat(path);
+          fs.getInfo(path);
         }).to.throwError(/ENOENT/);
       });
       it('should throw if not exists', function() {
@@ -203,11 +203,11 @@ app.on('ready', function(require) {
     },
     'deleteFileIfExists': function(it) {
     },
-    'readdir': function(it) {
+    'getDirContents': function(it) {
     },
     'walk': function(it) {
     },
-    'stat': function(it) {
+    'getInfo': function(it) {
     },
     'readTextFile': function(it) {
     },
