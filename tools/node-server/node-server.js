@@ -79,12 +79,16 @@
   app.emit('init', app.require);
   app.emit('ready', app.require);
 
+  var AdapterRequest = app.require('adapter-request');
+  var AdapterResponse = app.require('adapter-response');
+
   //this function only runs within a fiber
   var syncHandler = function(http) {
-    var Request = app.require('adapter-request');
-    var Response = app.require('adapter-response');
-    var req = new Request(http.req);
-    var res = new Response(http.res);
+    var req = new AdapterRequest(http.req);
+    var res = new AdapterResponse(http.res);
+    //cross-reference adapter-request and adapter-response
+    req.res = res;
+    res.req = req;
     sleep(1); //for debugging
     app.route(req, res);
     throw new Error('Router returned without handling request.');

@@ -28,6 +28,7 @@ define('mock-request', function(require, exports, module) {
     }
     this._data = data;
   }
+  app.eventify(Request.prototype);
 
   util.extend(Request.prototype, {
     getMethod: function() {

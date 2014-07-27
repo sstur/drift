@@ -11,6 +11,7 @@ app.define('adapter-request', function(require, exports, module) {
     //pause so that we can use the body parser later
     req.pause();
   }
+  app.eventify(Request.prototype);
 
   util.extend(Request.prototype, {
     getMethod: function() {

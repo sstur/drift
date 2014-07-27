@@ -50,6 +50,7 @@ define('adapter-response', function(require, exports, module) {
     },
     end: function() {
       //todo: move this to _writeHead ?
+      this.req.emit('end');
       app.emit('end');
       this._super.end();
     }

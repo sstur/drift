@@ -11,6 +11,7 @@ define('adapter-request', function(require, exports, module) {
   function Request() {
     this._super = iis.req;
   }
+  app.eventify(Request.prototype);
 
   util.extend(Request.prototype, {
     _get: function(n) {

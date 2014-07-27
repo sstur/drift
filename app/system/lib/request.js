@@ -13,6 +13,7 @@ define('request', function(require, exports, module) {
 
   function Request(req) {
     this._super = req;
+    util.propagateEvents(req, this, 'end');
   }
 
   app.eventify(Request.prototype);

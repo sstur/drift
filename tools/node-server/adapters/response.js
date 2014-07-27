@@ -18,15 +18,19 @@ app.define('adapter-response', function(require, exports, module) {
     },
     end: function() {
       this._super.end();
+      //fire end event on
+      this.req.emit('end');
       Fiber.current.abort();
     },
     streamFile: function(statusCode, statusReason, headers, path) {
       var _super = this._super;
-      var fullpath = global.mappath(path);
       this.writeHead(statusCode, statusReason, headers);
-      Fiber.current.abort(function() {
+      process.nextTick(function() {
+        var fullpath = app.mappath(path);
         fs.createReadStream(fullpath).pipe(_super);
       });
+      this.req.emit('end');
+      Fiber.current.abort();
     }
   });
 
