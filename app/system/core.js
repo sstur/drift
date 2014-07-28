@@ -9,7 +9,7 @@ var app, define;
 
   app = function() {
     //allow to be used as a function
-    if (typeof app.fn == 'function') {
+    if (typeof app.fn === 'function') {
       return app.fn.apply(app, arguments);
     }
   };
@@ -23,10 +23,10 @@ var app, define;
   var require, definitions = {}, loading = {}, cache = {};
 
   define = app.define = function(name, deps, definition) {
-    if (typeof name != 'string') {
+    if (typeof name !== 'string') {
       throw new Error('Invalid module name');
     }
-    if (arguments.length == 2) {
+    if (arguments.length === 2) {
       definition = arguments[1];
       deps = [];
     }
@@ -57,7 +57,7 @@ var app, define;
   };
 
   require.resolve = function(namespace, name) {
-    if (namespace && name.slice(0, namespace.length + 1) == namespace + '/') {
+    if (namespace && name.slice(0, namespace.length + 1) === namespace + '/') {
       //if name starts with namespace, assume explicit path
       namespace = '';
     }
@@ -133,7 +133,7 @@ var app, define;
 
   //shortcut method for addRoute or routeRequest
   app.route = function(route) {
-    if (typeof route == 'string' || route instanceof RegExp) {
+    if (typeof route === 'string' || route instanceof RegExp) {
       return addRoute.apply(null, arguments);
     } else {
       return routeRequest.apply(null, arguments);
@@ -147,12 +147,16 @@ var app, define;
   var config = app._cfg = {};
   app.cfg = function() {
     var args = slice.call(arguments);
-    if (args.length == 1 && typeof args[0] == 'string') {
+    if (args.length === 1 && typeof args[0] === 'string') {
       //get config
       return getCfg(args[0].split('/'));
     }
     var data = args.pop();
     if (data !== Object(data)) {
+      if (typeof args[0] === 'string') {
+        setCfg(args[0].split('/'), data);
+        return;
+      }
       throw new Error('Invalid arguments to app.cfg');
     }
     if (args.length) {
@@ -169,10 +173,10 @@ var app, define;
       var value = data[key];
       var type = toString.call(value);
       var path = stack.concat(key.split('/'));
-      if (type == '[object Object]') {
+      if (type === '[object Object]') {
         mergeCfg(value, path);
       } else
-      if (type == '[object Array]') {
+      if (type === '[object Array]') {
         setCfg(path, value.slice(0));
       } else {
         setCfg(path, value);
@@ -252,7 +256,7 @@ var app, define;
 
   function loadModule(name) {
     var module, fn = definitions[name];
-    if (typeof fn == 'function') {
+    if (typeof fn === 'function') {
       //modules are cached during function call to handle cyclic recursion
       if (loading[name]) {
         module = loading[name];

@@ -14,7 +14,7 @@
 
   var opts = global.opts;
   if (!opts) {
-    opts = optimist
+    opts = global.opts = optimist
       .usage('Usage: $0 serve -p [path]')
       .alias('p', 'path')
       .default('p', process.cwd())
@@ -25,7 +25,7 @@
   var basePath = opts.path;
   //reference to child process if applicable
   var child;
-  //used to enforce a minimum time between launching child processes
+  //used to enforce a minimum time between restarting child process
   var lastChildLaunch;
 
   if (process.env.IS_CHILD) {
@@ -49,7 +49,7 @@
   keyEmitter.on('ctrl:r', function() {
     //prevent RELAUNCH_MINIMUM restriction for manual exit
     lastChildLaunch = null;
-    if (child) child.send({command: 'exit'});
+    if (child) child.kill();
   });
   keyEmitter.on('ctrl:l', function() {
     if (child) child.send({command: 'launch'});
@@ -77,9 +77,6 @@
     var commandEmitter = new EventEmitter();
     process.on('message', function(data) {
       if (data == null || !data.command) return;
-      if (data.command === 'exit') {
-        process.exit();
-      }
       commandEmitter.emit(data.command, data.params);
     });
     var SyncServer = require('./node-server');

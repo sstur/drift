@@ -57,6 +57,14 @@
     });
   };
 
+  //set config from CLI options
+  var opts = global.opts || {};
+  Object.keys(opts).forEach(function(key) {
+    if (!key.match(/^[_$]/)) {
+      app.cfg(key, opts[key]);
+    }
+  });
+
   //load config
   loadPathSync('app/system/config');
   loadPathSync('app/config');
