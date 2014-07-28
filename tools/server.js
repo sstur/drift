@@ -3,33 +3,85 @@
   var fs = require('fs');
   var path = require('path');
   var http = require('http');
+  var util = require('util');
   var childProcess = require('child_process');
+  var EventEmitter = require('events').EventEmitter;
 
-  var args = process.argv;
+  var utils = require('./node-server/support/utils');
+  var optimist = require('optimist');
 
-  //this is used to compute relative paths
-  var basePath = global.basePath || process.cwd();
+  var RELAUNCH_MINIMUM_MS = 3000;
 
-  if (args[2] == 'keepalive') {
-    spawnChild();
-  } else {
-    startServer();
+  var opts = global.opts;
+  if (!opts) {
+    opts = optimist
+      .usage('Usage: $0 serve -p [path]')
+      .alias('p', 'path')
+      .default('p', process.cwd())
+      .argv;
   }
 
+  //this is used to compute relative paths
+  var basePath = opts.path;
+  //reference to child process if applicable
+  var child;
+  //used to enforce a minimum time between launching child processes
+  var lastChildLaunch;
+
+  if (process.env.IS_CHILD) {
+    startServer();
+    return;
+  }
+
+  //save pid so external process can send SIGHUP to restart server
+  var pidFile = path.join(basePath, 'server.pid');
+  fs.writeFileSync(pidFile, process.pid);
+  process.on('SIGHUP', function() {
+    //prevent RELAUNCH_MINIMUM restriction for manual exit
+    lastChildLaunch = null;
+    if (child) child.send({command: 'exit'});
+  });
+  process.on('exit', function(code) {
+    if (child) child.kill();
+    fs.unlinkSync(pidFile);
+  });
+  var keyEmitter = utils.getKeypressEmitter(process.stdin);
+  keyEmitter.on('ctrl:r', function() {
+    //prevent RELAUNCH_MINIMUM restriction for manual exit
+    lastChildLaunch = null;
+    if (child) child.send({command: 'exit'});
+  });
+  keyEmitter.on('ctrl:l', function() {
+    if (child) child.send({command: 'launch'});
+  });
+  spawnChild();
+
   function spawnChild() {
-    var child = childProcess.fork(args[1], args.slice(3));
-    var pidFile = path.join(basePath, 'server.pid');
-    fs.writeFile(pidFile, child.pid, function() {
-      console.log('Spawned child process ' + child.pid);
-      child.on('exit', function() {
-        spawnChild();
-      });
+    var args = process.argv.slice(1);
+    var childOpts = {
+      env: {IS_CHILD: 1},
+      stdio: ['ignore', process.stdout, process.stderr, 'ipc']
+    };
+    child = childProcess.spawn(process.execPath, args, childOpts);
+    child.on('exit', function(code, signal) {
+      if (lastChildLaunch && Date.now() - lastChildLaunch < RELAUNCH_MINIMUM_MS) {
+        console.log('Child process exited in less than ' + RELAUNCH_MINIMUM_MS + 'ms');
+        process.exit(1);
+      }
+      spawnChild();
     });
-    child.disconnect();
+    lastChildLaunch = Date.now();
   }
 
   function startServer() {
-    var utils = require('./node-server/support/utils');
+    var commandEmitter = new EventEmitter();
+    process.on('message', function(data) {
+      if (data == null || !data.command) return;
+      if (data.command === 'exit') {
+        process.exit();
+      }
+      commandEmitter.emit(data.command, data.params);
+    });
     var SyncServer = require('./node-server');
 
     var port = 8080;
@@ -38,13 +90,11 @@
     server.on('listening', function() {
       var url = 'http://localhost:' + port + '/';
       console.log('Server running at ' + url);
-      utils.handleKeypress(process.stdin, function(key) {
-        if (key.ctrl && key.name == 'l') {
-          console.log('Launching ' + url);
-          utils.open(url);
-        }
-      });
       console.log('Press Ctrl+L to launch in browser');
+      console.log('Press Ctrl+R to restart server');
+      commandEmitter.on('launch', function() {
+        utils.open(url);
+      });
     });
 
     server.on('request', SyncServer.requestHandler);

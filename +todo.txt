@@ -3,11 +3,10 @@ util.log should be async in node-adapter
 getEnv() should be guaranteed in all adapters
 replace isDev, getEnv with __DEV__ ?
 
-allow config/mysql/connections to be specified in build-conf
+allow config/mysql/connections to be specified in build-conf or app-conf
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)
 Allow cli flags for `drift serve` that would get added via app.cfg()
   like --debug-tests which could turn on the noCatch flag for the test runner
-req.on('end', function() { 'log event' });
 
 are the test libraries (system/test) going into every build?
 app/system
