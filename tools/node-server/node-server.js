@@ -1,35 +1,47 @@
  /*global global, process, require, app */
 (function() {
   "use strict";
-
-  //patch some built-in methods
-  require('./support/patch');
-
   var fs = require('fs');
   var join = require('path').join;
-  var Fiber = require('./lib/fiber');
-
-  var pkgConfig = require('../../package.json');
 
   //framework files beginning with these chars are excluded
   var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
 
-  //used in modules and app.mappath
-  //todo: differentiate projectPath from fxPath from modulePath
-  var basePath = global.basePath || process.cwd();
-
+  //the parsed cli arguments from optimist
+  var opts = global.opts || {};
+  //this is used in app.cfg
   global.platform = 'node';
+  //this is the project path; used in patch and app.mappath
+  var basePath = global.basePath = opts.path || process.cwd();
+  var driftPath = (function(path) {
+    var index = path.lastIndexOf('/tools/');
+    return (index !== -1) ? path.slice(0, index) : join(require.main.filename, '../..');
+  })(__filename);
+  //var systemPath = join(driftPath, 'app/system');
+
+  //patch some built-in methods
+  require('./support/patch');
+
+  var Fiber = require('./lib/fiber');
+  var pkgConfig = require('../../package.json');
 
   //load framework core (instantiates `app`)
-  require(join(basePath, 'app/system/core'));
+  require(join(driftPath, 'app/system/core.js'));
 
-  app.mappath = global.mappath = mappath;
+  app.mappath = join.bind(null, basePath);
   app.transformConfig = function(path, value) {
     if (typeof value !== 'string') return value;
     return value.replace(/\{\{package:(.*?)\}\}/g, function(str, key) {
       return (pkgConfig[key] == null) ? '' : pkgConfig[key];
     });
   };
+
+  //set config from CLI options
+  Object.keys(opts).forEach(function(key) {
+    if (!key.match(/^[_$]/)) {
+      app.cfg(key, opts[key]);
+    }
+  });
 
   //in-memory application data
   var data = {};
@@ -56,14 +68,6 @@
       Fiber.fiberizeModule(this.exports);
     });
   };
-
-  //set config from CLI options
-  var opts = global.opts || {};
-  Object.keys(opts).forEach(function(key) {
-    if (!key.match(/^[_$]/)) {
-      app.cfg(key, opts[key]);
-    }
-  });
 
   //load config
   loadPathSync('app/system/config');
@@ -132,7 +136,9 @@
 
   //helper for loading framework files
   function loadPathSync(dir, callback) {
-    var path = join(basePath, dir);
+    //note: kinda hacky
+    var isSystem = (dir.indexOf('app/system/') === 0 || dir.indexOf('tools/') === 0);
+    var path = isSystem ? join(driftPath, dir) : join(basePath, dir);
     try {
       var files = fs.readdirSync(path);
     } catch(e) {

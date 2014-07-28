@@ -9,8 +9,7 @@
 
   var join = path.join;
 
-  //var basePath = path.dirname(process.argv[1]);
-  var basePath = process.cwd();
+  var basePath = global.opts && global.opts.path || process.cwd();
 
   var config = fs.readFileSync(join(basePath, 'watch-conf.json'), 'utf8');
   config = JSON.parse(config);

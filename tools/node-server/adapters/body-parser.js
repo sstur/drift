@@ -246,7 +246,7 @@ adapter.define('body-parser', function(require, exports, module) {
 
     if (opts.autoSavePath) {
       file.path = join(opts.autoSavePath, getGuid());
-      var outStream = _fs.createWriteStream(global.mappath(file.path));
+      var outStream = _fs.createWriteStream(app.mappath(file.path));
       outStream.on('error', function(err) {
         self.emit('error', err);
         console.log('write stream error', err);
