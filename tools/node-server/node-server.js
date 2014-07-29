@@ -1,4 +1,4 @@
- /*global global, process, require, app */
+ /*global global, process, require, __filename, app */
 (function() {
   "use strict";
   var fs = require('fs');
@@ -9,24 +9,28 @@
 
   //the parsed cli arguments from optimist
   var opts = global.opts || {};
-  //this is used in app.cfg
-  global.platform = 'node';
+
   //this is the project path; used in patch and app.mappath
   var basePath = global.basePath = opts.path || process.cwd();
-  var driftPath = (function(path) {
+
+  //this is the framework path
+  var fxPath = (function(path) {
     var index = path.lastIndexOf('/tools/');
     return (index !== -1) ? path.slice(0, index) : join(require.main.filename, '../..');
   })(__filename);
-  //var systemPath = join(driftPath, 'app/system');
+
+  var pkgConfig = require('./package-config.js');
 
   //patch some built-in methods
   require('./support/patch');
 
   var Fiber = require('./lib/fiber');
-  var pkgConfig = require('../../package.json');
+
+  //this is used in core.js
+  global.platform = 'node';
 
   //load framework core (instantiates `app`)
-  require(join(driftPath, 'app/system/core.js'));
+  require(join(fxPath, 'app/system/core.js'));
 
   app.mappath = join.bind(null, basePath);
   app.transformConfig = function(path, value) {
@@ -120,7 +124,8 @@
     req.res = res;
     res.req = req;
     //attempt to serve static file
-    res.tryStaticPath('assets/', function() {
+    var staticPaths = pkgConfig.static_assets || '/assets/';
+    res.tryStaticPath(staticPaths, function() {
       var fiber = new Fiber(syncHandler);
       fiber.onError = res.sendError.bind(res);
       fiber.run({req: req, res: res});
@@ -128,17 +133,11 @@
   };
 
 
-  //helpers
-
-  function mappath(path) {
-    return join(basePath, path);
-  }
-
   //helper for loading framework files
   function loadPathSync(dir, callback) {
     //note: kinda hacky
     var isSystem = (dir.indexOf('app/system/') === 0 || dir.indexOf('tools/') === 0);
-    var path = isSystem ? join(driftPath, dir) : join(basePath, dir);
+    var path = isSystem ? join(fxPath, dir) : join(basePath, dir);
     try {
       var files = fs.readdirSync(path);
     } catch(e) {

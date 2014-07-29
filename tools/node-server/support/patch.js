@@ -16,6 +16,8 @@
   var basename = path.basename;
   var normalize = path.normalize;
 
+  var pkgConfig = require('../package-config.js');
+
   //var INVALID_CHARS = /[\x00-\x1F\\\/:*?<>|&%",\u007E-\uFFFF]/g;
   var INVALID_CHARS = /[^\w\d!#$'()+,\-;=@\[\]^`{}~]/g;
 
@@ -41,7 +43,6 @@
   //Send an http error (40x, except 404)
   res.httpError = function(code) {
     var req = this.req, res = this;
-    console.log('send: http status ' + code);
     if (!res.headerSent) {
       var headers = {'Content-Type': 'text/plain'};
       res.writeHead(code, null, headers);
@@ -82,25 +83,40 @@
     res.end();
   };
 
-  res.tryStaticPath = function(path, fallback) {
-    var req = this.req, res = this, url = req.url.split('?')[0];
-    var assetPrefix = urlJoin('/', path, '/').toLowerCase();
-    if (url.toLowerCase().indexOf(assetPrefix) === 0) {
-      //root here is filesystem path
-      var opts = {root: join(global.basePath, path), path: url.slice(assetPrefix.length)};
-      res.serveAsset(opts, fallback);
-    } else {
-      fallback();
+  res.tryStaticPath = function(paths, callback) {
+    var req = this.req;
+    var res = this;
+    var url = req.url.split('?')[0];
+    var tryStatic = [];
+    paths = Array.isArray(paths) ? paths : [paths];
+    paths.forEach(function(path) {
+      var assetPrefix = urlJoin('/', path, '/').toLowerCase();
+      if (url.toLowerCase().indexOf(assetPrefix) === 0) {
+        //root here is filesystem path
+        tryStatic.push({root: global.basePath, path: rewrite(req, url)});
+      }
+    });
+    if (!tryStatic.length) {
+      return callback();
     }
+    var i = 0;
+    (function next() {
+      if (tryStatic[i]) {
+        res.serveAsset(tryStatic[i++], next);
+      } else {
+        callback();
+      }
+    })();
   };
 
   res.serveAsset = function(opts, fallback) {
-    var req = this.req, res = this;
+    var req = this.req;
+    var res = this;
 
     if (!opts.path) throw new Error('path required');
 
-    var isGet = ('GET' == req.method)
-      , isHead = ('HEAD' == req.method);
+    var isGet = ('GET' == req.method);
+    var isHead = ('HEAD' == req.method);
 
     // ignore non-GET requests
     if (opts.getOnly && !isGet && !isHead) {
@@ -269,15 +285,40 @@
    *
    */
 
-  function isAjax(req) {
-    //todo: check accepts, x-requested-with, and qs (jsonp/callback)
-    return false;
-    //return (req.headers['x-requested-with'] || '').toLowerCase() == 'xmlhttprequest';
+  function rewrite(req, url) {
+    var rules = pkgConfig.static_assets_rewrite || {};
+    Object.keys(rules).forEach(function(search) {
+      var replace = rules[search];
+      if (search.charAt(0) === '^') {
+        search = new RegExp(search, 'i');
+      }
+      replace = subHeaders(req, replace);
+      url = url.replace(search, replace);
+    });
+    return url;
+  }
+
+  function subHeaders(req, str) {
+    return str.replace(/\{HTTP_(.+)\}/, function(_, name) {
+      name = name.toLowerCase().replace(/_/g, '-');
+      var value = req.headers[name] || '';
+      //special case the host to not include :port
+      if (name === 'host') {
+        value = value.split(':')[0];
+      }
+      return value;
+    });
   }
 
   function urlJoin() {
     var path = join.apply(null, arguments);
     return path.replace(/\\/g, '/');
+  }
+
+  function isAjax(req) {
+    //todo: check accepts, x-requested-with, and qs (jsonp/callback)
+    return false;
+    //return (req.headers['x-requested-with'] || '').toLowerCase() == 'xmlhttprequest';
   }
 
   //simplified version of util.stripFilename()

@@ -1,7 +1,7 @@
-specify assets directory, devhost, site rewrites in app-conf.json
+specify devhost in app-conf.json
 db-conf.json -> app-conf.json (sendfleet)
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)
-move db-init/compile-views/devtools (sendfleet, wfm, cfm)
+move db-init, compile-views, devtools (sendfleet, wfm, cfm)
 util.log should be async in node-adapter
 getEnv() should be guaranteed in all adapters
 replace isDev, getEnv with __DEV__ ?
@@ -14,7 +14,7 @@ app/system
   libraries like session, auth, mysql, localdb -> lib/
   include optional libraries only if require'd in system/core or app/
 
-_examples/ is required bu tools/init.js
+_examples/ is required by tools/init.js
 
 file-based session store:
   5324e71223dc1548ecaea108.json (first 8 is seconds in hex) [cfm]
