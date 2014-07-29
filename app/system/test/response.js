@@ -16,8 +16,6 @@ define('mock-response', function(require, exports, module) {
       var self = this;
       self.status = statusCode + ' ' + statusReason;
       forEach(headers, function(n, val) {
-        //note: is val guaranteed to be a string/array of strings?
-        //if (val == null) val = '';
         val = Array.isArray(val) ? val : String(val);
         self.headers[n] = val;
       });
@@ -29,6 +27,7 @@ define('mock-response', function(require, exports, module) {
       this.body.push(Buffer.isBuffer(data) ? data.toString('binary') : toString(data));
     },
     end: function() {
+      this.req.emit('end');
       throw null;
     },
     getBody: function() {

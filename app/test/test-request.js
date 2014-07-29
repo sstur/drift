@@ -221,8 +221,14 @@ app.on('ready', function(require) {
 
   function createRequest(cfg) {
     cfg = cfg || {};
-    var req = new Request(new AdapterRequest(cfg));
-    var res = new Response(new AdapterResponse());
+    var _req = new AdapterRequest(cfg);
+    var _res = new AdapterResponse();
+    //cross-reference adapter-request and adapter-response
+    _req.res = _res;
+    _res.req = _req;
+    var req = new Request(_req);
+    var res = new Response(_res);
+    //cross-reference request and response
     req.res = res;
     res.req = req;
     if (cfg.catchParseError !== false) {

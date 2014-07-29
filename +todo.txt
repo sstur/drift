@@ -1,4 +1,3 @@
-
 specify assets directory, devhost, site rewrites in app-conf.json
 db-conf.json -> app-conf.json (sendfleet)
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)

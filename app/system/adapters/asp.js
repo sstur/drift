@@ -65,7 +65,10 @@ function getEnv() {
 
   var req = new Request();
   var res = new Response();
-  if (req.getURL() === '/~log' && req.getMethod() === 'GET' && getEnv() === 'development') {
+  //cross-reference adapter-request and adapter-response
+  req.res = res;
+  res.req = req;
+  if (getEnv() === 'development' && req.getMethod() === 'GET' && req.getURL() === '/~log') {
     res.writeHead('200', 'OK', {'Content-Type': 'text/plain'});
     res.write(console.getLog());
     res.end();
