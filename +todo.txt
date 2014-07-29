@@ -1,6 +1,8 @@
-move db-init/compile-views/devtools (sendfleet, wfm, cfm)
+
+specify assets directory, devhost, site rewrites in app-conf.json
 db-conf.json -> app-conf.json (sendfleet)
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)
+move db-init/compile-views/devtools (sendfleet, wfm, cfm)
 util.log should be async in node-adapter
 getEnv() should be guaranteed in all adapters
 replace isDev, getEnv with __DEV__ ?

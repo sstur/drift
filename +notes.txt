@@ -1,0 +1,2 @@
+drift build wsh && cp build/app.wsf /Volumes/inetpub/wwwroot/sendfleet.com/local/build/repl.wsf
+kill -s SIGHUP `cat server.pid`

@@ -129,7 +129,7 @@ var app, define;
    * provided by separate module, but routes can be
    * added before that module is loaded.
    */
-  var router, routes = app._routes = [];
+  var routes = app._routes = [];
 
   //shortcut method for addRoute or routeRequest
   app.route = function(route) {
@@ -213,9 +213,6 @@ var app, define;
 
   function addRoute(route, handler, opts) {
     routes.push({route: route, handler: handler, opts: opts});
-    if (router) {
-      router.addRoute(route, handler, opts);
-    }
   }
 
   function routeRequest(adapterRequest, adapterResponse) {
@@ -230,17 +227,14 @@ var app, define;
     res.req = req;
     req.__init = Date.now();
     app.emit('request', req, res);
-    if (!router) {
-      router = new Router(routes);
-    }
-    var method = req.method();
-    //get raw (encoded) path
-    var path = req.url('rawPath');
+    var router = new Router(routes);
     util.propagateEvents(router, req, 'pre-route match-route no-route');
     //so routes can access `this.params` with combined request params
     req.on('match-route', function(route) {
+      //we use Object.create so we don't actually mutate the query params object
+      var queryParams = Object.create(req.query());
       var routeParams = route.params;
-      route.params = util.extend(Object.create(req.query()), routeParams);
+      route.params = util.extend(queryParams, routeParams);
     });
     //todo: move to request lib?
     req.on('no-route', function(routeData) {
@@ -251,7 +245,9 @@ var app, define;
         res.end('404', 'Not Found');
       }
     });
-    return router.route(method, path, req, res);
+    //get raw (encoded) path
+    var path = req.url('rawPath');
+    return router.route(req.method(), path, req, res);
   }
 
   function loadModule(name) {

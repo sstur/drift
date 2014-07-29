@@ -18,7 +18,7 @@ app.define('adapter-response', function(require, exports, module) {
     },
     end: function() {
       this._super.end();
-      //fire end event on
+      //fire end event after we have finished the response to perform things like cleanup
       this.req.emit('end');
       Fiber.current.abort();
     },

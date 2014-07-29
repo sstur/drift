@@ -191,7 +191,6 @@ define('response', function(require, exports, module) {
     //these methods interface with the adapter (_super)
     _writeHead: function() {
       this._prepHeaders();
-      this.req.emit('end');
       var status = parseStatus(this.buffer.status);
       this._super.writeHead(status.code, status.reason, this.buffer.headers);
     },
@@ -202,12 +201,11 @@ define('response', function(require, exports, module) {
         //todo: check file exists
         this.headers(headers);
         this._prepHeaders();
-        this.req.emit('end');
         var status = parseStatus(this.buffer.status);
         _super.streamFile(status.code, status.reason, this.buffer.headers, path);
       } else {
         var readStream = fs.createReadStream(path);
-        //todo: we can only set content-length if the server is smart enough to turn off chunked when this header is present (cfg option?)
+        //todo: we can only set content-length if the server is smart enough to turn off chunked (cfg option?)
         //headers['Content-Length'] = readStream.size();
         this.headers(headers);
         util.pipe(readStream, this.getWriteStream());
