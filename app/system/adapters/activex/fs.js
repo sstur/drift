@@ -24,26 +24,12 @@ define('fs', function(require, fs) {
 
   var FSO = new ActiveXObject('Scripting.FileSystemObject');
 
-  fs.moveFile = function(src, dest) {
-    try {
-      var fso = FSO.getFile(app.mappath(src));
-    } catch(e) {
-      if (isNotFound(e)) {
-        throw util.extend(new Error(eNoEnt(src)), {code: 'ENOENT'});
-      }
-      throw new Error('Error opening file: ' + src + '\n' + e.message);
-    }
-    if (isDirectory(dest)) {
-      dest = pathLib.join(dest, pathLib.basename(src));
-    }
-    try {
-      fso.move(app.mappath(dest));
-    } catch(e) {
-      if (isNotFound(e)) {
-        throw util.extend(new Error(eNoEnt(dest)), {code: 'ENOENT'});
-      }
-      throw new Error('Error moving file ' + src + ' to ' + dest + '\n' + e.message);
-    }
+  fs.isFile = function(path) {
+    return isFile(path);
+  };
+
+  fs.isDir = function(path) {
+    return isDir(path);
   };
 
   fs.copyFile = function(src, dest) {
@@ -55,7 +41,7 @@ define('fs', function(require, fs) {
       }
       throw new Error('Error opening file: ' + src + '\n' + e.message);
     }
-    if (isDirectory(dest)) {
+    if (isDir(dest)) {
       dest = pathLib.join(dest, pathLib.basename(src));
     }
     try {
@@ -65,6 +51,28 @@ define('fs', function(require, fs) {
         throw util.extend(new Error(eNoEnt(dest)), {code: 'ENOENT'});
       }
       throw new Error('Error copying file ' + src + ' to ' + dest + '\n' + e.message);
+    }
+  };
+
+  fs.moveFile = function(src, dest) {
+    try {
+      var fso = FSO.getFile(app.mappath(src));
+    } catch(e) {
+      if (isNotFound(e)) {
+        throw util.extend(new Error(eNoEnt(src)), {code: 'ENOENT'});
+      }
+      throw new Error('Error opening file: ' + src + '\n' + e.message);
+    }
+    if (isDir(dest)) {
+      dest = pathLib.join(dest, pathLib.basename(src));
+    }
+    try {
+      fso.move(app.mappath(dest));
+    } catch(e) {
+      if (isNotFound(e)) {
+        throw util.extend(new Error(eNoEnt(dest)), {code: 'ENOENT'});
+      }
+      throw new Error('Error moving file ' + src + ' to ' + dest + '\n' + e.message);
     }
   };
 
@@ -123,7 +131,6 @@ define('fs', function(require, fs) {
     fs.removeDir(path, {ifExists: true});
   };
 
-
   fs.getDirContents = function(path) {
     var fso = getFileOrDir(path);
     var children = getChildren(fso);
@@ -149,6 +156,10 @@ define('fs', function(require, fs) {
    */
   fs.getInfo = function(path, deep) {
     return getInfo(getFileOrDir(path), deep);
+  };
+
+  fs.getFileInfo = function(path) {
+    return getInfo(getFile(path));
   };
 
   fs.readFile = function(file) {
@@ -181,6 +192,7 @@ define('fs', function(require, fs) {
     if (opts.overwrite === true) opts.append = false;
     return new FileWriteStream(file, opts);
   };
+
 
   function FileReadStream(file, opts) {
     this.file = file;
@@ -313,20 +325,37 @@ define('fs', function(require, fs) {
 
 
   //todo: check isNotFound
+  function getFile(path) {
+    path = app.mappath(path);
+    try {
+      return FSO.getFile(path);
+    } catch(e) {
+      throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
+    }
+  }
+
   function getFileOrDir(path) {
     path = app.mappath(path);
     try {
-      return FSO.getFolder(path);
+      return FSO.getFile(path);
     } catch(e1) {
       try {
-        return FSO.getFile(path);
+        return FSO.getFolder(path);
       } catch(e2) {
         throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
       }
     }
   }
 
-  function isDirectory(path) {
+  function isFile(path) {
+    path = app.mappath(path);
+    try {
+      var fso = FSO.getFile(path);
+    } catch(e) {}
+    return (fso) ? true : false;
+  }
+
+  function isDir(path) {
     path = app.mappath(path);
     try {
       var fso = FSO.getFolder(path);

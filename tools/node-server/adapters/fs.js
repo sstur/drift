@@ -35,30 +35,6 @@ adapter.define('fs', function(require, fs) {
     });
   };
 
-  fs.readFile_ = function(path, callback) {
-    path = mappath(path);
-    _fs.readFile(path, callback);
-  };
-
-  fs.readTextFile_ = function(path, enc, callback) {
-    path = mappath(path);
-    enc = enc || 'utf8';
-    _fs.readFile(path, enc, callback);
-  };
-
-  fs.writeFile_ = function(path, data, opts, callback) {
-    path = mappath(path);
-    writeFile(path, data, opts, callback);
-  };
-
-  fs.writeTextToFile_ = function(path, text, opts, callback) {
-    path = mappath(path);
-    if (typeof text !== 'string') {
-      text = (text == null || typeof text.toString !== 'function') ? Object.prototype.toString.call(text) : text.toString();
-    }
-    writeFile(path, text, opts, callback);
-  };
-
   fs.copyFile_ = function(src, dest, callback) {
     src = mappath(src);
     dest = mappath(dest);
@@ -124,17 +100,10 @@ adapter.define('fs', function(require, fs) {
     });
   };
 
-  //todo: we should treat symlinks as their target
-  fs.getInfo_ = function(path, deep, callback) {
-    var fullPath = mappath(path);
-    getInfo(fullPath, deep, callback);
-  };
-
   fs.getDirContents_ = function(path, callback) {
     path = mappath(path);
     _fs.readdir(path, callback);
   };
-
 
   /**
    * Walks directory, depth-first, calling fn for each subdirectory and
@@ -152,6 +121,45 @@ adapter.define('fs', function(require, fs) {
       walkDeep(info, fn, '');
       callback();
     });
+  };
+
+  fs.getInfo_ = function(path, deep, callback) {
+    var fullPath = mappath(path);
+    getInfo(fullPath, deep, callback);
+  };
+
+  fs.getFileInfo_ = function(path, callback) {
+    var fullPath = mappath(path);
+    getInfo(fullPath, false, function(err, info) {
+      if (!err && info.type !== 'file') {
+        err = posixError('ENOENT', {path: fullPath});
+      }
+      callback(err, info);
+    });
+  };
+
+  fs.readFile_ = function(path, callback) {
+    path = mappath(path);
+    _fs.readFile(path, callback);
+  };
+
+  fs.readTextFile_ = function(path, enc, callback) {
+    path = mappath(path);
+    enc = enc || 'utf8';
+    _fs.readFile(path, enc, callback);
+  };
+
+  fs.writeFile_ = function(path, data, opts, callback) {
+    path = mappath(path);
+    writeFile(path, data, opts, callback);
+  };
+
+  fs.writeTextToFile_ = function(path, text, opts, callback) {
+    path = mappath(path);
+    if (typeof text !== 'string') {
+      text = (text == null || typeof text.toString !== 'function') ? Object.prototype.toString.call(text) : text.toString();
+    }
+    writeFile(path, text, opts, callback);
   };
 
   fs.createReadStream = function(path, opts) {

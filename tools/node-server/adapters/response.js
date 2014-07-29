@@ -1,8 +1,9 @@
 /*global global, require, app, adapter, Fiber, Buffer */
-var fs = require('fs');
+var _fs = require('fs');
 app.define('adapter-response', function(require, exports, module) {
   "use strict";
 
+  var fs = require('fs');
   var util = require('util');
 
   function Response(httpRes) {
@@ -24,10 +25,12 @@ app.define('adapter-response', function(require, exports, module) {
     },
     streamFile: function(statusCode, statusReason, headers, path) {
       var _super = this._super;
+      var info = fs.getFileInfo(path);
+      headers['Content-Length'] = info.size;
       this.writeHead(statusCode, statusReason, headers);
       process.nextTick(function() {
         var fullpath = app.mappath(path);
-        fs.createReadStream(fullpath).pipe(_super);
+        _fs.createReadStream(fullpath).pipe(_super);
       });
       this.req.emit('end');
       Fiber.current.abort();
