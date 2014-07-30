@@ -45,7 +45,6 @@ adapter.define('body-parser', function(require, exports, module) {
       });
       //pause immediately since we may not attach data listener until later
       readStream.pause();
-      readStream._paused = true;
     } else {
       this.readStream = src;
       callback();
@@ -91,9 +90,7 @@ adapter.define('body-parser', function(require, exports, module) {
       default:
         this.processBinaryBody();
     }
-    if (this.readStream._paused) {
-      this.readStream.resume();
-    }
+    this.readStream.resume();
   };
 
   BodyParser.prototype.bufferReqBody = function(callback) {
@@ -249,7 +246,6 @@ adapter.define('body-parser', function(require, exports, module) {
       var outStream = _fs.createWriteStream(app.mappath(file.path));
       outStream.on('error', function(err) {
         self.emit('error', err);
-        console.log('write stream error', err);
       });
       readStream.pipe(outStream);
     }
