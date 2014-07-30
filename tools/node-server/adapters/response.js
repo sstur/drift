@@ -1,4 +1,4 @@
-/*global global, require, app, adapter, Fiber, Buffer */
+/*global global, require, app, adapter, Fiber, Buffer, process */
 var _fs = require('fs');
 app.define('adapter-response', function(require, exports, module) {
   "use strict";
@@ -30,7 +30,8 @@ app.define('adapter-response', function(require, exports, module) {
       this.writeHead(statusCode, statusReason, headers);
       process.nextTick(function() {
         var fullpath = app.mappath(path);
-        _fs.createReadStream(fullpath).pipe(_super);
+        var readStream = _fs.createReadStream(fullpath);
+        readStream.pipe(_super);
       });
       this.req.emit('end');
       Fiber.current.abort();

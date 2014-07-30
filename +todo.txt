@@ -1,3 +1,5 @@
+gm: custom identify format string
+fs.getError('ENOENT') or fs.getError('ENOENT', {path: path}) or fs.getError('ENOENT', new Error(message))
 specify devhost in app-conf.json
 db-conf.json -> app-conf.json (sendfleet)
 allow build-conf to be named app-conf (for cases where we use node for db-init, but iis for deployment)
