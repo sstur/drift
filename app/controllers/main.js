@@ -16,6 +16,19 @@ app.on('ready', function(require) {
     res.end('Application version: ' + app.cfg('version'));
   });
 
+  app.route('/email', function(req, res) {
+    var email = require('email');
+    var result = email.sendEmail({
+      to: 'simon.sturmer@gmail.com',
+      from: 'simon@sturmer.org',
+      replyTo: 's@sturmer.org',
+      subject: 'Test from Drift',
+      textBody: 'Hi from Text Body',
+      htmlBody: '<p>Hi from HTML Body</p>'
+    });
+    res.end(util.inspect(result));
+  });
+
   //app.route('/test-get-redir', function(req, res) {
   //  var http = require('http'), host = req.headers('host');
   //  var response = http.get({

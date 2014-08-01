@@ -29,6 +29,14 @@ app.cfg({
     verbosity: 2
   },
 
+  //outgoing email server
+  smtp: {
+    host: 'smtp.sendgrid.net',
+    port: '587',
+    user: 'rqkalv',
+    pass: 'pYcsSBsU8f'
+  },
+
   //Template Engine
   template: {
     engine: 'jinja',
