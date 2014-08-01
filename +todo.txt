@@ -8,6 +8,7 @@ util.log should be async in node-adapter
 getEnv() should be guaranteed in all adapters
 replace isDev, getEnv with __DEV__ ?
 node adapterResponse.sendFile() to send X-Response-Time?
+sendEmail: option to defer, discarding result (log)
 
 allow config/mysql/connections to be specified in build-conf or app-conf
 
