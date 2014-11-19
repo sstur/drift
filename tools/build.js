@@ -35,6 +35,7 @@
 
   var REG_NL = /\r\n|\r|\n/g;
 
+  opts.directive = args.shift();
   opts.platform = args.shift();
 
   var config = readJSON(join(projectPath, 'build-conf.json'));

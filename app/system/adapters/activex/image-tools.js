@@ -11,6 +11,7 @@ define('image-tools', function(require, exports) {
   };
 
   var convertTypes = {
+    'gif': 'png',
     'bmp': 'png',
     'tif': 'png'
   };
@@ -53,10 +54,16 @@ define('image-tools', function(require, exports) {
       throw new Error('Invalid image at path: ' + path);
     }
     var resize = calculateSize(details, opts);
-    if (resize || (details.type in convertTypes)) {
-      var outputType = getOutputType(details.type);
-      var outpath = opts.outpath || path;
-      outpath = (outpath.slice(-4) == '.' + outputType) ? outpath : outpath + '.' + outputType;
+    var shouldConvertType = (opts.outputType) ? (details.type === opts.outputType) : (details.type in convertTypes);
+    if (resize || shouldConvertType) {
+      var outputType = opts.outputType || getOutputType(details.type);
+      if (opts.outpath) {
+        var outpath = opts.outpath;
+        //todo: should we really be appending outpath? (only when no file extension present?)
+        outpath = (outpath.slice(-4) == '.' + outputType) ? outpath : outpath + '.' + outputType;
+      } else {
+        outpath = path;
+      }
       var objJpeg = new ActiveXObject('Persits.Jpeg');
       objJpeg.open(app.mappath(path));
       if (resize) {

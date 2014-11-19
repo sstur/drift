@@ -1,12 +1,13 @@
 /*!
  * todo:
  *  deleteFile, removeDir: consolidate to helper for ifExists
+ *  deleteFile -> removeFile (add alias)
+ *  removeDir(path, {deep: true})
  *  throw ENOTEMPTY, rmdir 'path/to/file'
- *  removeDir(path, {recursive: true}) [or deep]
- *  moveDir, copyDir
  *  rename dateCreated, dateLastAccessed, dateLastModified (remove date prefix)
- *  rename deleteFile -> removeFile (add alias)
- *  replace eNoEnt() with new Error('ENOENT') + source transform
+ *  replace eNoEnt() with new Error('ENOENT') + source transform?
+ *  remove fs.walk (it's higher-level)
+ *  remove readTextFile/TextReadStream/writeTextToFile
  */
 /*global app, define */
 define('fs', function(require, fs) {
@@ -143,6 +144,7 @@ define('fs', function(require, fs) {
    * Walks directory, depth-first, calling fn for each subdirectory and
    * file and passing `info` object and `prefix` which can be prepended to
    * info.name to get relative path.
+   * todo: this should not be in fs module
    */
   fs.walk = function(path, fn) {
     var fso = FSO.getFolder(app.mappath(path));

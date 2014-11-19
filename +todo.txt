@@ -1,3 +1,9 @@
+image-tools.resizeImageFile
+  don't modify outpath (or only modify if not file extension present)
+node + jtp have diverged:
+  fs: readFile vs readTextFile
+fs.walk should be implemented at the app level
+deprecate readTextFile/writeTextFile
 gm: custom identify format string
 fs.getError('ENOENT') or fs.getError('ENOENT', {path: path}) or fs.getError('ENOENT', new Error(message))
 specify devhost in app-conf.json
