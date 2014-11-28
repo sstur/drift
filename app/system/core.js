@@ -165,13 +165,15 @@ var app, define;
         return;
       }
     }
-    mergeCfg(data, []);
+    mergeCfg(data);
   };
 
   function mergeCfg(data, stack) {
+    stack = stack || [];
     Object.keys(data).forEach(function(key) {
       var value = data[key];
-      var type = toString.call(value);
+      //in some JS engines toString of null|undefined === '[object Object]'
+      var type = (value == null) ? 'empty' : toString.call(value);
       var path = stack.concat(key.split('/'));
       if (type === '[object Object]') {
         mergeCfg(value, path);
