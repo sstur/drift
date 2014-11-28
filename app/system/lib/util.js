@@ -192,6 +192,7 @@ define('util', function(require, util) {
 
   //parse a header value (e.g. Content-Disposition) accounting for
   // various formats such as rfc5987: field*=UTF-8'en'a%20b
+  // todo: something like: ["multipart/alternative", {"boundary": "eb663d73ae0a4d6c9153cc0aec8b7520"}]
   util.parseHeaderValue = function(str) {
     //replace quoted strings with encoded contents
     str = String(str).replace(/"(.*?)"/g, function(_, str) {

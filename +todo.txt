@@ -1,6 +1,6 @@
 image-tools.resizeImageFile
   don't modify outpath (or only modify if not file extension present)
-node + jtp have diverged:
+node + j2p have diverged:
   fs: readFile vs readTextFile
 fs.walk should be implemented at the app level
 deprecate readTextFile/writeTextFile
