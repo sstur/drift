@@ -10,3 +10,7 @@ Test:
 Front-End Tests
   Properly report 500 Err
   Conform XHR so tests.js can be used from node and browser
+
+Filesystem:
+  copy/moveFile: if dst is directory append src name
+  moveDir: src does not exist; src is file; dest is empty dir; dest is non-empty dir; dest is file

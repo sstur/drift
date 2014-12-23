@@ -38,7 +38,7 @@ define('fs', function(require, fs) {
       var fso = FSO.getFile(app.mappath(src));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(eNoEnt(src)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
       throw new Error('Error opening file: ' + src + '\n' + e.message);
     }
@@ -49,7 +49,7 @@ define('fs', function(require, fs) {
       fso.copy(app.mappath(dest));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(eNoEnt(dest)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(dest)), {code: 'ENOENT'});
       }
       throw new Error('Error copying file ' + src + ' to ' + dest + '\n' + e.message);
     }
@@ -60,7 +60,7 @@ define('fs', function(require, fs) {
       var fso = FSO.getFile(app.mappath(src));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(eNoEnt(src)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
       throw new Error('Error opening file: ' + src + '\n' + e.message);
     }
@@ -71,7 +71,7 @@ define('fs', function(require, fs) {
       fso.move(app.mappath(dest));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(eNoEnt(dest)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(dest)), {code: 'ENOENT'});
       }
       throw new Error('Error moving file ' + src + ' to ' + dest + '\n' + e.message);
     }
@@ -84,9 +84,9 @@ define('fs', function(require, fs) {
     } catch(e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
-        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
       }
-      throw new Error('Error Deleting File: ' + path + '\n' + e.message);
+      throw new Error('Error deleting file: ' + path + '\n' + e.message);
     }
   };
 
@@ -108,10 +108,10 @@ define('fs', function(require, fs) {
           opts.deep = false;
           return fs.createDir(path, opts);
         }
-        throw util.extend(new Error(eNoEnt(parent)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(parent)), {code: 'ENOENT'});
       }
       //e.message == "File already exists"
-      throw new Error('Error Creating Directory: ' + path + '\n' + e.message);
+      throw new Error('Error creating directory: ' + path + '\n' + e.message);
     }
   };
 
@@ -122,14 +122,38 @@ define('fs', function(require, fs) {
     } catch(e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
-        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
       }
-      throw new Error('Error Removing Directory: ' + path + '\n' + e.message);
+      throw new Error('Error removing directory: ' + path + '\n' + e.message);
     }
   };
 
   fs.removeDirIfExists = function(path) {
     fs.removeDir(path, {ifExists: true});
+  };
+
+  fs.moveDir = function(src, dest) {
+    try {
+      var fso = FSO.getFolder(app.mappath(src));
+    } catch(e) {
+      if (isNotFound(e)) {
+        throw util.extend(new Error(ENOENT(src)), {code: 'ENOENT'});
+      }
+      throw new Error('Error opening directory: ' + src + '\n' + e.message);
+    }
+    if (isDir(dest)) {
+      var children = getChildren(fso);
+      if (children.length) {
+        //note: fso will happily move a non-empty folder, but this is for consistency with other implementations
+        throw util.extend(new Error(ENOTEMPTY(src)), {code: 'ENOTEMPTY'});
+      }
+      fs.removeDir(dest);
+    }
+    try {
+      fso.move(app.mappath(dest));
+    } catch(e) {
+      throw new Error('Error moving file ' + src + ' to ' + dest + '\n' + e.message);
+    }
   };
 
   fs.getDirContents = function(path) {
@@ -207,7 +231,7 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.message.match(/could not be opened/i)) {
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(file)), {code: 'ENOENT'});
       }
       throw e;
     }
@@ -263,7 +287,7 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.message.match(/could not be opened/i)) {
-        throw util.extend(new Error(eNoEnt(file)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(file)), {code: 'ENOENT'});
       }
       throw e;
     }
@@ -332,7 +356,7 @@ define('fs', function(require, fs) {
     try {
       return FSO.getFile(path);
     } catch(e) {
-      throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
+      throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
     }
   }
 
@@ -344,7 +368,7 @@ define('fs', function(require, fs) {
       try {
         return FSO.getFolder(path);
       } catch(e2) {
-        throw util.extend(new Error(eNoEnt(path)), {code: 'ENOENT'});
+        throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
       }
     }
   }
@@ -457,8 +481,12 @@ define('fs', function(require, fs) {
     return false;
   }
 
-  function eNoEnt(path) {
+  function ENOENT(path) {
     return "ENOENT, no such file or directory '" + path + "'";
+  }
+
+  function ENOTEMPTY(path) {
+    return "ENOTEMPTY, directory not empty '" + path + "'";
   }
 
 });

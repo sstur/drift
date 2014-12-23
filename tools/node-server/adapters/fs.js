@@ -100,6 +100,23 @@ adapter.define('fs', function(require, fs) {
     });
   };
 
+  //note: does not support move across devices
+  // if destination is a directory:
+  //  - overwrite if empty; else throw `ENOTEMPTY, directory not empty`
+  // if destination is a file:
+  //  - throw `ENOTDIR, not a directory`
+  fs.moveDir_ = function(src, dest, callback) {
+    src = mappath(src);
+    dest = mappath(dest);
+    _fs.stat(src, function(err, stat) {
+      if (err) return callback(err);
+      if (!stat.isDirectory()) {
+        return callback(posixError('ENOENT', {path: src}));
+      }
+      _fs.rename(src, dest, callback);
+    });
+  };
+
   fs.getDirContents_ = function(path, callback) {
     path = mappath(path);
     _fs.readdir(path, callback);
@@ -394,7 +411,8 @@ adapter.define('fs', function(require, fs) {
     }
   }
 
-  //make sure src is a file and destination either doesn't exist or is a directory
+  //make sure src is a file and destination either doesn't exist or is a
+  // directory; if destination is a directory, append src filename
   function checkCopyFile(src, dest, callback) {
     _fs.stat(src, function(err, stat) {
       if (err) return callback(err);
