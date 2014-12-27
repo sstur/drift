@@ -223,11 +223,12 @@ define('inspector', function(require, exports) {
 
   function reduceToSingleString(output, base, braces) {
     var numLinesEst = 0;
-    var length = output.reduce(function(prev, cur) {
+    var length = 0;
+    output.forEach(function(str) {
       numLinesEst++;
-      if (cur.indexOf('\n') >= 0) numLinesEst++;
-      return prev + cur.length + 1;
-    }, 0);
+      if (str.indexOf('\n') >= 0) numLinesEst++;
+      length += str.length + 1;
+    });
 
     if (length > 60) {
       return braces[0] +
