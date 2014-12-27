@@ -176,43 +176,30 @@ define('inspector', function(require, exports) {
 
 
   function formatProperty(ctx, value, recurseTimes, keys, key, array) {
-    var name, str, desc;
-    desc = Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-    if (desc.get) {
-      if (desc.set) {
-        str = ctx.stylize('[Getter/Setter]', 'special');
+    var desc = { value: value[key] };
+    if (keys.indexOf(key) < 0) {
+      var name = '[' + key + ']';
+    }
+    var str;
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (recurseTimes === null) {
+        str = formatValue(ctx, desc.value, null);
       } else {
-        str = ctx.stylize('[Getter]', 'special');
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
       }
     } else {
-      if (desc.set) {
-        str = ctx.stylize('[Setter]', 'special');
-      }
-    }
-    if (keys.indexOf(key) < 0) {
-      name = '[' + key + ']';
-    }
-    if (!str) {
-      if (ctx.seen.indexOf(desc.value) < 0) {
-        if (recurseTimes === null) {
-          str = formatValue(ctx, desc.value, null);
-        } else {
-          str = formatValue(ctx, desc.value, recurseTimes - 1);
-        }
-        if (str.indexOf('\n') > -1) {
-          if (array) {
-            str = str.split('\n').map(function(line) {
-              return '  ' + line;
-            }).join('\n').substr(2);
-          } else {
-            str = '\n' + str.split('\n').map(function(line) {
-              return '   ' + line;
-            }).join('\n');
-          }
-        }
-      } else {
-        str = ctx.stylize('[Circular]', 'special');
-      }
+      str = ctx.stylize('[Circular]', 'special');
     }
     if (typeof name === 'undefined') {
       if (array && key.match(/^\d+$/)) {
