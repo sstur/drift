@@ -16,7 +16,6 @@ define('inspector', function(require, exports) {
     };
     return formatValue(ctx, obj, (typeof depth === 'undefined' ? 2 : depth));
   }
-  exports.inspect = inspect;
 
 
   function stylizeNoColor(str, styleType) {
@@ -29,7 +28,7 @@ define('inspector', function(require, exports) {
     // Check that value is an object with an inspect function on it
     if (value && typeof value.inspect === 'function' &&
         // Filter out the util module, it's inspect function is special
-        value.inspect !== exports.inspect &&
+        value.inspect !== inspect &&
         // Also filter out any prototype objects using the circular check.
         !(value.constructor && value.constructor.prototype === value)) {
       return value.inspect(recurseTimes);
@@ -282,5 +281,7 @@ define('inspector', function(require, exports) {
     return Object.prototype.toString.call(o);
   }
 
+
+  exports.inspect = inspect;
 
 });
