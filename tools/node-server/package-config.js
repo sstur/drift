@@ -2,17 +2,16 @@
 (function() {
   var fs = require('fs');
   var join = require('path').join;
+  var _slice = Array.prototype.slice;
 
   //the parsed cli arguments from optimist
   var opts = global.opts || {};
   //this is the project path; used in patch and app.mappath
   var basePath = global.basePath = opts.path || process.cwd();
 
-  module.exports = readConfig(basePath, 'package.json', 'app-conf.json', 'build-conf.json', 'db-conf.json');
-
   //read one or more config files (if exists) in `path` and aggregate their properties
   function readConfig() {
-    var files = Array.prototype.slice.call(arguments);
+    var files = _slice.call(arguments);
     var results = {};
     files.forEach(function(file) {
       try {
@@ -27,5 +26,7 @@
     });
     return results;
   }
+
+  module.exports = readConfig('package.json', 'app-conf.json', 'build-conf.json', 'db-conf.json');
 
 })();
