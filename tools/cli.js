@@ -50,11 +50,14 @@ function restart() {
   try {
     var pid = fs.readFileSync('./server.pid', 'utf8');
   } catch(e) {
-    return;
+    console.error('Unable to read process ID from: ./server.pid');
+    process.exit(1);
   }
-  if (pid.match(/^\d+$/)) {
-    pid = parseInt(pid, 10);
-    process.kill(pid, 'SIGHUP');
-    console.log('Signal sent to process', pid);
+  if (!pid.match(/^\d+$/)) {
+    console.error('Invalid process ID');
+    process.exit(1);
   }
+  pid = parseInt(pid, 10);
+  process.kill(pid, 'SIGHUP');
+  console.log('SIGHUP sent to process', pid);
 }

@@ -39,7 +39,7 @@
   process.on('SIGHUP', function() {
     //prevent RELAUNCH_MINIMUM restriction for manual exit
     lastChildLaunch = null;
-    if (child) child.send({command: 'exit'});
+    if (child) child.kill();
   });
   process.on('exit', function(code) {
     if (child) child.kill();
