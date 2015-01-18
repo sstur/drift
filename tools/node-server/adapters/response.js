@@ -1,5 +1,6 @@
 /*global global, require, app, adapter, Fiber, Buffer, process */
 var _fs = require('fs');
+var Fiber = require('../lib/fiber');
 app.define('adapter-response', function(require, exports, module) {
   "use strict";
 

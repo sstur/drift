@@ -32,7 +32,7 @@
     } else {
       list[field] = [value];
     }
-    _addHeaderLine.call(this, field, value);
+    return _addHeaderLine.apply(this, arguments);
   };
 
   //Provide a public "header sent" flag until node does.

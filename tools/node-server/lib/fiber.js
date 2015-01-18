@@ -5,8 +5,8 @@
   var Fiber = require('fibers');
   var _slice = Array.prototype.slice;
 
-  //todo: skip this if some flag is set on app/adapter (from a command-line flag)
   //patch fiber.run() to send errors to fiber.onError()
+  //todo: skip this if some flag is set on app/adapter (from a command-line flag)
   var _run = Fiber.prototype.run;
   Fiber.prototype.run = function() {
     try {

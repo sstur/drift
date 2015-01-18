@@ -1,3 +1,7 @@
+Load cli flags into app or adapter somehow (do same for special prefixed env?)
+Skip fiber onError patch if some flag is set (from a command-line flag?)
+
+rewrite: quote reserved words for property access
 image-tools.resizeImageFile
   don't modify outpath (or only modify if not file extension present)
 node + j2p have diverged:
@@ -15,6 +19,21 @@ getEnv() should be guaranteed in all adapters
 replace isDev, getEnv with __DEV__ ?
 node adapterResponse.sendFile() to send X-Response-Time?
 sendEmail: option to defer, discarding result (log)
+
+  jshint
+  url-key/slug/pathname/permalink
+
+  fs.copy/move (if dest ends in '/', append filename)
+  platform default in build-conf
+  (support named shortcuts, even for assembler/assets)
+  req.isUpload()
+  upload.discard()
+  Model: field-def: throw on unknown type
+
+  curl -I /file/view -> content-type: text/plain
+  content_transform must happen on edit page also (add slug_transform?)
+  replace folder.use with text field/order
+  replace file.file_id -> file.getCacheId
 
 allow config/mysql/connections to be specified in build-conf or app-conf
 
