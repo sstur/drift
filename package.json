@@ -1,6 +1,6 @@
 {
   "name": "drift",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Server-side JavaScript framework",
   "main": "tools/server.js",
   "directories": {
