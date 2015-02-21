@@ -30,7 +30,7 @@
 
   try {
     var uglifyjs = require('uglify-js');
-    var debugify = require('debugify');
+    var debugify = require('drift-debugify');
   } catch(e) {}
 
   var REG_NL = /\r\n|\r|\n/g;

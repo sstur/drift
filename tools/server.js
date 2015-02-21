@@ -7,19 +7,19 @@
   var childProcess = require('child_process');
   var EventEmitter = require('events').EventEmitter;
 
-  var utils = require('./node-server/support/utils');
+  var opts = global.opts || (global.opts = {});
+  opts.fxPath = path.join(module.filename, '../..');
+
+  //if required as a module, set the framework path and exit
+  if (!opts.cli) {
+    exports.startServer = startServer;
+    return;
+  }
+
+  var utils = require('drift-server/support/utils');
   var optimist = require('optimist');
 
   var RELAUNCH_MINIMUM_MS = 3000;
-
-  var opts = global.opts;
-  if (!opts) {
-    opts = global.opts = optimist
-      .usage('Usage: $0 serve -p [path]')
-      .alias('p', 'path')
-      .default('p', process.cwd())
-      .argv;
-  }
 
   //this is used to compute relative paths
   var basePath = opts.path;
@@ -29,7 +29,27 @@
   var lastChildLaunch;
 
   if (process.env.IS_CHILD) {
-    startServer();
+    var serverOpts = {
+      port: 8080,
+      address: '127.0.0.1',
+      autoIncrement: true
+    };
+    startServer(serverOpts, function() {
+      var listen = this.address();
+      var address = (listen.address === '127.0.0.1' || listen.address === '0.0.0.0') ? 'localhost' : listen.address;
+      var url = 'http://' + address + ':' + listen.port + '/';
+      console.log('Server running at ' + url);
+      console.log('Press Ctrl+L to launch in browser');
+      console.log('Press Ctrl+R to restart server');
+      var commandEmitter = new EventEmitter();
+      process.on('message', function(data) {
+        if (data == null || !data.command) return;
+        commandEmitter.emit(data.command, data.params);
+      });
+      commandEmitter.on('launch', function() {
+        utils.open(url);
+      });
+    });
     return;
   }
 
@@ -73,39 +93,33 @@
     lastChildLaunch = Date.now();
   }
 
-  function startServer() {
-    var commandEmitter = new EventEmitter();
-    process.on('message', function(data) {
-      if (data == null || !data.command) return;
-      commandEmitter.emit(data.command, data.params);
-    });
-    var SyncServer = require('./node-server');
+  function startServer(opts, callback) {
+    var SyncServer = require('drift-server');
 
-    var port = 8080;
+    var port = opts.port || 8080;
+    var address = opts.address || '127.0.0.1';
     var server = http.createServer();
 
     server.on('listening', function() {
-      var url = 'http://localhost:' + port + '/';
-      console.log('Server running at ' + url);
-      console.log('Press Ctrl+L to launch in browser');
-      console.log('Press Ctrl+R to restart server');
-      commandEmitter.on('launch', function() {
-        utils.open(url);
-      });
+      if (callback) callback.apply(this, arguments);
     });
 
     server.on('request', SyncServer.requestHandler);
 
-    server.on('error', function(e) {
-      if (e.code === 'EADDRINUSE') {
-        port++;
-        server.listen(port);
-      } else {
-        throw e;
-      }
-    });
+    if (opts.autoIncrement) {
+      server.on('error', function(e) {
+        if (e.code === 'EADDRINUSE') {
+          port++;
+          server.listen(port, address);
+        } else {
+          throw e;
+        }
+      });
+    }
 
-    server.listen(port);
+    server.listen(port, address);
+
+    return server;
   }
 
 })();

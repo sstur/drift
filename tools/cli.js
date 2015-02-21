@@ -21,6 +21,9 @@ var opts = optimist
 
 global.opts = opts;
 
+//note: hacky
+opts.cli = true;
+
 var directive = opts._[0];
 if (!(directive in DIRECTIVES)) {
   console.error('You must specify one of the following directives: ' + directiveList.join(', '));

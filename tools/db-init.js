@@ -1,5 +1,5 @@
-var db_reset = require('./devtools/db-reset');
-var db_populate = require('./devtools/db-populate');
+var db_reset = require('./db-init/db-reset');
+var db_populate = require('./db-init/db-populate');
 
 //todo: optimist
 var args = process.argv.slice(2);

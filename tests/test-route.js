@@ -6,8 +6,8 @@
 
   require('../app/system/core');
 
-  require('../tools/node-server/adapters/buffer');
-  require('../tools/node-server/adapters/inspector');
+  require('drift-server/adapters/buffer');
+  require('drift-server/adapters/inspector');
 
   require('../app/system/config/defaults');
   require('../app/config/config');
