@@ -54,7 +54,7 @@ app.cfg({
     'jpeg': 'image/jpeg',
     'jpg': 'image/jpeg',
     'js': 'application/javascript',
-    'json': 'application/javascript',
+    'json': 'application/json',
     'lnk': 'application/x-ms-shortcut',
     'log': 'text/plain',
     'm4a': 'audio/mp4',

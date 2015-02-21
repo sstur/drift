@@ -182,6 +182,9 @@ define('response', function(require, exports, module) {
       });
       var contentType = buildContentType(this.buffer.charset, res.headers('Content-Type'));
       res.headers('Content-Type', contentType);
+      if (res.headers('Cache-Control') == null) {
+        res.headers('Cache-Control', 'Private');
+      }
       if (app.cfg('logging/response_time') && this.req.__init) {
         var responseTime = Date.now() - this.req.__init.valueOf();
         res.headers('X-Response-Time', responseTime);

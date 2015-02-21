@@ -8,5 +8,6 @@
   },
   "repository": "",
   "author": "sstur",
-  "license": "BSD"
+  "license": "BSD",
+  "private": true
 }

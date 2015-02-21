@@ -20,14 +20,11 @@
   "scripts": {
     "test": "mocha test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@bitbucket.org:sstur/driftjs.git"
-  },
   "keywords": [
     "javascript",
     "fibers"
   ],
   "author": "sstur",
-  "license": "BSD-2-Clause"
+  "license": "BSD-2-Clause",
+  "private": true
 }

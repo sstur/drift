@@ -1,3 +1,4 @@
+bug: `drift assemble assets`
 Copy readConfig() from tools/node-server/package-config.js -> tools/build.js (allows fallback conf filenames)
 Load cli flags into app or adapter somehow (do same for special prefixed env?)
 Skip fiber onError patch if some flag is set (from a command-line flag?)
