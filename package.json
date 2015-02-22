@@ -1,6 +1,6 @@
 {
   "name": "drift",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Server-side JavaScript framework",
   "main": "tools/server.js",
   "directories": {
@@ -24,6 +24,10 @@
     "javascript",
     "fibers"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:sstur/drift.git"
+  },
   "author": "sstur",
   "license": "BSD-2-Clause"
 }
