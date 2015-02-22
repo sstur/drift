@@ -58,7 +58,7 @@ Provides a simple routing implementation, similar to ExpressJS or Sinatra, and w
 
 ## License (MIT)
 
-Copyright (C) 2013 Simon Sturmer.
+Copyright (C) 2015 Simon Sturmer.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction,
