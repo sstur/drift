@@ -15,7 +15,14 @@ app.cfg({
   mysql: {
     utc_dates: true,
     connections: {
-      'default': {server: 'mysql', database: 'test_js', username: 'test_js', password: 'p4uTAU9qla'}
+      'default': {
+        server: 'mysql',
+        database: 'test_js',
+        username: 'test_js',
+        //sensitive details like passwords can be kept in env-*.json which is
+        // excluded from git/npm but added to process.env at runtime
+        password: process.env.MYSQL_PASS
+      }
     }
   },
 
@@ -33,8 +40,8 @@ app.cfg({
   smtp: {
     host: 'smtp.sendgrid.net',
     port: '587',
-    user: 'rqkalv',
-    pass: 'pYcsSBsU8f'
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
   },
 
   //Template Engine

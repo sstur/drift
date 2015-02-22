@@ -3,10 +3,10 @@ Globals:
 
 Quirks:
   req.body('a') can return undefined
-  req.query('a') always returns string, like headers() and cookies()
+  req.query('a') always returns string, as does headers() and cookies()
   req.query, req.headers, req.cookies and req.body[form-field, multipart-field] will concatenate dups
-    multipart-file will emit dups but save first to req.body
-  unlike request, response.headers, cookies can return undefined
+    req.body[multipart-file] will emit dups but keep only first
+  unlike request, response.headers/cookies can return undefined
   You can specify model.insert({created_at: date}) and updated_at
     updated_at will default to created_at or present date
 

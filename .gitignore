@@ -1,4 +1,6 @@
+build/
 deploy/
 node_modules/
 _*
+env-*
 *.pid

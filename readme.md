@@ -1,74 +1,60 @@
 #Drift: Cross-platform Server JS
 
-This is a small framework for writing synchronous-style server-side JavaScript and deploying to any of several supported
-platforms. There is a dev-server written for Node and a build script that will produce files for the
-various platforms.
+This is a small framework for writing synchronous-style server-side JavaScript and deploying to any of several supported platforms. There is a dev-server written for Node and a build script that will produce files for the various platforms.
 
 Supported platforms:
 
  * Node (using Fibers)
  * Apache (using v8cgi)
  * IIS (native)
- * JVM/Google App Engine via DynJS/Nashorn (coming soon)
+ * JVM via DynJS/Nashorn (possible future)
 
-##Status: Incomplete
-At this stage, this is not much more than a proof-of-concept and is not production ready. After better test coverage
-is achieved and the various platform-specific adapters brought into agreement with each other, we can see how it
-performs in real-world apps.
+##Status: Alpha
+At this stage, this is not much more than a proof-of-concept. With better test coverage and better parity among the various platform-specific adapters, we can see how feasable it is for real-world apps.
 
 ##Goals
-The goal of Drift is not to compete with full-blown frameworks like Express or Rails, but to provide a minimal layer
-of request routing, view templating and data modelling with a normalized API for various JavaScript platforms.
+The goal of this project is not to compete with full-blown frameworks like Express or RoR, but to provide a minimal layer of request routing, view templating and data modelling with a normalized API for various JavaScript platforms.
 
-Because of the inconsistencies in platforms, we have to roll our own module loader and abstraction layers for
-request/response, filesystem, etc. We try to closely follow the way Node, CommonJS and other popular frameworks do
-things. This produces an intuitive API that should seem familiar.
+Because of the inconsistencies in platforms, we have created our own module loader and abstraction layers for request/response, filesystem, etc. None-the-less, we closely follow conventions from Node/CommonJS and other mainstream frameworks. This results in an intuitive API that will seem familiar to any full-stack JS developer.
 
-In some cases (e.g. Buffer) we mimic the Node module as close as possible, however with our filesystem module, we
-shoot for a slightly higher-level API.
+In some cases (e.g. Buffer) we mimic the Node module as closely as possible, however with the filesystem module, we opt for a higher-level API.
 
-JSON and ES5 methods are available across all supported platforms via simple polyfills. Basic eventing is provided
-similar to EventEmitter, and the define()/require() system of module loading is sort of a hybrid between Node, CommonJS
-and RequireJS.
+JSON and ES5 are available across all supported platforms via simple polyfills. Basic eventing is provided similar to EventEmitter, and the define()/require() system of module loading is sort of a hybrid between Node/CommonJS and AMD.
 
-Generally speaking, Drift tries to follow existing conventions where possible.
+Overall, this we follow existing conventions where it makes sense.
 
 ##Modules / Interface Abstractions
 So far Drift provides
 
- * Normalized Request/Response interfaces
+ * Normalized Request/Response interface
  * Relational Database Abstraction
  * Basic Object-Relational Models
- * Templating
- * Request Body parsing (supporting form, application/json, non-buffering multipart)
- * Buffer class (just like Node but cannot access individual bytes by subscript: buf[1])
+ * View Templating
+ * Request Body parsing (form-urlencoded, application/json, non-buffering multipart)
+ * Buffer class (just like Node except without subscript byte access)
  * Cookies and Session support
  * Sending files in a non-buffering way
  * HTTP client
  * Email client (SMTP)
  * Filesystem
- * Utilities like Logging, Hashing (crypto), Date formatting, etc
+ * Utils like Logging, Crypto, Date formatting, etc
 
 ##View Layer
 Jinja templates!
 
 ##Data Persistence
-Database interfaces are particularly hard to abstract in a truly agnostic way. SQLite and MySQL are the first
-adapters to be implemented. Plans for noSQL (Mongo/Couch) are in the works.
+Database interfaces are particularly hard to abstract in a truly agnostic way. SQLite and MySQL are the first adapters to be implemented. Plans for noSQL (Mongo/Couch) are in the works.
 
-ORM support is limited and supports CRUD and basic joins but not schema creation/migration. Data modeling can get
-tricky when we attempt to support relational and NoSQL with the same interface, so this has not materialized yet
-but is in the plans.
+ORM support is limited and supports CRUD and basic joins but not schema creation/migration. Data modeling can get tricky when we attempt to support relational and NoSQL with the same interface and we have not yet crossed that bridge.
 
 ##Controllers/Routing
-Drift provides a simple routing implementation, similar to ExpressJS or Sinatra, and we have basic "resourceful"
-controllers.
+Provides a simple routing implementation, similar to ExpressJS or Sinatra, and we have basic "resourceful" routing.
 
 ##Todo
 
  * Better Test Coverage
  * Modeling/ORM needs work
- * Provide a way to provide high-level modules (like Auth) that can be dropped in to easily build robust apps
+ * Provide a way to provide high-level modules (like Auth) that can be dropped in to apps
 
 ## License (MIT)
 

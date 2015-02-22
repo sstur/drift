@@ -1,0 +1,7 @@
+build/
+deploy/
+_*
++*
+.*
+env-*
+*.pid

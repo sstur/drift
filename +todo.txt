@@ -1,4 +1,8 @@
 bug: `drift assemble assets`
+submodules should export functions (no global.opts)
+rename `tools` -> `lib`
+all platforms should expose `process.env` (db details and such)
+adapters should use process.binding()
 Copy readConfig() from tools/node-server/package-config.js -> tools/build.js (allows fallback conf filenames)
 Load cli flags into app or adapter somehow (do same for special prefixed env?)
 Skip fiber onError patch if some flag is set (from a command-line flag?)
