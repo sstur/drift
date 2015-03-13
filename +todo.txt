@@ -1,3 +1,9 @@
+req._parseBody -> parseBody
+req.on('file', ...) allow file.saveTo() in listener
+file.toJSON should not include _events key
+
+if req.autoSaveDir doesn't exist, we catch the error as if it's a parse error and send 400
+
 bug: `drift assemble assets`
 submodules should export functions (no global.opts)
 rename `tools` -> `lib`

@@ -276,6 +276,7 @@ define('body-parser', function(require, exports, module) {
     if (this.type !== 'file') {
       throw new Error('part.saveTo() called on non-file');
     }
+    //todo: check if file has been finalized yet
     fs.moveFile(this.fullpath, path);
     this.fullpath = path;
   };
