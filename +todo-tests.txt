@@ -1,4 +1,12 @@
-request: body parsing tests need to allow req.body() to throw null (HTTP 4XX)
+request:
+  body parsing
+    tests need to allow req.body() to throw null (HTTP 4XX)
+    don't throw null, throw Constants.HTTP_403
+    allow body-parser to throw fs error if cannot save to file (dir not exists/writable)
+    allow file.saveTo before end is emitted
+    test all props available in file (binary and multipart); test file.saveTo
+
+
 
 Test:
   Models revive boolean fields from DB (which stores as int)

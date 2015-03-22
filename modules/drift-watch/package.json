@@ -1,0 +1,11 @@
+{
+  "name": "drift-watch",
+  "version": "0.0.0",
+  "main": "main.js",
+  "dependencies": {
+    "watchr": "^2.4.13"
+  },
+  "author": "sstur@me.com",
+  "license": "BSD",
+  "private": true
+}
