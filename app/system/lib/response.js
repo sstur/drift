@@ -77,6 +77,7 @@ define('response', function(require, exports, module) {
         if (status.match(RE_STATUS) && (status.slice(0, 3) in statusCodes)) {
           this.buffer.status = status;
         }
+        return this;
       }
       return this.buffer.status;
     },
