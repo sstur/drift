@@ -42,6 +42,9 @@
   //this is used in core.js
   global.platform = 'node';
 
+  //load polyfills
+  require(join(fxPath, 'app/system/support/es6-shim.js'));
+
   //load framework core (instantiates `app`)
   require(join(fxPath, 'app/system/core.js'));
 

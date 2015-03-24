@@ -42,19 +42,7 @@ define('util', function(require, util) {
     return inspector.inspect.apply(inspector, arguments);
   };
 
-  util.extend = function() {
-    var dest = arguments[0];
-    for (var i = 1, len = arguments.length; i < len; i++) {
-      var src = arguments[i];
-      if (!src) continue;
-      var keys = Object.keys(src);
-      for (var j = 0, l = keys.length; j < l; j++) {
-        var key = keys[j];
-        dest[key] = src[key];
-      }
-    }
-    return dest;
-  };
+  util.extend = Object.assign;
 
   //deep-copy an object, similar to calling JSON.parse(JSON.stringify(obj))
   // but preserves dates and undefined
