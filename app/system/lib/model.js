@@ -72,7 +72,7 @@ define('model', function(require, exports) {
     this.dbIdField = this._mapToDB(this.idField);
     this.autoIncrement = opts.autoIncrement;
     if (opts.classMethods) {
-      util.extend(this, opts.classMethods);
+      Object.assign(this, opts.classMethods);
     }
     //record instances are of class Record
     function Record(data) {
@@ -80,7 +80,7 @@ define('model', function(require, exports) {
     }
     util.inherits(Record, RecordBase);
     if (opts.instanceMethods) {
-      util.extend(Record.prototype, opts.instanceMethods);
+      Object.assign(Record.prototype, opts.instanceMethods);
     }
     Record.prototype._model = this;
     var getters = opts.getters;
@@ -95,7 +95,7 @@ define('model', function(require, exports) {
   }
   exports.Model = Model;
 
-  util.extend(Model.prototype, {
+  Object.assign(Model.prototype, {
     _mapToDB: function(field) {
       var map = this.fieldsToDb;
       return map && map[field] || field;
@@ -209,7 +209,7 @@ define('model', function(require, exports) {
   }
   exports.JoinedSet = JoinedSet;
 
-  util.extend(JoinedSet.prototype, {
+  Object.assign(JoinedSet.prototype, {
     addModel: function(model) {
       this.models.push(model);
     },
@@ -261,7 +261,7 @@ define('model', function(require, exports) {
   }
   exports.Field = Field;
 
-  util.extend(Field.prototype, {
+  Object.assign(Field.prototype, {
     toString: function() {
       return this.model.name + '.' + this.name;
     },
@@ -276,12 +276,12 @@ define('model', function(require, exports) {
    */
   function RecordBase(data) {
     if (this.normalize) this.normalize(data);
-    util.extend(this, data);
+    Object.assign(this, data);
     if (this.init) this.init();
   }
   exports.Record = RecordBase;
 
-  util.extend(RecordBase.prototype, {
+  Object.assign(RecordBase.prototype, {
     __super__: RecordBase.prototype,
     insert: function() {
       var model = this._model;
@@ -324,7 +324,7 @@ define('model', function(require, exports) {
         //remove id field
         delete data[model.idField];
         if (this.normalize) this.normalize(data);
-        util.extend(this, data);
+        Object.assign(this, data);
       } else {
         if (model.fields.updated_at && model.fields.updated_at.type == 'date') {
           this.updated_at = new Date();
@@ -379,7 +379,7 @@ define('model', function(require, exports) {
   }
   exports.QueryBuilder = QueryBuilder;
 
-  util.extend(QueryBuilder.prototype, {
+  Object.assign(QueryBuilder.prototype, {
     buildSelect: function(params, opts) {
       opts = opts || {};
       var self = this;

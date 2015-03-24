@@ -58,7 +58,7 @@ define('response', function(require, exports, module) {
     this.clear();
   }
 
-  util.extend(Response.prototype, {
+  Object.assign(Response.prototype, {
     clear: function(type, status) {
       //reset response buffer
       this.buffer = {
@@ -299,7 +299,7 @@ define('response', function(require, exports, module) {
     this.res = res;
   }
 
-  util.extend(ResponseWriteStream.prototype, {
+  Object.assign(ResponseWriteStream.prototype, {
     write: function(data) {
       if (!this.started) {
         this.res._writeHead();

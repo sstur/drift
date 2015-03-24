@@ -18,7 +18,7 @@ define('request', function(require, exports, module) {
 
   app.eventify(Request.prototype);
 
-  util.extend(Request.prototype, {
+  Object.assign(Request.prototype, {
     url: function(part) {
       var url = this._url || (this._url = parseURL(this._super.getURL()));
       if (part) {

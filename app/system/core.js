@@ -233,7 +233,7 @@ var app, define;
       //we use Object.create so we don't actually mutate the query params object
       var queryParams = Object.create(req.query());
       var routeParams = route.params;
-      route.params = util.extend(queryParams, routeParams);
+      route.params = Object.assign(queryParams, routeParams);
     });
     //todo: move to request lib?
     req.on('no-route', function(routeData) {

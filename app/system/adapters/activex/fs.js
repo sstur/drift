@@ -13,7 +13,6 @@
 define('fs', function(require, fs) {
   "use strict";
 
-  var util = require('util');
   var Buffer = require('buffer').Buffer;
   var pathLib = require('path');
 
@@ -38,7 +37,7 @@ define('fs', function(require, fs) {
       var fso = FSO.getFile(app.mappath(src));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(ENOENT(src)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
       throw new Error('Error opening file: ' + src + '\n' + e.message);
     }
@@ -49,7 +48,7 @@ define('fs', function(require, fs) {
       fso.copy(app.mappath(dest));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(ENOENT(dest)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(dest)), {code: 'ENOENT'});
       }
       throw new Error('Error copying file ' + src + ' to ' + dest + '\n' + e.message);
     }
@@ -60,7 +59,7 @@ define('fs', function(require, fs) {
       var fso = FSO.getFile(app.mappath(src));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(ENOENT(src)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
       throw new Error('Error opening file: ' + src + '\n' + e.message);
     }
@@ -71,7 +70,7 @@ define('fs', function(require, fs) {
       fso.move(app.mappath(dest));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(ENOENT(dest)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(dest)), {code: 'ENOENT'});
       }
       throw new Error('Error moving file ' + src + ' to ' + dest + '\n' + e.message);
     }
@@ -84,7 +83,7 @@ define('fs', function(require, fs) {
     } catch(e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
-        throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
       }
       throw new Error('Error deleting file: ' + path + '\n' + e.message);
     }
@@ -108,7 +107,7 @@ define('fs', function(require, fs) {
           opts.deep = false;
           return fs.createDir(path, opts);
         }
-        throw util.extend(new Error(ENOENT(parent)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(parent)), {code: 'ENOENT'});
       }
       //e.message == "File already exists"
       throw new Error('Error creating directory: ' + path + '\n' + e.message);
@@ -122,7 +121,7 @@ define('fs', function(require, fs) {
     } catch(e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
-        throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
       }
       throw new Error('Error removing directory: ' + path + '\n' + e.message);
     }
@@ -137,7 +136,7 @@ define('fs', function(require, fs) {
       var fso = FSO.getFolder(app.mappath(src));
     } catch(e) {
       if (isNotFound(e)) {
-        throw util.extend(new Error(ENOENT(src)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
       throw new Error('Error opening directory: ' + src + '\n' + e.message);
     }
@@ -145,7 +144,7 @@ define('fs', function(require, fs) {
       var children = getChildren(fso);
       if (children.length) {
         //note: fso will happily move a non-empty folder, but this is for consistency with other implementations
-        throw util.extend(new Error(ENOTEMPTY(src)), {code: 'ENOTEMPTY'});
+        throw Object.assign(new Error(ENOTEMPTY(src)), {code: 'ENOTEMPTY'});
       }
       fs.removeDir(dest);
     }
@@ -231,7 +230,7 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.message.match(/could not be opened/i)) {
-        throw util.extend(new Error(ENOENT(file)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(file)), {code: 'ENOENT'});
       }
       throw e;
     }
@@ -240,7 +239,7 @@ define('fs', function(require, fs) {
   }
   app.eventify(FileReadStream.prototype);
 
-  util.extend(FileReadStream.prototype, {
+  Object.assign(FileReadStream.prototype, {
     //unsafe for multibyte encodings; use TextReadStream
     setEncoding: function(enc) {
       this.opts.encoding = enc;
@@ -287,14 +286,14 @@ define('fs', function(require, fs) {
       stream.loadFromFile(app.mappath(file));
     } catch(e) {
       if (e.message.match(/could not be opened/i)) {
-        throw util.extend(new Error(ENOENT(file)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(file)), {code: 'ENOENT'});
       }
       throw e;
     }
   }
   app.eventify(TextReadStream.prototype);
 
-  util.extend(TextReadStream.prototype, {
+  Object.assign(TextReadStream.prototype, {
     setEncoding: function(enc) {
       this.opts.encoding = enc || 'utf8';
       this._stream.charset = parseEnc(this.opts.encoding);
@@ -332,7 +331,7 @@ define('fs', function(require, fs) {
     }
   }
 
-  util.extend(FileWriteStream.prototype, {
+  Object.assign(FileWriteStream.prototype, {
     setEncoding: function(enc) {
       this.opts.encoding = enc;
     },
@@ -356,7 +355,7 @@ define('fs', function(require, fs) {
     try {
       return FSO.getFile(path);
     } catch(e) {
-      throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
+      throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
     }
   }
 
@@ -368,7 +367,7 @@ define('fs', function(require, fs) {
       try {
         return FSO.getFolder(path);
       } catch(e2) {
-        throw util.extend(new Error(ENOENT(path)), {code: 'ENOENT'});
+        throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
       }
     }
   }

@@ -3,7 +3,6 @@ define('mock-response', function(require, exports, module) {
   "use strict";
 
   var fs = require('fs');
-  var util = require('util');
 
   function Response() {
     this.status = '';
@@ -11,7 +10,7 @@ define('mock-response', function(require, exports, module) {
     this.body = [];
   }
 
-  util.extend(Response.prototype, {
+  Object.assign(Response.prototype, {
     writeHead: function(statusCode, statusReason, headers) {
       var self = this;
       self.status = statusCode + ' ' + statusReason;

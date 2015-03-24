@@ -3,7 +3,6 @@ define('adapter-request', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');
-  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   var special = {
@@ -15,7 +14,7 @@ define('adapter-request', function(require, exports, module) {
     this._super = apache;
   }
 
-  util.extend(Request.prototype, {
+  Object.assign(Request.prototype, {
     _get: function(n) {
       var key = n.replace(/-/g, '_').toUpperCase();
       return system.env[key] || system.env['HTTP_' + key] || '';

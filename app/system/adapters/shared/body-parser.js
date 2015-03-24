@@ -67,7 +67,7 @@ define('body-parser', function(require, exports, module) {
       throw '413 Request Entity Too Large';
     }
     var body = this._read(MAX_BUFFER_SIZE, 'utf8') || '';
-    util.extend(this.parsed, qs.parse(body));
+    Object.assign(this.parsed, qs.parse(body));
   };
 
   BodyParser.prototype.processJSONBody = function() {
@@ -84,7 +84,7 @@ define('body-parser', function(require, exports, module) {
     if (parsed !== Object(parsed)) {
       parsed = {'': parsed};
     }
-    util.extend(this.parsed, parsed);
+    Object.assign(this.parsed, parsed);
   };
 
   BodyParser.prototype.processBinaryBody = function() {
@@ -196,7 +196,7 @@ define('body-parser', function(require, exports, module) {
     this.headers = (typeof head == 'string') ? util.parseHeaders(head) : head;
     this._chunks = [];
     parsed = parsed || parsePartHeaders(this.headers);
-    util.extend(this, parsed);
+    Object.assign(this, parsed);
     if ('fileName' in parsed) {
       this.type = 'file';
       this._initFile(parsed, opts);

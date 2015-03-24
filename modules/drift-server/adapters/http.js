@@ -6,7 +6,6 @@ adapter.define('http', function(require, exports) {
 
   var qs = require('qs');
   var url = require('url');
-  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   //url helpers
@@ -87,7 +86,7 @@ adapter.define('http', function(require, exports) {
       opts = {url: opts};
     }
     if (opts.url) {
-      util.extend(opts, parseUrl(opts.url));
+      Object.assign(opts, parseUrl(opts.url));
     }
     opts.method = 'GET';
     request(opts, callback);
@@ -95,7 +94,7 @@ adapter.define('http', function(require, exports) {
 
   exports.post_ = function(opts, callback) {
     if (opts.url) {
-      util.extend(opts, url.parse(opts.url));
+      Object.assign(opts, url.parse(opts.url));
     }
     opts.method = 'POST';
     opts.headers = opts.headers || {};

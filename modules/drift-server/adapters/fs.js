@@ -7,7 +7,6 @@ adapter.define('fs', function(require, fs) {
   "use strict";
 
   var path = require('path');
-  var util = require('util');
 
   var join = path.join;
   var basename = path.basename;
@@ -202,7 +201,7 @@ adapter.define('fs', function(require, fs) {
   fs.FileReadStream = FileReadStream;
   app.eventify(FileReadStream.prototype);
 
-  util.extend(FileReadStream.prototype, {
+  Object.assign(FileReadStream.prototype, {
     setEncoding: function(enc) {
       this.opts.encoding = enc;
     },
@@ -259,7 +258,7 @@ adapter.define('fs', function(require, fs) {
   }
   fs.FileWriteStream = FileWriteStream;
 
-  util.extend(FileWriteStream.prototype, {
+  Object.assign(FileWriteStream.prototype, {
     setEncoding: function(enc) {
       this.opts.encoding = enc;
     },

@@ -3,7 +3,6 @@ define('adapter-request', function(require, exports, module) {
   "use strict";
 
   var qs = require('qs');
-  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   var REG_URL = /^([^:\/]+:\/\/)?([^\/]*)(.*)$/;
@@ -13,7 +12,7 @@ define('adapter-request', function(require, exports, module) {
   }
   app.eventify(Request.prototype);
 
-  util.extend(Request.prototype, {
+  Object.assign(Request.prototype, {
     _get: function(n) {
       var key = n.replace(/-/g, '_').toUpperCase();
       var val = this._super.serverVariables(key).item() || this._super.serverVariables('HTTP_' + key).item();

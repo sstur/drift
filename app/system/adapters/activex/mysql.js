@@ -39,7 +39,7 @@ define('mysql', function(require, exports) {
     connections.push(this);
   }
 
-  util.extend(Connection.prototype, {
+  Object.assign(Connection.prototype, {
     open: function() {
       var conn = this._conn;
       if (conn.state === 0) {
@@ -115,7 +115,7 @@ define('mysql', function(require, exports) {
     this.opts = opts || {};
   }
 
-  util.extend(Query.prototype, {
+  Object.assign(Query.prototype, {
     getSQL: function() {
       return this.sql || (this.sql = buildSQL(this.str, this.params));
     },

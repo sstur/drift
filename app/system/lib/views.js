@@ -3,7 +3,6 @@
 define('views', function(require, exports, module) {
   "use strict";
   var fs = require('fs');
-  var util = require('util');
 
   var tmplEngineName = app.cfg('template/engine') || 'tmpl';
   try {
@@ -19,7 +18,7 @@ define('views', function(require, exports, module) {
   var filters = tmplEngine.filters || (tmplEngine.filters = {});
   var views = tmplEngine.source || (tmplEngine.source = {});
   var compiledViews = tmplEngine.compiled || (tmplEngine.compiled = {});
-  util.extend(compiledViews, global.compiledViews || {});
+  Object.assign(compiledViews, global.compiledViews || {});
 
   tmplEngine.readTemplateFile = getTemplateText;
   var canCompile = (typeof tmplEngine.compile == 'function');

@@ -5,13 +5,12 @@ app.define('adapter-response', function(require, exports, module) {
   "use strict";
 
   var fs = require('fs');
-  var util = require('util');
 
   function Response(httpRes) {
     this._super = httpRes;
   }
 
-  util.extend(Response.prototype, {
+  Object.assign(Response.prototype, {
     writeHead: function(statusCode, statusReason, headers) {
       this._super.writeHead(statusCode, statusReason || '', headers);
     },

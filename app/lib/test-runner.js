@@ -14,7 +14,7 @@ define('test-runner', function(require, exports, module) {
       return new TestSuite(cfg);
     }
     //loadOption will mutate cfg, so we first shallow clone it
-    cfg = util.extend({}, cfg);
+    cfg = Object.assign({}, cfg);
     this.loadOption(cfg, 'name', 'unnamed');
     this.loadOption(cfg, 'description', this.name);
     this.loadOption(cfg, 'setup', noop);
@@ -25,7 +25,7 @@ define('test-runner', function(require, exports, module) {
     this.testCases = cfg;
   }
 
-  util.extend(TestSuite.prototype, {
+  Object.assign(TestSuite.prototype, {
     loadOption: function(opts, name, defaultValue) {
       this[name] = (name in opts) ? opts[name] : defaultValue;
       delete opts[name];
@@ -43,7 +43,7 @@ define('test-runner', function(require, exports, module) {
     this.output = [];
   }
 
-  util.extend(TestRunner.prototype, {
+  Object.assign(TestRunner.prototype, {
     addSuite: function(suite) {
       var suites = this.suites;
       var array = Array.isArray(suite) ? suite : [suite];

@@ -2,7 +2,6 @@
 /*jshint -W040 */
 app.on('init', function(require) {
   "use strict";
-  var util = require('util');
 
   var controllers = app.controllers = {};
 
@@ -23,14 +22,14 @@ app.on('init', function(require) {
     routeMap['POST:' + path + '/:id'] = '$update';
     routeMap['POST:' + path + '/:id/delete'] = '$destroy';
 
-    util.extend(routeMap, config.routeMap);
+    Object.assign(routeMap, config.routeMap);
 
     function Controller(req, res, params) {
       this.request = req;
       this.response = res;
       this.params = params;
     }
-    util.extend(Controller.prototype, config);
+    Object.assign(Controller.prototype, config);
 
     controllers[name] = Controller;
 

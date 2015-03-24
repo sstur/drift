@@ -125,7 +125,7 @@ adapter.define('body-parser', function(require, exports, module) {
         self.emit('error', err);
         return;
       }
-      util.extend(self.parsed, qs.parse(body));
+      Object.assign(self.parsed, qs.parse(body));
       self.emit('end');
     });
   };
@@ -146,7 +146,7 @@ adapter.define('body-parser', function(require, exports, module) {
       if (parsed !== Object(parsed)) {
         parsed = {'': parsed};
       }
-      util.extend(self.parsed, parsed);
+      Object.assign(self.parsed, parsed);
       self.emit('end');
     });
 

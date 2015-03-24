@@ -25,7 +25,7 @@ adapter.define('mysql', function(require, exports) {
     this.config = config;
   }
 
-  util.extend(Connection.prototype, {
+  Object.assign(Connection.prototype, {
     _getPooledConnection: function() {
       var name = this.name;
       return connectionPools[name] || (connectionPools[name] = this._createPool());
@@ -100,7 +100,7 @@ adapter.define('mysql', function(require, exports) {
     this.opts = opts || {};
   }
 
-  util.extend(Query.prototype, {
+  Object.assign(Query.prototype, {
     //todo: split this into normalize and build; use driver for build step
     getSQL: function() {
       return this.sql || (this.sql = buildSQL(this.str, this.params));

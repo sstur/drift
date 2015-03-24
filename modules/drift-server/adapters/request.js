@@ -2,7 +2,6 @@
 app.define('adapter-request', function(require, exports, module) {
   "use strict";
 
-  var util = require('util');
   var BodyParser = require('body-parser');
 
   function Request(req) {
@@ -13,7 +12,7 @@ app.define('adapter-request', function(require, exports, module) {
   }
   app.eventify(Request.prototype);
 
-  util.extend(Request.prototype, {
+  Object.assign(Request.prototype, {
     getMethod: function() {
       return this._super.method;
     },

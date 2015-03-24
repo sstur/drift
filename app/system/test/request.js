@@ -3,7 +3,6 @@ define('mock-request', function(require, exports, module) {
   "use strict";
   var fs = require('fs');
   var qs = require('qs');
-  var util = require('util');
   var BodyParser = require('body-parser');
 
   var dataPath = app.cfg('data_dir') || 'data/';
@@ -30,7 +29,7 @@ define('mock-request', function(require, exports, module) {
   }
   app.eventify(Request.prototype);
 
-  util.extend(Request.prototype, {
+  Object.assign(Request.prototype, {
     getMethod: function() {
       return this._data.method;
     },

@@ -2,14 +2,13 @@
 define('adapter-response', function(require, exports, module) {
   "use strict";
 
-  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   function Response() {
     this._super = apache;
   }
 
-  util.extend(Response.prototype, {
+  Object.assign(Response.prototype, {
     writeHead: function(statusCode, statusReason, headers) {
       var _super = this._super;
       _super.header('Status', statusCode + ' ' + statusReason);

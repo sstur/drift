@@ -4,7 +4,6 @@ define('http', function(require, exports) {
 
   var qs = require('qs');
   var url = require('url');
-  var util = require('util');
   var Buffer = require('buffer').Buffer;
 
   //url helpers
@@ -26,7 +25,7 @@ define('http', function(require, exports) {
 
   function ClientRequest(opts) {
     var self = this;
-    util.extend(self, opts);
+    Object.assign(self, opts);
     self.headers = {};
     var headers = opts.headers || {};
     Object.keys(headers).forEach(function(name) {
@@ -100,7 +99,7 @@ define('http', function(require, exports) {
       this.method = 'GET';
     }
     var newUrl = resolveUrl(this.getFullUrl(), loc);
-    util.extend(this, parseUrl(newUrl));
+    Object.assign(this, parseUrl(newUrl));
     return this.send();
   };
 
@@ -161,7 +160,7 @@ define('http', function(require, exports) {
       opts = {url: opts};
     }
     if (opts.url) {
-      util.extend(opts, parseUrl(opts.url));
+      Object.assign(opts, parseUrl(opts.url));
     }
     opts.method = 'GET';
     return exports.request(opts);
@@ -169,7 +168,7 @@ define('http', function(require, exports) {
 
   exports.post = function(opts) {
     if (opts.url) {
-      util.extend(opts, parseUrl(opts.url));
+      Object.assign(opts, parseUrl(opts.url));
     }
     opts.method = 'POST';
     opts.headers = opts.headers || {};

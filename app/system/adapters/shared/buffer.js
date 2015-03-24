@@ -3,7 +3,6 @@
 define('buffer', function(require, exports) {
   "use strict";
 
-  var util = require('util');
   var C_Buffer = (typeof _require != 'undefined') && _require('binary').Buffer;
 
   var SHOW_MAX = 51;
@@ -83,7 +82,7 @@ define('buffer', function(require, exports) {
     return new Buffer(string, encoding).length;
   };
 
-  util.extend(Buffer.prototype, {
+  Object.assign(Buffer.prototype, {
     get: function(index) {
       return this._raw.charCodeAt(index);
     },
