@@ -274,6 +274,19 @@ adapter.define('body-parser', function(require, exports, module) {
     return (typeof this.fileName === 'string') ? this.fileName : '';
   };
 
+  File.prototype.toJSON = function() {
+    return {
+      guid: this.guid,
+      name: this.name,
+      fileName: this.fileName,
+      contentType: this.contentType,
+      size: this.size,
+      md5: this.md5,
+      hash: this.hash,
+      fullpath: this.fullpath
+    };
+  };
+
   File.prototype.saveTo = function(path) {
     fs.moveFile(this.fullpath, path);
     this.fullpath = path;

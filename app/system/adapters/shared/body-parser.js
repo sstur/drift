@@ -232,6 +232,26 @@ define('body-parser', function(require, exports, module) {
     return (('value' in this) ? this.value : this.fileName) || '';
   };
 
+  Part.prototype.toJSON = function() {
+    if (this.type === 'file') {
+      return {
+        guid: this.guid,
+        name: this.name,
+        fileName: this.fileName,
+        contentType: this.contentType,
+        size: this.size,
+        md5: this.md5,
+        hash: this.hash,
+        fullpath: this.fullpath
+      };
+    } else {
+      return {
+        name: this.name,
+        value: this.value
+      };
+    }
+  };
+
   //to make Part a valid ReadStream
   Part.prototype.setEncoding = function(enc) {
     //output encoding
@@ -274,7 +294,7 @@ define('body-parser', function(require, exports, module) {
 
   Part.prototype.saveTo = function(path) {
     if (this.type !== 'file') {
-      throw new Error('part.saveTo() called on non-file');
+      throw new Error('saveTo() called on non-file');
     }
     //todo: check if file has been finalized yet
     fs.moveFile(this.fullpath, path);
