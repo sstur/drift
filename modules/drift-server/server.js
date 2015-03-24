@@ -2,7 +2,12 @@
 (function() {
   "use strict";
   var fs = require('fs');
-  var join = require('path').join;
+  var path = require('path');
+  var hook = require('node-hook');
+  var utils = require('drift-utils');
+
+  var join = path.join;
+  var dirname = path.dirname;
 
   //framework files beginning with these chars are excluded
   var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
@@ -27,6 +32,11 @@
   //patch some built-in methods
   require('./support/patch');
 
+  //patch `require()` to handle some opt-in source transforms (based on docblock @directives)
+  hook.hook('.js', function(source, filename) {
+    return utils.transformSourceFile(source, filename, {pkgConfig: pkgConfig});
+  });
+
   var Fiber = require('./lib/fiber');
 
   //this is used in core.js
@@ -36,12 +46,6 @@
   require(join(fxPath, 'app/system/core.js'));
 
   app.mappath = join.bind(null, basePath);
-  app.transformConfig = function(path, value) {
-    if (typeof value !== 'string') return value;
-    return value.replace(/\{\{package:(.*?)\}\}/g, function(str, key) {
-      return (pkgConfig[key] == null) ? '' : pkgConfig[key];
-    });
-  };
 
   //set config from CLI options
   Object.keys(opts).forEach(function(key) {
@@ -81,7 +85,7 @@
   loadPathSync('app/config');
   //load node adapter modules
   //todo: use serverPath
-  loadPathSync('node_modules/drift-server/adapters');
+  loadPathSync('modules/drift-server/adapters');
 
   //load framework modules
   loadPathSync('app/system/init');
@@ -137,10 +141,11 @@
 
 
   //helper for loading framework files
-  function loadPathSync(dir, callback) {
+  function loadPathSync(dir) {
     //note: kinda hacky
-    var isSystem = (dir.indexOf('app/system/') === 0 || dir.indexOf('node_modules/') === 0);
-    var path = isSystem ? join(fxPath, dir) : join(basePath, dir);
+    var isSystem = (dir.indexOf('app/system/') === 0 || dir.indexOf('modules/') === 0);
+    var srcPath = isSystem ? fxPath : basePath;
+    var path = join(srcPath, dir);
     try {
       var files = fs.readdirSync(path);
     } catch(e) {
@@ -156,10 +161,7 @@
       } else
       if (stat.isFile() && file.match(/\.js$/i)) {
         console.log('load file', join(dir, file));
-        var module = require(fullpath);
-        if (callback) {
-          callback(file, module);
-        }
+        require(join(srcPath, dir, file));
       }
     });
   }

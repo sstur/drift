@@ -13,6 +13,7 @@
     "assembler": "~0.1.3",
     "db-migrate": "~0.4.2",
     "drift-server": "file:modules/drift-server",
+    "drift-utils": "file:modules/drift-utils",
     "optimist": "^0.6.1",
     "shelljs": "~0.2.6"
   },

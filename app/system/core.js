@@ -193,9 +193,6 @@ var app, define;
       var key = path[i];
       obj = obj[key] || (obj[key] = {});
     }
-    if (app.transformConfig) {
-      value = app.transformConfig(path.join(), value);
-    }
     obj[path[i]] = value;
   }
 

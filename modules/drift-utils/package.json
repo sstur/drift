@@ -1,0 +1,10 @@
+{
+  "name": "drift-utils",
+  "version": "0.0.0",
+  "main": "utils.js",
+  "author": "sstur@me.com",
+  "license": "BSD",
+  "dependencies": {
+    "react-tools": "^0.13.1"
+  }
+}
