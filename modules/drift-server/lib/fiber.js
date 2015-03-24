@@ -3,7 +3,7 @@
   "use strict";
 
   var Fiber = require('fibers');
-  var _slice = Array.prototype.slice;
+  var slice = Array.prototype.slice;
 
   //patch fiber.run() to send errors to fiber.onError()
   //todo: skip this if some flag is set on app/adapter (from a command-line flag)
@@ -37,7 +37,7 @@
   Fiber.fiberize = function(fn, obj /* arguments */) {
     var dynamicBinding = (arguments.length === 1);
     var arity = fn.length;
-    var bindArgs = _slice.call(arguments, 2);
+    var bindArgs = slice.call(arguments, 2);
 
     return function() {
       var fiber = Fiber.current;
@@ -45,7 +45,7 @@
       var result;
       var yielded = false;
 
-      var args = _slice.call(arguments);
+      var args = slice.call(arguments);
       args = bindArgs.concat(args);
 
       // virtual callback
@@ -59,7 +59,7 @@
         } else {
           // Handle situation when callback returns many values
           if (arguments.length > 2) {
-            callbackResult = _slice.call(arguments, 1);
+            callbackResult = slice.call(arguments, 1);
           }
 
           // Assign callback result

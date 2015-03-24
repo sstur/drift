@@ -2,7 +2,6 @@
 define('util', function(require, util) {
   "use strict";
 
-  var slice = Array.prototype.slice;
   var toString = Object.prototype.toString;
 
   var dataPath = app.cfg('data_dir') || 'data/';
@@ -83,7 +82,7 @@ define('util', function(require, util) {
     events = (Array.isArray(events)) ? events : String(events).split(' ');
     events.forEach(function(event) {
       src.on(event, function() {
-        dest.emit.apply(dest, [event].concat(slice.call(arguments)));
+        dest.emit.apply(dest, [event].concat(Array.from(arguments)));
       });
     });
   };

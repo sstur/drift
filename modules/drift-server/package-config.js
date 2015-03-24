@@ -2,7 +2,7 @@
 (function() {
   var fs = require('fs');
   var join = require('path').join;
-  var _slice = Array.prototype.slice;
+  var slice = Array.prototype.slice;
 
   //the parsed cli arguments from optimist
   var opts = global.opts || {};
@@ -11,7 +11,7 @@
 
   //read one or more config files (if exists) in `path` and aggregate their properties
   function readConfig() {
-    var files = _slice.call(arguments);
+    var files = slice.call(arguments);
     var results = {};
     files.forEach(function(file) {
       try {

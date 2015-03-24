@@ -7,14 +7,12 @@ define('path', function(require, exports) {
   var RE_DOTDOTSLASH = /[^\/]+\/\.\.\//g;
   var RE_TRAILING_SLASHES = /\/+$/;
 
-  var slice = Array.prototype.slice;
-
   /*
    * Join one or more paths using forward-slash
    * path.join('assets/', 'scripts', 'file.js')
    */
   exports.join = function() {
-    var a = [], args = slice.call(arguments);
+    var a = [], args = Array.from(arguments);
     args.forEach(function(s, i) {
       if (s) a.push(s);
     });

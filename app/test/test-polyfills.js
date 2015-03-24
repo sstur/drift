@@ -219,7 +219,7 @@ app.on('ready', function(require) {
       it('binds properly without a context, and still supplies bound arguments', function() {
         var a, context;
         testSubject.func = function() {
-          a = Array.prototype.slice.call(arguments);
+          a = Array.from(arguments);
           context = this;
         }.bind(undef, 1,2,3);
         testSubject.func(1,2,3);
@@ -250,7 +250,7 @@ app.on('ready', function(require) {
         var context;
         testSubject.func = function() {
           context = this;
-          return Array.prototype.slice.call(arguments);
+          return Array.from(arguments);
         }.bind(undef, 1,2,3);
         actual = testSubject.func(1,2,3);
         expect(context).to.be(function() {return this;}.call());

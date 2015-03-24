@@ -120,7 +120,7 @@ define('expect', function(require, exports, module) {
   Assertion.prototype.withArgs = function() {
     expect(this.obj).to.be.a('function');
     var fn = this.obj;
-    var args = Array.prototype.slice.call(arguments);
+    var args = Array.from(arguments);
     return expect(function() {
       fn.apply(null, args);
     });
@@ -485,7 +485,7 @@ define('expect', function(require, exports, module) {
     var str;
   var ok = true;
 
-    $keys = isArray($keys) ? $keys : Array.prototype.slice.call(arguments);
+    $keys = isArray($keys) ? $keys : Array.from(arguments);
 
     if (!$keys.length) throw new Error('keys required');
 

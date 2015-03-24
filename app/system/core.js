@@ -146,7 +146,7 @@ var app, define;
    */
   var config = app._cfg = {};
   app.cfg = function() {
-    var args = slice.call(arguments);
+    var args = Array.from(arguments);
     if (args.length === 1 && typeof args[0] === 'string') {
       //get config
       return getCfg(args[0].split('/'));

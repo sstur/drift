@@ -51,7 +51,7 @@ define('mysql', function(require, exports) {
       }
     },
     query: function(str /*, [params], [opts], [func] */) {
-      var args = Array.prototype.slice.call(arguments);
+      var args = Array.from(arguments);
       if (typeof args[args.length - 1] == 'function') {
         var func = args.pop();
       }
