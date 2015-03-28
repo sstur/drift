@@ -18,7 +18,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "mocha test",
-    "install": "pushd node_modules && ln -s ../modules/drift-server && pushd drift-server && npm install && popd && ln -s ../modules/drift-utils && pushd drift-utils && npm install && popd && popd"
+    "install": "cd node_modules && ln -s ../modules/drift-server && cd drift-server && npm install && cd .. && ln -s ../modules/drift-utils && cd drift-utils && npm install && cd ../.."
   },
   "_dependencies": {
     "drift-server": "file:modules/drift-server",
