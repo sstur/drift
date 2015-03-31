@@ -88,7 +88,7 @@
   loadPathSync('app/config');
   //load node adapter modules
   //todo: use serverPath
-  loadPathSync('modules/drift-server/adapters');
+  loadPathSync('node_modules/drift-server/adapters');
 
   //load framework modules
   loadPathSync('app/system/init');
