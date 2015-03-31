@@ -1,3 +1,5 @@
+replace require('../modules/drift-server/support/utils') with require('drift-server').utils
+
 req._parseBody -> parseBody
 req.on('file', ...) allow file.saveTo() in listener
 file.toJSON should not include _events key
