@@ -1,6 +1,6 @@
 {
   "name": "drift",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Cross-platform Server JS",
   "main": "lib/server.js",
   "directories": {
@@ -21,7 +21,7 @@
   "scripts": {
     "test": "mocha test"
   },
-  "engines" : {
+  "engines": {
     "node": "0.12.x",
     "npm": "2.5.x"
   },
