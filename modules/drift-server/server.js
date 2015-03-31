@@ -88,7 +88,7 @@
   loadPathSync('app/config');
   //load node adapter modules
   //todo: use serverPath
-  loadPathSync('modules/drift-server/adapters');
+  loadPathSync('node_modules/drift-server/adapters');
 
   //load framework modules
   loadPathSync('app/system/init');
@@ -146,7 +146,7 @@
   //helper for loading framework files
   function loadPathSync(dir) {
     //note: kinda hacky
-    var isSystem = (dir.indexOf('app/system/') === 0 || dir.indexOf('modules/') === 0);
+    var isSystem = (dir.indexOf('app/system/') === 0 || dir.indexOf('node_modules/') === 0);
     var srcPath = isSystem ? fxPath : basePath;
     var path = join(srcPath, dir);
     try {
