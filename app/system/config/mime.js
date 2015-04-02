@@ -110,6 +110,7 @@ app.cfg({
     'wma': 'audio/x-ms-wma',
     'wmv': 'video/x-ms-wmv',
     'woff': 'application/font-woff',
+    'woff2': 'application/font-woff2',
     'wpd': 'application/vnd.wordperfect',
     'wps': 'application/vnd.ms-works',
     'xlam': 'application/vnd.ms-excel.addin.macroenabled.12',
