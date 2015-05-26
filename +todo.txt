@@ -1,3 +1,5 @@
+Bug: req.body(x) is case sensitive for node/json-parser
+fs.readTextFile() should alias fs.readFile(path, 'utf8')
 replace require('../modules/drift-server/support/utils') with require('drift-server').utils
 
 req._parseBody -> parseBody
