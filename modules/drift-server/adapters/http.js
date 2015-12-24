@@ -39,20 +39,20 @@ adapter.define('http', function(require, exports) {
     }
     opts.headers = headers;
 
-    //default content type
-    if (opts.method in BODY_ALLOWED && !headers['Content-Type']) {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    }
-    //opts.data as alias for opts.body
-    opts.body = opts.body || opts.data;
-    switch (typeof opts.body) {
-      case 'string':
-        break;
-      case 'object':
-        opts.body = qs.stringify(opts.body);
-        break;
-      default:
-        opts.body = '';
+    //set length and default content type
+    if (opts.method in BODY_ALLOWED) {
+      //opts.data as alias for opts.body
+      opts.body = opts.body || opts.data;
+      //url encode if body is a plain object
+      if (!Buffer.isBuffer(opts.body) && typeof opts.body !== 'string') {
+        opts.body = qs.stringify(opts.body || {});
+      }
+      if (!headers['Content-Type']) {
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      }
+      if (!headers['Content-Length']) {
+        headers['Content-Length'] = String(opts.body.length);
+      }
     }
 
     var http = (opts.protocol == 'https:') ? _https : _http;
@@ -97,14 +97,6 @@ adapter.define('http', function(require, exports) {
       Object.assign(opts, url.parse(opts.url));
     }
     opts.method = 'POST';
-    opts.headers = opts.headers || {};
-
-    if (!Buffer.isBuffer(opts.body) && typeof opts.body != 'string') {
-      opts.body = qs.stringify(opts.body || {});
-      opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    }
-    opts.headers['Content-Length'] = opts.body.length;
-
     request(opts, callback);
   };
 
