@@ -1,8 +1,7 @@
 var fs = require('fs');
 var path = require('path');
-var reactTools = require('react-tools');
+var babel = require('babel-core');
 
-var join = path.join;
 var dirname = path.dirname;
 
 var REG_NL = /\r\n|\r|\n/g;
@@ -10,7 +9,7 @@ var REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
 
 var utils = {
 
-  transformSourceFile: function(source, filename, options) {
+  transformSourceFile: function(source, filename, options, outputOptions) {
     if (~filename.indexOf('/node_modules/')) {
       return source;
     }
@@ -19,6 +18,9 @@ var utils = {
     //wrap commonJS-style modules
     if (directives.providesModule) {
       source = wrapModule(directives.providesModule, source);
+    }
+    if (directives.es6 && outputOptions != null) {
+      outputOptions.includeES6Polyfills = true;
     }
     //transform JSX and ES6
     if (directives.jsx || directives.es6) {
@@ -41,7 +43,16 @@ var utils = {
   },
 
   transformES6: function(source) {
-    return reactTools.transform(source, {harmony: true});
+    var result = babel.transform(source, {
+      retainLines: true,
+      presets: [
+        require.resolve('babel-preset-es2015'),
+        require.resolve('babel-preset-stage-2'),
+        require.resolve('babel-preset-react')
+      ]
+    });
+    //var {code, map, ast} = result;
+    return result.code;
   }
 
 };

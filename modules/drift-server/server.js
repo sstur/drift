@@ -7,7 +7,6 @@
   var utils = require('../drift-utils/utils');
 
   var join = path.join;
-  var dirname = path.dirname;
 
   //framework files beginning with these chars are excluded
   var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
@@ -43,7 +42,7 @@
   global.platform = 'node';
 
   //load polyfills
-  require(join(fxPath, 'app/system/support/es6-shim.js'));
+  require('babel-polyfill');
 
   //load framework core (instantiates `app`)
   require(join(fxPath, 'app/system/core.js'));

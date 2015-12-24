@@ -1,22 +1,23 @@
-/*global app, define */
-app.on('ready', function(require) {
+/** @es6 */
+/*global app */
+app.on('ready', (require) => {
   "use strict";
 
   var util = require('util');
 
-  app.route('/', function(req, res) {
+  app.route('/', (req, res) => {
     res.end('Hello World');
   });
 
-  app.route('/favicon.ico', function(req, res) {
+  app.route('/favicon.ico', (req, res) => {
     res.sendFile('assets/favicon.ico');
   });
 
-  app.route('/version', function(req, res) {
+  app.route('/version', (req, res) => {
     res.end('Application version: ' + app.cfg('version'));
   });
 
-  //app.route('/test-get-redir', function(req, res) {
+  //app.route('/test-get-redir', (req, res) => {
   //  var http = require('http'), host = req.headers('host');
   //  var response = http.get({
   //    url: 'http://' + host + '/redir',
@@ -29,7 +30,7 @@ app.on('ready', function(require) {
   //  res.end();
   //});
 
-  //app.route('/test-get', function(req, res) {
+  //app.route('/test-get', (req, res) => {
   //  var http = require('http'), host = req.headers('host');
   //  var response = http.get({
   //    url: 'http://' + host + '/dump',
