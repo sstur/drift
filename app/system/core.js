@@ -57,6 +57,13 @@ var app, define;
   };
 
   require.resolve = function(namespace, name) {
+    // for shared modules that use browserify on client
+    if (
+      !namespace &&
+      (name.slice(0, 2) === './' || name.slice(0, 3) === '../')
+    ) {
+      name = name.split('/').pop();
+    }
     if (namespace && name.slice(0, namespace.length + 1) === namespace + '/') {
       //if name starts with namespace, assume explicit path
       namespace = '';
