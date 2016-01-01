@@ -1,5 +1,4 @@
 /* @flow */
-/*eslint-disable no-unused-vars */
 
 type AnyMap = {[key: string]: any};
 type StringMap = {[key: string]: string};
@@ -8,12 +7,10 @@ type StringMapArr = {[key: string]: string | Array<string>};
 type RouteHandler = (...args: Array<any>) => void;
 type GenericIterator = () => any;
 
-type EventEmitter = {
+type ReadStream = {
   on: () => void;
   emit: () => void;
 };
-
-type ReadStream = EventEmitter;
 
 type WriteStream = {
   write: (data: any) => void;
@@ -21,14 +18,49 @@ type WriteStream = {
 };
 
 type CryptoHash = {
-  write: (data: string | Buffer, enc: ?string) => CryptoHash;
-  digest: (enc: ?string) => string | Buffer;
+  write:
+    ((data: string, enc: ?string) => CryptoHash) &
+    ((data: Buffer) => CryptoHash);
+  digest: ((enc: string) => string) & (() => Buffer);
+};
+
+type ImageDetails = {
+  size: number;
+  type: 'bmp' | 'gif' | 'jpg' | 'png' | 'tif';
+  mimeType: string;
+  fileExt: string; // ex: '.jpg'
+  width: ?number;
+  height: ?number;
+  md5: ?string;
+};
+
+type ImageDimensions = {
+  width: number;
+  height: number;
+};
+
+type ImageDimensionsMax = {
+  maxWidth: number;
+  maxHeight: number;
+};
+
+type ImageCropSpec = [number, number, number, number];
+
+type ImageSizeSpec = {
+  width: number;
+  height: number;
+  crop: ?ImageCropSpec;
+  finalWidth: number;
+  finalHeight: number;
 };
 
 type App = {
   define: () => void;
   require: () => void;
   platforms: {[key: string]: number};
+  mappath: (path: string) => string;
+  debug: (...args: Array<any>) => void;
+  data: ((n: string, val: any) => void) & ((n: string) => string);
   eventify: (obj: Object) => Object;
   route:
     ((route: string | RegExp, handler: RouteHandler, opts: ?AnyMap) => void) &
@@ -77,13 +109,43 @@ type Controller = {
   params: AnyMap;
 };
 
+type FSFileInfo = {
+  name: string;
+  dateCreated: Date;
+  dateLastAccessed: Date;
+  dateLastModified: Date;
+  type: 'directory' | 'file';
+  size: number;
+  children: ?Array<FSFileInfo>;
+};
+type FSWriteFileOptions = {
+  append: ?boolean;
+  overwrite: ?boolean;
+  encoding: ?string;
+};
+type FSReadFileOptions = {
+  encoding: ?string;
+  chunkSize: ?number;
+};
+type FSWalkIterator = (info: FSFileInfo, prefix: string) => any;
+
 declare var app: App;
-declare var forEach: (obj: AnyMap, fn: GenericIterator, context: ?Object) => void;
+declare var forEach: (
+  obj: AnyMap,
+  fn: GenericIterator,
+  context: ?Object
+) => void;
 declare var vartype: (obj: any, list: string | Array<string>) => string;
 declare var isPrimitive: (obj: any) => boolean;
-declare var toArray: (obj: any) => Array<any>;
+declare var toArray: (arrayLike: any) => Array<any>;
 
-declare class ServerRequest {
+declare class SimpleEventEmitter {
+  on: () => void;
+  emit: () => void;
+}
+
+declare class ServerRequest extends SimpleEventEmitter {
+  constructor(rawRequest: Object): ServerRequest;
   url: (part: ?string) => string;
   method: (s: ?string) => string;
   getRemoteIP: () => string;
@@ -93,11 +155,10 @@ declare class ServerRequest {
   body: (() => AnyMap) & ((n: string) => ?any);
   isUpload: (item: any) => boolean;
   isAjax: () => boolean;
-  on: () => void;
-  emit: () => void;
 }
 
 declare class ServerResponse {
+  constructor(rawResponse: Object): ServerResponse;
   clear: (type: string, status: string) => void;
   status: (() => string) & ((status: string) => void);
   charset: (charset: ?string) => string;
@@ -123,18 +184,62 @@ declare class ServerResponse {
 }
 
 declare class ClientRequest {
-
+  constructor(opts: AnyMap): ClientRequest;
+  addHeader: (n: string, val: string) => void;
+  getFullUrl: () => string;
+  generateHost: () => string;
+  send: () => ClientResponse;
 }
 
 declare class ClientResponse {
+  constructor(rawResponse: Object): ClientResponse;
+  statusCode: number;
+  statusReason: string;
+  status: string;
+  headers: StringMap;
+  body: Buffer;
+  getHeader: (name: string) => ?string;
+  getHeaders: () => StringMap;
+}
 
+declare class FSFileReadStream extends SimpleEventEmitter {
+  constructor(file: string, opts: ?FSReadFileOptions): FSFileReadStream;
+  setEncoding: (enc: string) => void;
+  readBytes: (bytes: number) => string | Buffer;
+  readAll: () => string | Buffer;
+  size: () => number;
+  read: () => void;
+}
+
+declare class FSTextReadStream extends SimpleEventEmitter {
+  constructor(file: string, opts: ?FSReadFileOptions): FSTextReadStream;
+  setEncoding: (enc: string) => void;
+  readAll: () => string;
+  size: () => number;
+  read: () => void;
+}
+
+declare class FSFileWriteStream extends SimpleEventEmitter {
+  constructor(file: string, opts: ?FSReadFileOptions): FSFileWriteStream;
+  setEncoding: (enc: string) => void;
+  write: ((data: string, enc: string) => void) & ((data: Buffer) => void);
+  end: () => void;
 }
 
 declare module 'crypto' {
   declare var createHash: (type: string) => CryptoHash;
   declare var createHmac: (type: string) => CryptoHash;
-  declare var hash: (type: string, data: string | Buffer, enc: ?string) => string | Buffer;
-  declare var hmac: (type: string, key: string | Buffer, data: string | Buffer, enc: ?string) => string | Buffer;
+  declare var hash: (
+    type: string,
+    data: string | Buffer,
+    enc: ?string
+  ) => string | Buffer;
+  declare var hmac: (
+    type: string,
+    key: string | Buffer,
+    data: string | Buffer,
+    enc: ?string
+  ) => string | Buffer;
 }
 
 declare module 'debug' {
@@ -147,6 +252,40 @@ declare module 'email' {
 }
 
 declare module 'fs' {
+  declare var isFile: (path: string) => boolean;
+  declare var isDir: (path: string) => boolean;
+  declare var copyFile: (src: string, dest: string) => void;
+  declare var moveFile: (src: string, dest: string) => void;
+  declare var deleteFile: (path: string, opts: ?{ifExists: boolean}) => void;
+  declare var deleteFileIfExists: (path: string) => void;
+  declare var createDir: (path: string, opts: ?{deep: boolean}) => void;
+  declare var removeDir: (path: string, opts: ?{ifExists: boolean}) => void;
+  declare var removeDirIfExists: (path: string) => void;
+  declare var moveDir: (src: string, dest: string) => void;
+  declare var getDirContents: (path: string) => Array<string>;
+  declare var walk: (path: string, fn: FSWalkIterator) => void;
+  declare var getInfo: (path: string, deep: ?boolean) => FSFileInfo;
+  declare var getFileInfo: (path: string) => FSFileInfo;
+  declare var readFile: (file: string) => Buffer;
+  declare var readTextFile: (file: string, enc: ?string) => string;
+  declare var writeFile: (
+    file: string,
+    data: string | Buffer,
+    opts: FSWriteFileOptions
+  ) => void;
+  declare var writeTextToFile: (
+    file: string,
+    data: string,
+    opts: FSWriteFileOptions
+  ) => void;
+  declare var createReadStream: (
+    file: string,
+    opts: ?FSReadFileOptions
+  ) => FSTextReadStream | FSFileReadStream;
+  declare var createWriteStream: (
+    file: string,
+    opts: FSWriteFileOptions
+  ) => FSFileWriteStream;
 }
 
 declare module 'http' {
@@ -158,6 +297,23 @@ declare module 'http' {
 }
 
 declare module 'image-tools' {
+  declare var getImageInfo: (
+    path: string,
+    calculateHash: ?boolean
+  ) => ImageDetails;
+  declare var resizeImageFile: (path: string, opts: AnyMap) => boolean | string;
+  declare var getSizing: (code: ?string) => string;
+  declare var calculateSize: (src: string, opts: ?AnyMap) => ?ImageSizeSpec;
+  declare var sizeToFit: (
+    src: ImageDimensions,
+    opts: ImageDimensionsMax
+  ) => ImageDimensions;
+  declare var sizeToFitOuter: (
+    src: ImageDimensions,
+    opts: ImageDimensionsMax
+  ) => ImageDimensions;
+  declare var cropToSize: (src: ImageDimensions, opts: ImageDimensions) => ImageCropSpec;
+  declare var getOutputType: (type: string) => string;
 }
 
 declare module 'path' {
@@ -188,7 +344,11 @@ declare module 'util' {
   declare var extend: (...objects: Array<Object>) => Object;
   declare var clone: <T>(obj: T) => T;
   declare var inherits: (ctor: Function, parent: Function) => void;
-  declare var propagateEvents: (src: EventEmitter, dest: EventEmitter, events: string | Array<string>) => void;
+  declare var propagateEvents: (
+    src: SimpleEventEmitter,
+    dest: SimpleEventEmitter,
+    events: string | Array<string>
+  ) => void;
   declare var pipe: (src: ReadStream, dst: WriteStream) => void;
   declare var getUniqueHex: (numBytes: ?number) => string;
   declare var hexBytes: (numBytes: ?number) => string;
@@ -196,7 +356,11 @@ declare module 'util' {
   declare var log: (...args: Array<any>) => void;
   declare var parseHeaders: (input: string) => StringMap;
   declare var parseHeaderValue: (str: string) => StringMap;
-  declare var stripFilename: (filename: string, ch: ?string, map: ?StringMap) => string;
+  declare var stripFilename: (
+    filename: string,
+    ch: ?string,
+    map: ?StringMap
+  ) => string;
   declare var htmlEnc: (str: string, isAttr: ?boolean) => string;
   declare var htmlDec: (str: string) => string;
   declare var stringify: (obj: any, opts: ?StringMap) => string;
