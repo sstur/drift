@@ -15,16 +15,19 @@ var utils = {
     }
     options = options || {};
     var directives = parseDirectives(source);
-    //wrap commonJS-style modules
-    if (directives.providesModule) {
-      source = wrapModule(directives.providesModule, source);
-    }
     if (directives.es6 && outputOptions != null) {
       outputOptions.includeES6Polyfills = true;
     }
     //transform JSX and ES6
     if (directives.jsx || directives.es6) {
       source = utils.transformES6(source);
+    }
+    //wrap source based on directive
+    if (directives.providesModule) {
+      source = wrapDefine(directives.providesModule, source);
+    } else
+    if (directives.onAppState) {
+      source = wrapOnAppState(directives.onAppState, source);
     }
     var dir = dirname(filename);
     //hacky: some special logic for files in `app/config`
@@ -89,9 +92,17 @@ var utils = {
 
 };
 
-function wrapModule(name, source) {
+function wrapDefine(name, source) {
   return [
     'define(' + JSON.stringify(name) + ', function(require, exports, module) {',
+    source,
+    '});'
+  ].join('');
+}
+
+function wrapOnAppState(state, source) {
+  return [
+    'app.on(' + JSON.stringify(state) + ', function(require) {',
     source,
     '});'
   ].join('');
