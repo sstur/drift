@@ -1,6 +1,6 @@
 {
   "name": "drift",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Cross-platform Server JS",
   "main": "lib/server.js",
   "directories": {
