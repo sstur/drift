@@ -46,7 +46,9 @@ var utils = {
   },
 
   transformES6: function(source) {
-    var plugin = (name) => require.resolve('babel-plugin-' + name);
+    var plugin = function(name) {
+      return require.resolve('babel-plugin-' + name);
+    };
     var result = babel.transform(source, {
       retainLines: true,
       plugins: [
