@@ -52,15 +52,15 @@ var utils = {
     var result = babel.transform(source, {
       retainLines: true,
       plugins: [
-        // ecmascript stage-1
+        // part of stage-1
         plugin('transform-class-properties'),
-        // ecmascript stage-2
+        // preset-stage-2
         plugin('syntax-trailing-function-commas'),
         plugin('transform-object-rest-spread'),
-        // ecmascript stage-3
+        // preset-stage-3
         plugin('transform-async-to-generator'),
         plugin('transform-exponentiation-operator'),
-        // ecmascript 2015
+        // preset-es2015
         plugin('check-es2015-constants'),
         plugin('transform-es2015-arrow-functions'),
         plugin('transform-es2015-block-scoped-functions'),
@@ -81,11 +81,12 @@ var utils = {
         plugin('transform-es2015-typeof-symbol'),
         plugin('transform-es2015-unicode-regex'),
         plugin('transform-regenerator'),
-        // react/jsx/flow
+        // preset-react
+        plugin('transform-react-jsx'),
+        plugin('transform-flow-strip-types'),
         plugin('syntax-flow'),
         plugin('syntax-jsx'),
-        plugin('transform-flow-strip-types'),
-        plugin('transform-react-jsx')
+        plugin('transform-react-display-name')
       ]
     });
     //var {code, map, ast} = result;
