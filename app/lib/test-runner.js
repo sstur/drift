@@ -2,8 +2,9 @@
  * todo: optionally, include stack in http response
  */
 /*global app, define */
+/* eslint-disable consistent-this */
 define('test-runner', function(require, exports, module) {
-  "use strict";
+  'use strict';
   module.exports = TestRunner;
 
   var util = require('util');
@@ -77,7 +78,10 @@ define('test-runner', function(require, exports, module) {
       }
     },
     format_text: function(logType, suite, testCaseName, time) {
-      if (!error) {
+      if (logType == 'description') {
+        this.writeLine(suite.description);
+      } else
+      if (logType == 'success') {
         this.writeLine('✔ PASS ››› ' + testCaseName + ' [' + time + ']');
       } else {
         var specDesc = (suite.specDesc) ? suite.specDesc + '\n' : '';
@@ -133,7 +137,7 @@ define('test-runner', function(require, exports, module) {
               suite.beforeEach();
               testCase.call(suite, it);
               suite.afterEach();
-            } catch(e) {
+            } catch (e) {
               //todo: should this be in response instead?
               if (e instanceof Error && e.stack) {
                 console.log('Test threw:');
