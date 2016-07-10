@@ -6,6 +6,14 @@
   "bin": {
     "drift": "bin/drift"
   },
+  "files": [
+    "app/",
+    "assets/",
+    "bin/",
+    "interfaces/",
+    "lib/",
+    "modules/"
+  ],
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "test-src": "mocha test",
