@@ -5,11 +5,12 @@
  * todo: Basic Date formatting
  * todo: remove global.isPrimitive, Array.prototype.exists, String.parse, Date.today
  */
+/* eslint-disable one-var, no-extend-native */
 
 var forEach, vartype, isPrimitive, toArray;
 
 (function() {
-  "use strict";
+  'use strict';
 
   var toString = Object.prototype.toString;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -45,7 +46,7 @@ var forEach, vartype, isPrimitive, toArray;
     }
   };
 
-  Object.assign = function(target, source) {
+  Object.assign = function(target, source) { // eslint-disable-line no-unused-vars
     var to = Object(target);
     var objectCount = arguments.length;
     for (var i = 1; i < objectCount; i++) {
@@ -131,7 +132,7 @@ var forEach, vartype, isPrimitive, toArray;
     if (arguments.length == 1) {
       var self = this;
       forEach(a, function() {
-        self = replaceAll.apply(self, arguments);
+        self = replaceAll.apply(self, arguments); // eslint-disable-line consistent-this
       });
       return self;
     }
@@ -197,24 +198,24 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   Date.prototype.add = function(parts) {
-    var date = this;
+    var date = this; // eslint-disable-line consistent-this
     if (parts.years) {
-      date.setYear(date.getFullYear() + Number.parseInt(parts.years));
+      date.setYear(date.getFullYear() + Number.parseInt(parts.years)); // eslint-disable-line radix
     }
     if (parts.months) {
-      date.setMonth(date.getMonth() + Number.parseInt(parts.months));
+      date.setMonth(date.getMonth() + Number.parseInt(parts.months)); // eslint-disable-line radix
     }
     if (parts.days) {
-      date.setDate(date.getDate() + Number.parseInt(parts.days));
+      date.setDate(date.getDate() + Number.parseInt(parts.days)); // eslint-disable-line radix
     }
     if (parts.hours) {
-      date.setHours(date.getHours() + Number.parseInt(parts.hours));
+      date.setHours(date.getHours() + Number.parseInt(parts.hours)); // eslint-disable-line radix
     }
     if (parts.minutes) {
-      date.setMinutes(date.getMinutes() + Number.parseInt(parts.minutes));
+      date.setMinutes(date.getMinutes() + Number.parseInt(parts.minutes)); // eslint-disable-line radix
     }
     if (parts.seconds) {
-      date.setSeconds(date.getSeconds() + Number.parseInt(parts.seconds));
+      date.setSeconds(date.getSeconds() + Number.parseInt(parts.seconds)); // eslint-disable-line radix
     }
     return date;
   };

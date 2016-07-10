@@ -1,6 +1,6 @@
 /*global app, require, describe, it */
 (function() {
-  "use strict";
+  'use strict';
 
   var expect = require('expect.js');
 
@@ -20,11 +20,11 @@
 
   describe('router', function() {
     var require = app.require;
-    
-    var util = require('util');
+
     var Router = require('router');
-    
-    var router = new Router(), complete = false;
+
+    var router = new Router();
+    var complete = false;
     router.on('no-route', function() {
       complete = true;
     });
@@ -37,7 +37,9 @@
 
     it('should execute route', function() {
       var count = 0;
-      var fn = function() { count++; };
+      var fn = function() {
+        count++;
+      };
       router.addRoute('/two', fn);
       complete = false;
       router.route('GET', '/two');
@@ -47,7 +49,9 @@
 
     it('should execute verb route', function() {
       var count = 0;
-      var fn = function() { count++; };
+      var fn = function() {
+        count++;
+      };
       router.addRoute('POST:/post', fn);
       router.addRoute('GET:/post', fn);
       complete = false;
@@ -58,7 +62,9 @@
 
     it('should execute multiple route handlers', function() {
       var count = 0;
-      var fn = function() { count++; };
+      var fn = function() {
+        count++;
+      };
       router.addRoute('/three', fn);
       router.addRoute('/three/:opt?', fn);
       complete = false;
@@ -69,8 +75,13 @@
 
     it('should stop routing', function() {
       var count = 0;
-      var fn1 = function() { count++; this.stop(); };
-      var fn2 = function() { count++; };
+      var fn1 = function() {
+        count++;
+        this.stop();
+      };
+      var fn2 = function() {
+        count++;
+      };
       router.addRoute('/four', fn1);
       router.addRoute('/four', fn2);
       complete = false;
@@ -81,7 +92,7 @@
 
     it('should match named params', function() {
       var count = 0;
-      var fn = function(n, m) {
+      var fn = function(n) {
         count += parseInt(n, 10);
         //expect(n).to.equal(req._params.n);
         expect(n).to.equal('2');

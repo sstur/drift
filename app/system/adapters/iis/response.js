@@ -1,6 +1,6 @@
 /*global app, define, iis */
 define('adapter-response', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var Buffer = require('buffer').Buffer;
 

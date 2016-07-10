@@ -17,7 +17,7 @@
       try {
         var data = fs.readFileSync(join(basePath, file), 'utf8');
         data = JSON.parse(data);
-      } catch(e) {
+      } catch (e) {
         return;
       }
       Object.keys(data).forEach(function(key) {

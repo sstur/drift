@@ -7,8 +7,9 @@
  *   allow to export schema to JSON
  */
 /*global app, define */
+/* eslint-disable one-var, consistent-this */
 define('model', function(require, exports) {
-  "use strict";
+  'use strict';
   var util = require('util');
   var database = require(app.cfg('models/database'));
 
@@ -24,6 +25,7 @@ define('model', function(require, exports) {
     $in: 'IN',
     $nin: 'NOT IN'
   };
+  /* eslint-disable quote-props */
   var TYPE_MAP = {
     //number maps to int because it was likely set by typeof
     'number': 'int(10)',
@@ -35,6 +37,7 @@ define('model', function(require, exports) {
     'date': 'timestamp',
     'json': 'text'
   };
+  /* eslint-enable quote-props */
 
   //properties: name<str>, tableName<str>, fields<map>, fieldNames<arr>, idField<str>,
   // dbIdField<str>, jsonFields<arr>, Record<const>
@@ -75,7 +78,7 @@ define('model', function(require, exports) {
       Object.assign(this, opts.classMethods);
     }
     //record instances are of class Record
-    function Record(data) {
+    function Record(data) { // eslint-disable-line no-unused-vars
       return RecordBase.apply(this, arguments);
     }
     util.inherits(Record, RecordBase);
@@ -641,7 +644,7 @@ define('model', function(require, exports) {
       if (typeof data[key] == 'string') {
         try {
           var value = util.parse(data[key] || '{}'); //catch empty string
-        } catch(e) {}
+        } catch (e) {}
       }
       data[key] = value || {}; //catch null
     });

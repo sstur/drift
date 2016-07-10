@@ -1,6 +1,6 @@
 /*global app, define, Buffer */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var buffer = require('buffer');
   if (buffer.nativeImplementation) {
@@ -11,13 +11,13 @@ app.on('ready', function(require) {
 
   app.addTestSuite('buffer', {
 
-    'Buffer': function(it) {
-      it('should be a global', function () {
+    Buffer: function(it) {
+      it('should be a global', function() {
         expect(buffer.Buffer).to.be(Buffer);
       });
     },
 
-    'base64': function(it) {
+    base64: function(it) {
       var atob = function(str) {
         return new Buffer(str, 'base64').toString('ascii');
       };
@@ -73,7 +73,7 @@ app.on('ready', function(require) {
         }).to.throwError();
       });
 
-      it('should work for special case', function () {
+      it('should work for special case', function() {
         //strange bug where this would equal 2MQ=VPJb
         expect(new Buffer('d8c40054f25b', 'hex').toString('base64')).to.be('2MQAVPJb');
       });

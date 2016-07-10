@@ -4,8 +4,9 @@
  *   test fs.createDir where dir already exists (throws EEXIST)
  */
 /*global app, define */
+/* eslint-disable one-var, quote-props */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
   var expect = require('expect');
@@ -106,7 +107,7 @@ app.on('ready', function(require) {
         readStream.on('end', function() {
           chunks = chunks.join('');
         });
-        var result = readStream.read();
+        readStream.read();
         expect(chunks).to.be.a('string');
         expect(chunks).to.be(textBlob);
       });
@@ -192,27 +193,19 @@ app.on('ready', function(require) {
       it('should throw when destination path not exist', function() {
         expect(function() {
           fs.moveFile(dataPath + 'test/file.txt', dataPath + 'test3/file');
-        }.bind(this)).to.throwError(/ENOENT/);
+        }).to.throwError(/ENOENT/);
       });
       fs.removeDir(dataPath + 'test', true);
       fs.removeDir(dataPath + 'test2', true);
     },
-    'copyFile': function(it) {
-    },
-    'deleteFile': function(it) {
-    },
-    'deleteFileIfExists': function(it) {
-    },
-    'getDirContents': function(it) {
-    },
-    'walk': function(it) {
-    },
-    'getInfo': function(it) {
-    },
-    'readTextFile': function(it) {
-    },
-    'writeTextToFile': function(it) {
-    }
+    'copyFile': function(it) {}, // eslint-disable-line no-unused-vars
+    'deleteFile': function(it) {}, // eslint-disable-line no-unused-vars
+    'deleteFileIfExists': function(it) {}, // eslint-disable-line no-unused-vars
+    'getDirContents': function(it) {}, // eslint-disable-line no-unused-vars
+    'walk': function(it) {}, // eslint-disable-line no-unused-vars
+    'getInfo': function(it) {}, // eslint-disable-line no-unused-vars
+    'readTextFile': function(it) {}, // eslint-disable-line no-unused-vars
+    'writeTextToFile': function(it) {} // eslint-disable-line no-unused-vars
   });
 
 });

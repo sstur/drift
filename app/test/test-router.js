@@ -1,6 +1,6 @@
 /*global app, define */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var expect = require('expect');
   var Router = require('router');
@@ -26,7 +26,7 @@ app.on('ready', function(require) {
     'route with params': function() {
       this.setup();
       var params = null;
-      router.addRoute('/a/:b/:c', function(b, c) {
+      router.addRoute('/a/:b/:c', function() {
         params = toArray(arguments);
       });
       router.route('GET', '/a');
@@ -39,7 +39,7 @@ app.on('ready', function(require) {
     'optional params': function() {
       this.setup();
       var params = null;
-      router.addRoute('/a/:b/:c?', function(b, c) {
+      router.addRoute('/a/:b/:c?', function() {
         params = toArray(arguments);
       });
       router.route('GET', '/a');
@@ -60,7 +60,7 @@ app.on('ready', function(require) {
     },
     'route options': function() {
       this.setup();
-      router.addRoute('/a/:b/:c?', function(b, c) {
+      router.addRoute('/a/:b/:c?', function() {
         expect(this.opts).to.eql({noAuth: 1});
         expect(this.values).to.eql(['1', '2']);
         expect(this.params).to.eql({b: '1', c: '2'});
@@ -125,7 +125,7 @@ app.on('ready', function(require) {
       router.on('no-route', function() {
         results.push('c');
       });
-      router.addRoute('/go', function(callback, type, id) {
+      router.addRoute('/go', function() {
         results.push('route');
       });
       router.route('GET', '/go');

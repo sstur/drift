@@ -1,25 +1,30 @@
 /*global app, require, describe, it */
+/* eslint-disable one-var */
 (function() {
-  "use strict";
+  'use strict';
 
   var expect = require('expect.js');
 
   require('../app/system/core');
 
   describe('app', function() {
-    var require = app.require;
 
     it('should be a function', function() {
       expect(app).to.be.a('function');
     });
 
     it('should call .fn', function() {
-      app.fn = function() { return Array.prototype.slice.call(arguments).concat(this); };
+      app.fn = function() {
+        return Array.prototype.slice.call(arguments).concat(this);
+      };
       expect(app(1, 's')).to.eql([1, 's', app]);
     });
 
     it('should handle events', function() {
-      var obj = {}, handler = function(obj) { obj.prop = true; };
+      var obj = {};
+      var handler = function(obj) {
+        obj.prop = true;
+      };
       app.on('foo', handler);
       expect(app._events).to.eql({foo: [handler]});
       app.emit('foo', obj);
@@ -27,7 +32,10 @@
     });
 
     it('should add event-handling to an object', function() {
-      var obj = {}, count = 0, fn = function(i) { count += i; };
+      var obj = {}, count = 0;
+      var fn = function(i) {
+        count += i;
+      };
       app.eventify(obj);
       expect(obj).to.have.property('on').and.have.property('emit');
       expect(obj.on).to.be.a('function');
@@ -37,7 +45,9 @@
       obj.emit('foo', 2);
       expect(count).to.equal(2);
       //add a second handler for same event
-      obj.on('foo', function() { count++; });
+      obj.on('foo', function() {
+        count++;
+      });
       obj.emit('foo', 1);
       expect(count).to.equal(4);
     });

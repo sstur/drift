@@ -1,7 +1,7 @@
 /*global app, adapter */
 var nodemailer = require('nodemailer');
 adapter.define('email', function(require, exports) {
-  "use strict";
+  'use strict';
 
   var REG_EMAIL = /^[\w!#$%&'*+\/=?^`{|}~-]+(\.[\w!#$%&'*+\/=?^`{|}~-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 

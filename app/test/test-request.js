@@ -4,8 +4,9 @@
  * todo: test opts.autoSavePath and upload.saveTo()
  */
 /*global app, define, Buffer */
+/* eslint-disable quote-props */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var qs = require('qs');
   var crypto = require('crypto');
@@ -109,7 +110,7 @@ app.on('ready', function(require) {
         ]);
         try {
           var body = req.body();
-        } catch(e) {
+        } catch (e) {
           if (e !== null) throw e;
         }
         expect(body).to.eql({a: '1', b: 'false', 'č': '✔'});
@@ -205,7 +206,7 @@ app.on('ready', function(require) {
         });
         try {
           req.body();
-        } catch(e) {
+        } catch (e) {
           var exception = e;
         }
         expect(exception).to.be(null);

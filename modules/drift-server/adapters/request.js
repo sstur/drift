@@ -1,6 +1,6 @@
-/*global global, require, app, adapter */
+/*global global, require, app */
 app.define('adapter-request', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var BodyParser = require('body-parser');
 
@@ -28,7 +28,7 @@ app.define('adapter-request', function(require, exports, module) {
     getBodyParser: function(opts) {
       return new BodyParser(this.getHeaders(), this._super, opts);
     },
-    read: function(bytes) {
+    read: function(bytes) { // eslint-disable-line no-unused-vars
       throw new Error('Body Parser: request.read() not implemented');
     }
   });

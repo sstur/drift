@@ -5,11 +5,12 @@
  code.google.com/p/crypto-js/wiki/License
  */
 /*global define, Buffer */
-define('crypto', function (require, crypto) {
+/* eslint-disable camelcase */
+define('crypto', function(require, crypto) {
   /**
    * Base object for prototypal inheritance.
    */
-  var Base = (function () {
+  var Base = (function() {
     function F() {}
 
     return {
@@ -31,7 +32,7 @@ define('crypto', function (require, crypto) {
        *     }
        *   });
        */
-      extend: function (overrides) {
+      extend: function(overrides) {
         // Spawn
         F.prototype = this;
         var subtype = new F();
@@ -56,7 +57,7 @@ define('crypto', function (require, crypto) {
        *
        *   var instance = MyType.create();
        */
-      create: function () {
+      create: function() {
         var instance = this.extend();
         instance.init.apply(instance, arguments);
 
@@ -75,7 +76,7 @@ define('crypto', function (require, crypto) {
        *     }
        *   });
        */
-      init: function () {
+      init: function() {
       },
 
       /**
@@ -89,7 +90,7 @@ define('crypto', function (require, crypto) {
        *     field: 'value'
        *   });
        */
-      mixIn: function (properties) {
+      mixIn: function(properties) {
         for (var propertyName in properties) {
           if (properties.hasOwnProperty(propertyName)) {
             this[propertyName] = properties[propertyName];
@@ -126,7 +127,7 @@ define('crypto', function (require, crypto) {
      *   var wordArray = WordArray.create([0x00010203, 0x04050607]);
      *   var wordArray = WordArray.create([0x00010203, 0x04050607], 6);
      */
-    init: function (words, sigBytes) {
+    init: function(words, sigBytes) {
       words = this.words = words || [];
 
       if (sigBytes != null) {
@@ -149,7 +150,7 @@ define('crypto', function (require, crypto) {
      *   var string = wordArray.toString();
      *   var string = wordArray.toString(Raw);
      */
-    toString: function (encoder) {
+    toString: function(encoder) {
       return (encoder || Raw).stringify(this);
     },
 
@@ -164,7 +165,7 @@ define('crypto', function (require, crypto) {
      *
      *   wordArray1.concat(wordArray2);
      */
-    concat: function (wordArray) {
+    concat: function(wordArray) {
       // Shortcuts
       var thisWords = this.words;
       var thatWords = wordArray.words;
@@ -203,7 +204,7 @@ define('crypto', function (require, crypto) {
      *
      *   wordArray.clamp();
      */
-    clamp: function () {
+    clamp: function() {
       // Shortcuts
       var words = this.words;
       var sigBytes = this.sigBytes;
@@ -222,7 +223,7 @@ define('crypto', function (require, crypto) {
      *
      *   var clone = wordArray.clone();
      */
-    clone: function () {
+    clone: function() {
       var clone = WordArray.extend(this);
       clone.words = this.words.slice(0);
 
@@ -242,7 +243,7 @@ define('crypto', function (require, crypto) {
      *
      *   var wordArray = WordArray.random(16);
      */
-    random: function (nBytes) {
+    random: function(nBytes) {
       var words = [];
       for (var i = 0; i < nBytes; i += 4) {
         words.push((Math.random() * 0x100000000) | 0);
@@ -269,7 +270,7 @@ define('crypto', function (require, crypto) {
      *
      *   var latin1String = Raw.stringify(wordArray);
      */
-    stringify: function (wordArray) {
+    stringify: function(wordArray) {
       // Shortcuts
       var words = wordArray.words;
       var sigBytes = wordArray.sigBytes;
@@ -297,7 +298,7 @@ define('crypto', function (require, crypto) {
      *
      *   var wordArray = Raw.parse(latin1String);
      */
-    parse: function (latin1Str) {
+    parse: function(latin1Str) {
       // Shortcut
       var latin1StrLength = latin1Str.length;
 
@@ -325,7 +326,7 @@ define('crypto', function (require, crypto) {
      *
      *   bufferedBlockAlgorithm.reset();
      */
-    reset: function () {
+    reset: function() {
       // Initial values
       this._data = WordArray.create();
       this._nDataBytes = 0;
@@ -341,7 +342,7 @@ define('crypto', function (require, crypto) {
      *   bufferedBlockAlgorithm._append('data');
      *   bufferedBlockAlgorithm._append(wordArray);
      */
-    _append: function (data) {
+    _append: function(data) {
       // Convert string to WordArray, else assume WordArray already
       if (typeof data == 'string') {
         data = Raw.parse(data);
@@ -365,7 +366,7 @@ define('crypto', function (require, crypto) {
      *   var processedData = bufferedBlockAlgorithm._process();
      *   var processedData = bufferedBlockAlgorithm._process(!!'flush');
      */
-    _process: function (flush) {
+    _process: function(flush) {
       // Shortcuts
       var data = this._data;
       var dataWords = data.words;
@@ -422,7 +423,7 @@ define('crypto', function (require, crypto) {
      *
      *   var hasher = SHA256.create();
      */
-    init: function () {
+    init: function() {
       // Set initial values
       this.reset();
     },
@@ -434,7 +435,7 @@ define('crypto', function (require, crypto) {
      *
      *   hasher.reset();
      */
-    reset: function () {
+    reset: function() {
       // Reset data buffer
       BufferedBlockAlgorithm.reset.call(this);
 
@@ -454,7 +455,7 @@ define('crypto', function (require, crypto) {
      *   hasher.update('message');
      *   hasher.update(wordArray);
      */
-    update: function (messageUpdate) {
+    update: function(messageUpdate) {
       // Append
       this._append(messageUpdate);
 
@@ -479,7 +480,7 @@ define('crypto', function (require, crypto) {
      *   var hash = hasher.finalize('message');
      *   var hash = hasher.finalize(wordArray);
      */
-    finalize: function (messageUpdate) {
+    finalize: function(messageUpdate) {
       // Final message update
       if (messageUpdate) {
         this._append(messageUpdate);
@@ -491,7 +492,7 @@ define('crypto', function (require, crypto) {
       return this._hash;
     },
 
-    blockSize: 512/32
+    blockSize: 512 / 32
 
   });
 
@@ -509,7 +510,7 @@ define('crypto', function (require, crypto) {
      *
      *     var hmacHasher = HMAC.create(SHA256, key);
      */
-    init: function (hasher, key) {
+    init: function(hasher, key) {
       // Init hasher
       hasher = this._hasher = hasher.create();
 
@@ -553,7 +554,7 @@ define('crypto', function (require, crypto) {
      *
      *     hmacHasher.reset();
      */
-    reset: function () {
+    reset: function() {
       // Shortcut
       var hasher = this._hasher;
 
@@ -574,7 +575,7 @@ define('crypto', function (require, crypto) {
      *     hmacHasher.update('message');
      *     hmacHasher.update(wordArray);
      */
-    update: function (messageUpdate) {
+    update: function(messageUpdate) {
       this._hasher.update(messageUpdate);
 
       // Chainable
@@ -595,7 +596,7 @@ define('crypto', function (require, crypto) {
      *     var hmac = hmacHasher.finalize('message');
      *     var hmac = hmacHasher.finalize(wordArray);
      */
-    finalize: function (messageUpdate) {
+    finalize: function(messageUpdate) {
       // Shortcut
       var hasher = this._hasher;
 
@@ -612,14 +613,13 @@ define('crypto', function (require, crypto) {
   /**
    * SHA256 algorithm.
    */
-  var SHA256;
   (function() {
     // Initialization and round constants tables
     var H = [];
     var K = [];
 
     // Compute constants
-    (function () {
+    (function() {
       function isPrime(n) {
         var sqrtN = Math.sqrt(n);
         for (var factor = 2; factor <= sqrtN; factor++) {
@@ -658,12 +658,12 @@ define('crypto', function (require, crypto) {
     /**
      * SHA-256 hash algorithm.
      */
-    SHA256 = crypto.Hash_SHA256 = Hasher.extend({
-      _doReset: function () {
+    crypto.Hash_SHA256 = Hasher.extend({
+      _doReset: function() {
         this._hash = WordArray.create(H.slice(0));
       },
 
-      _doProcessBlock: function (M, offset) {
+      _doProcessBlock: function(M, offset) {
         // Shortcut
         var H = this._hash.words;
 
@@ -683,23 +683,23 @@ define('crypto', function (require, crypto) {
             W[i] = M[offset + i] | 0;
           } else {
             var gamma0x = W[i - 15];
-            var gamma0  = ((gamma0x << 25) | (gamma0x >>> 7))  ^
+            var gamma0 = ((gamma0x << 25) | (gamma0x >>> 7)) ^
                 ((gamma0x << 14) | (gamma0x >>> 18)) ^
                 (gamma0x >>> 3);
 
             var gamma1x = W[i - 2];
-            var gamma1  = ((gamma1x << 15) | (gamma1x >>> 17)) ^
+            var gamma1 = ((gamma1x << 15) | (gamma1x >>> 17)) ^
                 ((gamma1x << 13) | (gamma1x >>> 19)) ^
                 (gamma1x >>> 10);
 
             W[i] = gamma0 + W[i - 7] + gamma1 + W[i - 16];
           }
 
-          var ch  = (e & f) ^ (~e & g);
+          var ch = (e & f) ^ (~e & g);
           var maj = (a & b) ^ (a & c) ^ (b & c);
 
           var sigma0 = ((a << 30) | (a >>> 2)) ^ ((a << 19) | (a >>> 13)) ^ ((a << 10) | (a >>> 22));
-          var sigma1 = ((e << 26) | (e >>> 6)) ^ ((e << 21) | (e >>> 11)) ^ ((e << 7)  | (e >>> 25));
+          var sigma1 = ((e << 26) | (e >>> 6)) ^ ((e << 21) | (e >>> 11)) ^ ((e << 7) | (e >>> 25));
 
           var t1 = h + sigma1 + ch + K[i] + W[i];
           var t2 = sigma0 + maj;
@@ -725,7 +725,7 @@ define('crypto', function (require, crypto) {
         H[7] = (H[7] + h) | 0;
       },
 
-      _doFinalize: function () {
+      _doFinalize: function() {
         // Shortcuts
         var data = this._data;
         var dataWords = data.words;
@@ -750,13 +750,12 @@ define('crypto', function (require, crypto) {
   /**
    * MD5 algorithm.
    */
-  var MD5;
   (function() {
     // Constants table
     var T = [];
 
     // Compute constants
-    (function () {
+    (function() {
       for (var i = 0; i < 64; i++) {
         T[i] = (Math.abs(Math.sin(i + 1)) * 0x100000000) | 0;
       }
@@ -765,12 +764,12 @@ define('crypto', function (require, crypto) {
     /**
      * MD5 hash algorithm.
      */
-    MD5 = crypto.Hash_MD5 = Hasher.extend({
-      _doReset: function () {
+    crypto.Hash_MD5 = Hasher.extend({
+      _doReset: function() {
         this._hash = WordArray.create([0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476]);
       },
 
-      _doProcessBlock: function (M, offset) {
+      _doProcessBlock: function(M, offset) {
         // Swap endian
         for (var i = 0; i < 16; i++) {
           // Shortcuts
@@ -779,8 +778,8 @@ define('crypto', function (require, crypto) {
 
           // Swap
           M[offset_i] = (
-              (((M_offset_i << 8)  | (M_offset_i >>> 24)) & 0x00ff00ff) |
-                  (((M_offset_i << 24) | (M_offset_i >>> 8))  & 0xff00ff00)
+              (((M_offset_i << 8) | (M_offset_i >>> 24)) & 0x00ff00ff) |
+                  (((M_offset_i << 24) | (M_offset_i >>> 8)) & 0xff00ff00)
               );
         }
 
@@ -796,25 +795,25 @@ define('crypto', function (require, crypto) {
         // Computation
         for (var j = 0; j < 64; j += 4) {
           if (j < 16) {
-            a = FF(a, b, c, d, M[offset + j],     7,  T[j]);
+            a = FF(a, b, c, d, M[offset + j], 7, T[j]);
             d = FF(d, a, b, c, M[offset + j + 1], 12, T[j + 1]);
             c = FF(c, d, a, b, M[offset + j + 2], 17, T[j + 2]);
             b = FF(b, c, d, a, M[offset + j + 3], 22, T[j + 3]);
           } else if (j < 32) {
-            a = GG(a, b, c, d, M[offset + ((j + 1) % 16)],  5,  T[j]);
-            d = GG(d, a, b, c, M[offset + ((j + 6) % 16)],  9,  T[j + 1]);
+            a = GG(a, b, c, d, M[offset + ((j + 1) % 16)], 5, T[j]);
+            d = GG(d, a, b, c, M[offset + ((j + 6) % 16)], 9, T[j + 1]);
             c = GG(c, d, a, b, M[offset + ((j + 11) % 16)], 14, T[j + 2]);
-            b = GG(b, c, d, a, M[offset + (j % 16)],        20, T[j + 3]);
+            b = GG(b, c, d, a, M[offset + (j % 16)], 20, T[j + 3]);
           } else if (j < 48) {
-            a = HH(a, b, c, d, M[offset + ((j * 3 + 5) % 16)],  4,  T[j]);
-            d = HH(d, a, b, c, M[offset + ((j * 3 + 8) % 16)],  11, T[j + 1]);
+            a = HH(a, b, c, d, M[offset + ((j * 3 + 5) % 16)], 4, T[j]);
+            d = HH(d, a, b, c, M[offset + ((j * 3 + 8) % 16)], 11, T[j + 1]);
             c = HH(c, d, a, b, M[offset + ((j * 3 + 11) % 16)], 16, T[j + 2]);
             b = HH(b, c, d, a, M[offset + ((j * 3 + 14) % 16)], 23, T[j + 3]);
           } else /* if (i < 64) */ {
-            a = II(a, b, c, d, M[offset + ((j * 3) % 16)],      6,  T[j]);
-            d = II(d, a, b, c, M[offset + ((j * 3 + 7) % 16)],  10, T[j + 1]);
+            a = II(a, b, c, d, M[offset + ((j * 3) % 16)], 6, T[j]);
+            d = II(d, a, b, c, M[offset + ((j * 3 + 7) % 16)], 10, T[j + 1]);
             c = II(c, d, a, b, M[offset + ((j * 3 + 14) % 16)], 15, T[j + 2]);
-            b = II(b, c, d, a, M[offset + ((j * 3 + 5) % 16)],  21, T[j + 3]);
+            b = II(b, c, d, a, M[offset + ((j * 3 + 5) % 16)], 21, T[j + 3]);
           }
         }
 
@@ -825,7 +824,7 @@ define('crypto', function (require, crypto) {
         H[3] = (H[3] + d) | 0;
       },
 
-      _doFinalize: function () {
+      _doFinalize: function() {
         // Shortcuts
         var data = this._data;
         var dataWords = data.words;
@@ -839,12 +838,12 @@ define('crypto', function (require, crypto) {
         var nBitsTotalH = Math.floor(nBitsTotal / 0x100000000);
         var nBitsTotalL = nBitsTotal;
         dataWords[(((nBitsLeft + 64) >>> 9) << 4) + 15] = (
-            (((nBitsTotalH << 8)  | (nBitsTotalH >>> 24)) & 0x00ff00ff) |
-                (((nBitsTotalH << 24) | (nBitsTotalH >>> 8))  & 0xff00ff00)
+            (((nBitsTotalH << 8) | (nBitsTotalH >>> 24)) & 0x00ff00ff) |
+                (((nBitsTotalH << 24) | (nBitsTotalH >>> 8)) & 0xff00ff00)
             );
         dataWords[(((nBitsLeft + 64) >>> 9) << 4) + 14] = (
-            (((nBitsTotalL << 8)  | (nBitsTotalL >>> 24)) & 0x00ff00ff) |
-                (((nBitsTotalL << 24) | (nBitsTotalL >>> 8))  & 0xff00ff00)
+            (((nBitsTotalL << 8) | (nBitsTotalL >>> 24)) & 0x00ff00ff) |
+                (((nBitsTotalL << 24) | (nBitsTotalL >>> 8)) & 0xff00ff00)
             );
 
         data.sigBytes = (dataWords.length + 1) * 4;
@@ -861,8 +860,8 @@ define('crypto', function (require, crypto) {
           var H_i = H[i];
 
           // Swap
-          H[i] = (((H_i << 8)  | (H_i >>> 24)) & 0x00ff00ff) |
-              (((H_i << 24) | (H_i >>> 8))  & 0xff00ff00);
+          H[i] = (((H_i << 8) | (H_i >>> 24)) & 0x00ff00ff) |
+              (((H_i << 24) | (H_i >>> 8)) & 0xff00ff00);
         }
       }
     });

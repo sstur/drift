@@ -5,11 +5,11 @@
  * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params, opts
  */
 /*global app, define */
+/* eslint-disable consistent-this, one-var */
 define('router', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var qs = require('qs');
-  var util = require('util');
 
   var slice = Array.prototype.slice;
 

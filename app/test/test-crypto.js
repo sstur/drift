@@ -1,6 +1,7 @@
 /*global app, define */
+/* eslint-disable one-var, quote-props */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var crypto = require('crypto');
   var expect = require('expect');

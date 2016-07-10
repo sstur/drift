@@ -1,6 +1,6 @@
 /*global app, define */
-app.on('init', function(require) {
-  "use strict";
+app.on('init', function() {
+  'use strict';
 
   var suites = [];
   var suitesByName = {};

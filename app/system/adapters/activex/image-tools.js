@@ -1,7 +1,8 @@
-/*global app, define */
+/*global app, define, ActiveXObject */
 define('image-tools', function(require, exports) {
-  "use strict";
+  'use strict';
 
+  /* eslint-disable quote-props */
   var types = {
     'bmp': 'image/bmp',
     'gif': 'image/gif',
@@ -15,6 +16,7 @@ define('image-tools', function(require, exports) {
     'bmp': 'png',
     'tif': 'png'
   };
+  /* eslint-enable quote-props */
 
   //todo: change to match w3c terms
   var sizingCodes = {
@@ -27,7 +29,7 @@ define('image-tools', function(require, exports) {
     var objUpload = new ActiveXObject('Persits.Upload');
     try {
       var file = objUpload.openFile(app.mappath(path));
-    } catch(e) {
+    } catch (e) {
       throw new Error('Error opening image: ' + path);
     }
     var type = file.imageType.toLowerCase();
@@ -84,7 +86,7 @@ define('image-tools', function(require, exports) {
       }
       try {
         objJpeg.save(app.mappath(outpath));
-      } catch(e) {
+      } catch (e) {
         throw new Error('Cannot save to path: ' + outpath);
       }
       objJpeg.close();

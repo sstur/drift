@@ -1,6 +1,7 @@
 /*global app, define, Buffer */
+/* eslint-disable one-var */
 define('body-parser', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
   var qs = require('qs');
@@ -44,7 +45,7 @@ define('body-parser', function(require, exports, module) {
     if (!type) {
       throw '415 Content-Type Required';
     }
-    switch(type) {
+    switch (type) {
       case 'application/x-www-form-urlencoded':
         this.processFormBody();
         break;
@@ -77,7 +78,7 @@ define('body-parser', function(require, exports, module) {
     var body = this._read(MAX_BUFFER_SIZE, 'utf8') || '';
     try {
       var parsed = JSON.parse(body);
-    } catch(e) {
+    } catch (e) {
       throw new Error('Invalid JSON Body');
     }
     //ensure parsed is not null or a primitive
@@ -114,7 +115,7 @@ define('body-parser', function(require, exports, module) {
     var boundary1 = '--' + boundary;
     var boundary2 = '\r\n--' + boundary;
     var buffer = '', currentPart, nomatch;
-    while (1) {
+    while (1) { // eslint-disable-line no-constant-condition
       if (nomatch || buffer.length === 0) {
         //read more data or else we're done
         var data = this._read(CHUNK_SIZE, 'binary');

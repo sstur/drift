@@ -3,6 +3,7 @@
  MIT License. http://github.com/280north/narwhal/blob/master/README.md
  */
 /*jshint -W014, -W020, -W103, -W107 */
+/* eslint-disable */
 (function() {
 
   /**

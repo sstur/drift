@@ -1,6 +1,6 @@
 /*global global, process, require, module, exports */
 (function() {
-  "use strict";
+  'use strict';
 
   var Fiber = require('fibers');
   var slice = Array.prototype.slice;
@@ -11,7 +11,7 @@
   Fiber.prototype.run = function() {
     try {
       return _run.apply(this, arguments);
-    } catch(e) {
+    } catch (e) {
       if (this.onError) {
         this.onError(e);
       } else {

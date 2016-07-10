@@ -1,6 +1,6 @@
 /*global app */
 app.on('init', function(require) {
-  "use strict";
+  'use strict';
 
   var models = app.models = {};
 

@@ -1,5 +1,6 @@
 /*global app, iis */
-var console, Buffer;
+/* eslint-disable one-var */
+var console, Buffer; // eslint-disable-line no-unused-vars
 
 //this is outside the closure so it gets hoisted
 function getEnv() {
@@ -7,7 +8,7 @@ function getEnv() {
 }
 
 (function(require) {
-  "use strict";
+  'use strict';
 
   Buffer = global.Buffer = require('buffer').Buffer;
 
@@ -44,7 +45,7 @@ function getEnv() {
   };
 
   app.debug = function() {
-    var output = [], inspect = require('inspector').inspect;
+    var output = [], inspect = require('inspector').inspect; // eslint-disable-line no-mixed-requires
     for (var i = 0, len = arguments.length; i < len; i++) {
       var value = arguments[i];
       output.push(Object(value) === value ? inspect(value) : String(value));

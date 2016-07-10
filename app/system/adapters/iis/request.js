@@ -1,8 +1,7 @@
 /*global app, define, iis */
 define('adapter-request', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
-  var qs = require('qs');
   var Buffer = require('buffer').Buffer;
 
   var REG_URL = /^([^:\/]+:\/\/)?([^\/]*)(.*)$/;
@@ -45,7 +44,7 @@ define('adapter-request', function(require, exports, module) {
     read: function(bytes) {
       try {
         var bin = this._super.binaryRead(bytes);
-      } catch(e) {
+      } catch (e) {
         throw new Error('Could not read ' + bytes + ' bytes from request body: ' + e.message);
       }
       //ensure our request doesn't timeout while we are receiving body

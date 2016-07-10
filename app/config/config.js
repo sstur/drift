@@ -1,4 +1,5 @@
 /*global app */
+/* eslint-disable quote-props */
 app.cfg({
   //this references package.json
   version: '{{package:version}}',

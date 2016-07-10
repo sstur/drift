@@ -1,6 +1,7 @@
 /*global app, define */
+/* eslint-disable one-var */
 define('path', function(require, exports) {
-  "use strict";
+  'use strict';
 
   var RE_SLASHES = /\/+/g;
   var RE_DOTSLASH = /\/.\//g;
@@ -13,7 +14,7 @@ define('path', function(require, exports) {
    */
   exports.join = function() {
     var a = [], args = Array.from(arguments);
-    args.forEach(function(s, i) {
+    args.forEach(function(s) {
       if (s) a.push(s);
     });
     return exports.normalize(a.join('/'));

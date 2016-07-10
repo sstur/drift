@@ -1,6 +1,7 @@
 /*global process, require, module, exports */
+/* eslint-disable camelcase, one-var */
 (function() {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
   var path = require('path');
@@ -77,7 +78,7 @@
       console.log('------');
     };
 
-    var listener = function(eventName, filePath, fileCurrentStat, filePreviousStat) {
+    var listener = function(eventName, filePath, fileCurrentStat, filePreviousStat) { // eslint-disable-line no-unused-vars
       if (!checkPath(filePath)) return;
       switch (eventName) {
         case 'new':
@@ -123,7 +124,7 @@
     }
     running[cmd] = true;
     console.log('--START EXEC: ' + cmd);
-    child_process.exec(cmd, function(err, stdout, stderr) {
+    child_process.exec(cmd, function(err, stdout, stderr) { // eslint-disable-line no-unused-vars
       if (err) throw err;
       delete running[cmd];
       console.log(stdout);
@@ -154,7 +155,7 @@
     try {
       process.kill(pid);
       console.log('--KILLED PROCESS ' + pid);
-    } catch(e) {
+    } catch (e) {
       console.log('--ERROR KILLING ' + pid);
     }
   }

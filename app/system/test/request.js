@@ -1,8 +1,7 @@
 /*global app, define, Buffer */
 define('mock-request', function(require, exports, module) {
-  "use strict";
+  'use strict';
   var fs = require('fs');
-  var qs = require('qs');
   var BodyParser = require('body-parser');
 
   var dataPath = app.cfg('data_dir') || 'data/';

@@ -2,15 +2,14 @@
  * todo: handle errors: PROTOCOL_CONNECTION_LOST
  */
 /*global require, app, adapter, Buffer */
+/* eslint-disable one-var */
 var mysql = require('mysql');
 
 var TIMEZONE = '+00:00';
 var CONNECTION_LIMIT = 10;
 
 adapter.define('mysql', function(require, exports) {
-  "use strict";
-
-  var util = require('util');
+  'use strict';
 
   var REG_SQL_ENTITIES = /('(''|[^'])*'|\[(\\.|[^\]])*\]|\$\d+|\?|[A-Z_]+\(\))/gim;
   var REG_DATE_1 = /^(\d{4})-(\d{2})-(\d{2})\s*T?([\d:]+)(\.\d+)?($|[Z\s+-].*)$/i;
@@ -114,7 +113,7 @@ adapter.define('mysql', function(require, exports) {
         return callback(err, rows[0]);
       });
     },
-    each: function(func, callback) {
+    each: function(func, callback) { // eslint-disable-line no-unused-vars
       var rows = this.getAll();
       //array.some will stop iterating if true is returned
       rows.some(function(row, i) {
@@ -155,12 +154,12 @@ adapter.define('mysql', function(require, exports) {
     //sub out quoted literals and ? placeholders
     sql = sql.replace(REG_SQL_ENTITIES, function(s) {
       var c = s.substr(0, 1);
-      if (c == "?") {
+      if (c == '?') {
         val = arr[++i];
         s = (val == 'NULL') ? val : '$' + i;
       } else
-      if (c == "$") {
-        val = arr[Number.parseInt(s.substr(1))];
+      if (c == '$') {
+        val = arr[Number.parseInt(s.substr(1))]; // eslint-disable-line radix
         if (val == 'NULL') {
           s = val;
         }
@@ -174,7 +173,7 @@ adapter.define('mysql', function(require, exports) {
     // MySQL will not allow syntax: SELECT * WHERE foo = NULL
     sql = sql.replace(/WHERE (.*)/, function(sql) {
       sql = sql.replace(/!= NULL/g, 'IS NOT NULL');
-      sql = sql.replace(/= NULL/g, 'IS NULL');
+      sql = sql.replace(/= NULL/g, 'IS NULL'); // eslint-disable-line no-div-regex
       return sql;
     });
     //misc sql transforms
@@ -255,7 +254,8 @@ adapter.define('mysql', function(require, exports) {
 
   function escString(val) {
     val = val.replace(/[\0\n\r\b\t\\'\x1A]/g, function(s) {
-      switch(s) {
+      /* eslint-disable quotes */
+      switch (s) {
         case "\0": return "\\0";
         case "\n": return "\\n";
         case "\r": return "\\r";
@@ -263,6 +263,7 @@ adapter.define('mysql', function(require, exports) {
         case "\t": return "\\t";
         case "\x1a": return "\\Z";
         default: return "\\" + s;
+        /* eslint-enable quotes */
       }
     });
     return "'" + val + "'";

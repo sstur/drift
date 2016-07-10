@@ -14,6 +14,7 @@
  *
  */
 /*global app */
+/* eslint-disable quote-props */
 app.cfg({
   mime_types: {
     '3gp': 'video/3gpp',

@@ -1,7 +1,8 @@
 /*global app, system, offsets, map */
-var console, Buffer, _require = function(path) { return require(path); };
+/* eslint-disable one-var */
+var console, Buffer, _require = function(path) { return require(path); }; // eslint-disable-line no-unused-vars, brace-style
 (function(require) {
-  "use strict";
+  'use strict';
 
   Buffer = require('buffer').Buffer;
 
@@ -31,7 +32,7 @@ var console, Buffer, _require = function(path) { return require(path); };
     return (fullpath.slice(-1) == sep) ? fullpath.slice(0, -1) : fullpath;
   };
 
-  app.data = function(n, val) {
+  app.data = function(n, val) { // eslint-disable-line no-unused-vars
     //todo: use sqlite
     return '';
   };
@@ -42,7 +43,7 @@ var console, Buffer, _require = function(path) { return require(path); };
   try {
     var req = new Request(), res = new Response();
     app.route(req, res);
-  } catch(e) {
+  } catch (e) {
     //if e is 0, then the request was handled successfully
     if (!e) return;
     if (typeof map == 'undefined') {
@@ -84,7 +85,7 @@ var console, Buffer, _require = function(path) { return require(path); };
     res.write(stack.join('\r\n'));
     try {
       res.end();
-    } catch(e) {}
+    } catch (e) {}
   }
 
 })(app.require);

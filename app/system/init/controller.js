@@ -1,7 +1,7 @@
 /*global app */
 /*jshint -W040 */
-app.on('init', function(require) {
-  "use strict";
+app.on('init', function() {
+  'use strict';
 
   var controllers = app.controllers = {};
 

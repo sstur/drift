@@ -3,19 +3,22 @@
  * todo: remove executeSqlAndReturnNumRowsAffected
  * todo: deprecate connection string
  */
-/*global app, define, Buffer, Enumerator, executeSqlAndReturnNumRowsAffected */
+/*global app, define, Buffer, ActiveXObject, Enumerator, executeSqlAndReturnNumRowsAffected */
+/* eslint-disable one-var */
 define('mysql', function(require, exports) {
-  "use strict";
+  'use strict';
 
   var util = require('util');
 
   var RE_NONASCII = /[\x00-\x1f\x7f-\xff\u0100-\uffff]+/g;
   var RE_UNICODE = /[\x7f-\xff\u0100-\uffff]+/g;
   var REG_ESC_UNICODE = /%u([0-9a-f]{4})/ig;
+  /* eslint-disable quotes, quote-props */
   var WIN1252 = {"2013": "96", "2014": "97", "2018": "91", "2019": "92", "2020": "86", "2021": "87", "2022": "95",
     "2026": "85", "2030": "89", "2039": "8b", "2122": "99", "20AC": "80", "201A": "82", "0192": "83", "201E": "84",
     "02C6": "88", "0160": "8a", "0152": "8c", "017D": "8e", "201C": "93", "201D": "94", "02DC": "98", "0161": "9a",
     "203A": "9b", "0153": "9c", "017E": "9e", "0178": "9f"};
+  /* eslint-enable quotes, quote-props */
   var REG_SQL_ENTITIES = /('(''|[^'])*'|\[(\\.|[^\]])*\]|\$\d+|\?|[A-Z_]+\(\))/gim;
   var REG_DATE_1 = /^(\d{4})-(\d{2})-(\d{2})\s*T?([\d:]+)(\.\d+)?($|[Z\s+-].*)$/i;
   var REG_DATE_2 = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/;
@@ -31,7 +34,7 @@ define('mysql', function(require, exports) {
     this._conn = adodbConnections[connStr] || (adodbConnections[connStr] = new ActiveXObject('ADODB.Connection'));
     try {
       this.open();
-    } catch(e) {
+    } catch (e) {
       var message = cleanError(e);
       //todo: log error?
       throw new Error('MySQL: Error opening Connection: ' + message);
@@ -177,12 +180,12 @@ define('mysql', function(require, exports) {
     //sub out quoted literals and ? placeholders
     sql = sql.replace(REG_SQL_ENTITIES, function(s) {
       var c = s.substr(0, 1);
-      if (c == "?") {
+      if (c == '?') {
         val = arr[++i];
         s = (val == 'NULL') ? val : '$' + i;
       } else
-      if (c == "$") {
-        val = arr[Number.parseInt(s.substr(1))];
+      if (c == '$') {
+        val = arr[Number.parseInt(s.substr(1))]; // eslint-disable-line radix
         if (val == 'NULL') {
           s = val;
         }
@@ -196,14 +199,14 @@ define('mysql', function(require, exports) {
     // MySQL will not allow syntax: SELECT * WHERE `foo` = NULL
     sql = sql.replace(/WHERE (.*)/, function(sql) {
       sql = sql.replace(/!= NULL/g, 'IS NOT NULL');
-      sql = sql.replace(/= NULL/g, 'IS NULL');
+      sql = sql.replace(/= NULL/g, 'IS NULL'); // eslint-disable-line no-div-regex
       return sql;
     });
     //misc sql transforms
     sql = sql.replace(/\bNOW\(\)/ig, toSQLVal(date));
     //replace special CAST values
     sql = sql.replace(/(\w+)\(\$(\d)\)/, function(s, n, i) {
-      var val = arr[Number.parseInt(i)];
+      var val = arr[Number.parseInt(i)]; // eslint-disable-line radix
       var sql = s.replace('$' + i, val);
       if (n == 'CAST_DATE') {
         sql = toSQLVal(parseDate(val.slice(1, -1)));
@@ -213,7 +216,7 @@ define('mysql', function(require, exports) {
     });
     //re-insert subbed-out entities
     sql = sql.replace(/\$(\d+)/g, function(s, i) {
-      i = Number.parseInt(i);
+      i = Number.parseInt(i); // eslint-disable-line radix
       return arr[i];
     });
     return sql;
@@ -284,7 +287,8 @@ define('mysql', function(require, exports) {
 
   function escSqlString(val) {
     val = val.replace(/[\0\n\r\b\t\\'\x1A]/g, function(s) {
-      switch(s) {
+      /* eslint-disable quotes */
+      switch (s) {
         case "\0": return "\\0";
         case "\n": return "\\n";
         case "\r": return "\\r";
@@ -292,6 +296,7 @@ define('mysql', function(require, exports) {
         case "\t": return "\\t";
         case "\x1a": return "\\Z";
         default: return "\\" + s;
+        /* eslint-enable quotes */
       }
     });
     if (!RE_NONASCII.test(val)) {
@@ -303,13 +308,13 @@ define('mysql', function(require, exports) {
       if (pos > lastPos) {
         pieces.push("'" + val.slice(lastPos, pos) + "'");
       }
-      pieces.push("0x" + encodeURI(ch).replace(/%/g, ''));
+      pieces.push('0x' + encodeURI(ch).replace(/%/g, ''));
       lastPos = pos + ch.length;
     });
     if (val.length > lastPos) {
       pieces.push("'" + val.slice(lastPos) + "'");
     }
-    return "CONCAT(" + pieces.join(',') + ")";
+    return 'CONCAT(' + pieces.join(',') + ')';
   }
 
   //Convert from ADO Data Type
@@ -336,15 +341,14 @@ define('mysql', function(require, exports) {
     });
     try {
       return decodeURIComponent(enc);
-    } catch(e) {
+    } catch (e) {
       return str;
     }
   }
 
   function enumerate(col, fn) {
     var i = 0;
-    new Enumerator(col);
-    for(var e = new Enumerator(col); !e.atEnd(); e.moveNext()) {
+    for (var e = new Enumerator(col); !e.atEnd(); e.moveNext()) {
       if (fn.call(col, i++, e.item()) === false) break;
     }
   }

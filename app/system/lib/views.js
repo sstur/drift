@@ -1,13 +1,13 @@
 /*global app, define, global */
 /*jshint -W054 */
 define('views', function(require, exports, module) {
-  "use strict";
+  'use strict';
   var fs = require('fs');
 
   var tmplEngineName = app.cfg('template/engine') || 'tmpl';
   try {
     var tmplEngine = require(tmplEngineName);
-  } catch(e) {
+  } catch (e) {
     throw new Error('Template engine "' + tmplEngineName + '" could not be loaded');
   }
 
@@ -43,8 +43,8 @@ define('views', function(require, exports, module) {
     try {
       //pre-compiled template on file-system ?
       var code = fs.readTextFile(file, 'utf8');
-      var compiled = new Function('require', 'return ' + code)(require);
-    } catch(e) {
+      var compiled = new Function('require', 'return ' + code)(require); // eslint-disable-line no-new-func
+    } catch (e) {
       //file not found is ok; continue
       if (e.code !== 'ENOENT') throw e;
     }

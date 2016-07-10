@@ -1,9 +1,10 @@
 /*global app, define, _require */
+/* eslint-disable one-var, quote-props */
 define('http', function(require, exports) {
-  "use strict";
+  'use strict';
 
   //using v8cgi require
-  var Socket = _require("socket").Socket;
+  var Socket = _require('socket').Socket;
 
   var qs = require('qs');
   var url = require('url');
@@ -11,6 +12,8 @@ define('http', function(require, exports) {
 
   //url helpers
   var parseUrl = url.parse, resolveUrl = url.resolve;
+
+  var BODY_ALLOWED = {POST: 1, PUT: 1};
 
   var httpReqHeaders = 'Accept Accept-Charset Accept-Encoding Accept-Language Accept-Datetime Authorization ' +
     'Cache-Control Connection Cookie Content-Length Content-MD5 Content-Type Date Expect From Host If-Match ' +

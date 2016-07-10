@@ -9,18 +9,21 @@
  *  remove fs.walk (it's higher-level)
  *  remove readTextFile/TextReadStream/writeTextToFile
  */
-/*global app, define */
+/*global app, define, ActiveXObject, Enumerator */
 define('fs', function(require, fs) {
-  "use strict";
+  'use strict';
 
   var Buffer = require('buffer').Buffer;
   var pathLib = require('path');
 
   var EXTENDED = /[\x80-\x9F]/g;
+
+  /* eslint-disable */
   var WIN1252 = {"80":"\u20ac","82":"\u201a","83":"\u0192","84":"\u201e","85":"\u2026","86":"\u2020","87":"\u2021",
     "88":"\u02c6","89":"\u2030","8a":"\u0160","8b":"\u2039","8c":"\u0152","8e":"\u017d","91":"\u2018","92":"\u2019",
     "93":"\u201c","94":"\u201d","95":"\u2022","96":"\u2013","97":"\u2014","98":"\u02dc","99":"\u2122","9a":"\u0161",
     "9b":"\u203a","9c":"\u0153","9e":"\u017e","9f":"\u0178"};
+  /* eslint-enable */
 
   var FSO = new ActiveXObject('Scripting.FileSystemObject');
 
@@ -35,7 +38,7 @@ define('fs', function(require, fs) {
   fs.copyFile = function(src, dest) {
     try {
       var fso = FSO.getFile(app.mappath(src));
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         throw Object.assign(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
@@ -46,7 +49,7 @@ define('fs', function(require, fs) {
     }
     try {
       fso.copy(app.mappath(dest));
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         throw Object.assign(new Error(ENOENT(dest)), {code: 'ENOENT'});
       }
@@ -57,7 +60,7 @@ define('fs', function(require, fs) {
   fs.moveFile = function(src, dest) {
     try {
       var fso = FSO.getFile(app.mappath(src));
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         throw Object.assign(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
@@ -68,7 +71,7 @@ define('fs', function(require, fs) {
     }
     try {
       fso.move(app.mappath(dest));
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         throw Object.assign(new Error(ENOENT(dest)), {code: 'ENOENT'});
       }
@@ -80,7 +83,7 @@ define('fs', function(require, fs) {
     opts = opts || {};
     try {
       FSO.deleteFile(app.mappath(path), true);
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
         throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
@@ -99,7 +102,7 @@ define('fs', function(require, fs) {
     try {
       var folder = FSO.getFolder(app.mappath(parent));
       folder.subFolders.add(pathLib.basename(path));
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         if (opts.deep) {
           fs.createDir(parent, opts);
@@ -118,7 +121,7 @@ define('fs', function(require, fs) {
     opts = opts || {};
     try {
       FSO.deleteFolder(app.mappath(path), true);
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         if (opts.ifExists) return;
         throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
@@ -134,7 +137,7 @@ define('fs', function(require, fs) {
   fs.moveDir = function(src, dest) {
     try {
       var fso = FSO.getFolder(app.mappath(src));
-    } catch(e) {
+    } catch (e) {
       if (isNotFound(e)) {
         throw Object.assign(new Error(ENOENT(src)), {code: 'ENOENT'});
       }
@@ -150,7 +153,7 @@ define('fs', function(require, fs) {
     }
     try {
       fso.move(app.mappath(dest));
-    } catch(e) {
+    } catch (e) {
       throw new Error('Error moving file ' + src + ' to ' + dest + '\n' + e.message);
     }
   };
@@ -228,7 +231,7 @@ define('fs', function(require, fs) {
     stream.open();
     try {
       stream.loadFromFile(app.mappath(file));
-    } catch(e) {
+    } catch (e) {
       if (e.message.match(/could not be opened/i)) {
         throw Object.assign(new Error(ENOENT(file)), {code: 'ENOENT'});
       }
@@ -284,7 +287,7 @@ define('fs', function(require, fs) {
     this.setEncoding(opts.encoding);
     try {
       stream.loadFromFile(app.mappath(file));
-    } catch(e) {
+    } catch (e) {
       if (e.message.match(/could not be opened/i)) {
         throw Object.assign(new Error(ENOENT(file)), {code: 'ENOENT'});
       }
@@ -325,7 +328,7 @@ define('fs', function(require, fs) {
     var mode = (opts.append) ? 8 : 2;
     try {
       this._stream = FSO.openTextFile(app.mappath(file), mode, -1, 0);
-    } catch(e) {
+    } catch (e) {
       //todo: e.message.match(/Permission denied/)
       throw new Error('Unable to open file: ' + file + '\n' + e.message);
     }
@@ -354,7 +357,7 @@ define('fs', function(require, fs) {
     path = app.mappath(path);
     try {
       return FSO.getFile(path);
-    } catch(e) {
+    } catch (e) {
       throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
     }
   }
@@ -363,10 +366,10 @@ define('fs', function(require, fs) {
     path = app.mappath(path);
     try {
       return FSO.getFile(path);
-    } catch(e1) {
+    } catch (e1) {
       try {
         return FSO.getFolder(path);
-      } catch(e2) {
+      } catch (e2) {
         throw Object.assign(new Error(ENOENT(path)), {code: 'ENOENT'});
       }
     }
@@ -376,7 +379,7 @@ define('fs', function(require, fs) {
     path = app.mappath(path);
     try {
       var fso = FSO.getFile(path);
-    } catch(e) {}
+    } catch (e) {}
     return (fso) ? true : false;
   }
 
@@ -384,7 +387,7 @@ define('fs', function(require, fs) {
     path = app.mappath(path);
     try {
       var fso = FSO.getFolder(path);
-    } catch(e) {}
+    } catch (e) {}
     return (fso) ? true : false;
   }
 

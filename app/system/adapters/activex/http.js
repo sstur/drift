@@ -1,6 +1,7 @@
-/*global app, define */
+/*global app, define, ActiveXObject */
+/* eslint-disable one-var */
 define('http', function(require, exports) {
-  "use strict";
+  'use strict';
 
   var qs = require('qs');
   var url = require('url');
@@ -72,7 +73,7 @@ define('http', function(require, exports) {
     });
     try {
       xhr.send(this.body || null);
-    } catch(e) {
+    } catch (e) {
       throw new Error('Error Requesting: ' + this.path + '; Error: ' + e.message);
     }
 
@@ -80,7 +81,7 @@ define('http', function(require, exports) {
   };
 
   ClientRequest.prototype._handleResponse = function(xhr) {
-    var redirectCodes = {'301': 1, '302': 1, '303': 1, '307': 1};
+    var redirectCodes = {'301': 1, '302': 1, '303': 1, '307': 1}; // eslint-disable-line quote-props
     var res = new ClientResponse(xhr);
     var maxRedirects = this.maxRedirects || 0;
     if (!maxRedirects || this.requestCount >= maxRedirects) {

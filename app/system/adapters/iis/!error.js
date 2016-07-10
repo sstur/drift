@@ -1,5 +1,7 @@
+/* global ActiveXObject, Request, Response, Server */
+/* eslint-disable one-var */
 (function(req, res, server, offsets, map, config) {
-  "use strict";
+  'use strict';
 
   var err = getErrDetails();
   var date = new Date();
@@ -26,7 +28,7 @@
       type: error.category.replace(/(\w+ )?(\w+)Script/i, 'Script'),
       line: error.line,
       message: error.description || error.message,
-      code: error.number>>16 & 0x1FFF,
+      code: error.number >> 16 & 0x1FFF,
       number: error.number & 0xFFFF,
       referer: getItem('HTTP-Referer'),
       userAgent: getItem('HTTP-User-Agent')
@@ -95,7 +97,7 @@
     try {
       //use a try/catch here because we might not have access to certain parameters
       val = req.serverVariables(key).item() || req.serverVariables('HTTP_' + key).item();
-    } catch(e) {}
+    } catch (e) {}
     return val || '';
   }
 

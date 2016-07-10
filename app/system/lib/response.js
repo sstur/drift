@@ -1,6 +1,7 @@
 /*global app, define */
+/* eslint-disable consistent-this */
 define('response', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
   var util = require('util');

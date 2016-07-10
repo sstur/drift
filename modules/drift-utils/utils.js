@@ -41,7 +41,7 @@ var utils = {
   readJSON: function(path) {
     try {
       var result = fs.readFileSync(path, 'utf8');
-    } catch(e) {}
+    } catch (e) {}
     return JSON.parse(result || '{}');
   },
 

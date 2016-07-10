@@ -4,7 +4,7 @@ var mkdirp = require('mkdirp');
 var rimraf = require('rimraf'); //recursive rmdir
 
 adapter.define('fs', function(require, fs) {
-  "use strict";
+  'use strict';
 
   var path = require('path');
 
@@ -217,7 +217,7 @@ adapter.define('fs', function(require, fs) {
         callback();
       }.bind(this));
     },
-    readBytes_: function(bytes, callback) {
+    readBytes_: function(bytes, callback) { // eslint-disable-line no-unused-vars
       throw new Error('Not implemented: readStream.readBytes()');
     },
     read_: function(callback) {
@@ -237,7 +237,7 @@ adapter.define('fs', function(require, fs) {
       //drain the bytes in the buffer (resets readable flag)
       var drain = function() {
         var chunk;
-        while (null !== (chunk = stream.read())) {
+        while (null !== (chunk = stream.read())) { // eslint-disable-line yoda
           self.emit('data', chunk);
         }
       };
@@ -302,7 +302,7 @@ adapter.define('fs', function(require, fs) {
       var info = fileInfo(basename(path), stat);
       if (deep && info.type === 'directory') {
         var fullPath = join(path, info.name);
-        getChildrenInfo(fullPath, deep, function(err, children) {
+        getChildrenInfo(fullPath, deep, function(err, children) { // eslint-disable-line handle-callback-err
           info.children = children;
           children.forEach(function(childInfo) {
             info.size += childInfo.size;
@@ -316,7 +316,7 @@ adapter.define('fs', function(require, fs) {
   }
 
   function getChildrenInfo(path, deep, callback) {
-    _fs.readdir(path, function(err, names) {
+    _fs.readdir(path, function(err, names) { // eslint-disable-line handle-callback-err
       var files = [];
       var directories = [];
       var errors = [];
@@ -351,7 +351,7 @@ adapter.define('fs', function(require, fs) {
         list.forEach(function(childInfo, done) {
           if (childInfo.type !== 'directory') return done();
           var fullPath = join(path, childInfo.name);
-          getChildrenInfo(fullPath, deep, function(err, children) {
+          getChildrenInfo(fullPath, deep, function(err, children) { // eslint-disable-line handle-callback-err
             childInfo.children = children;
           });
         });
@@ -491,7 +491,7 @@ adapter.define('fs', function(require, fs) {
           done();
         }
       }
-    }.bind(this);
+    };
     list.forEach(function(item) {
       fn(item, callback);
     });

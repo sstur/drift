@@ -1,6 +1,7 @@
 /*global app, define */
+/* eslint-disable one-var */
 define('url', function(require, exports) {
-  "use strict";
+  'use strict';
 
   exports.parse = function(url) {
     var parts = url.match(/^ *((https?):\/\/)?([^:\/]+)(:([0-9]+))?([^\?]*)(\?.*)?$/);

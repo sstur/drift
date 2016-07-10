@@ -1,9 +1,7 @@
 /** @es6 */
 /*global app */
-app.on('ready', (require) => {
-  "use strict";
-
-  var util = require('util');
+app.on('ready', () => {
+  'use strict';
 
   app.route('/', (req, res) => {
     res.end('Hello World');

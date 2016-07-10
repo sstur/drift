@@ -1,6 +1,7 @@
 /*global app, define */
+/* eslint-disable one-var */
 define('inspector', function(require, exports) {
-  "use strict";
+  'use strict';
 
   /**
    * Echos the value of a value. Tries to print the value out
@@ -18,7 +19,7 @@ define('inspector', function(require, exports) {
   }
 
 
-  function stylizeNoColor(str, styleType) {
+  function stylizeNoColor(str, styleType) { // eslint-disable-line no-unused-vars
     return str;
   }
 
@@ -176,7 +177,7 @@ define('inspector', function(require, exports) {
 
 
   function formatProperty(ctx, value, recurseTimes, keys, key, array) {
-    var desc = { value: value[key] };
+    var desc = {value: value[key]};
     if (keys.indexOf(key) < 0) {
       var name = '[' + key + ']';
     }
@@ -222,11 +223,8 @@ define('inspector', function(require, exports) {
 
 
   function reduceToSingleString(output, base, braces) {
-    var numLinesEst = 0;
     var length = 0;
     output.forEach(function(str) {
-      numLinesEst++;
-      if (str.indexOf('\n') >= 0) numLinesEst++;
       length += str.length + 1;
     });
 

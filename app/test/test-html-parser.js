@@ -1,6 +1,6 @@
 /*global app, define */
-app.on('ready', function(require) {
-  "use strict";
+app.on('ready', function() {
+  'use strict';
 
 //  var Parser = require('html-parser');
 //  var expect = require('expect');

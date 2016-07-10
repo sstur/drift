@@ -1,7 +1,8 @@
 /*global app, define */
 /*jshint -W040 */
+/* eslint-disable one-var, quote-props, camelcase, consistent-this, no-void, brace-style */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var NATIVE = /\[(native code)\]/;
   if (String(Object.create).match(NATIVE)) {
@@ -15,14 +16,14 @@ app.on('ready', function(require) {
   function createArrayLikeFromArray(arr) {
     var o = {};
     Array.prototype.forEach.call(arr, function(e, i) {
-      o[i]=e;
+      o[i] = e;
     });
     o.length = arr.length;
     return o;
   }
 
   function beforeEach(old_it, do_before) {
-    return function it(name, fn) {
+    return function it() {
       do_before.call(this);
       return old_it.apply(this, arguments);
     };
@@ -36,7 +37,7 @@ app.on('ready', function(require) {
     },
 
     'Date.now': function(it) {
-      it('should be the current time', function () {
+      it('should be the current time', function() {
         expect(Date.now() === new Date().getTime()).to.be(true);
       });
     },
@@ -44,7 +45,7 @@ app.on('ready', function(require) {
     'Date.parse': function(it) {
       // TODO: Write the rest of the test.
 
-      it('should support extended years', function () {
+      it('should support extended years', function() {
 
         expect(Date.parse('0001-01-01T00:00:00Z')).to.be(-62135596800000);
         expect(Date.parse('+275760-09-13T00:00:00.000Z')).to.be(8.64e15);
@@ -54,54 +55,54 @@ app.on('ready', function(require) {
 
       });
 
-      it('should work', function () {
+      it('should work', function() {
         //Chrome 19     Opera 12      Firefox 11    IE 9          Safari 5.1.1
-        expect(Date.parse("2012-11-31T23:59:59.000Z")).to.not.be.ok();           //1354406399000 NaN           NaN           1354406399000 NaN
-        expect(Date.parse("2012-12-31T23:59:59.000Z")).to.be(1356998399000);   //1356998399000 1356998399000 1356998399000 1356998399000 1356998399000
-        expect(Date.parse("2012-12-31T23:59:60.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           1356998400000
-        expect(Date.parse("2012-04-04T05:02:02.170Z")).to.be(1333515722170);   //1333515722170 1333515722170 1333515722170 1333515722170 1333515722170
+        expect(Date.parse('2012-11-31T23:59:59.000Z')).to.not.be.ok();           //1354406399000 NaN           NaN           1354406399000 NaN
+        expect(Date.parse('2012-12-31T23:59:59.000Z')).to.be(1356998399000);   //1356998399000 1356998399000 1356998399000 1356998399000 1356998399000
+        expect(Date.parse('2012-12-31T23:59:60.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           1356998400000
+        expect(Date.parse('2012-04-04T05:02:02.170Z')).to.be(1333515722170);   //1333515722170 1333515722170 1333515722170 1333515722170 1333515722170
 //        expect(Date.parse("2012-04-04T05:02:02.170999Z")).to.be(1333515722170);   //1333515722170 1333515722170 1333515722170 1333515722170 1333515722170
 //        expect(Date.parse("2012-04-04T05:02:02.17Z")).to.be(1333515722170);    //1333515722170 1333515722170 1333515722170 1333515722170 1333515722170
 //        expect(Date.parse("2012-04-04T05:02:02.1Z")).to.be(1333515722100);     //1333515722170 1333515722170 1333515722170 1333515722170 1333515722170
-        expect(Date.parse("2012-04-04T24:00:00.000Z")).to.be(1333584000000);   //NaN           1333584000000 1333584000000 1333584000000 1333584000000
-        expect(Date.parse("2012-04-04T24:00:00.500Z")).to.not.be.ok();           //NaN           NaN           1333584000500 1333584000500 NaN
-        expect(Date.parse("2012-12-31T10:08:60.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           1356948540000
-        expect(Date.parse("2012-13-01T12:00:00.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
-        expect(Date.parse("2012-12-32T12:00:00.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
-        expect(Date.parse("2012-12-31T25:00:00.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
-        expect(Date.parse("2012-12-31T24:01:00.000Z")).to.not.be.ok();           //NaN           NaN           NaN           1356998460000 NaN
-        expect(Date.parse("2012-12-31T12:60:00.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
-        expect(Date.parse("2012-12-31T12:00:60.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           1356955260000
-        expect(Date.parse("2012-00-31T23:59:59.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
-        expect(Date.parse("2012-12-00T23:59:59.000Z")).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
-        expect(Date.parse("2012-02-29T12:00:00.000Z")).to.be(1330516800000);   //1330516800000 1330516800000 1330516800000 1330516800000 1330516800000
-        expect(Date.parse("2011-02-29T12:00:00.000Z")).to.not.be.ok();           //1298980800000 NaN           NaN           1298980800000 NaN
-        expect(Date.parse("2011-03-01T12:00:00.000Z")).to.be(1298980800000);   //1298980800000 1298980800000 1298980800000 1298980800000 1298980800000
+        expect(Date.parse('2012-04-04T24:00:00.000Z')).to.be(1333584000000);   //NaN           1333584000000 1333584000000 1333584000000 1333584000000
+        expect(Date.parse('2012-04-04T24:00:00.500Z')).to.not.be.ok();           //NaN           NaN           1333584000500 1333584000500 NaN
+        expect(Date.parse('2012-12-31T10:08:60.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           1356948540000
+        expect(Date.parse('2012-13-01T12:00:00.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
+        expect(Date.parse('2012-12-32T12:00:00.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
+        expect(Date.parse('2012-12-31T25:00:00.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
+        expect(Date.parse('2012-12-31T24:01:00.000Z')).to.not.be.ok();           //NaN           NaN           NaN           1356998460000 NaN
+        expect(Date.parse('2012-12-31T12:60:00.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
+        expect(Date.parse('2012-12-31T12:00:60.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           1356955260000
+        expect(Date.parse('2012-00-31T23:59:59.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
+        expect(Date.parse('2012-12-00T23:59:59.000Z')).to.not.be.ok();           //NaN           NaN           NaN           NaN           NaN
+        expect(Date.parse('2012-02-29T12:00:00.000Z')).to.be(1330516800000);   //1330516800000 1330516800000 1330516800000 1330516800000 1330516800000
+        expect(Date.parse('2011-02-29T12:00:00.000Z')).to.not.be.ok();           //1298980800000 NaN           NaN           1298980800000 NaN
+        expect(Date.parse('2011-03-01T12:00:00.000Z')).to.be(1298980800000);   //1298980800000 1298980800000 1298980800000 1298980800000 1298980800000
 
         // extended years:
-        expect(Date.parse("0000-01-01T00:00:00.000Z")).to.be(-621672192e5);    //-621672192e5  -621672192e5  -621672192e5  -621672192e5  -621672192e5
-        expect(Date.parse("+275760-09-13T00:00:00.000Z")).to.be(8.64e15);      //8.64e15       NaN           8.64e15       8.64e15       8.64e15
-        expect(Date.parse("-271821-04-20T00:00:00.000Z")).to.be(-8.64e15);     //-8.64e15      NaN           -8.64e15      -8.64e15      -8.6400000864e15
-        expect(Date.parse("+275760-09-13T00:00:00.001Z")).to.not.be.ok();        //NaN           NaN           NaN           8.64e15 + 1   8.64e15 + 1
-        expect(Date.parse("-271821-04-19T23:59:59.999Z")).to.not.be.ok();        //NaN           NaN           NaN           -8.64e15 - 1  -8.6400000864e15 - 1
+        expect(Date.parse('0000-01-01T00:00:00.000Z')).to.be(-621672192e5);    //-621672192e5  -621672192e5  -621672192e5  -621672192e5  -621672192e5
+        expect(Date.parse('+275760-09-13T00:00:00.000Z')).to.be(8.64e15);      //8.64e15       NaN           8.64e15       8.64e15       8.64e15
+        expect(Date.parse('-271821-04-20T00:00:00.000Z')).to.be(-8.64e15);     //-8.64e15      NaN           -8.64e15      -8.64e15      -8.6400000864e15
+        expect(Date.parse('+275760-09-13T00:00:00.001Z')).to.not.be.ok();        //NaN           NaN           NaN           8.64e15 + 1   8.64e15 + 1
+        expect(Date.parse('-271821-04-19T23:59:59.999Z')).to.not.be.ok();        //NaN           NaN           NaN           -8.64e15 - 1  -8.6400000864e15 - 1
 
         // https://github.com/kriskowal/es5-shim/issues/80 Safari bug with leap day
-        expect(Date.parse("2034-03-01T00:00:00.000Z") -
-            Date.parse("2034-02-27T23:59:59.999Z")).to.be(86400001);   //86400001      86400001       86400001       86400001      1
+        expect(Date.parse('2034-03-01T00:00:00.000Z') -
+            Date.parse('2034-02-27T23:59:59.999Z')).to.be(86400001);   //86400001      86400001       86400001       86400001      1
 
         // Time Zone Offset
-        expect(Date.parse("2012-01-29T12:00:00.000+01:00")).to.be(132783480e4);//132783480e4 132783480e4  132783480e4  132783480e4     132783480e4
-        expect(Date.parse("2012-01-29T12:00:00.000-00:00")).to.be(132783840e4);//132783840e4 132783840e4  132783840e4  132783840e4     132783840e4
-        expect(Date.parse("2012-01-29T12:00:00.000+00:00")).to.be(132783840e4);//132783840e4 132783840e4  132783840e4  132783840e4     132783840e4
-        expect(Date.parse("2012-01-29T12:00:00.000+23:59")).to.be(132775206e4);//132775206e4 132775206e4  132775206e4  132775206e4     132775206e4
-        expect(Date.parse("2012-01-29T12:00:00.000-23:59")).to.be(132792474e4);//132792474e4 132792474e4  132792474e4  132792474e4     132792474e4
-        expect(Date.parse("2012-01-29T12:00:00.000+24:00")).to.not.be.ok();      //NaN         1327752e6    NaN          1327752000000   1327752000000
-        expect(Date.parse("2012-01-29T12:00:00.000+24:01")).to.not.be.ok();      //NaN         NaN          NaN          1327751940000   1327751940000
-        expect(Date.parse("2012-01-29T12:00:00.000+24:59")).to.not.be.ok();      //NaN         NaN          NaN          1327748460000   1327748460000
-        expect(Date.parse("2012-01-29T12:00:00.000+25:00")).to.not.be.ok();      //NaN         NaN          NaN          NaN             NaN
-        expect(Date.parse("2012-01-29T12:00:00.000+00:60")).to.not.be.ok();      //NaN         NaN          NaN          NaN             NaN
-        expect(Date.parse("-271821-04-20T00:00:00.000+00:01")).to.not.be.ok();   //NaN         NaN          NaN          -864000000006e4 -864000008646e4
-        expect(Date.parse("-271821-04-20T00:01:00.000+00:01")).to.be(-8.64e15);//-8.64e15    NaN          -8.64e15     -8.64e15        -864000008640e4
+        expect(Date.parse('2012-01-29T12:00:00.000+01:00')).to.be(132783480e4);//132783480e4 132783480e4  132783480e4  132783480e4     132783480e4
+        expect(Date.parse('2012-01-29T12:00:00.000-00:00')).to.be(132783840e4);//132783840e4 132783840e4  132783840e4  132783840e4     132783840e4
+        expect(Date.parse('2012-01-29T12:00:00.000+00:00')).to.be(132783840e4);//132783840e4 132783840e4  132783840e4  132783840e4     132783840e4
+        expect(Date.parse('2012-01-29T12:00:00.000+23:59')).to.be(132775206e4);//132775206e4 132775206e4  132775206e4  132775206e4     132775206e4
+        expect(Date.parse('2012-01-29T12:00:00.000-23:59')).to.be(132792474e4);//132792474e4 132792474e4  132792474e4  132792474e4     132792474e4
+        expect(Date.parse('2012-01-29T12:00:00.000+24:00')).to.not.be.ok();      //NaN         1327752e6    NaN          1327752000000   1327752000000
+        expect(Date.parse('2012-01-29T12:00:00.000+24:01')).to.not.be.ok();      //NaN         NaN          NaN          1327751940000   1327751940000
+        expect(Date.parse('2012-01-29T12:00:00.000+24:59')).to.not.be.ok();      //NaN         NaN          NaN          1327748460000   1327748460000
+        expect(Date.parse('2012-01-29T12:00:00.000+25:00')).to.not.be.ok();      //NaN         NaN          NaN          NaN             NaN
+        expect(Date.parse('2012-01-29T12:00:00.000+00:60')).to.not.be.ok();      //NaN         NaN          NaN          NaN             NaN
+        expect(Date.parse('-271821-04-20T00:00:00.000+00:01')).to.not.be.ok();   //NaN         NaN          NaN          -864000000006e4 -864000008646e4
+        expect(Date.parse('-271821-04-20T00:01:00.000+00:01')).to.be(-8.64e15);//-8.64e15    NaN          -8.64e15     -8.64e15        -864000008640e4
 
         // When time zone is missed, local offset should be used (ES 5.1 bug)
         // see https://bugs.ecmascript.org/show_bug.cgi?id=112
@@ -110,7 +111,7 @@ app.on('ready', function(require) {
         expect(Date.parse('1970-01-01T00:00:00')).to.be(tzOffset);             //tzOffset    0            0            0               NaN
       });
 
-      it("should be able to coerce to a number", function() {
+      it('should be able to coerce to a number', function() {
         var actual = Number(new Date(1970, 0));
         var expected = parseInt(actual, 10);
         expect(isFinite(actual)).to.be(true);
@@ -124,7 +125,7 @@ app.on('ready', function(require) {
       it = beforeEach(it, function() {
         actual = (new Date(1970, 0)).toString();
       });
-      it("should show correct date info for " + actual, function() {
+      it('should show correct date info for ' + actual, function() {
         expect(actual).to.match(/1970/);
         expect(actual).to.match(/jan/i);
         expect(actual).to.match(/thu/i);
@@ -139,24 +140,24 @@ app.on('ready', function(require) {
       it = beforeEach(it, function() {
         actual = (new Date(1970, 0)).valueOf();
       });
-      it("should give a numeric value", function() {
-        expect(actual).to.be.a("number");
+      it('should give a numeric value', function() {
+        expect(actual).to.be.a('number');
       });
-      it("should not be NaN", function() {
+      it('should not be NaN', function() {
         expect(isNaN(actual)).to.be(false);
       });
-      it("should give an int value", function() {
+      it('should give an int value', function() {
         expect(actual).to.be(Math.floor(actual));
       });
     },
 
     'Date toISOString': function(it) {
-      it('should support extended years', function () {
+      it('should support extended years', function() {
         expect(new Date(-62198755200000).toISOString().indexOf('-000001-01-01')).to.be(0);
         expect(new Date(8.64e15).toISOString().indexOf('+275760-09-13')).to.be(0);
       });
 
-      it('should return correct dates', function () {
+      it('should return correct dates', function() {
         expect(new Date(-1).toISOString()).to.be('1969-12-31T23:59:59.999Z');// Safari 5.1.5 "1969-12-31T23:59:59.-01Z"
         expect(new Date(-3509827334573292).toISOString()).to.be('-109252-01-01T10:37:06.708Z'); // Opera 11.61/Opera 12 bug with Date#getUTCMonth
       });
@@ -164,24 +165,24 @@ app.on('ready', function(require) {
 
     'Date toJSON': function(it) {
       // Opera 11.6x/12 bug
-      it('should call toISOString', function () {
+      it('should call toISOString', function() {
         var date = new Date(0);
-        date.toISOString = function () {
+        date.toISOString = function() {
           return 1;
         };
         expect(date.toJSON()).to.be(1);
       });
 
-      it('should return null for not finite dates', function () {
+      it('should return null for not finite dates', function() {
         var date = new Date(NaN),
-            json;
+          json;
         try {
           json = date.toJSON();
         } catch (e) {}
         expect(json).to.be(null);
       });
 
-      it('should return the isoString when stringified', function () {
+      it('should return the isoString when stringified', function() {
         var date = new Date();
         expect(JSON.stringify(date.toISOString())).to.be(JSON.stringify(date));
       });
@@ -221,21 +222,21 @@ app.on('ready', function(require) {
         testSubject.func = function() {
           a = Array.from(arguments);
           context = this;
-        }.bind(undef, 1,2,3);
-        testSubject.func(1,2,3);
-        expect(a).to.eql([1,2,3,1,2,3]);
+        }.bind(undef, 1, 2, 3);
+        testSubject.func(1, 2, 3);
+        expect(a).to.eql([1, 2, 3, 1, 2, 3]);
         expect(context).to.be(function() {return this;}.call());
       });
       it('binds a context properly', function() {
         testSubject.func = func.bind(actual);
-        testSubject.func(1,2,3);
-        expect(actual).to.eql([1,2,3]);
+        testSubject.func(1, 2, 3);
+        expect(actual).to.eql([1, 2, 3]);
         expect(testSubject.a).to.eql([]);
       });
       it('binds a context and supplies bound arguments', function() {
-        testSubject.func = func.bind(actual, 1,2,3);
-        testSubject.func(4,5,6);
-        expect(actual).to.eql([1,2,3,4,5,6]);
+        testSubject.func = func.bind(actual, 1, 2, 3);
+        testSubject.func(4, 5, 6);
+        expect(actual).to.eql([1, 2, 3, 4, 5, 6]);
         expect(testSubject.a).to.eql([]);
       });
 
@@ -251,46 +252,46 @@ app.on('ready', function(require) {
         testSubject.func = function() {
           context = this;
           return Array.from(arguments);
-        }.bind(undef, 1,2,3);
-        actual = testSubject.func(1,2,3);
+        }.bind(undef, 1, 2, 3);
+        actual = testSubject.func(1, 2, 3);
         expect(context).to.be(function() {return this;}.call());
-        expect(actual).to.eql([1,2,3,1,2,3]);
+        expect(actual).to.eql([1, 2, 3, 1, 2, 3]);
       });
       it('returns properly while binding a context properly', function() {
         var ret;
         testSubject.func = func.bind(actual);
-        ret = testSubject.func(1,2,3);
+        ret = testSubject.func(1, 2, 3);
         expect(ret).to.be(actual);
         expect(ret).not.to.be(testSubject);
       });
       it('returns properly while binding a context and supplies bound arguments', function() {
         var ret;
-        testSubject.func = func.bind(actual, 1,2,3);
-        ret = testSubject.func(4,5,6);
+        testSubject.func = func.bind(actual, 1, 2, 3);
+        ret = testSubject.func(4, 5, 6);
         expect(ret).to.be(actual);
         expect(ret).not.to.be(testSubject);
       });
       it('passes the correct arguments as a constructor', function() {
-        var ret, expected = { name: "Correct" };
+        var ret, expected = {name: 'Correct'};
         testSubject.func = function(arg) {
           return arg;
-        }.bind({ name: "Incorrect" });
+        }.bind({name: 'Incorrect'}); // eslint-disable-line no-extra-bind
         ret = new testSubject.func(expected);
         expect(ret).to.be(expected);
       });
-      it('returns the return value of the bound function when called as a constructor', function () {
+      it('returns the return value of the bound function when called as a constructor', function() {
         var oracle = [1, 2, 3];
-        var Subject = function () {
+        var Subject = function() {
           return oracle;
-        }.bind(null);
+        }.bind(null); // eslint-disable-line no-extra-bind
         var result = new Subject();
         expect(result).to.be(oracle);
       });
       it('returns the correct value if constructor returns primitive', function() {
         var oracle = [1, 2, 3];
-        var Subject = function () {
+        var Subject = function() {
           return oracle;
-        }.bind(null);
+        }.bind(null); // eslint-disable-line no-extra-bind
         var result = new Subject();
         expect(result).to.be(oracle);
 
@@ -302,7 +303,7 @@ app.on('ready', function(require) {
         result = new Subject();
         expect(result).to.be(oracle);
 
-        oracle = "asdf";
+        oracle = 'asdf';
         result = new Subject();
         expect(result).not.to.be(oracle);
 
@@ -320,9 +321,9 @@ app.on('ready', function(require) {
       });
       it('returns the value that instance of original "class" when called as a constructor', function() {
         var ClassA = function(x) {
-          this.name = x || "A";
+          this.name = x || 'A';
         };
-        var ClassB = ClassA.bind(null, "B");
+        var ClassB = ClassA.bind(null, 'B');
 
         var result = new ClassB();
         expect(result instanceof ClassA).to.be(true);
@@ -331,7 +332,7 @@ app.on('ready', function(require) {
     },
 
     'Number toFixed': function(it) {
-      it('should convert numbers correctly', function () {
+      it('should convert numbers correctly', function() {
 //        expect((0.00008).toFixed(3)).to.be('0.000');
 //        expect((0.9).toFixed(0)).to.be('1');
 //        expect((1.255).toFixed(2)).to.be('1.25');
@@ -342,45 +343,45 @@ app.on('ready', function(require) {
 
     'Object.keys': function(it) {
       var obj = {
-        "str": "boz",
-        "obj": { },
-        "arr": [],
-        "bool": true,
-        "num": 42,
-        "null": null,
-        "undefined": undef
+        'str': 'boz',
+        'obj': { },
+        'arr': [],
+        'bool': true,
+        'num': 42,
+        'null': null,
+        'undefined': undef
       };
 
       var loopedValues = [];
-      for (var k in obj) {
+      for (var k in obj) { // eslint-disable-line guard-for-in
         loopedValues.push(k);
       }
 
       var keys = Object.keys(obj);
-      it('should have correct length', function () {
+      it('should have correct length', function() {
         expect(keys.length).to.be(7);
       });
 
-      it('should return an Array', function () {
+      it('should return an Array', function() {
         expect(Array.isArray(keys)).to.be(true);
       });
 
-      it('should return names which are own properties', function () {
-        keys.forEach(function (name) {
+      it('should return names which are own properties', function() {
+        keys.forEach(function(name) {
           expect(obj.hasOwnProperty(name)).to.be(true);
         });
       });
 
-      it('should return names which are enumerable', function () {
-        keys.forEach(function (name) {
+      it('should return names which are enumerable', function() {
+        keys.forEach(function(name) {
           expect(loopedValues.indexOf(name)).to.not.be(-1);
         });
       });
 
-      it('should throw error for non object', function () {
+      it('should throw error for non object', function() {
         var e = {};
         //todo
-        expect(function () {
+        expect(function() {
           try {
             Object.keys(42);
           } catch (err) {
@@ -393,7 +394,7 @@ app.on('ready', function(require) {
     'Object.isExtensible': function(it) {
       var obj = { };
 
-      it('should return true if object is extensible', function () {
+      it('should return true if object is extensible', function() {
         expect(Object.isExtensible(obj)).to.be(true);
       });
 
@@ -409,10 +410,10 @@ app.on('ready', function(require) {
 //        expect(Object.isExtensible(Object.freeze(obj))).to.be(false);
 //      });
 
-      it('should throw error for non object', function () {
+      it('should throw error for non object', function() {
         var e1 = {};
         //todo
-        expect(function () {
+        expect(function() {
           try {
             Object.isExtensible(42);
           } catch (err) {
@@ -429,56 +430,56 @@ app.on('ready', function(require) {
         obj = {};
 
         Object.defineProperty(obj, 'name', {
-          value : 'Testing',
+          value: 'Testing',
           configurable: true,
           enumerable: true,
           writable: true
         });
       });
 
-      it('should return the initial value', function () {
+      it('should return the initial value', function() {
         expect(obj.hasOwnProperty('name')).to.be.ok();
         expect(obj.name).to.be('Testing');
       });
 
-      it('should be setable', function () {
+      it('should be setable', function() {
         obj.name = 'Other';
         expect(obj.name).to.be('Other');
       });
 
-      it('should return the parent initial value', function () {
+      it('should return the parent initial value', function() {
         var child = Object.create(obj, {});
 
         expect(child.name).to.be('Testing');
         expect(child.hasOwnProperty('name')).to.not.be.ok();
       });
 
-      it('should not override the parent value', function () {
+      it('should not override the parent value', function() {
         var child = Object.create(obj, {});
 
         Object.defineProperty(child, 'name', {
-          value : 'Other'
+          value: 'Other'
         });
 
         expect(obj.name).to.be('Testing');
         expect(child.name).to.be('Other');
       });
 
-      it('should throw error for non object', function () {
-        expect(function () {
+      it('should throw error for non object', function() {
+        expect(function() {
           Object.defineProperty(42, 'name', {});
         }).to.throwError();
       });
     },
 
     'Object.getOwnPropertyDescriptor': function(it) {
-      it('should return undefined because the object does not own the property', function () {
+      it('should return undefined because the object does not own the property', function() {
         var descr = Object.getOwnPropertyDescriptor({}, 'name');
 
         expect(descr).to.be.a('undefined');
       });
 
-      it('should return a data descriptor', function () {
+      it('should return a data descriptor', function() {
         var descr = Object.getOwnPropertyDescriptor({name: 'Testing'}, 'name');
 
         expect(descr).to.not.be.a('undefined');
@@ -488,16 +489,16 @@ app.on('ready', function(require) {
         expect(descr.configurable).to.be(true);
       });
 
-      it('should return undefined because the object does not own the property', function () {
+      it('should return undefined because the object does not own the property', function() {
         var descr = Object.getOwnPropertyDescriptor(Object.create({name: 'Testing'}, {}), 'name');
 
         expect(descr).to.be.a('undefined');
       });
 
-      it('should return a data descriptor', function () {
+      it('should return a data descriptor', function() {
         var obj = Object.create({}, {
           name: {
-            value : 'Testing',
+            value: 'Testing',
             configurable: true,
             enumerable: true,
             writable: true
@@ -513,8 +514,8 @@ app.on('ready', function(require) {
         expect(descr.configurable).to.be(true);
       });
 
-      it('should throw error for non object', function () {
-        expect(function () {
+      it('should throw error for non object', function() {
+        expect(function() {
           Object.getOwnPropertyDescriptor(42, 'name');
         }).to.throwError();
       });
@@ -536,9 +537,9 @@ app.on('ready', function(require) {
     },
 
     'String trim': function(it) {
-      var test = "\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFFHello, World!\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF";
+      var test = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFFHello, World!\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF';
       it('trims all ES5 whitespace', function() {
-        expect(test.trim()).to.be("Hello, World!");
+        expect(test.trim()).to.be('Hello, World!');
         expect(test.trim().length).to.be(13);
       });
     },
@@ -547,7 +548,7 @@ app.on('ready', function(require) {
       var expected, actual;
 
       it = beforeEach(it, function() {
-        expected = {0:2, 3:true, 4: 'hej', 5:null, 6:false, 7:0 };
+        expected = {0: 2, 3: true, 4: 'hej', 5: null, 6: false, 7: 0};
         actual = {};
       });
 //      it('should pass the right parameters', function() {
@@ -557,13 +558,13 @@ app.on('ready', function(require) {
 //        expect(callback).toHaveBeenCalledWith('1', 0, array);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = [1,2,3],
-            i = 0;
+        var arr = [1, 2, 3],
+          i = 0;
         arr.forEach(function(a) {
           i++;
-          arr.push(a+3);
+          arr.push(a + 3);
         });
-        expect(arr).to.eql([1,2,3,4,5,6]);
+        expect(arr).to.eql([1, 2, 3, 4, 5, 6]);
         expect(i).to.be(3);
       });
 
@@ -579,7 +580,7 @@ app.on('ready', function(require) {
         expect(actual).to.eql(expected);
       });
       it('should iterate all using a context', function() {
-        var o = { a: actual };
+        var o = {a: actual};
 
         testSubject.forEach(function(obj, index) {
           this.a[index] = obj;
@@ -596,7 +597,7 @@ app.on('ready', function(require) {
       });
       it('should iterate all in an array-like object using a context', function() {
         var ts = createArrayLikeFromArray(testSubject),
-            o = { a: actual };
+          o = {a: actual};
 
         Array.prototype.forEach.call(ts, function(obj, index) {
           this.a[index] = obj;
@@ -607,7 +608,7 @@ app.on('ready', function(require) {
       //strings
       (function() {
         var str = 'Hello, World!',
-            toString = Object.prototype.toString;
+          toString = Object.prototype.toString;
         it('should iterate all in a string', function() {
           actual = [];
           Array.prototype.forEach.call(str, function(item, index) {
@@ -617,7 +618,7 @@ app.on('ready', function(require) {
         });
         it('should iterate all in a string using a context', function() {
           actual = [];
-          var o = { a: actual };
+          var o = {a: actual};
           Array.prototype.forEach.call(str, function(item, index) {
             this.a[index] = item;
           }, o);
@@ -627,8 +628,8 @@ app.on('ready', function(require) {
           Array.prototype.forEach.call(str, function(item, index, obj) {
             actual = obj;
           });
-          expect(typeof actual).to.be("object");
-          expect(toString.call(actual)).to.be("[object String]");
+          expect(typeof actual).to.be('object');
+          expect(toString.call(actual)).to.be('[object String]');
         });
       }).call(this);
     },
@@ -637,7 +638,7 @@ app.on('ready', function(require) {
       var actual, expected, numberOfRuns;
 
       it = beforeEach(it, function() {
-        expected = {0:2, 3:true };
+        expected = {0: 2, 3: true};
         actual = {};
         numberOfRuns = 0;
       });
@@ -649,14 +650,14 @@ app.on('ready', function(require) {
 //        expect(callback).toHaveBeenCalledWith('1', 0, array);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = [1,2,3],
-            i = 0;
+        var arr = [1, 2, 3],
+          i = 0;
         arr.some(function(a) {
           i++;
-          arr.push(a+3);
+          arr.push(a + 3);
           return i > 3;
         });
-        expect(arr).to.eql([1,2,3,4,5,6]);
+        expect(arr).to.eql([1, 2, 3, 4, 5, 6]);
         expect(i).to.be(3);
       });
       it('should set the right context when given none', function() {
@@ -690,7 +691,7 @@ app.on('ready', function(require) {
         expect(actual).to.eql(expected);
       });
       it('should stop after 2 elements using a context', function() {
-        var o = { a: actual };
+        var o = {a: actual};
         testSubject.some(function(obj, index) {
           this.a[index] = obj;
           numberOfRuns += 1;
@@ -716,7 +717,7 @@ app.on('ready', function(require) {
       });
       it('should stop after 2 elements in an array-like object using a context', function() {
         var ts = createArrayLikeFromArray(testSubject);
-        var o = { a: actual };
+        var o = {a: actual};
         Array.prototype.some.call(ts, function(obj, index) {
           this.a[index] = obj;
           numberOfRuns += 1;
@@ -733,7 +734,7 @@ app.on('ready', function(require) {
       var actual, expected, numberOfRuns;
 
       it = beforeEach(it, function() {
-        expected = {0:2, 3:true };
+        expected = {0: 2, 3: true};
         actual = {};
         numberOfRuns = 0;
       });
@@ -745,14 +746,14 @@ app.on('ready', function(require) {
 //        expect(callback).toHaveBeenCalledWith('1', 0, array);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = [1,2,3],
-            i = 0;
+        var arr = [1, 2, 3],
+          i = 0;
         arr.every(function(a) {
           i++;
-          arr.push(a+3);
+          arr.push(a + 3);
           return i <= 3;
         });
-        expect(arr).to.eql([1,2,3,4,5,6]);
+        expect(arr).to.eql([1, 2, 3, 4, 5, 6]);
         expect(i).to.be(3);
       });
       it('should set the right context when given none', function() {
@@ -769,11 +770,11 @@ app.on('ready', function(require) {
         expect(actual).to.be.ok();
       });
       it('should return true if it runs to the end', function() {
-        actual = [1,2,3].every(function() { return true; });
+        actual = [1, 2, 3].every(function() { return true; });
         expect(actual).to.be.ok();
       });
       it('should return false if it is stopped before the end', function() {
-        actual = [1,2,3].every(function() { return false; });
+        actual = [1, 2, 3].every(function() { return false; });
         expect(actual).to.not.be.ok();
       });
 
@@ -789,7 +790,7 @@ app.on('ready', function(require) {
         expect(actual).to.eql(expected);
       });
       it('should stop after 2 elements using a context', function() {
-        var o = { a: actual };
+        var o = {a: actual};
         testSubject.every(function(obj, index) {
           this.a[index] = obj;
           numberOfRuns += 1;
@@ -815,7 +816,7 @@ app.on('ready', function(require) {
       });
       it('should stop after 2 elements in an array-like object using a context', function() {
         var ts = createArrayLikeFromArray(testSubject);
-        var o = { a: actual };
+        var o = {a: actual};
         Array.prototype.every.call(ts, function(obj, index) {
           this.a[index] = obj;
           numberOfRuns += 1;
@@ -894,13 +895,13 @@ app.on('ready', function(require) {
       });
 
       var indexOf = Array.prototype.indexOf,
-          testAL;
+        testAL;
       it = beforeEach(it, function() {
         testAL = {};
         testSubject = [2, 3, undef, true, 'hej', null, 2, false, 0];
         //note: for some reason (2 in testSubject) is false
         testSubject[2] = undef;
-        testSubject.forEach(function (o,i) {
+        testSubject.forEach(function(o, i) {
           testAL[i] = o;
         });
         testAL.length = testSubject.length;
@@ -950,7 +951,7 @@ app.on('ready', function(require) {
     },
 
     'Array lastIndexOf': function(it) {
-      var actual, expected, testSubject, testAL;
+      var actual, expected, testSubject;
 
       it = beforeEach(it, function() {
         testSubject = [2, 3, undef, true, 'hej', null, 2, 3, false, 0];
@@ -1015,7 +1016,7 @@ app.on('ready', function(require) {
         delete testSubject[1];
         delete testSubject[7];
         testAL = {};
-        testSubject.forEach(function (o,i) {
+        testSubject.forEach(function(o, i) {
           testAL[i] = o;
         });
         testAL.length = testSubject.length;
@@ -1066,15 +1067,13 @@ app.on('ready', function(require) {
     },
 
     'Array filter': function(it) {
-      var filteredArray;
-      var callback = function callback(o, i, arr) {
+      var callback = function callback(o, i) {
         return (i != 3 && i != 5);
       };
 
       it = beforeEach(it, function() {
         testSubject = [2, 3, undef, true, 'hej', 3, null, false, 0];
         delete testSubject[1];
-        filteredArray = [2, undef, 'hej', null, false, 0];
       });
 //      it('should call the callback with the proper arguments', function() {
 //        var callback = createSpy('callback'),
@@ -1083,21 +1082,21 @@ app.on('ready', function(require) {
 //        expect(callback).toHaveBeenCalledWith('1', 0, arr);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = [1,2,3],
-            i = 0;
+        var arr = [1, 2, 3],
+          i = 0;
         arr.filter(function(a) {
           i++;
           if (i <= 4) {
-            arr.push(a+3);
+            arr.push(a + 3);
           }
           return true;
         });
-        expect(arr).to.eql([1,2,3,4,5,6]);
+        expect(arr).to.eql([1, 2, 3, 4, 5, 6]);
         expect(i).to.be(3);
       });
       it('should skip non-set values', function() {
         var passedValues = {};
-        testSubject = [1,2,3,4];
+        testSubject = [1, 2, 3, 4];
         delete testSubject[1];
         testSubject.filter(function(o, i) {
           passedValues[i] = o;
@@ -1107,7 +1106,7 @@ app.on('ready', function(require) {
       });
       it('should pass the right context to the filter', function() {
         var passedValues = {};
-        testSubject = [1,2,3,4];
+        testSubject = [1, 2, 3, 4];
         delete testSubject[1];
         testSubject.filter(function(o, i) {
           this[i] = o;
@@ -1130,9 +1129,9 @@ app.on('ready', function(require) {
         testSubject.filter(callback);
         expect(testSubject).to.eql(copy);
       });
-      it('should not be affected by same-index mutation', function () {
+      it('should not be affected by same-index mutation', function() {
         var results = [1, 2, 3]
-            .filter(function (value, index, array) {
+            .filter(function(value, index, array) {
               array[index] = 'a';
               return true;
             });
@@ -1141,15 +1140,13 @@ app.on('ready', function(require) {
     },
 
     'Array filter (array-like)': function(it) {
-      var filteredArray;
-      var callback = function callback(o, i, arr) {
+      var callback = function callback(o, i) {
         return (i != 3 && i != 5);
       };
 
       it = beforeEach(it, function() {
         testSubject = [2, 3, undef, true, 'hej', 3, null, false, 0];
         delete testSubject[1];
-        filteredArray = [2, undef, 'hej', null, false, 0];
         testSubject = createArrayLikeFromArray(testSubject);
       });
 
@@ -1160,22 +1157,22 @@ app.on('ready', function(require) {
 //        expect(callback).toHaveBeenCalledWith('1', 0, arr);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = createArrayLikeFromArray([1,2,3]),
-            i = 0;
+        var arr = createArrayLikeFromArray([1, 2, 3]),
+          i = 0;
         Array.prototype.filter.call(arr, function(a) {
           i++;
           if (i <= 4) {
-            arr[i+2] = a+3;
+            arr[i + 2] = a + 3;
           }
           return true;
         });
         delete arr.length;
-        expect(arr).to.eql([1,2,3,4,5,6]);
+        expect(arr).to.eql([1, 2, 3, 4, 5, 6]);
         expect(i).to.be(3);
       });
       it('should skip non-set values', function() {
         var passedValues = {};
-        testSubject = createArrayLikeFromArray([1,2,3,4]);
+        testSubject = createArrayLikeFromArray([1, 2, 3, 4]);
         delete testSubject[1];
         Array.prototype.filter.call(testSubject, function(o, i) {
           passedValues[i] = o;
@@ -1191,7 +1188,7 @@ app.on('ready', function(require) {
       });
       it('should pass the right context to the filter', function() {
         var passedValues = {};
-        testSubject = createArrayLikeFromArray([1,2,3,4]);
+        testSubject = createArrayLikeFromArray([1, 2, 3, 4]);
         delete testSubject[1];
         Array.prototype.filter.call(testSubject, function(o, i) {
           this[i] = o;
@@ -1229,7 +1226,7 @@ app.on('ready', function(require) {
 //      });
       it('should set the context correctly', function() {
         var context = {};
-        testSubject.map(function(o,i) {
+        testSubject.map(function(o, i) {
           this[i] = o;
         }, context);
         expect(context).to.eql(testSubject);
@@ -1245,14 +1242,14 @@ app.on('ready', function(require) {
         expect(testSubject).to.eql(copy);
       });
       it('should only run for the number of objects in the array when it started', function() {
-        var arr = [1,2,3],
-            i = 0;
+        var arr = [1, 2, 3],
+          i = 0;
         arr.map(function(o) {
-          arr.push(o+3);
+          arr.push(o + 3);
           i++;
           return o;
         });
-        expect(arr).to.eql([1,2,3,4,5,6]);
+        expect(arr).to.eql([1, 2, 3, 4, 5, 6]);
         expect(i).to.be(3);
       });
 //      it('should properly translate the values as according to the callback', function() {
@@ -1262,8 +1259,8 @@ app.on('ready', function(require) {
 //        expect(result).to.eql(expected);
 //      });
       it('should skip non-existing values', function() {
-        var array = [1,2,3,4],
-            i = 0;
+        var array = [1, 2, 3, 4],
+          i = 0;
         delete array[2];
         array.map(function() {
           i++;
@@ -1292,7 +1289,7 @@ app.on('ready', function(require) {
 //      });
       it('should set the context correctly', function() {
         var context = {};
-        Array.prototype.map.call(testSubject, function(o,i) {
+        Array.prototype.map.call(testSubject, function(o, i) {
           this[i] = o;
         }, context);
         delete testSubject.length;
@@ -1309,15 +1306,15 @@ app.on('ready', function(require) {
         expect(testSubject).to.eql(copy);
       });
       it('should only run for the number of objects in the array when it started', function() {
-        var arr = createArrayLikeFromArray([1,2,3]),
-            i = 0;
+        var arr = createArrayLikeFromArray([1, 2, 3]),
+          i = 0;
         Array.prototype.map.call(arr, function(o) {
-          Array.prototype.push.call(arr, o+3);
+          Array.prototype.push.call(arr, o + 3);
           i++;
           return o;
         });
         delete arr.length;
-        expect(arr).to.eql([1,2,3,4,5,6]);
+        expect(arr).to.eql([1, 2, 3, 4, 5, 6]);
         expect(i).to.be(3);
       });
 //      it('should properly translate the values as according to the callback', function() {
@@ -1327,8 +1324,8 @@ app.on('ready', function(require) {
 //        expect(result).to.eql(expected);
 //      });
       it('should skip non-existing values', function() {
-        var array = createArrayLikeFromArray([1,2,3,4]),
-            i = 0;
+        var array = createArrayLikeFromArray([1, 2, 3, 4]),
+          i = 0;
         delete array[2];
         Array.prototype.map.call(array, function() {
           i++;
@@ -1339,7 +1336,7 @@ app.on('ready', function(require) {
 
     'Array reduce': function(it) {
       it = beforeEach(it, function() {
-        testSubject = [1,2,3];
+        testSubject = [1, 2, 3];
       });
 
 //      it('should pass the correct arguments to the callback', function() {
@@ -1353,16 +1350,16 @@ app.on('ready', function(require) {
 //        expect(spy.calls[0].args).to.eql([0, 1, 0, testSubject]);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = [1,2,3],
-            i = 0;
+        var arr = [1, 2, 3],
+          i = 0;
         arr.reduce(function(a, b) {
           i++;
           if (i <= 4) {
-            arr.push(a+3);
+            arr.push(a + 3);
           }
           return b;
         });
-        expect(arr).to.eql([1,2,3,4,5]);
+        expect(arr).to.eql([1, 2, 3, 4, 5]);
         expect(i).to.be(2);
       });
 //      it('should work as expected for empty arrays', function() {
@@ -1378,21 +1375,21 @@ app.on('ready', function(require) {
         }).to.throwError();
       });
       it('should return the expected result', function() {
-        expect(testSubject.reduce(function(a,b) {
-          return (a||'').toString()+(b||'').toString();
+        expect(testSubject.reduce(function(a, b) {
+          return (a || '').toString() + (b || '').toString();
         })).to.be(testSubject.join(''));
       });
       it('should not directly affect the passed array', function() {
         var copy = testSubject.slice();
-        testSubject.reduce(function(a,b) {
-          return a+b;
+        testSubject.reduce(function(a, b) {
+          return a + b;
         });
         expect(testSubject).to.eql(copy);
       });
       it('should skip non-set values', function() {
         delete testSubject[1];
         var visited = {};
-        testSubject.reduce(function(a,b) {
+        testSubject.reduce(function(a, b) {
           if (a)
             visited[a] = true;
           if (b)
@@ -1400,7 +1397,7 @@ app.on('ready', function(require) {
           return 0;
         });
 
-        expect(visited).to.eql({ '1': true, '3': true });
+        expect(visited).to.eql({'1': true, '3': true});
       });
       it('should have the right length', function() {
         expect(testSubject.reduce.length).to.be(1);
@@ -1409,7 +1406,7 @@ app.on('ready', function(require) {
 
     'Array reduce (array-like)': function(it) {
       it = beforeEach(it, function() {
-        testSubject = [1,2,3];
+        testSubject = [1, 2, 3];
         testSubject = createArrayLikeFromArray(testSubject);
         testSubject.reduce = Array.prototype.reduce;
       });
@@ -1424,12 +1421,12 @@ app.on('ready', function(require) {
 //        expect(spy.calls[0].args).to.eql([0, 1, 0, testSubject]);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = createArrayLikeFromArray([1,2,3]),
-            i = 0;
+        var arr = createArrayLikeFromArray([1, 2, 3]),
+          i = 0;
         Array.prototype.reduce.call(arr, function(a, b) {
           i++;
           if (i <= 4) {
-            arr[i+2] = a+3;
+            arr[i + 2] = a + 3;
           }
           return b;
         });
@@ -1456,22 +1453,22 @@ app.on('ready', function(require) {
         }).to.throwError();
       });
       it('should return the expected result', function() {
-        expect(testSubject.reduce(function(a,b) {
-          return (a||'').toString()+(b||'').toString();
+        expect(testSubject.reduce(function(a, b) {
+          return (a || '').toString() + (b || '').toString();
         })).to.be('123');
       });
       it('should not directly affect the passed array', function() {
         var copy = createArrayLikeFromArray(testSubject);
-        testSubject.reduce(function(a,b) {
-          return a+b;
+        testSubject.reduce(function(a, b) {
+          return a + b;
         });
-        delete(testSubject.reduce);
+        delete (testSubject.reduce);
         expect(testSubject).to.eql(copy);
       });
       it('should skip non-set values', function() {
         delete testSubject[1];
         var visited = {};
-        testSubject.reduce(function(a,b) {
+        testSubject.reduce(function(a, b) {
           if (a)
             visited[a] = true;
           if (b)
@@ -1479,7 +1476,7 @@ app.on('ready', function(require) {
           return 0;
         });
 
-        expect(visited).to.eql({ '1': true, '3': true });
+        expect(visited).to.eql({'1': true, '3': true});
       });
       it('should have the right length', function() {
         expect(testSubject.reduce.length).to.be(1);
@@ -1488,7 +1485,7 @@ app.on('ready', function(require) {
 
     'Array reduceRight': function(it) {
       it = beforeEach(it, function() {
-        testSubject = [1,2,3];
+        testSubject = [1, 2, 3];
       });
 
 //      it('should pass the correct arguments to the callback', function() {
@@ -1502,16 +1499,16 @@ app.on('ready', function(require) {
 //        expect(spy.calls[0].args).to.eql([0, 3, 2, testSubject]);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = [1,2,3],
-            i = 0;
+        var arr = [1, 2, 3],
+          i = 0;
         arr.reduceRight(function(a, b) {
           i++;
           if (i <= 4) {
-            arr.push(a+3);
+            arr.push(a + 3);
           }
           return b;
         });
-        expect(arr).to.eql([1,2,3,6,5]);
+        expect(arr).to.eql([1, 2, 3, 6, 5]);
         expect(i).to.be(2);
       });
 //      it('should work as expected for empty arrays', function() {
@@ -1535,21 +1532,21 @@ app.on('ready', function(require) {
         }).to.throwError();
       });
       it('should return the expected result', function() {
-        expect(testSubject.reduceRight(function(a,b) {
-          return (a||'').toString()+(b||'').toString();
+        expect(testSubject.reduceRight(function(a, b) {
+          return (a || '').toString() + (b || '').toString();
         })).to.be('321');
       });
       it('should not directly affect the passed array', function() {
         var copy = testSubject.slice();
-        testSubject.reduceRight(function(a,b) {
-          return a+b;
+        testSubject.reduceRight(function(a, b) {
+          return a + b;
         });
         expect(testSubject).to.eql(copy);
       });
       it('should skip non-set values', function() {
         delete testSubject[1];
         var visited = {};
-        testSubject.reduceRight(function(a,b) {
+        testSubject.reduceRight(function(a, b) {
           if (a)
             visited[a] = true;
           if (b)
@@ -1557,7 +1554,7 @@ app.on('ready', function(require) {
           return 0;
         });
 
-        expect(visited).to.eql({ '1': true, '3': true });
+        expect(visited).to.eql({'1': true, '3': true});
       });
       it('should have the right length', function() {
         expect(testSubject.reduceRight.length).to.be(1);
@@ -1566,7 +1563,7 @@ app.on('ready', function(require) {
 
     'Array reduceRight (array-like)': function(it) {
       it = beforeEach(it, function() {
-        testSubject = [1,2,3];
+        testSubject = [1, 2, 3];
         testSubject = createArrayLikeFromArray(testSubject);
         testSubject.reduceRight = Array.prototype.reduceRight;
       });
@@ -1581,12 +1578,12 @@ app.on('ready', function(require) {
 //        expect(spy.calls[0].args).to.eql([0, 3, 2, testSubject]);
 //      });
       it('should not affect elements added to the array after it has begun', function() {
-        var arr = createArrayLikeFromArray([1,2,3]),
-            i = 0;
+        var arr = createArrayLikeFromArray([1, 2, 3]),
+          i = 0;
         Array.prototype.reduceRight.call(arr, function(a, b) {
           i++;
           if (i <= 4) {
-            arr[i+2] = a+3;
+            arr[i + 2] = a + 3;
           }
           return b;
         });
@@ -1613,22 +1610,22 @@ app.on('ready', function(require) {
         }).to.throwError();
       });
       it('should return the expected result', function() {
-        expect(testSubject.reduceRight(function(a,b) {
-          return (a||'').toString()+(b||'').toString();
+        expect(testSubject.reduceRight(function(a, b) {
+          return (a || '').toString() + (b || '').toString();
         })).to.be('321');
       });
       it('should not directly affect the passed array', function() {
         var copy = createArrayLikeFromArray(testSubject);
-        testSubject.reduceRight(function(a,b) {
-          return a+b;
+        testSubject.reduceRight(function(a, b) {
+          return a + b;
         });
-        delete(testSubject.reduceRight);
+        delete (testSubject.reduceRight);
         expect(testSubject).to.eql(copy);
       });
       it('should skip non-set values', function() {
         delete testSubject[1];
         var visited = {};
-        testSubject.reduceRight(function(a,b) {
+        testSubject.reduceRight(function(a, b) {
           if (a)
             visited[a] = true;
           if (b)
@@ -1636,7 +1633,7 @@ app.on('ready', function(require) {
           return 0;
         });
 
-        expect(visited).to.eql({ '1': true, '3': true });
+        expect(visited).to.eql({'1': true, '3': true});
       });
       it('should have the right length', function() {
         expect(testSubject.reduceRight.length).to.be(1);
@@ -1644,15 +1641,15 @@ app.on('ready', function(require) {
     },
 
     'Array.isArray': function(it) {
-      it('should work for Array', function () {
+      it('should work for Array', function() {
         var ret = Array.isArray([]);
 
         expect(ret).to.be(true);
       });
 
-      it('should fail for other objects', function () {
+      it('should fail for other objects', function() {
         var objects = [
-          "someString",
+          'someString',
           true,
           false,
           42,
@@ -1663,41 +1660,31 @@ app.on('ready', function(require) {
           arguments
         ];
 
-        objects.forEach(function (v) {
+        objects.forEach(function(v) {
           expect(Array.isArray(v)).to.be(false);
         });
       });
     },
 
-    'Array unshift': function (it) {
-      it('should return length', function () {
+    'Array unshift': function(it) {
+      it('should return length', function() {
         expect([].unshift(0)).to.be(1);
       });
     },
 
     'Array splice': function(it) {
-      var b = ["b"],
-          a = [1, "a", b],
-          test;
-
-      var makeArray = function(l, prefix) {
-        prefix = prefix || "";
-        var a = [];
-        while (l--) {
-          var b = new Array(l + 1).join(" ");
-          a.unshift(prefix + b + l);
-        }
-        return a;
-      };
+      var b = ['b'],
+        a = [1, 'a', b],
+        test;
 
       it = beforeEach(it, function() {
         test = a.slice(0);
       });
 
-      it('basic implementation test 1', function () {
+      it('basic implementation test 1', function() {
         expect(test.splice(0)).to.eql(a);
       });
-      it('basic implementation test 2', function () {
+      it('basic implementation test 2', function() {
         test.splice(0, 2);
         expect(test).to.eql([b]);
       });
@@ -1764,26 +1751,26 @@ app.on('ready', function(require) {
 //      });
 
 
-      it('should do nothing if method called with no arguments', function () {
+      it('should do nothing if method called with no arguments', function() {
         expect(test.splice()).to.eql([]);
         expect(test).to.eql(a);
       });
 
-      it('should set first argument to 0 if first argument is set but undefined', function () {
+      it('should set first argument to 0 if first argument is set but undefined', function() {
         var test2 = test.slice(0);
         expect(test.splice(void 0, 2)).to.eql(test2.splice(0, 2));
         expect(test).to.eql(test2);
       });
 
-      it('should deleted and return all items after "start" when second argument is undefined', function () {
+      it('should deleted and return all items after "start" when second argument is undefined', function() {
         expect(test.splice(0)).to.eql(a);
         expect(test).to.eql([]);
       });
-      it('should deleted and return all items after "start" when second argument is undefined', function () {
+      it('should deleted and return all items after "start" when second argument is undefined', function() {
         expect(test.splice(2)).to.eql([b]);
-        expect(test).to.eql([1, "a"]);
+        expect(test).to.eql([1, 'a']);
       });
-      it('runshould have the right length', function () {
+      it('runshould have the right length', function() {
         expect(test.splice.length).to.be(2);
       });
     }

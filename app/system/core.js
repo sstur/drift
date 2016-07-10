@@ -1,7 +1,8 @@
 /*global global */
+/* eslint-disable one-var */
 var app, define;
 (function() {
-  "use strict";
+  'use strict';
 
   var join = Array.prototype.join;
   var slice = Array.prototype.slice;
@@ -32,7 +33,9 @@ var app, define;
     }
     if (typeof definition !== 'function') {
       var module = definition;
-      definition = function() { this.exports = module; };
+      definition = function() {
+        this.exports = module;
+      };
     }
     definition.deps = deps;
     definitions[name] = definition;
@@ -291,7 +294,7 @@ var app, define;
       } else {
         try {
           resolved.push(module.require(dep));
-        } catch(e) {
+        } catch (e) {
           throw new Error('Error loading dependency `' + dep + '` for module `' + module.name + '`');
         }
       }
@@ -306,10 +309,10 @@ var app, define;
   function joinPath() {
     var resolved = '/' + join.call(arguments, '/') + '/';
     resolved = resolved.replace(/\/+/g, '/');
-    while(~resolved.indexOf('/./')) {
+    while (~resolved.indexOf('/./')) {
       resolved = resolved.replace(/\/\.\//g, '/');
     }
-    while(~resolved.indexOf('/../')) {
+    while (~resolved.indexOf('/../')) {
       resolved = resolved.replace(/([^\/]*)\/\.\.\//g, '');
     }
     return resolved.replace(/^\/|\/$/g, '');

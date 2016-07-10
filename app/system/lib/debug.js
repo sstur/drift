@@ -1,4 +1,5 @@
 /*global app, define */
+/* eslint-disable one-var, no-caller */
 define('debug', function(require, exports) {
 
   exports.stackTrace = function stackTrace(fn) {

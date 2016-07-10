@@ -1,6 +1,6 @@
-/*global app, define */
+/*global app, define, ActiveXObject */
 define('email', function(require, exports) {
-  "use strict";
+  'use strict';
 
   var REG_EMAIL = /^[\w!#$%&'*+\/=?^`{|}~-]+(\.[\w!#$%&'*+\/=?^`{|}~-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 

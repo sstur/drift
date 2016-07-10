@@ -1,6 +1,7 @@
 /*global global, require */
+/* eslint-disable one-var, consistent-this */
 (function() {
-  "use strict";
+  'use strict';
 
   var http = require('http');
   var req = http.IncomingMessage.prototype;
@@ -42,11 +43,11 @@
 
   //Send an http error (40x, except 404)
   res.httpError = function(code) {
-    var req = this.req, res = this;
+    var res = this;
     if (!res.headerSent) {
       var headers = {'Content-Type': 'text/plain'};
       res.writeHead(code, null, headers);
-      res.write(code + ' ' +  http.STATUS_CODES[code]);
+      res.write(code + ' ' + http.STATUS_CODES[code]);
     }
     res.end();
   };
@@ -115,8 +116,8 @@
 
     if (!opts.path) throw new Error('path required');
 
-    var isGet = ('GET' == req.method);
-    var isHead = ('HEAD' == req.method);
+    var isGet = (req.method == 'GET');
+    var isHead = (req.method == 'HEAD');
 
     // ignore non-GET requests
     if (opts.getOnly && !isGet && !isHead) {
@@ -238,22 +239,22 @@
       // we have a Range request
       var ranges = req.headers.range;
       if (opts.enableRanges && ranges && (ranges = utils.parseRange(len, ranges))) {
-          streamOpts.start = ranges[0].start;
-          streamOpts.end = ranges[0].end;
+        streamOpts.start = ranges[0].start;
+        streamOpts.end = ranges[0].end;
 
-          // unsatisfiable range
-          if (streamOpts.start > len - 1) {
-            res.setHeader('Content-Range', 'bytes */' + stat.size);
-            return res.httpError(416);
-          }
+        // unsatisfiable range
+        if (streamOpts.start > len - 1) {
+          res.setHeader('Content-Range', 'bytes */' + stat.size);
+          return res.httpError(416);
+        }
 
-          // limit last-byte-pos to current length
-          if (streamOpts.end > len - 1) streamOpts.end= len - 1;
+        // limit last-byte-pos to current length
+        if (streamOpts.end > len - 1) streamOpts.end = len - 1;
 
-          // Content-Range
-          len = streamOpts.end - streamOpts.start + 1;
-          res.statusCode = 206;
-          res.setHeader('Content-Range', 'bytes ' + streamOpts.start + '-' + streamOpts.end + '/' + stat.size);
+        // Content-Range
+        len = streamOpts.end - streamOpts.start + 1;
+        res.statusCode = 206;
+        res.setHeader('Content-Range', 'bytes ' + streamOpts.start + '-' + streamOpts.end + '/' + stat.size);
       }
 
       res.setHeader('Content-Length', len);
@@ -315,7 +316,7 @@
     return path.replace(/\\/g, '/');
   }
 
-  function isAjax(req) {
+  function isAjax(req) { // eslint-disable-line no-unused-vars
     //todo: check accepts, x-requested-with, and qs (jsonp/callback)
     return false;
     //return (req.headers['x-requested-with'] || '').toLowerCase() == 'xmlhttprequest';

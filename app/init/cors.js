@@ -14,8 +14,8 @@ app.on('ready', function(require) {
 
 });
 
-app.on('request', function(req, res) {
-  "use strict";
+app.on('request', function(req) {
+  'use strict';
 
   var TYPES = {'application/x-www-form-urlencoded': 1, 'application/json': 1};
 

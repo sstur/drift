@@ -1,3 +1,4 @@
+/* eslint-disable quote-props */
 var extensions = {
   '3gp': 'video/3gpp',
   '7z': 'application/x-7z-compressed',

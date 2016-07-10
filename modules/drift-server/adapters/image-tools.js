@@ -3,12 +3,13 @@ var _fs = require('fs');
 var gm = require('gm');
 var crypto = require('crypto');
 adapter.define('image-tools', function(require, exports) {
-  "use strict";
+  'use strict';
 
   //todo: this should be set in app.cfg() or pkgConfig
   var PATH_TO_GM = '/usr/local/bin/';
 
   //file ext to mime-type
+  /* eslint-disable quote-props */
   var types = {
     'bmp': 'image/bmp',
     'gif': 'image/gif',
@@ -27,6 +28,7 @@ adapter.define('image-tools', function(require, exports) {
     'bmp': 'png',
     'tif': 'png'
   };
+  /* eslint-enable quote-props */
 
   //todo: change to match w3c terms
   var sizingCodes = {
@@ -41,7 +43,7 @@ adapter.define('image-tools', function(require, exports) {
       //if (!stat.isFile()) return fs.getError('ENOENT', path);
       var objImage = gm(app.mappath(path));
       objImage.options({appPath: PATH_TO_GM});
-      objImage.identify(function (err, file) {
+      objImage.identify(function(err, file) {
         if (err) {
           console.log('Error opening image: ' + path);
           //or use 'No decode delegate for this image'

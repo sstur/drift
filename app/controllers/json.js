@@ -1,6 +1,6 @@
 /*global app, define */
-app.on('ready', function(require) {
-  "use strict";
+app.on('ready', function() {
+  'use strict';
 
   //app.route('/test/cookie/:name/:value', function(req, res, name, value) {
   //  res.cookies(name, value);

@@ -1,6 +1,6 @@
-/*global global, app, define, Buffer, Fiber */
+/*global global, app, define, Buffer */
 define('mock-response', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
 

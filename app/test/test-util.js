@@ -1,7 +1,7 @@
 /*global app, define, Buffer */
 /*jshint -W053 */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
   var util = require('util');
@@ -12,7 +12,8 @@ app.on('ready', function(require) {
 
   app.addTestSuite('util', {
     'util.extend': function(it) {
-      var a = {type: 1}, b = {name: 'j'};
+      var a = {type: 1};
+      var b = {name: 'j'};
       var c = util.extend(a, b);
       it('should copy properties', function() {
         expect(c).to.be(a);
@@ -29,11 +30,11 @@ app.on('ready', function(require) {
         var original = {
           string: 'testme',
           number: Math.random(),
-          'null': null,
-          'undefined': undef,
+          null: null,
+          undefined: undef,
           date: new Date(),
           buffer: new Buffer('abc'),
-          array: [1, '2', null, false, void 0, true]
+          array: [1, '2', null, false, undefined, true]
         };
         var clone = util.clone(original);
         expect(clone).to.not.be(original);
@@ -49,9 +50,9 @@ app.on('ready', function(require) {
       });
       it('should clone object-wrapped primitives to primitives', function() {
         var clone = util.clone({
-          bool: new Boolean(true),
-          number: new Number(123),
-          string: new String('testme')
+          bool: new Boolean(true), // eslint-disable-line no-new-wrappers
+          number: new Number(123), // eslint-disable-line no-new-wrappers
+          string: new String('testme') // eslint-disable-line no-new-wrappers
         });
         expect(clone).to.eql({bool: true, number: 123, string: 'testme'});
       });
@@ -247,11 +248,11 @@ app.on('ready', function(require) {
         var date = new Date();
         var buffer = new Buffer('ü', 'utf8');
         var a = {a: 0, b: function() {}, c: 'string', d: null, e: undef, f: date, g: new Error('fail'), h: false, i: buffer};
-        var util_string = util.stringify(a);
+        var utilString = util.stringify(a);
         var b = util.extend({}, a);
         b.g = 'new Error("fail")';
-        var JSON_string = JSON.stringify(b);
-        expect(util_string).to.be(JSON_string);
+        var JSONString = JSON.stringify(b);
+        expect(utilString).to.be(JSONString);
       });
     },
     'util.parse': function(it) {
@@ -297,7 +298,7 @@ app.on('ready', function(require) {
   app.eventify(MockReadStream.prototype);
 
   util.extend(MockReadStream.prototype, {
-    setEncoding: function(enc) {
+    setEncoding: function() {
       throw new Error('setEncoding not implemented in MockReadStream');
     },
     _readBytes: function(bytes) {

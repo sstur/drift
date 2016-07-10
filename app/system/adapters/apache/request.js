@@ -1,8 +1,8 @@
 /*global app, define, apache, system */
+/* eslint-disable one-var */
 define('adapter-request', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
-  var qs = require('qs');
   var Buffer = require('buffer').Buffer;
 
   var special = {

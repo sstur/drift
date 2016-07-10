@@ -1,5 +1,6 @@
+/* eslint-disable one-var */
 (function() {
-  "use strict";
+  'use strict';
 
   /**
    * Check `req` and `res` to see if it has been modified.
@@ -44,7 +45,7 @@
    */
   exports.removeContentHeaders = function(res) {
     Object.keys(res._headers).forEach(function(field) {
-      if (0 === field.indexOf('content')) {
+      if (field.indexOf('content') === 0) {
         res.removeHeader(field);
       }
     });

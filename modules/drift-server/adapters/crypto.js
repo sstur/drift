@@ -1,6 +1,6 @@
 /*global app, require */
 var crypto = require('crypto');
-var Buffer = require('buffer').Buffer;
+var Buffer = require('buffer').Buffer; // eslint-disable-line no-unused-vars
 app.define('crypto', function(require, exports, module) {
 
   module.exports = {

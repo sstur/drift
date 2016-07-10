@@ -1,6 +1,7 @@
 /*global app, WScript */
 /*jshint evil:true */
-var require = app.require, console, Buffer;
+/* eslint-disable one-var, no-eval */
+var require = app.require, console, Buffer; // eslint-disable-line no-unused-vars
 (function() {
   Buffer = require('buffer').Buffer;
   var util = require('util');
@@ -54,7 +55,7 @@ var require = app.require, console, Buffer;
     var res = new Response();
     try {
       _route.call(app, req, res);
-    } catch(e) {
+    } catch (e) {
       //if e is null, then the request was handled successfully
       if (e !== null) throw e;
       return res;
@@ -65,7 +66,7 @@ var require = app.require, console, Buffer;
 //DEBUGGER:try{throw{}}catch(repl){while(repl.line!=".exit"){if(repl.line){delete repl.out;delete repl.err;try{repl.out=eval("("+repl.line+")")}catch(e){if(e instanceof SyntaxError){try{repl.out=eval(repl.line)}catch(e){repl.err=e}}else{repl.err=e}}if(repl.err){console.log("Error: "+repl.err.message)}else{if("out"in repl)console.log(repl.out)}}WScript.stdout.write("debugger> ");repl.line=WScript.stdin.readLine()}}
 try {
   throw {};
-} catch(repl) {
+} catch (repl) {
   while (repl.line != '.exit') {
     if (repl.line) {
       delete repl.out;

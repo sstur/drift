@@ -1,6 +1,7 @@
 /*global app, define, Buffer */
+/* eslint-disable one-var */
 define('util', function(require, util) {
-  "use strict";
+  'use strict';
 
   var toString = Object.prototype.toString;
 
@@ -24,6 +25,7 @@ define('util', function(require, util) {
   var PCT_SEQUENCE = /(%[0-9a-f]{2})+/ig;
 
   //type-specific clone helpers
+  /* eslint-disable quote-props */
   var CLONE = {
     'Array': function(clone) {
       return Array.prototype.map.call(this, clone);
@@ -35,6 +37,7 @@ define('util', function(require, util) {
     'Number': Number.prototype.valueOf,
     'Boolean': Boolean.prototype.valueOf
   };
+  /* eslint-enable quote-props */
 
   util.inspect = function() {
     var inspector = require('inspector');
@@ -314,7 +317,7 @@ define('util', function(require, util) {
   function decode(str) {
     try {
       return decodeURIComponent(str);
-    } catch(e) {
+    } catch (e) {
       return unescape(str);
     }
   }

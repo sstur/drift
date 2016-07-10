@@ -1,11 +1,12 @@
 /*global global, require, app, adapter */
+/* eslint-disable one-var */
 var _fs = require('fs');
 var path = require('path');
 var crypto = require('crypto');
 var formidable = require('formidable');
 var EventEmitter = require('events').EventEmitter;
 adapter.define('body-parser', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
   var qs = require('qs');
@@ -77,7 +78,7 @@ adapter.define('body-parser', function(require, exports, module) {
       this.emit('error', '415 Content-Type Required');
       return;
     }
-    switch(this.type) {
+    switch (this.type) {
       case 'application/x-www-form-urlencoded':
         this.processFormBody();
         break;
@@ -139,7 +140,7 @@ adapter.define('body-parser', function(require, exports, module) {
       }
       try {
         var parsed = JSON.parse(body);
-      } catch(e) {
+      } catch (e) {
         self.emit('error', new Error('Invalid JSON Body'));
         return;
       }

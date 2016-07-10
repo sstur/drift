@@ -1,8 +1,10 @@
 /*global app, define */
 /*jshint -W014, -W083 */
+/* eslint-disable yoda, one-var */
 define('expect', function(require, exports, module) {
   var util = require('util');
   var inspect = util.inspect;
+  var pSlice = Array.prototype.slice;
   var undef;
 
   module.exports = expect;
@@ -282,13 +284,14 @@ define('expect', function(require, exports, module) {
               'regexp' == type ? isRegExp(this.obj) :
                   'object' == type
                       ? 'object' == typeof this.obj && null !== this.obj
-                      : type == typeof this.obj
-          , function() {
+                      : type == typeof this.obj,
+          function() {
             return 'expected ' + inspect(this.obj) + ' to be a' + n + ' ' + type;
-          }
-          , function() {
+          },
+          function() {
             return 'expected ' + inspect(this.obj) + ' not to be a' + n + ' ' + type;
-          });
+          }
+      );
     } else {
       // instanceof
       var name = type.name || 'supplied constructor';
@@ -483,14 +486,14 @@ define('expect', function(require, exports, module) {
 
   Assertion.prototype.key = Assertion.prototype.keys = function($keys) {
     var str;
-  var ok = true;
+    var ok = true;
 
     $keys = isArray($keys) ? $keys : Array.from(arguments);
 
     if (!$keys.length) throw new Error('keys required');
 
     var actual = keys(this.obj);
-  var len = $keys.length;
+    var len = $keys.length;
 
     // Inclusion
     ok = every($keys, function(key) {
@@ -540,7 +543,7 @@ define('expect', function(require, exports, module) {
    */
   Assertion.prototype.fail = function(msg) {
     var error = function() {
-      return msg || "explicit failure";
+      return msg || 'explicit failure';
     };
     this.assert(false, error, error);
     return this;
@@ -657,9 +660,9 @@ define('expect', function(require, exports, module) {
       return expect.eql(a, b);
     }
     try {
-      var ka = keys(a),
-          kb = keys(b),
-          key, i;
+      var ka = keys(a);
+      var kb = keys(b);
+      var key, i;
     } catch (e) {//happens when one is a string literal and the other isn't
       return false;
     }

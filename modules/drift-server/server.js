@@ -1,6 +1,6 @@
  /*global global, process, require, __filename, app */
 (function() {
-  "use strict";
+  'use strict';
   var fs = require('fs');
   var path = require('path');
   var hook = require('node-hook');
@@ -9,7 +9,7 @@
   var join = path.join;
 
   //framework files beginning with these chars are excluded
-  var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1};
+  var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1}; // eslint-disable-line quote-props
 
   //the parsed cli arguments from optimist
   var opts = global.opts;
@@ -121,10 +121,10 @@
 
   //for debugging
   var sleep = function(ms) {
-  	var fiber = Fiber.current;
-  	setTimeout(function() {
-  		fiber.run();
-  	}, ms);
+    var fiber = Fiber.current;
+    setTimeout(function() {
+      fiber.run();
+    }, ms);
     Fiber.yield();
   };
 
@@ -150,7 +150,7 @@
     var path = join(srcPath, dir);
     try {
       var files = fs.readdirSync(path);
-    } catch(e) {
+    } catch (e) {
       console.log('not found', path);
       return;
     }

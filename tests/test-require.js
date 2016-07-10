@@ -1,6 +1,6 @@
 /*global app, require, describe, it */
 (function() {
-  "use strict";
+  'use strict';
 
   var expect = require('expect.js');
 
@@ -75,27 +75,28 @@
     var require = app.require;
 
     it('should define nested object', function() {
-      define('nest/one', function(require, exports, module) {
+      define('nest/one', function(require, exports) {
         exports.getTwo = function() {
           return require('two');
         };
       });
-      define('nest/two', function(require, exports, module) {
+      define('nest/two', function(require, exports) {
         exports.name = 'two';
       });
-      var one = require('nest/one'), two = one.getTwo();
+      var one = require('nest/one');
+      var two = one.getTwo();
       expect(two.name).to.equal('two');
     });
 
     it('should recursively require', function() {
-      define('recurse/one', function(require, exports, module) {
+      define('recurse/one', function(require, exports) {
         exports.two = require('two');
       });
-      define('recurse/two', function(require, exports, module) {
+      define('recurse/two', function(require, exports) {
         exports.one = require('one');
       });
-      var one = require('recurse/one')
-        , two = require('recurse/two');
+      var one = require('recurse/one');
+      var two = require('recurse/two');
       expect(one.two).to.equal(two);
       expect(two.one).to.equal(one);
     });

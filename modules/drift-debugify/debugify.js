@@ -1,6 +1,6 @@
+/* eslint-disable one-var */
 (function() {
-  "use strict";
-  var util = require('util');
+  'use strict';
   var rocambole = require('rocambole');
 
   function debugify(source, offset) {

@@ -3,6 +3,7 @@
  * keeping things lean, it's not included in the system config.
  */
 /*global app */
+/* eslint-disable quote-props */
 app.cfg({
   html_entities: {
     'aacute': '\xE1', 'abreve': '\u0103', 'ac': '\u223E', 'acd': '\u223F', 'acirc': '\xE2', 'acute': '\xB4',

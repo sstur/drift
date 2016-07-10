@@ -1,15 +1,16 @@
 /*global global, require, app, adapter */
+/* eslint-disable one-var */
 var _http = require('http');
 var _https = require('https');
 adapter.define('http', function(require, exports) {
-  "use strict";
+  'use strict';
 
   var qs = require('qs');
   var url = require('url');
   var Buffer = require('buffer').Buffer;
 
   //url helpers
-  var parseUrl = url.parse, resolveUrl = url.resolve;
+  var parseUrl = url.parse;
 
   var BODY_ALLOWED = {POST: 1, PUT: 1};
 
@@ -35,7 +36,9 @@ adapter.define('http', function(require, exports) {
     //normalize header case
     var headers = {};
     for (var n in opts.headers) {
-      headers[httpReqHeaders[n.toLowerCase()] || n] = opts.headers[n];
+      if (opts.headers.hasOwnProperty(n)) {
+        headers[httpReqHeaders[n.toLowerCase()] || n] = opts.headers[n];
+      }
     }
     opts.headers = headers;
 
@@ -58,9 +61,8 @@ adapter.define('http', function(require, exports) {
     var http = (opts.protocol == 'https:') ? _https : _http;
 
     var req = http.request(opts, function(res) {
-      var body = [], length = 0;
+      var body = [];
       res.on('data', function(data) {
-        length += data.length;
         body.push(data.toString('binary'));
       });
       res.on('end', function() {

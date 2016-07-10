@@ -1,6 +1,6 @@
 /*global app, define */
 define('request', function(require, exports, module) {
-  "use strict";
+  'use strict';
 
   var qs = require('qs');
   var util = require('util');
@@ -85,7 +85,7 @@ define('request', function(require, exports, module) {
       try {
         //body-parser events will be propagated to this
         var body = (this.method() in BODY_ALLOWED) ? parseReqBody(this) : {};
-      } catch(e) {
+      } catch (e) {
         this.emit('parse-error', e);
         if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
           this.res.die(e);

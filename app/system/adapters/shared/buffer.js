@@ -1,7 +1,8 @@
-/*global app, define, _require */
+/*global app, define, _require, ActiveXObject */
 /*jshint -W084 */
+/* eslint-disable camelcase, one-var */
 define('buffer', function(require, exports) {
-  "use strict";
+  'use strict';
 
   var C_Buffer = (typeof _require != 'undefined') && _require('binary').Buffer;
 
@@ -63,7 +64,7 @@ define('buffer', function(require, exports) {
       //ado binary
       try {
         this._raw = adoToRaw(subject);
-      } catch(e) {
+      } catch (e) {
         //throw new Error('Cannot create Buffer; invalid input argument');
         this._raw = '';
       }
@@ -145,7 +146,7 @@ define('buffer', function(require, exports) {
   function toUtf8(s) {
     try {
       return decodeURIComponent(escape(s));
-    } catch(e) {
+    } catch (e) {
       //invalid byte sequence
       return '';
     }
@@ -159,17 +160,9 @@ define('buffer', function(require, exports) {
     return out.join('');
   }
 
-  function rawToArr(input) {
-    var len = input.length, arr = new Array(len);
-    for (var i = 0; i < len; i++) {
-      arr[i] = input.charCodeAt(i);
-    }
-    return arr;
-  }
-
   function hexToRaw(hex) {
     var out = new Array(Math.floor(hex.length / 2));
-    for(var i = 0, len = out.length; i < len; i++){
+    for (var i = 0, len = out.length; i < len; i++) {
       out[i] = String.fromCharCode(parseInt(hex.substr(i * 2, 2), 16));
     }
     return out.join('');
@@ -231,7 +224,7 @@ define('buffer', function(require, exports) {
   // Base64 decoder
   // [https://gist.github.com/1020396] by [https://github.com/atk]
   function atob(input) {
-    input = input.replace(/=+$/, '');
+    input = input.replace(/=+$/, ''); // eslint-disable-line no-div-regex
     if (input.length % 4 == 1) {
       throw new Error('Invalid Base64 String');
     }
@@ -239,7 +232,7 @@ define('buffer', function(require, exports) {
       // initialize result and counters
         var bc = 0, bs, buffer, idx = 0, output = '';
       // get next character
-        buffer = input.charAt(idx++);
+        buffer = input.charAt(idx++); // eslint-disable-line no-cond-assign
       // character found in table? initialize bit storage and add its ascii value;
         ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
           // and if not first of each 4 characters,

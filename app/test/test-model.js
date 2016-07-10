@@ -3,8 +3,9 @@
  * todo: test json and text/string types
  */
 /*global app, define */
+/* eslint-disable quote-props */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var expect = require('expect');
   var Model = require('model').Model;

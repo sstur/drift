@@ -2,8 +2,9 @@
  * todo: be sure non-text content type doesn't get charset
  */
 /*global app, define */
+/* eslint-disable quote-props */
 app.on('ready', function(require) {
-  "use strict";
+  'use strict';
 
   var fs = require('fs');
   var expect = require('expect');
@@ -20,7 +21,7 @@ app.on('ready', function(require) {
   var dataPath = app.cfg('data_dir') || 'data/';
 
   app.addTestSuite('response', {
-    'res.status()': function(it) {
+    'res.status()': function() {
       var res = createResponse();
       expect(res.status()).to.be('200 OK');
       res.status(404);
@@ -145,7 +146,7 @@ app.on('ready', function(require) {
         expect(result.body).to.be('');
       });
     },
-    'res.clear()': function(it) {
+    'res.clear()': function() {
       var res = createResponse();
       res.write('a');
       res.clear();
@@ -153,7 +154,7 @@ app.on('ready', function(require) {
       var result = catchNull(res, 'end');
       expect(result.body).to.be('b');
     },
-    'res.contentType()': function(it) {
+    'res.contentType()': function() {
     },
     'res.cookies()': function(it) {
       var res = createResponse();
@@ -289,7 +290,7 @@ app.on('ready', function(require) {
         expect(result.body).to.be('<html>\r\n<head><title>Redirecting ...</title><meta http-equiv="refresh" content="0;url=/auth/login"></head>\r\n<body onload="location.replace(document.getElementsByTagName(\'meta\')[0].content.slice(6))">\r\n<noscript><p>If you are not redirected, <a href="/auth/login">Click Here</a></p></noscript>\r\n<!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING --><!-- PADDING -->\r\n</body>\r\n</html>');
       });
     },
-    'res.htmlRedirect()': function(it) {
+    'res.htmlRedirect()': function() {
       var res = createResponse();
       res.status(404);
       var result = catchNull(res, 'htmlRedirect', '/thing');
@@ -332,7 +333,7 @@ app.on('ready', function(require) {
       it('should propogate end', function() {
         try {
           stream.end();
-        } catch(e) {
+        } catch (e) {
           if (e !== null) throw e;
         }
         expect(result.getBody()).to.be('ab');
@@ -401,7 +402,7 @@ app.on('ready', function(require) {
     var args = Array.prototype.slice.call(arguments, 2);
     try {
       res[method].apply(res, args);
-    } catch(e) {
+    } catch (e) {
       if (e !== null) throw e;
     }
     var result = res._super;
