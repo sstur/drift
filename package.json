@@ -32,12 +32,18 @@
     "shelljs": "^0.2.6"
   },
   "devDependencies": {
+    "babel-eslint": "^6.1.2",
+    "eslint": "^3.0.1",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-flow-vars": "^0.4.0",
     "expect.js": "~0.1.2",
     "mocha": "~1.3.2",
     "request": "~2.10.0"
   },
   "scripts": {
-    "test": "mocha test"
+    "lint": "eslint . --max-warnings 0",
+    "test-src": "mocha tests",
+    "test": "npm run lint && npm run test-src"
   },
   "engines": {
     "node": "0.12.x",
