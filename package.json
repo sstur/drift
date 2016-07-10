@@ -3,9 +3,6 @@
   "version": "0.1.20",
   "description": "Cross-platform Server JS",
   "main": "lib/server.js",
-  "directories": {
-    "test": "tests"
-  },
   "bin": {
     "drift": "bin/drift"
   },
@@ -42,12 +39,8 @@
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
-    "test-src": "mocha tests",
+    "test-src": "mocha test",
     "test": "npm run lint && npm run test-src"
-  },
-  "engines": {
-    "node": "0.12.x",
-    "npm": "2.5.x"
   },
   "keywords": [
     "javascript",
@@ -55,7 +48,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@bitbucket.org:sstur/drift.git"
+    "url": "https://github.com/sstur/drift"
   },
   "author": "sstur",
   "license": "BSD-2-Clause"
