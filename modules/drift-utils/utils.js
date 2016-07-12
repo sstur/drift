@@ -49,44 +49,19 @@ var utils = {
     var plugin = function(name) {
       return require.resolve('babel-plugin-' + name);
     };
+    var preset = function(name) {
+      return require.resolve('babel-preset-' + name);
+    };
     var result = babel.transform(source, {
       retainLines: true,
       plugins: [
         // part of stage-1
-        plugin('transform-class-properties'),
-        // preset-stage-2
-        plugin('syntax-trailing-function-commas'),
-        plugin('transform-object-rest-spread'),
-        // preset-stage-3
-        plugin('transform-async-to-generator'),
-        plugin('transform-exponentiation-operator'),
-        // preset-es2015
-        plugin('check-es2015-constants'),
-        plugin('transform-es2015-arrow-functions'),
-        plugin('transform-es2015-block-scoped-functions'),
-        plugin('transform-es2015-block-scoping'),
-        plugin('transform-es2015-classes'),
-        plugin('transform-es2015-computed-properties'),
-        plugin('transform-es2015-destructuring'),
-        plugin('transform-es2015-for-of'),
-        plugin('transform-es2015-function-name'),
-        plugin('transform-es2015-literals'),
-        plugin('transform-es2015-modules-commonjs'),
-        plugin('transform-es2015-object-super'),
-        plugin('transform-es2015-parameters'),
-        plugin('transform-es2015-shorthand-properties'),
-        plugin('transform-es2015-spread'),
-        plugin('transform-es2015-sticky-regex'),
-        plugin('transform-es2015-template-literals'),
-        plugin('transform-es2015-typeof-symbol'),
-        plugin('transform-es2015-unicode-regex'),
-        plugin('transform-regenerator'),
-        // preset-react
-        plugin('transform-react-jsx'),
-        plugin('transform-flow-strip-types'),
-        plugin('syntax-flow'),
-        plugin('syntax-jsx'),
-        plugin('transform-react-display-name')
+        plugin('transform-class-properties')
+      ],
+      presets: [
+        preset('es2015-loose'),
+        preset('react'),
+        preset('stage-2')
       ]
     });
     //var {code, map, ast} = result;

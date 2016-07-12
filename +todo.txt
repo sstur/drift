@@ -1,3 +1,9 @@
+Multiple instances of devserver running for same project dir
+  1. Check for existence of pidfile. If exists, either:
+      a) refuse to start if the existing pid is a running process
+      b) kill existing, delete file and start
+  2. Upon exiting, delete pidfile only if its contents match our process.
+
 Bug: req.body(x) is case sensitive for node/json-parser
 fs.readTextFile() should alias fs.readFile(path, 'utf8')
 replace require('../modules/drift-server/support/utils') with require('drift-server').utils

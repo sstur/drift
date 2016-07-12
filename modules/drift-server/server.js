@@ -26,23 +26,23 @@
     throw new Error('Path to framework (fxPath) not set.');
   }
 
+  //load polyfills
+  require('../../lib/es6');
+
   var pkgConfig = require('./package-config.js');
 
   //patch some built-in methods
   require('./support/patch');
-
-  //patch `require()` to handle some opt-in source transforms (based on docblock @directives)
-  hook.hook('.js', function(source, filename) {
-    return utils.transformSourceFile(source, filename, {pkgConfig: pkgConfig});
-  });
 
   var Fiber = require('./lib/fiber');
 
   //this is used in core.js
   global.platform = 'node';
 
-  //load polyfills
-  require('babel-polyfill');
+  //patch `require()` to handle some opt-in source transforms (based on docblock @directives)
+  hook.hook('.js', function(source, filename) {
+    return utils.transformSourceFile(source, filename, {pkgConfig: pkgConfig});
+  });
 
   //load framework core (instantiates `app`)
   require(join(fxPath, 'app/system/core.js'));
@@ -114,19 +114,19 @@
     //cross-reference adapter-request and adapter-response
     req.res = res;
     res.req = req;
-    sleep(1); //for debugging
+    // sleep(1); //for debugging
     app.route(req, res);
     throw new Error('Router returned without handling request.');
   };
 
   //for debugging
-  var sleep = function(ms) {
-    var fiber = Fiber.current;
-    setTimeout(function() {
-      fiber.run();
-    }, ms);
-    Fiber.yield();
-  };
+  // var sleep = function(ms) {
+  //   var fiber = Fiber.current;
+  //   setTimeout(function() {
+  //     fiber.run();
+  //   }, ms);
+  //   Fiber.yield();
+  // };
 
   exports.requestHandler = function(req, res) {
     //cross-reference request and response
