@@ -6,9 +6,6 @@ var dirname = path.dirname;
 
 var REG_NL = /\r\n|\r|\n/g;
 var REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
-var APP_EVENT_PARAMETERS = {
-  request: ['req, res']
-};
 
 var utils = {
 
@@ -82,10 +79,8 @@ function wrapDefine(name, source) {
 }
 
 function wrapOnAppState(state, source) {
-  // Not too sure if this is a great idea, hard-coding the param names.
-  var params = APP_EVENT_PARAMETERS[state] || [];
   return [
-    'app.on(' + JSON.stringify(state) + ', function(' + params.join(', ') + ') { var require = app.require;',
+    'app.on(' + JSON.stringify(state) + ', function(require) {',
     source,
     '});'
   ].join('');
