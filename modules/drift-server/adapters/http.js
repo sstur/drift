@@ -80,7 +80,13 @@ adapter.define('http', function(require, exports) {
     if (opts.body) {
       req.write(opts.body);
     }
-    req.end();
+    // Allow caller to stream a request body. In this case the caller will be
+    // responsible for calling .end()
+    if (typeof opts.onReady === 'function') {
+      opts.onReady(req);
+    } else {
+      req.end();
+    }
   };
 
   exports.get_ = function(opts, callback) {
