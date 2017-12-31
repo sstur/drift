@@ -1,29 +1,21 @@
-#Drift: Cross-platform Server JS
+# Drift: Cross-platform Server JS
 
 This is a small framework for writing synchronous-style server-side JavaScript and deploying to any of several supported platforms. There is a dev-server written for Node and a build script that will produce files for the various platforms.
 
-Supported platforms:
+## Status: UNMAINTAINED
 
- * Node (using Fibers)
- * Apache (using v8cgi)
- * IIS (native)
- * JVM via DynJS/Nashorn (possible future)
+This project is long outdated and is no longer maintained.
 
-##Status: Alpha
-At this stage, this is not much more than a proof-of-concept. With better test coverage and better parity among the various platform-specific adapters, we can see how feasable it is for real-world apps.
+## Goals
 
-##Goals
-The goal of this project is not to compete with full-blown frameworks like Express or RoR, but to provide a minimal layer of request routing, view templating and data modelling with a normalized API for various JavaScript platforms.
+The goal of this project is not to compete with full-blown frameworks, but to provide a minimal layer of request routing, view templating and data modelling with a normalized synchronous-style API using Fibers.
 
-Because of the inconsistencies in platforms, we have created our own module loader and abstraction layers for request/response, filesystem, etc. None-the-less, we closely follow conventions from Node/CommonJS and other mainstream frameworks. This results in an intuitive API that will seem familiar to any full-stack JS developer.
-
-In some cases (e.g. Buffer) we mimic the Node module as closely as possible, however with the filesystem module, we opt for a higher-level API.
+In order to work across various platforms, this project uses its own module loader and abstraction layers for request/response, filesystem, etc. It closely follows conventions from Node and CommonJS.
 
 JSON and ES5 are available across all supported platforms via simple polyfills. Basic eventing is provided similar to EventEmitter, and the define()/require() system of module loading is sort of a hybrid between Node/CommonJS and AMD.
 
-Overall, this we follow existing conventions where it makes sense.
+## Modules / Interface Abstractions
 
-##Modules / Interface Abstractions
 So far Drift provides
 
  * Normalized Request/Response interface
@@ -39,22 +31,19 @@ So far Drift provides
  * Filesystem
  * Utils like Logging, Crypto, Date formatting, etc
 
-##View Layer
+## View Layer
+
 Jinja templates!
 
-##Data Persistence
-Database interfaces are particularly hard to abstract in a truly agnostic way. SQLite and MySQL are the first adapters to be implemented. Plans for noSQL (Mongo/Couch) are in the works.
+## Data Persistence
+
+Database interfaces are particularly hard to abstract in a truly agnostic way. SQLite and MySQL are the first adapters to be implemented.
 
 ORM support is limited and supports CRUD and basic joins but not schema creation/migration. Data modeling can get tricky when we attempt to support relational and NoSQL with the same interface and we have not yet crossed that bridge.
 
-##Controllers/Routing
-Provides a simple routing implementation, similar to ExpressJS or Sinatra, and we have basic "resourceful" routing.
+## Controllers/Routing
 
-##Todo
-
- * Better Test Coverage
- * Modeling/ORM needs work
- * Provide a way to provide high-level modules (like Auth) that can be dropped in to apps
+Provides a simple routing implementation, similar to Express, and we have basic resourceful routing.
 
 ## License (MIT)
 
