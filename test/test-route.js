@@ -29,7 +29,9 @@
     it('should add a route', function() {
       var fn = function() {};
       router.addRoute('/one', fn);
-      expect(JSON.stringify(router._routes)).to.eql('[{"route":"/one","paramNames":[]}]');
+      expect(JSON.stringify(router._routes)).to.eql(
+        '[{"route":"/one","paramNames":[]}]',
+      );
     });
 
     it('should execute route', function() {
@@ -114,7 +116,5 @@
       expect(count).to.equal(1);
       expect(complete).to.be(true);
     });
-
   });
-
 })();

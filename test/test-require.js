@@ -36,13 +36,12 @@
       expect(executed).to.equal(0);
       var two = require('two');
       expect(executed).to.equal(1);
-      expect(two).to.eql({a: 'b'});
+      expect(two).to.eql({ a: 'b' });
       two.c = 'd';
       var three = require('two');
       expect(executed).to.equal(1);
-      expect(three).to.eql({a: 'b', c: 'd'});
+      expect(three).to.eql({ a: 'b', c: 'd' });
     });
-
   });
 
   describe('require', function() {
@@ -58,7 +57,7 @@
       var obj = {};
       define('thing', function(require, exports, module) {
         var oldExports = exports;
-        var newExports = module.exports = obj;
+        var newExports = (module.exports = obj);
         newExports.getOld = function() {
           return oldExports;
         };
@@ -68,7 +67,6 @@
       expect(thing).to.equal(obj);
       expect(thing).to.not.equal(thing.getOld());
     });
-
   });
 
   describe('namespace, nesting and recursive', function() {
@@ -100,7 +98,5 @@
       expect(one.two).to.equal(two);
       expect(two.one).to.equal(one);
     });
-
   });
-
 })();

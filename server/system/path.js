@@ -13,7 +13,8 @@ define('path', function(require, exports) {
    * path.join('assets/', 'scripts', 'file.js')
    */
   exports.join = function() {
-    var a = [], args = Array.from(arguments);
+    var a = [],
+      args = Array.from(arguments);
     args.forEach(function(s) {
       if (s) a.push(s);
     });
@@ -46,7 +47,9 @@ define('path', function(require, exports) {
    * /data/file.txt -> file.txt
    */
   exports.basename = function(path) {
-    return path.replace(RE_TRAILING_SLASHES, '').split('/').pop();
+    return path
+      .replace(RE_TRAILING_SLASHES, '')
+      .split('/')
+      .pop();
   };
-
 });

@@ -6,7 +6,7 @@
   //the parsed cli arguments from optimist
   var opts = global.opts || {};
   //this is the project path; used in patch and app.mappath
-  var basePath = global.basePath = opts.path || process.cwd();
+  var basePath = (global.basePath = opts.path || process.cwd());
 
   //read one or more config files (if exists) in `path` and aggregate their properties
   function readJSON(file) {
@@ -20,5 +20,4 @@
   }
 
   module.exports = readJSON('package.json');
-
 })();

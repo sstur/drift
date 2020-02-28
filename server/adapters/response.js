@@ -35,9 +35,8 @@ app.define('adapter-response', function(require, exports, module) {
       });
       this.req.emit('end');
       Fiber.current.abort();
-    }
+    },
   });
 
   module.exports = Response;
-
 });

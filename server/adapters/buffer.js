@@ -1,7 +1,6 @@
 /*global global, require, app */
 var Buffer = require('buffer').Buffer;
 app.define('buffer', function(require, exports) {
-
   //serialize nicely to JSON
   Buffer.prototype.toJSON = function() {
     return '<Buffer ' + this.toString('hex') + '>';
@@ -14,5 +13,4 @@ app.define('buffer', function(require, exports) {
 
   exports.Buffer = Buffer;
   exports.nativeImplementation = true;
-
 });

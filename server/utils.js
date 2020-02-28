@@ -8,7 +8,6 @@ var REG_NL = /\r\n|\r|\n/g;
 var REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
 
 var utils = {
-
   transformSourceFile: function(source, filename, options, outputOptions) {
     if (~filename.indexOf('/node_modules/')) {
       return source;
@@ -25,13 +24,16 @@ var utils = {
     //wrap source based on directive
     if (directives.providesModule) {
       source = wrapDefine(directives.providesModule, source);
-    } else
-    if (directives.onAppState) {
+    } else if (directives.onAppState) {
       source = wrapOnAppState(directives.onAppState, source);
     }
     var dir = dirname(filename);
     //hacky: some special logic for files in `app/config`
-    var isConfig = (dir.split('/').slice(-2).join('/') === 'app/config');
+    var isConfig =
+      dir
+        .split('/')
+        .slice(-2)
+        .join('/') === 'app/config';
     if (isConfig && options.pkgConfig) {
       source = transformConfigValues(source, options.pkgConfig);
     }
@@ -56,25 +58,20 @@ var utils = {
       retainLines: true,
       plugins: [
         // part of stage-1
-        plugin('transform-class-properties')
+        plugin('transform-class-properties'),
       ],
-      presets: [
-        preset('es2015-loose'),
-        preset('react'),
-        preset('stage-2')
-      ]
+      presets: [preset('es2015-loose'), preset('react'), preset('stage-2')],
     });
     //var {code, map, ast} = result;
     return result.code;
-  }
-
+  },
 };
 
 function wrapDefine(name, source) {
   return [
     'define(' + JSON.stringify(name) + ', function(require, exports, module) {',
     source,
-    '});'
+    '});',
   ].join('');
 }
 
@@ -82,7 +79,7 @@ function wrapOnAppState(state, source) {
   return [
     'app.on(' + JSON.stringify(state) + ', function(require) {',
     source,
-    '});'
+    '});',
   ].join('');
 }
 
@@ -108,7 +105,7 @@ function parseDirectives(source) {
 function transformConfigValues(source, pkgConfig) {
   //allow references to package.json
   return source.replace(/('|")\{\{package:(.*?)\}\}\1/g, function(str, _, key) {
-    var value = (pkgConfig[key] == null) ? '' : pkgConfig[key];
+    var value = pkgConfig[key] == null ? '' : pkgConfig[key];
     return JSON.stringify(value);
   });
 }

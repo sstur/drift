@@ -9,7 +9,7 @@ define('qs', function(require, exports, module) {
   var CHARS = /[^\w!$'()*,-.\/:;@[\\\]^{|}~]+/g;
   var hasOwn = Object.hasOwnProperty;
 
-  var qs = module.exports = {
+  var qs = (module.exports = {
     escape: function(s) {
       return String(s).replace(CHARS, function(s) {
         return encodeURIComponent(s);
@@ -24,9 +24,13 @@ define('qs', function(require, exports, module) {
       }
     },
     stringify: function(obj) {
-      var arr = [], keys = Object.keys(obj), len = keys.length;
+      var arr = [],
+        keys = Object.keys(obj),
+        len = keys.length;
       for (var i = 0; i < len; i++) {
-        var key = keys[i], name = qs.escape(key), val = obj[key];
+        var key = keys[i],
+          name = qs.escape(key),
+          val = obj[key];
         if (Array.isArray(val)) {
           for (var j = 0; j < val.length; j++) {
             arr.push(name + '=' + qs.escape(val[j]));
@@ -44,11 +48,13 @@ define('qs', function(require, exports, module) {
         if (str.charAt(0) == '?') str = str.slice(1);
         var split = str.split('&');
         for (var i = 0, len = split.length; i < len; i++) {
-          var part = split[i], pos = part.indexOf('=');
+          var part = split[i],
+            pos = part.indexOf('=');
           if (pos < 0) {
             pos = part.length;
           }
-          var key = part.slice(0, pos), val = part.slice(pos + 1);
+          var key = part.slice(0, pos),
+            val = part.slice(pos + 1);
           if (!key) continue;
           key = qs.unescape(key);
           //default to lowercase keys
@@ -74,11 +80,10 @@ define('qs', function(require, exports, module) {
         var key = keys[i];
         obj[key] = obj[key].join(', ');
       }
-    }
-  };
+    },
+  });
 
   //aliases
   qs.encode = qs.escape;
   qs.decode = qs.unescape;
-
 });

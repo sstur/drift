@@ -37,5 +37,4 @@
 
   exports.startServer = startServer;
   exports.getRequestHandler = getRequestHandler;
-
 })();

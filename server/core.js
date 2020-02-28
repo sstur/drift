@@ -15,12 +15,15 @@ var app, define;
     }
   };
 
-  var platforms = app.platforms = {};
+  var platforms = (app.platforms = {});
   (global.platform || '').split('/').forEach(function(platform) {
     platforms[platform] = 1;
   });
 
-  var require, definitions = {}, loading = {}, cache = {};
+  var require,
+    definitions = {},
+    loading = {},
+    cache = {};
 
   define = app.define = function(name, deps, definition) {
     if (typeof name !== 'string') {
@@ -47,7 +50,8 @@ var app, define;
     //account for more than two arguments (use last two)
     name = arguments[arguments.length - 1];
     namespace = arguments[arguments.length - 2] || '';
-    var module, fullname = require.resolve(namespace, name);
+    var module,
+      fullname = require.resolve(namespace, name);
     if (fullname) {
       module = cache[fullname] || (cache[fullname] = loadModule(fullname));
     }
@@ -70,7 +74,8 @@ var app, define;
       //if name starts with namespace, assume explicit path
       namespace = '';
     }
-    var found, path = joinPath(namespace, getPath(name));
+    var found,
+      path = joinPath(namespace, getPath(name));
     name = name.replace(/.*\//, '');
     while (path && !found) {
       if (definitions[path + '/' + name]) {
@@ -99,7 +104,6 @@ var app, define;
   //expose module cache
   require.cache = cache;
 
-
   /*!
    * Basic Event Emitter
    */
@@ -112,11 +116,12 @@ var app, define;
     },
     emit: function(name) {
       var args = slice.call(arguments, 1);
-      var events = this._events || {}, list = events[name] || [];
+      var events = this._events || {},
+        list = events[name] || [];
       for (var i = 0; i < list.length; i++) {
         list[i].apply(this, args);
       }
-    }
+    },
   };
 
   //Make an object into a basic Event Emitter
@@ -126,11 +131,8 @@ var app, define;
     return obj;
   };
 
-
-
   //Global `app` should be able to emit events
   app.eventify(app);
-
 
   /*!
    * Routing
@@ -138,7 +140,7 @@ var app, define;
    * provided by separate module, but routes can be
    * added before that module is loaded.
    */
-  var routes = app._routes = [];
+  var routes = (app._routes = []);
 
   //shortcut method for addRoute or routeRequest
   app.route = function(route) {
@@ -149,11 +151,10 @@ var app, define;
     }
   };
 
-
   /*!
    * Configuration
    */
-  var config = app._cfg = {};
+  var config = (app._cfg = {});
   app.cfg = function() {
     var args = Array.from(arguments);
     if (args.length === 1 && typeof args[0] === 'string') {
@@ -182,18 +183,16 @@ var app, define;
     Object.keys(data).forEach(function(key) {
       var value = data[key];
       //in some JS engines toString of null|undefined === '[object Object]'
-      var type = (value == null) ? 'empty' : toString.call(value);
+      var type = value == null ? 'empty' : toString.call(value);
       var path = stack.concat(key.split('/'));
       if (type === '[object Object]') {
         mergeCfg(value, path);
-      } else
-      if (type === '[object Array]') {
+      } else if (type === '[object Array]') {
         setCfg(path, value.slice(0));
       } else {
         setCfg(path, value);
       }
     });
-
   }
 
   function setCfg(path, value) {
@@ -214,13 +213,12 @@ var app, define;
     return obj[path[i]];
   }
 
-
   /*!
    * Helpers
    */
 
   function addRoute(route, handler, opts) {
-    routes.push({route: route, handler: handler, opts: opts});
+    routes.push({ route: route, handler: handler, opts: opts });
   }
 
   function routeRequest(adapterRequest, adapterResponse) {
@@ -259,7 +257,8 @@ var app, define;
   }
 
   function loadModule(name) {
-    var module, fn = definitions[name];
+    var module,
+      fn = definitions[name];
     if (typeof fn === 'function') {
       //modules are cached during function call to handle cyclic recursion
       if (loading[name]) {
@@ -270,7 +269,7 @@ var app, define;
         module = loading[name] = {
           name: name,
           exports: {},
-          require: require.bind(module, path)
+          require: require.bind(module, path),
         };
         var args = resolveDependencies(module, fn);
         fn.apply(module, args);
@@ -281,11 +280,17 @@ var app, define;
   }
 
   function resolveDependencies(module, definition) {
-    var deps = definition.deps, resolved = [];
+    var deps = definition.deps,
+      resolved = [];
     if (!deps || !deps.length) {
       deps = ['require', 'exports', 'module'];
     }
-    var special = {module: module, require: module.require, exports: module.exports, app: app};
+    var special = {
+      module: module,
+      require: module.require,
+      exports: module.exports,
+      app: app,
+    };
     for (var i = 0; i < deps.length; i++) {
       var dep = deps[i];
       if (special[dep]) {
@@ -294,7 +299,13 @@ var app, define;
         try {
           resolved.push(module.require(dep));
         } catch (e) {
-          throw new Error('Error loading dependency `' + dep + '` for module `' + module.name + '`');
+          throw new Error(
+            'Error loading dependency `' +
+              dep +
+              '` for module `' +
+              module.name +
+              '`',
+          );
         }
       }
     }
@@ -302,7 +313,7 @@ var app, define;
   }
 
   function getPath(name) {
-    return (name && ~name.indexOf('/')) ? name.replace(/\/[^\/]*$/, '') : '';
+    return name && ~name.indexOf('/') ? name.replace(/\/[^\/]*$/, '') : '';
   }
 
   function joinPath() {
@@ -320,5 +331,4 @@ var app, define;
   //export to global for CommonJS environments
   global.app = app;
   global.define = define;
-
 })();

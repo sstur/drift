@@ -17,7 +17,7 @@ adapter.define('fs', function(require, fs) {
   var ERROR_NO = {
     EXDEV: 52,
     EISDIR: 28, //illegal operation on a directory
-    EEXIST: 47
+    EEXIST: 47,
   };
 
   fs.isFile_ = function(path, callback) {
@@ -110,7 +110,7 @@ adapter.define('fs', function(require, fs) {
     _fs.stat(src, function(err, stat) {
       if (err) return callback(err);
       if (!stat.isDirectory()) {
-        return callback(posixError('ENOENT', {path: src}));
+        return callback(posixError('ENOENT', { path: src }));
       }
       _fs.rename(src, dest, callback);
     });
@@ -148,7 +148,7 @@ adapter.define('fs', function(require, fs) {
     var fullPath = mappath(path);
     getInfo(fullPath, false, function(err, info) {
       if (!err && info.type !== 'file') {
-        err = posixError('ENOENT', {path: fullPath});
+        err = posixError('ENOENT', { path: fullPath });
       }
       callback(err, info);
     });
@@ -173,7 +173,10 @@ adapter.define('fs', function(require, fs) {
   fs.writeTextToFile_ = function(path, text, opts, callback) {
     path = mappath(path);
     if (typeof text !== 'string') {
-      text = (text == null || typeof text.toString !== 'function') ? Object.prototype.toString.call(text) : text.toString();
+      text =
+        text == null || typeof text.toString !== 'function'
+          ? Object.prototype.toString.call(text)
+          : text.toString();
     }
     writeFile(path, text, opts, callback);
   };
@@ -185,12 +188,11 @@ adapter.define('fs', function(require, fs) {
   fs.createWriteStream = function(path, opts) {
     opts = opts || {};
     //default is to append
-    opts.append = (opts.append !== false);
+    opts.append = opts.append !== false;
     //overwrite option will override append
     if (opts.overwrite === true) opts.append = false;
     return new FileWriteStream(path, opts);
   };
-
 
   function FileReadStream(path, opts) {
     this.path = path;
@@ -211,18 +213,22 @@ adapter.define('fs', function(require, fs) {
     init_: function(callback) {
       var path = app.mappath(this.path);
       this._bytesRead = 0;
-      _fs.stat(path, function(err, stat) {
-        if (err) return callback(err);
-        this._bytesTotal = stat.size;
-        callback();
-      }.bind(this));
+      _fs.stat(
+        path,
+        function(err, stat) {
+          if (err) return callback(err);
+          this._bytesTotal = stat.size;
+          callback();
+        }.bind(this),
+      );
     },
-    readBytes_: function(bytes, callback) { // eslint-disable-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars
+    readBytes_: function(bytes, callback) {
       throw new Error('Not implemented: readStream.readBytes()');
     },
     read_: function(callback) {
       var path = app.mappath(this.path);
-      var opts = {encoding: this.opts.encoding};
+      var opts = { encoding: this.opts.encoding };
       var self = this;
       var stream = _fs.createReadStream(path, opts);
       stream.on('error', callback);
@@ -237,7 +243,8 @@ adapter.define('fs', function(require, fs) {
       //drain the bytes in the buffer (resets readable flag)
       var drain = function() {
         var chunk;
-        while (null !== (chunk = stream.read())) { // eslint-disable-line yoda
+        while (null !== (chunk = stream.read())) {
+          // eslint-disable-line yoda
           self.emit('data', chunk);
         }
       };
@@ -248,9 +255,8 @@ adapter.define('fs', function(require, fs) {
       } else {
         return fs.readFile(this.path);
       }
-    }
+    },
   });
-
 
   function FileWriteStream(path, opts) {
     this.path = path;
@@ -265,25 +271,26 @@ adapter.define('fs', function(require, fs) {
     write_: function(data, enc, callback) {
       if (this._finished) {
         callback();
-      } else
-      if (this._stream) {
+      } else if (this._stream) {
         this._stream.write(data, enc, callback);
       } else {
-        openWriteStream(mappath(this.path), this.opts, function(err, stream) {
-          if (err) return callback(err);
-          this._stream = stream;
-          this._stream.write(data, enc, callback);
-        }.bind(this));
+        openWriteStream(
+          mappath(this.path),
+          this.opts,
+          function(err, stream) {
+            if (err) return callback(err);
+            this._stream = stream;
+            this._stream.write(data, enc, callback);
+          }.bind(this),
+        );
       }
     },
     end_: function(callback) {
       if (this._finished) return;
       this._finished = true;
       this._stream.end(callback);
-    }
+    },
   });
-
-
 
   //helpers
   function rmdir(path, deep, callback) {
@@ -302,7 +309,8 @@ adapter.define('fs', function(require, fs) {
       var info = fileInfo(basename(path), stat);
       if (deep && info.type === 'directory') {
         var fullPath = join(path, info.name);
-        getChildrenInfo(fullPath, deep, function(err, children) { // eslint-disable-line handle-callback-err
+        // eslint-disable-next-line handle-callback-err
+        getChildrenInfo(fullPath, deep, function(err, children) {
           info.children = children;
           children.forEach(function(childInfo) {
             info.size += childInfo.size;
@@ -316,7 +324,8 @@ adapter.define('fs', function(require, fs) {
   }
 
   function getChildrenInfo(path, deep, callback) {
-    _fs.readdir(path, function(err, names) { // eslint-disable-line handle-callback-err
+    // eslint-disable-next-line handle-callback-err
+    _fs.readdir(path, function(err, names) {
       var files = [];
       var directories = [];
       var errors = [];
@@ -327,11 +336,9 @@ adapter.define('fs', function(require, fs) {
         _fs.stat(pathName, function(err, stat) {
           if (err) {
             errors.push(name);
-          } else
-          if (stat.isFile()) {
+          } else if (stat.isFile()) {
             files.push(name);
-          } else
-          if (stat.isDirectory()) {
+          } else if (stat.isDirectory()) {
             directories.push(name);
           }
           results[name] = err || stat;
@@ -351,7 +358,8 @@ adapter.define('fs', function(require, fs) {
         list.forEach(function(childInfo, done) {
           if (childInfo.type !== 'directory') return done();
           var fullPath = join(path, childInfo.name);
-          getChildrenInfo(fullPath, deep, function(err, children) { // eslint-disable-line handle-callback-err
+          // eslint-disable-next-line handle-callback-err
+          getChildrenInfo(fullPath, deep, function(err, children) {
             childInfo.children = children;
           });
         });
@@ -370,7 +378,7 @@ adapter.define('fs', function(require, fs) {
       dateLastAccessed: file.atime,
       dateLastModified: file.mtime,
       type: isDirectory ? 'directory' : 'file',
-      size: isDirectory ? 0 : file.size
+      size: isDirectory ? 0 : file.size,
     };
   }
 
@@ -384,13 +392,16 @@ adapter.define('fs', function(require, fs) {
   }
 
   function openWriteStream(path, opts, callback) {
-    var flags = (opts.append) ? 'a' : 'w';
+    var flags = opts.append ? 'a' : 'w';
     var encoding = opts.encoding || 'utf8';
-    var stream = _fs.createWriteStream(path, {flags: flags, encoding: encoding});
+    var stream = _fs.createWriteStream(path, {
+      flags: flags,
+      encoding: encoding,
+    });
     stream.on('error', function(err) {
       //if trying to append file, but it doesn't exist, create it
       if (opts.append && err.code === 'ENOENT') {
-        openWriteStream(path, {encoding: encoding}, callback);
+        openWriteStream(path, { encoding: encoding }, callback);
       } else {
         callback(err);
       }
@@ -417,7 +428,7 @@ adapter.define('fs', function(require, fs) {
       if (err) return callback(err);
       if (!stat.isFile()) {
         var errCode = stat.isDirectory() ? 'EISDIR' : 'ENOENT';
-        return callback(posixError(errCode, {path: src}));
+        return callback(posixError(errCode, { path: src }));
       }
       _fs.stat(dest, function(err, stat) {
         if (err && err.code !== 'ENOENT') {
@@ -428,7 +439,7 @@ adapter.define('fs', function(require, fs) {
           if (stat.isDirectory()) {
             dest = join(dest, basename(src));
           } else {
-            return callback(posixError('EEXIST', {path: dest}));
+            return callback(posixError('EEXIST', { path: dest }));
           }
         }
         callback(null, src, dest);
@@ -497,5 +508,4 @@ adapter.define('fs', function(require, fs) {
     });
     defer = false;
   };
-
 });

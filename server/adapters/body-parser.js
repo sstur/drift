@@ -23,7 +23,7 @@ adapter.define('body-parser', function(require, exports, module) {
     this.init(src);
     this.headers = headers;
     opts = opts || {};
-    this.hashType = (opts.hash === false) ? null : (opts.hash || 'md5');
+    this.hashType = opts.hash === false ? null : opts.hash || 'md5';
     this.opts = opts;
     this.parsed = {};
     //to work properly with formidable
@@ -39,7 +39,9 @@ adapter.define('body-parser', function(require, exports, module) {
 
   BodyParser.prototype.init_ = function(src, callback) {
     if (typeof src === 'string') {
-      var readStream = this.readStream = _fs.createReadStream(app.mappath(src));
+      var readStream = (this.readStream = _fs.createReadStream(
+        app.mappath(src),
+      ));
       readStream.on('error', callback);
       readStream.on('open', function() {
         callback();
@@ -66,8 +68,7 @@ adapter.define('body-parser', function(require, exports, module) {
     if (isNaN(this.length)) {
       this.emit('error', '411 Length Required');
       return;
-    } else
-    if (this.length === 0) {
+    } else if (this.length === 0) {
       //nothing to parse
       this.emit('end');
       return;
@@ -95,12 +96,15 @@ adapter.define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype.bufferReqBody = function(callback) {
-    var readStream = this.readStream, opts = this.opts;
+    var readStream = this.readStream,
+      opts = this.opts;
     if (this.length > MAX_BUFFER_SIZE) {
       callback('413 Request Entity Too Large');
       return;
     }
-    var buffer = [], size = 0, expected = this.length;
+    var buffer = [],
+      size = 0,
+      expected = this.length;
     readStream.on('data', function(data) {
       if (size > expected) {
         readStream.pause();
@@ -145,16 +149,17 @@ adapter.define('body-parser', function(require, exports, module) {
         return;
       }
       if (parsed !== Object(parsed)) {
-        parsed = {'': parsed};
+        parsed = { '': parsed };
       }
       Object.assign(self.parsed, parsed);
       self.emit('end');
     });
-
   };
 
   BodyParser.prototype.processMultiPartBody = function() {
-    var self = this, readStream = this.readStream, opts = this.opts;
+    var self = this,
+      readStream = this.readStream,
+      opts = this.opts;
     //todo: we should use formidable.MultipartParser directly
     var parser = new formidable.IncomingForm();
     parser.hash = this.hashType;
@@ -198,8 +203,7 @@ adapter.define('body-parser', function(require, exports, module) {
         file.hash = _file.hash;
         if (_file.path && _file.size === 0) {
           _fs.unlink(_file.path);
-        } else
-        if (_file.path) {
+        } else if (_file.path) {
           file.fullpath = _file.path;
         }
         file.emit('end');
@@ -209,7 +213,6 @@ adapter.define('body-parser', function(require, exports, module) {
         key = getUniqueKey(self.parsed, key);
       }
       self.parsed[key] = file;
-
     });
     //parser.on('error', function() {});
     //todo: socket timeout or close
@@ -224,7 +227,10 @@ adapter.define('body-parser', function(require, exports, module) {
   };
 
   BodyParser.prototype.processBinaryBody = function() {
-    var self = this, readStream = self.readStream, headers = this.headers, opts = self.opts;
+    var self = this,
+      readStream = self.readStream,
+      headers = this.headers,
+      opts = self.opts;
     if (this.hashType) {
       var hash = crypto.createHash(this.hashType);
     }
@@ -232,18 +238,19 @@ adapter.define('body-parser', function(require, exports, module) {
     var contentDisp = util.parseHeaderValue(headers['content-disposition']);
     var fieldName = contentDisp.name || headers['x-name'] || 'file';
 
-    var file = self.parsed[fieldName] = new File();
+    var file = (self.parsed[fieldName] = new File());
     file.guid = getGuid();
     file.name = fieldName;
     file.fileName = contentDisp.filename || headers['x-file-name'] || 'upload';
-    file.contentType = headers['content-description'] || headers['x-content-type'] || self.type;
+    file.contentType =
+      headers['content-description'] || headers['x-content-type'] || self.type;
     file.size = 0;
     file.md5 = null;
 
     self.emit('file', file);
 
     if (opts.autoSavePath) {
-      var path = file.fullpath = join(opts.autoSavePath, getGuid());
+      var path = (file.fullpath = join(opts.autoSavePath, getGuid()));
       var outStream = _fs.createWriteStream(app.mappath(path));
       outStream.on('error', function(err) {
         self.emit('error', err);
@@ -272,7 +279,7 @@ adapter.define('body-parser', function(require, exports, module) {
   util.inherits(File, EventEmitter);
 
   File.prototype.toString = function() {
-    return (typeof this.fileName === 'string') ? this.fileName : '';
+    return typeof this.fileName === 'string' ? this.fileName : '';
   };
 
   File.prototype.toJSON = function() {
@@ -284,7 +291,7 @@ adapter.define('body-parser', function(require, exports, module) {
       size: this.size,
       md5: this.md5,
       hash: this.hash,
-      fullpath: this.fullpath
+      fullpath: this.fullpath,
     };
   };
 
@@ -292,7 +299,6 @@ adapter.define('body-parser', function(require, exports, module) {
     fs.moveFile(this.fullpath, path);
     this.fullpath = path;
   };
-
 
   //todo: remove this and use formidable.MultipartParser directly (or dicer)
   function DummyWriteStream() {}
@@ -303,10 +309,9 @@ adapter.define('body-parser', function(require, exports, module) {
     callback();
   };
 
-
   //Helper functions
   function isUpload(item) {
-    return (item instanceof File);
+    return item instanceof File;
   }
 
   function getGuid() {
@@ -330,5 +335,4 @@ adapter.define('body-parser', function(require, exports, module) {
 
   module.exports = BodyParser;
   BodyParser.isUpload = isUpload;
-
 });

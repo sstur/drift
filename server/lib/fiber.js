@@ -35,7 +35,7 @@
    *
    */
   Fiber.fiberize = function(fn, obj /* arguments */) {
-    var dynamicBinding = (arguments.length === 1);
+    var dynamicBinding = arguments.length === 1;
     var arity = fn.length;
     var bindArgs = slice.call(arguments, 2);
 
@@ -99,7 +99,10 @@
    *
    */
   Fiber.fiberizeModule = function fiberizeModule(module, methodNames) {
-    methodNames = (typeof methodNames == 'string') ? methodNames.split(' ') : Object.keys(module);
+    methodNames =
+      typeof methodNames == 'string'
+        ? methodNames.split(' ')
+        : Object.keys(module);
     methodNames.forEach(function(methodName) {
       //exclude "private" methods
       if (methodName.charAt(0) == '_') return;
@@ -111,9 +114,9 @@
           delete module[methodName];
           methodName = methodName.slice(0, -1);
           module[methodName] = Fiber.fiberize(method);
-        } else
+        }
         //constructors that are exported like `exports.ClassName = ClassName`
-        if (method.name && method.prototype) {
+        else if (method.name && method.prototype) {
           fiberizeModule(method.prototype);
         }
       }
@@ -126,5 +129,4 @@
   };
 
   module.exports = Fiber;
-
 })();

@@ -8,7 +8,9 @@ define('views', function(require, exports, module) {
   try {
     var tmplEngine = require(tmplEngineName);
   } catch (e) {
-    throw new Error('Template engine "' + tmplEngineName + '" could not be loaded');
+    throw new Error(
+      'Template engine "' + tmplEngineName + '" could not be loaded',
+    );
   }
 
   module.exports = tmplEngine;
@@ -21,11 +23,11 @@ define('views', function(require, exports, module) {
   Object.assign(compiledViews, global.compiledViews || {});
 
   tmplEngine.readTemplateFile = getTemplateText;
-  var canCompile = (typeof tmplEngine.compile == 'function');
+  var canCompile = typeof tmplEngine.compile == 'function';
 
   function getTemplateText(name) {
     //default to .html extension if none specified
-    var file = (~name.indexOf('.')) ? name : name + '.html';
+    var file = ~name.indexOf('.') ? name : name + '.html';
     file = 'views/' + file;
     if (file in views) {
       return views[file];
@@ -34,7 +36,7 @@ define('views', function(require, exports, module) {
   }
 
   function getCompiledTemplate(name) {
-    var file = (name.match(/\.js$/)) ? name : name + '.html.js';
+    var file = name.match(/\.js$/) ? name : name + '.html.js';
     file = 'views/' + file;
     if (file in compiledViews) {
       return compiledViews[file];
@@ -65,15 +67,14 @@ define('views', function(require, exports, module) {
     opts = opts || {};
     if (canCompile) {
       var tmpl = getCompiledTemplate(name);
-      var rendered = tmpl.render(context, {filters: filters});
+      var rendered = tmpl.render(context, { filters: filters });
     } else {
       var text = getTemplateText(name);
-      rendered = _render.call(tmplEngine, text, context, {filters: filters});
+      rendered = _render.call(tmplEngine, text, context, { filters: filters });
     }
     if (opts.trim !== false) {
       rendered = rendered.trim();
     }
     return rendered;
   };
-
 });

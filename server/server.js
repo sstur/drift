@@ -1,4 +1,4 @@
- /*global global, process, require, __filename, app */
+/*global global, process, require, __filename, app */
 (function() {
   'use strict';
   var fs = require('fs');
@@ -9,7 +9,7 @@
   var join = path.join;
 
   //framework files beginning with these chars are excluded
-  var EXCLUDE_FILES = {'_': 1, '.': 1, '!': 1}; // eslint-disable-line quote-props
+  var EXCLUDE_FILES = { _: 1, '.': 1, '!': 1 }; // eslint-disable-line quote-props
 
   //the parsed cli arguments from optimist
   var opts = global.opts;
@@ -18,7 +18,7 @@
   }
 
   //this is the project path; used in patch and app.mappath
-  var basePath = global.basePath = opts.path || process.cwd();
+  var basePath = (global.basePath = opts.path || process.cwd());
 
   //this is the framework path
   var fxPath = opts.fxPath;
@@ -38,7 +38,9 @@
 
   //patch `require()` to handle some opt-in source transforms (based on docblock @directives)
   hook.hook('.js', function(source, filename) {
-    return utils.transformSourceFile(source, filename, {pkgConfig: pkgConfig});
+    return utils.transformSourceFile(source, filename, {
+      pkgConfig: pkgConfig,
+    });
   });
 
   //load framework core (instantiates `app`)
@@ -69,7 +71,7 @@
   };
 
   //global object to hold some adapter stuff
-  var adapter = global.adapter = {};
+  var adapter = (global.adapter = {});
 
   //like app.define but fiberizes async methods upon instantiation
   adapter.define = function(name, definition) {
@@ -131,15 +133,14 @@
     res.tryStaticPath(staticPaths, function() {
       var fiber = new Fiber(syncHandler);
       fiber.onError = res.sendError.bind(res);
-      fiber.run({req: req, res: res});
+      fiber.run({ req: req, res: res });
     });
   };
-
 
   //helper for loading framework files
   function loadPathSync(dir) {
     //note: kinda hacky
-    var isSystem = (dir.indexOf('server/') === 0);
+    var isSystem = dir.indexOf('server/') === 0;
     var srcPath = isSystem ? fxPath : basePath;
     var path = join(srcPath, dir);
     try {
@@ -154,12 +155,10 @@
       var stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
         loadPathSync(join(dir, file));
-      } else
-      if (stat.isFile() && file.match(/\.js$/i)) {
+      } else if (stat.isFile() && file.match(/\.js$/i)) {
         console.log('load file', join(dir, file));
         require(join(srcPath, dir, file));
       }
     });
   }
-
 })();

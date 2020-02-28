@@ -32,7 +32,7 @@ var forEach, vartype, isPrimitive, toArray;
       }
       return obj;
     }
-    var type = (obj === null) ? 'null' : typeof obj;
+    var type = obj === null ? 'null' : typeof obj;
     if (type == 'object' || type == 'function') {
       keys = Object.keys(obj);
       len = keys.length;
@@ -46,7 +46,8 @@ var forEach, vartype, isPrimitive, toArray;
     }
   };
 
-  Object.assign = function(target, source) { // eslint-disable-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
+  Object.assign = function(target, source) {
     var to = Object(target);
     var objectCount = arguments.length;
     for (var i = 1; i < objectCount; i++) {
@@ -64,7 +65,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   Object.isPrimitive = function(obj) {
-    return (obj !== Object(obj));
+    return obj !== Object(obj);
   };
 
   Object.remove = function(obj, key) {
@@ -74,8 +75,7 @@ var forEach, vartype, isPrimitive, toArray;
       for (var i = 0, len = keys.length; i < len; i++) {
         delete obj[keys[i]];
       }
-    } else
-    if (type == 'string') {
+    } else if (type == 'string') {
       delete obj[key];
     }
     return obj;
@@ -91,19 +91,25 @@ var forEach, vartype, isPrimitive, toArray;
 
   Object.vartype = function(obj, /**String|Array=*/ list) {
     if (list) {
-      list = (Array.isArray(list)) ? list : String(list).w();
+      list = Array.isArray(list) ? list : String(list).w();
       return list.exists(Object.vartype(obj));
     }
-    var type = (obj === null) ? 'null' : typeof obj;
-    return (type == 'object') ? toString.call(obj).slice(8, -1).toLowerCase() : type;
+    var type = obj === null ? 'null' : typeof obj;
+    return type == 'object'
+      ? toString
+          .call(obj)
+          .slice(8, -1)
+          .toLowerCase()
+      : type;
   };
 
   Array.prototype.exists = function(el) {
-    return (this.indexOf(el) !== -1);
+    return this.indexOf(el) !== -1;
   };
 
   Array.toArray = function(obj) {
-    var len = obj.length, arr = new Array(len);
+    var len = obj.length,
+      arr = new Array(len);
     for (var i = 0; i < len; i++) {
       arr[i] = obj[i];
     }
@@ -114,13 +120,13 @@ var forEach, vartype, isPrimitive, toArray;
 
   Number.parse = function(str, /**Number=0*/ def) {
     var i = parseFloat(str);
-    def = (arguments.length > 1) ? def : 0;
+    def = arguments.length > 1 ? def : 0;
     return isFinite(i) ? i : def;
   };
 
   Number.parseInt = function(str, /**Number=0*/ def) {
     var i = parseInt(str, 10);
-    def = (arguments.length > 1) ? def : 0;
+    def = arguments.length > 1 ? def : 0;
     return isFinite(i) ? i : def;
   };
 
@@ -136,7 +142,10 @@ var forEach, vartype, isPrimitive, toArray;
       });
       return self;
     }
-    return this.replace(new RegExp(RegExp.escape(a), 'ig'), b.replace(/\$/g, '$$'));
+    return this.replace(
+      new RegExp(RegExp.escape(a), 'ig'),
+      b.replace(/\$/g, '$$'),
+    );
   };
 
   String.prototype.trimLeft = function() {
@@ -148,32 +157,38 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   String.prototype.padLeft = function(num, str) {
-    var r = String(this), len = r.length;
-    return (len < num) ? new Array(num - len + 1).join(str) + r : r;
+    var r = String(this),
+      len = r.length;
+    return len < num ? new Array(num - len + 1).join(str) + r : r;
   };
 
   String.prototype.padRight = function(num, str) {
-    var r = String(this), len = r.length;
-    return (len < num) ? r + new Array(num - len + 1).join(str) : r;
+    var r = String(this),
+      len = r.length;
+    return len < num ? r + new Array(num - len + 1).join(str) : r;
   };
 
   String.prototype.startsWith = function(str) {
-    var self = this, re = new RegExp('^' + RegExp.escape(str), 'i');
+    var self = this,
+      re = new RegExp('^' + RegExp.escape(str), 'i');
     return !!String(self).match(re);
   };
 
   String.prototype.endsWith = function(str) {
-    var self = this, re = new RegExp(RegExp.escape(str) + '$', 'i');
+    var self = this,
+      re = new RegExp(RegExp.escape(str) + '$', 'i');
     return !!String(self).match(re);
   };
 
   String.prototype.replaceHead = function(a, b) {
-    var self = this, re = new RegExp('^' + RegExp.escape(a), 'i');
+    var self = this,
+      re = new RegExp('^' + RegExp.escape(a), 'i');
     return String(self).replace(re, b);
   };
 
   String.prototype.replaceTail = function(a, b) {
-    var self = this, re = new RegExp(RegExp.escape(a) + '$', 'i');
+    var self = this,
+      re = new RegExp(RegExp.escape(a) + '$', 'i');
     return String(self).replace(re, b);
   };
 
@@ -183,8 +198,8 @@ var forEach, vartype, isPrimitive, toArray;
   String.prototype.w = String.prototype.words;
 
   String.parse = function(str, /**String=''*/ def) {
-    def = (arguments.length > 1) ? def : '';
-    return (str == null) ? def : (str.toString ? str.toString() : '' + str);
+    def = arguments.length > 1 ? def : '';
+    return str == null ? def : str.toString ? str.toString() : '' + str;
   };
 
   String.repeat = function(str, count) {
@@ -230,7 +245,7 @@ var forEach, vartype, isPrimitive, toArray;
   };
 
   RegExp.copyAsGlobal = function(reg) {
-    var flags = 'g' + ((reg.ignoreCase) ? 'i' : '') + ((reg.multiline) ? 'm' : '');
+    var flags = 'g' + (reg.ignoreCase ? 'i' : '') + (reg.multiline ? 'm' : '');
     return new RegExp(reg.source, flags);
   };
 
@@ -244,5 +259,4 @@ var forEach, vartype, isPrimitive, toArray;
   global.vartype = vartype;
   global.isPrimitive = isPrimitive;
   global.toArray = toArray;
-
 })();

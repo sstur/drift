@@ -28,9 +28,10 @@ app.define('adapter-request', function(require, exports, module) {
     getBodyParser: function(opts) {
       return new BodyParser(this.getHeaders(), this._super, opts);
     },
-    read: function(bytes) { // eslint-disable-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars
+    read: function(bytes) {
       throw new Error('Body Parser: request.read() not implemented');
-    }
+    },
   });
 
   module.exports = Request;

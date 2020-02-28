@@ -12,10 +12,10 @@
    */
   exports.modified = function(req, res, headers) {
     headers = headers || res._headers || {};
-    var modifiedSince = req.headers['if-modified-since']
-      , lastModified = headers['last-modified']
-      , noneMatch = req.headers['if-none-match']
-      , etag = headers.etag;
+    var modifiedSince = req.headers['if-modified-since'],
+      lastModified = headers['last-modified'],
+      noneMatch = req.headers['if-none-match'],
+      etag = headers.etag;
 
     if (noneMatch) noneMatch = noneMatch.split(/ *, */);
 
@@ -85,31 +85,33 @@
    */
   exports.parseRange = function(size, str) {
     var valid = true;
-    var arr = str.substr(6).split(',').map(function(range) {
-      range = range.split('-');
-      var start = parseInt(range[0], 10)
-        , end = parseInt(range[1], 10);
+    var arr = str
+      .substr(6)
+      .split(',')
+      .map(function(range) {
+        range = range.split('-');
+        var start = parseInt(range[0], 10),
+          end = parseInt(range[1], 10);
 
-      // -500
-      if (isNaN(start)) {
-        start = size - end;
-        end = size - 1;
-      // 500-
-      } else if (isNaN(end)) {
-        end = size - 1;
-      }
+        // -500
+        if (isNaN(start)) {
+          start = size - end;
+          end = size - 1;
+          // 500-
+        } else if (isNaN(end)) {
+          end = size - 1;
+        }
 
-      // Invalid
-      if (isNaN(start) || isNaN(end) || start > end || start < 0)
-        valid = false;
+        // Invalid
+        if (isNaN(start) || isNaN(end) || start > end || start < 0)
+          valid = false;
 
-      return {
-        start: start,
-        end: end
-      };
-    });
+        return {
+          start: start,
+          end: end,
+        };
+      });
 
     return valid ? arr : null;
   };
-
 })();

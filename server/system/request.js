@@ -6,8 +6,8 @@ define('request', function(require, exports, module) {
   var util = require('util');
   var BodyParser = require('body-parser');
 
-  var HTTP_METHODS = {GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1};
-  var BODY_ALLOWED = {POST: 1, PUT: 1};
+  var HTTP_METHODS = { GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1 };
+  var BODY_ALLOWED = { POST: 1, PUT: 1 };
 
   var remoteAddrHeaders = (app.cfg('remote_addr_header') || '').split('|');
 
@@ -31,10 +31,17 @@ define('request', function(require, exports, module) {
       if (!this._method) {
         //method override (for JSONP and platforms that don't support PUT/DELETE)
         //todo: this query param (_method) should be specified/disabled in config
-        var override = (this.headers('X-HTTP-Method-Override') || this.query('_method')).toUpperCase();
-        this._method = (override in HTTP_METHODS) ? override : this._super.getMethod().toUpperCase();
+        var override = (
+          this.headers('X-HTTP-Method-Override') || this.query('_method')
+        ).toUpperCase();
+        this._method =
+          override in HTTP_METHODS
+            ? override
+            : this._super.getMethod().toUpperCase();
       }
-      return (typeof s == 'string') ? (s.toUpperCase() == this._method) : this._method;
+      return typeof s == 'string'
+        ? s.toUpperCase() == this._method
+        : this._method;
     },
     getRemoteIP: function() {
       var remoteAddress;
@@ -43,14 +50,19 @@ define('request', function(require, exports, module) {
         remoteAddress = remoteAddress || this.headers(remoteAddrHeaders[i]);
       }
       if (remoteAddress) {
-        remoteAddress = remoteAddress.split(',').pop().trim();
+        remoteAddress = remoteAddress
+          .split(',')
+          .pop()
+          .trim();
       } else {
         remoteAddress = this._super.getRemoteAddress();
       }
       return remoteAddress;
     },
     headers: function(n) {
-      var headers = this._headers || (this._headers = parseHeaders(this._super.getHeaders()));
+      var headers =
+        this._headers ||
+        (this._headers = parseHeaders(this._super.getHeaders()));
       if (arguments.length) {
         return headers[n.toLowerCase()] || '';
       } else {
@@ -58,7 +70,8 @@ define('request', function(require, exports, module) {
       }
     },
     cookies: function(n) {
-      var cookies = this._cookies || (this._cookies = parseCookies(this.headers('cookie')));
+      var cookies =
+        this._cookies || (this._cookies = parseCookies(this.headers('cookie')));
       if (arguments.length) {
         return cookies[n.toLowerCase()] || '';
       } else {
@@ -84,13 +97,15 @@ define('request', function(require, exports, module) {
     _parseBody: function() {
       try {
         //body-parser events will be propagated to this
-        var body = (this.method() in BODY_ALLOWED) ? parseReqBody(this) : {};
+        var body = this.method() in BODY_ALLOWED ? parseReqBody(this) : {};
       } catch (e) {
         this.emit('parse-error', e);
         if (typeof e == 'string' && e.match(/^\d{3}\b/)) {
           this.res.die(e);
         } else {
-          this.res.die(400, {error: 'Unable to parse request body; ' + e.message});
+          this.res.die(400, {
+            error: 'Unable to parse request body; ' + e.message,
+          });
         }
       }
       return body;
@@ -100,10 +115,9 @@ define('request', function(require, exports, module) {
     },
     isAjax: function() {
       //todo: check accepts, x-requested-with, and qs (jsonp/callback)
-      return (this.headers('X-Requested-With').toLowerCase() == 'xmlhttprequest');
-    }
+      return this.headers('X-Requested-With').toLowerCase() == 'xmlhttprequest';
+    },
   });
-
 
   //Helpers
 
@@ -111,7 +125,7 @@ define('request', function(require, exports, module) {
 
   function parseURL(url) {
     var pos = url.indexOf('?');
-    var search = (pos > 0) ? url.slice(pos) : '';
+    var search = pos > 0 ? url.slice(pos) : '';
     var rawPath = search ? url.slice(0, pos) : url;
     //todo: normalize rawPath: rawPath.split('/').map(decode).map(encode).join('/')
     return {
@@ -119,7 +133,7 @@ define('request', function(require, exports, module) {
       rawPath: rawPath,
       path: qs.unescape(rawPath),
       search: search,
-      qs: search.slice(1)
+      qs: search.slice(1),
     };
   }
 
@@ -132,7 +146,7 @@ define('request', function(require, exports, module) {
   }
 
   function parseCookies(str) {
-    str = (str == null) ? '' : String(str);
+    str = str == null ? '' : String(str);
     var cookies = {};
     var parts = str.split(REG_COOKIE_SEP);
     for (var i = 0, len = parts.length; i < len; i++) {
@@ -141,7 +155,10 @@ define('request', function(require, exports, module) {
       if (index < 0) {
         index = part.length;
       }
-      var key = part.slice(0, index).trim().toLowerCase();
+      var key = part
+        .slice(0, index)
+        .trim()
+        .toLowerCase();
       // no empty keys
       if (!key) continue;
       var value = part.slice(index + 1).trim();
@@ -157,7 +174,8 @@ define('request', function(require, exports, module) {
     var _super = req._super;
     var opts = {
       //this allows us to turn on auto save at runtime before calling req.body()
-      autoSavePath: ('autoSavePath' in req) ? req.autoSavePath : app.cfg('auto_save_uploads')
+      autoSavePath:
+        'autoSavePath' in req ? req.autoSavePath : app.cfg('auto_save_uploads'),
     };
     //allow adapter request to instantiate its own parser
     if (_super.getBodyParser) {
@@ -170,5 +188,4 @@ define('request', function(require, exports, module) {
   }
 
   module.exports = Request;
-
 });

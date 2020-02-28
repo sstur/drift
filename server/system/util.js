@@ -18,24 +18,24 @@ define('util', function(require, util) {
 
   //regex for html decoding
   var REG_ENT_DEC = /&#(\d+);/g;
-  var REG_ENT_HEX = /&#x((?:[\dA-F]{2}){1,2});/ig;
-  var REG_ENT_OTHER = /&([a-z]+);/ig;
+  var REG_ENT_HEX = /&#x((?:[\dA-F]{2}){1,2});/gi;
+  var REG_ENT_OTHER = /&([a-z]+);/gi;
 
   //regex for decoding percent-encoded strings
-  var PCT_SEQUENCE = /(%[0-9a-f]{2})+/ig;
+  var PCT_SEQUENCE = /(%[0-9a-f]{2})+/gi;
 
   //type-specific clone helpers
   /* eslint-disable quote-props */
   var CLONE = {
-    'Array': function(clone) {
+    Array: function(clone) {
       return Array.prototype.map.call(this, clone);
     },
-    'Date': function() {
+    Date: function() {
       return new Date(this.valueOf());
     },
-    'String': String.prototype.valueOf,
-    'Number': Number.prototype.valueOf,
-    'Boolean': Boolean.prototype.valueOf
+    String: String.prototype.valueOf,
+    Number: Number.prototype.valueOf,
+    Boolean: Boolean.prototype.valueOf,
   };
   /* eslint-enable quote-props */
 
@@ -71,13 +71,13 @@ define('util', function(require, util) {
         value: ctor,
         enumerable: false,
         writable: true,
-        configurable: true
-      }
+        configurable: true,
+      },
     });
   };
 
   util.propagateEvents = function(src, dest, events) {
-    events = (Array.isArray(events)) ? events : String(events).split(' ');
+    events = Array.isArray(events) ? events : String(events).split(' ');
     events.forEach(function(event) {
       src.on(event, function() {
         dest.emit.apply(dest, [event].concat(Array.from(arguments)));
@@ -99,8 +99,11 @@ define('util', function(require, util) {
     if (typeof numBytes != 'number' || !isFinite(numBytes) || numBytes < 5) {
       numBytes = 16;
     }
-    var timestamp = Math.floor(Date.now() / 1000) % 0xFFFFFFFF;
-    return (timestamp.toString(16) + util.hexBytes(numBytes - 4)).slice(0, numBytes * 2);
+    var timestamp = Math.floor(Date.now() / 1000) % 0xffffffff;
+    return (timestamp.toString(16) + util.hexBytes(numBytes - 4)).slice(
+      0,
+      numBytes * 2,
+    );
   };
 
   //returns random bytes as hex
@@ -144,7 +147,7 @@ define('util', function(require, util) {
     var data = args;
     var path = dataPath + 'logs/' + logfile.replace(/\.log$/i, '') + '.log';
     data.forEach(function(line, i) {
-      data[i] = (isPrimitive(line)) ? String(line) : util.stringify(line);
+      data[i] = isPrimitive(line) ? String(line) : util.stringify(line);
     });
     data.unshift(new Date().toUTCString());
     data.push('', ''); //add two extra line feeds at end
@@ -154,19 +157,24 @@ define('util', function(require, util) {
     fs.writeTextToFile(path, data);
   };
 
-
   //parse a set of HTTP headers
   // todo: multi-line headers
   util.parseHeaders = function(input) {
     //input = input.replace(/[ \t]*(\r\n)[ \t]+/g, ' ');
     var headers = {};
-    var lines = input.split('\r\n').join('\n').split('\n');
+    var lines = input
+      .split('\r\n')
+      .join('\n')
+      .split('\n');
     for (var i = 0, len = lines.length; i < len; i++) {
       var line = lines[i];
       var index = line.indexOf(':');
       //discard lines without a :
       if (index < 0) continue;
-      var key = line.slice(0, index).trim().toLowerCase();
+      var key = line
+        .slice(0, index)
+        .trim()
+        .toLowerCase();
       // no empty keys
       if (!key) continue;
       var value = line.slice(index + 1).trim();
@@ -186,7 +194,8 @@ define('util', function(require, util) {
     var results = {};
     str.split(';').forEach(function(pair) {
       var split = pair.trim().split('=');
-      var name = split[0], value = split[1] || '';
+      var name = split[0],
+        value = split[1] || '';
       if (name.slice(-1) == '*') {
         name = name.slice(0, -1);
         value = value.replace(/^[\w-]+'.*?'/, '');
@@ -197,7 +206,6 @@ define('util', function(require, util) {
     });
     return results;
   };
-
 
   //strip a filename to be ascii-safe
   // used in Content-Disposition header
@@ -226,7 +234,6 @@ define('util', function(require, util) {
     return safe.trim();
   };
 
-
   util.htmlEnc = function(str, /**Boolean=true*/ isAttr) {
     str = String(str);
     str = str.replace(/&/g, '&amp;');
@@ -243,22 +250,26 @@ define('util', function(require, util) {
     str = String(str);
     str = str.replace(REG_ENT_DEC, function(ent, n) {
       var i = parseInt(n, 10);
-      return (i < 65536) ? String.fromCharCode(i) : ent;
+      return i < 65536 ? String.fromCharCode(i) : ent;
     });
     str = str.replace(REG_ENT_HEX, function(ent, n) {
       return String.fromCharCode(parseInt(n, 16));
     });
     //optionally specify entities in config
-    var entities = app.cfg('html_entities') ||
-      {amp: '&', gt: '>', lt: '<', quot: '"', apos: '\'', nbsp: '\u00a0'};
+    var entities = app.cfg('html_entities') || {
+      amp: '&',
+      gt: '>',
+      lt: '<',
+      quot: '"',
+      apos: "'",
+      nbsp: '\u00a0',
+    };
     str = str.replace(REG_ENT_OTHER, function(ent, n) {
       var c = entities[n.toLowerCase()];
       return c || ent;
     });
     return str;
   };
-
-
 
   //extend JSON.stringify to special case Error
   //and always encode extended characters to ascii
@@ -272,7 +283,6 @@ define('util', function(require, util) {
   util.parse = function(str) {
     return JSON.parse(str, reviver);
   };
-
 
   /*!
    * Helpers
@@ -290,12 +300,22 @@ define('util', function(require, util) {
     if (typeof val == 'string') {
       var date, error;
       if ((date = val.match(REG_ISODATE))) {
-        return new Date(val) || new Date(Date.UTC(+date[1], +date[2] - 1, +date[3], +date[4], +date[5], +date[6]));
-      } else
-      if (val.slice(0, 8) == '<Buffer ' && val.slice(-1) == '>') {
+        return (
+          new Date(val) ||
+          new Date(
+            Date.UTC(
+              +date[1],
+              +date[2] - 1,
+              +date[3],
+              +date[4],
+              +date[5],
+              +date[6],
+            ),
+          )
+        );
+      } else if (val.slice(0, 8) == '<Buffer ' && val.slice(-1) == '>') {
         return new Buffer(val.slice(8, -1), 'hex');
-      } else
-      if ((error = val.match(REG_ERROR))) {
+      } else if ((error = val.match(REG_ERROR))) {
         return new Error(JSON.parse(error[1]));
       }
     }
@@ -316,5 +336,4 @@ define('util', function(require, util) {
       return unescape(str);
     }
   }
-
 });

@@ -22,9 +22,9 @@
   //Patch ServerRequest to save unmodified copy of headers
   var _addHeaderLine = req._addHeaderLine;
   req._addHeaderLine = function(field, value) {
-    var list = this.complete ?
-        (this.allTrailers || (this.allTrailers = {})) :
-        (this.allHeaders || (this.allHeaders = {}));
+    var list = this.complete
+      ? this.allTrailers || (this.allTrailers = {})
+      : this.allHeaders || (this.allHeaders = {});
     if (field in list) {
       list[field].push(value);
     } else {
@@ -42,7 +42,7 @@
   res.httpError = function(code) {
     var res = this;
     if (!res.headerSent) {
-      var headers = {'Content-Type': 'text/plain'};
+      var headers = { 'Content-Type': 'text/plain' };
       res.writeHead(code, null, headers);
       res.write(code + ' ' + http.STATUS_CODES[code]);
     }
@@ -52,22 +52,30 @@
   //log/report exception (http 50x)
   //todo: don't send full file paths in response
   res.sendError = function(err) {
-    var req = this.req, res = this;
+    var req = this.req,
+      res = this;
     console.log(err.stack || err.toString());
     var TRACE = /\s*(.*?)\s*(?:\((.*?):(\d+):(\d+)\))?$/;
     if (!res.headerSent) {
-      var status = 500, headers = {'Content-Type': 'text/plain'}, body;
+      var status = 500,
+        headers = { 'Content-Type': 'text/plain' },
+        body;
       if (isAjax(req)) {
         //status = 200;
         var stack = err.stack ? err.stack.split('\n').slice(1) : [];
         stack = stack.map(function(line) {
           var match = line.match(TRACE);
-          return {call: match[1].replace('at ', ''), file: match[2] || '', line: match[3] || '', pos: match[4] || ''};
+          return {
+            call: match[1].replace('at ', ''),
+            file: match[2] || '',
+            line: match[3] || '',
+            pos: match[4] || '',
+          };
         });
         var details = {
           _status: '500',
           error: err.message || '',
-          details: stack.shift()
+          details: stack.shift(),
         };
         details.details.stack = stack;
         //todo: jsonp should wrap JSON and send 200
@@ -91,7 +99,7 @@
       var assetPrefix = urlJoin('/', path, '/').toLowerCase();
       if (url.toLowerCase().indexOf(assetPrefix) === 0) {
         //root here is filesystem path
-        tryStatic.push({root: global.basePath, path: url});
+        tryStatic.push({ root: global.basePath, path: url });
       }
     });
     if (!tryStatic.length) {
@@ -113,8 +121,8 @@
 
     if (!opts.path) throw new Error('path required');
 
-    var isGet = (req.method == 'GET');
-    var isHead = (req.method == 'HEAD');
+    var isGet = req.method == 'GET';
+    var isHead = req.method == 'HEAD';
 
     // ignore non-GET requests
     if (opts.getOnly && !isGet && !isHead) {
@@ -158,9 +166,9 @@
   };
 
   res.sendFile = function(opts, fallback) {
-    var req = this.req, res = this;
+    var req = this.req,
+      res = this;
     fs.stat(opts.path, function(err, stat) {
-
       // ignore ENOENT
       if (err) {
         if (fallback && (err.code == 'ENOENT' || err.code == 'ENAMETOOLONG')) {
@@ -169,8 +177,7 @@
           res.sendError(err);
         }
         return;
-      } else
-      if (stat.isDirectory()) {
+      } else if (stat.isDirectory()) {
         if (fallback) {
           fallback();
         } else {
@@ -186,8 +193,9 @@
 
       //caching
       if (opts.enableCaching) {
-        var maxAge = opts.maxAge || 0
-          , cacheControl = opts.cacheControl || 'public, max-age=' + (maxAge / 1000);
+        var maxAge = opts.maxAge || 0,
+          cacheControl =
+            opts.cacheControl || 'public, max-age=' + maxAge / 1000;
         //opts.cacheControl === false disables this header completely
         if (!res.getHeader('Cache-Control') && opts.cacheControl !== false) {
           res.setHeader('Cache-Control', cacheControl);
@@ -204,7 +212,10 @@
 
       // mime/content-type
       if (!res.getHeader('Content-Type')) {
-        var contentType = opts.contentType || mimeTypes.getMime(opts.path) || 'application/octet-stream';
+        var contentType =
+          opts.contentType ||
+          mimeTypes.getMime(opts.path) ||
+          'application/octet-stream';
         //opts.charset === false disables charset completely
         //if (opts.charset !== false) {
         //  var charset = opts.charset || mimeTypes.charsets.lookup(contentType);
@@ -231,11 +242,16 @@
         }
       }
 
-      var streamOpts = {}, len = stat.size;
+      var streamOpts = {},
+        len = stat.size;
 
       // we have a Range request
       var ranges = req.headers.range;
-      if (opts.enableRanges && ranges && (ranges = utils.parseRange(len, ranges))) {
+      if (
+        opts.enableRanges &&
+        ranges &&
+        (ranges = utils.parseRange(len, ranges))
+      ) {
         streamOpts.start = ranges[0].start;
         streamOpts.end = ranges[0].end;
 
@@ -251,7 +267,10 @@
         // Content-Range
         len = streamOpts.end - streamOpts.start + 1;
         res.statusCode = 206;
-        res.setHeader('Content-Range', 'bytes ' + streamOpts.start + '-' + streamOpts.end + '/' + stat.size);
+        res.setHeader(
+          'Content-Range',
+          'bytes ' + streamOpts.start + '-' + streamOpts.end + '/' + stat.size,
+        );
       }
 
       res.setHeader('Content-Length', len);
@@ -277,7 +296,6 @@
     });
   };
 
-
   /*!
    * Helpers
    *
@@ -288,7 +306,8 @@
     return path.replace(/\\/g, '/');
   }
 
-  function isAjax(req) { // eslint-disable-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
+  function isAjax(req) {
     //todo: check accepts, x-requested-with, and qs (jsonp/callback)
     return false;
     //return (req.headers['x-requested-with'] || '').toLowerCase() == 'xmlhttprequest';
@@ -301,5 +320,4 @@
       return encodeURIComponent(c);
     });
   }
-
 })();

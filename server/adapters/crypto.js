@@ -2,7 +2,6 @@
 var crypto = require('crypto');
 var Buffer = require('buffer').Buffer; // eslint-disable-line no-unused-vars
 app.define('crypto', function(require, exports, module) {
-
   module.exports = {
     //indicates this is just a wrapper around native code, so no need to test
     nativeImplementation: true,
@@ -17,7 +16,6 @@ app.define('crypto', function(require, exports, module) {
       var hasher = crypto.createHmac(type, key, enc);
       hasher.update(data, enc);
       return hasher.digest();
-    }
+    },
   };
-
 });

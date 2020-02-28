@@ -53,7 +53,7 @@ define('router', function(require, exports, module) {
         return true; //continue
       }
       if (typeof item.route === 'string') {
-        var matches = (item.route === url) ? [] : null;
+        var matches = item.route === url ? [] : null;
       } else {
         matches = item.route.exec(url);
       }
@@ -75,12 +75,18 @@ define('router', function(require, exports, module) {
 
   //Parse the given route, returning http-method, regular expression and handler
   function parseRoute(route, fn, opts) {
-    var parsed = {}, names = [], type = typeof route, m;
+    var parsed = {},
+      names = [],
+      type = typeof route,
+      m;
     if (type == 'string' && (m = RE_VERB.exec(route))) {
       parsed.method = m[1];
       route = m[2];
     }
-    parsed.route = (type == 'string' && !route.match(RE_PLAIN_ROUTE)) ? buildRegExp(route, names) : route;
+    parsed.route =
+      type == 'string' && !route.match(RE_PLAIN_ROUTE)
+        ? buildRegExp(route, names)
+        : route;
     parsed.paramNames = names;
     parsed.handler = function(matchData, routeArgs) {
       return fn.apply(matchData, routeArgs.concat(matchData.values));
@@ -100,11 +106,26 @@ define('router', function(require, exports, module) {
 
   //Build a regular expression object from a route string, storing param names in the array provided
   function buildRegExp(route, names) {
-    var str = route.concat('/?').replace(/\/\(/g, '(?:/'), index = 0;
-    str = str.replace(/(\/)?(\.)?:([\w-]+)(\?)?/g, function(_, slash, format, key, optional) {
+    var str = route.concat('/?').replace(/\/\(/g, '(?:/'),
+      index = 0;
+    str = str.replace(/(\/)?(\.)?:([\w-]+)(\?)?/g, function(
+      _,
+      slash,
+      format,
+      key,
+      optional,
+    ) {
       names[index++] = key;
       slash = slash || '';
-      return '' + (optional ? '' : slash) + '(?:' + (optional ? slash : '') + (format || '') + '([^/]+))' + (optional || '');
+      return (
+        '' +
+        (optional ? '' : slash) +
+        '(?:' +
+        (optional ? slash : '') +
+        (format || '') +
+        '([^/]+))' +
+        (optional || '')
+      );
     });
     str = str.replace(/([\/.-])/g, '\\$1').replace(/\*/g, '(.+)');
     return new RegExp('^' + str + '$', 'i');
@@ -112,5 +133,4 @@ define('router', function(require, exports, module) {
 
   //export router
   module.exports = Router;
-
 });

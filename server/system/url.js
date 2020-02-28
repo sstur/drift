@@ -4,13 +4,15 @@ define('url', function(require, exports) {
   'use strict';
 
   exports.parse = function(url) {
-    var parts = url.match(/^ *((https?):\/\/)?([^:\/]+)(:([0-9]+))?([^\?]*)(\?.*)?$/);
+    var parts = url.match(
+      /^ *((https?):\/\/)?([^:\/]+)(:([0-9]+))?([^\?]*)(\?.*)?$/,
+    );
     var parsed = {
       protocol: parts[2] ? parts[2].toLowerCase() + ':' : 'http:',
       hostname: parts[3] ? parts[3].toLowerCase() : '',
       port: parts[5],
       pathname: parts[6] || '/',
-      search: parts[7] || ''
+      search: parts[7] || '',
     };
     parsed.port = parsed.port || (parts[2] == 'https' ? 443 : 80);
     parsed.host = parsed.hostname + ':' + parsed.port;
@@ -24,7 +26,10 @@ define('url', function(require, exports) {
       //absolute URI, standards compliant
       ret = newUrl;
     } else {
-      var i = (newUrl.charAt(0) == '/') ? oldUrl.indexOf('/', 8) : oldUrl.lastIndexOf('/') + 1;
+      var i =
+        newUrl.charAt(0) == '/'
+          ? oldUrl.indexOf('/', 8)
+          : oldUrl.lastIndexOf('/') + 1;
       ret = oldUrl.slice(0, i) + newUrl;
       ret = exports.normalize(ret);
     }
@@ -32,7 +37,10 @@ define('url', function(require, exports) {
   };
 
   exports.normalize = function(url) {
-    var base = '', path = url, search = '', pos;
+    var base = '',
+      path = url,
+      search = '',
+      pos;
     if (~url.indexOf('://')) {
       if (~(pos = url.indexOf('/', 8))) {
         base = url.slice(0, pos);
@@ -57,5 +65,4 @@ define('url', function(require, exports) {
     }
     return base + path + search;
   };
-
 });

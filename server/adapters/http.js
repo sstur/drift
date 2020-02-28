@@ -12,9 +12,10 @@ adapter.define('http', function(require, exports) {
   //url helpers
   var parseUrl = url.parse;
 
-  var BODY_ALLOWED = {POST: 1, PUT: 1};
+  var BODY_ALLOWED = { POST: 1, PUT: 1 };
 
-  var httpReqHeaders = 'Accept Accept-Charset Accept-Encoding Accept-Language Accept-Datetime Authorization ' +
+  var httpReqHeaders =
+    'Accept Accept-Charset Accept-Encoding Accept-Language Accept-Datetime Authorization ' +
     'Cache-Control Connection Cookie Content-Length Content-MD5 Content-Type Date Expect From Host If-Match ' +
     'If-Modified-Since If-None-Match If-Range If-Unmodified-Since Max-Forwards Pragma Proxy-Authorization ' +
     'Range Referer TE Upgrade User-Agent Via Warning X-Requested-With X-Do-Not-Track X-Forwarded-For ' +
@@ -26,13 +27,16 @@ adapter.define('http', function(require, exports) {
     return headers;
   }, {});
 
-  var request = exports.request_ = function(opts, callback) {
+  var request = (exports.request_ = function(opts, callback) {
     //todo: organize into ClientRequest and ClientResponse
     if (opts.params) {
-      opts.path = opts.path + (~opts.path.indexOf('?') ? '&' : '?') + qs.stringify(opts.params);
+      opts.path =
+        opts.path +
+        (~opts.path.indexOf('?') ? '&' : '?') +
+        qs.stringify(opts.params);
     }
     opts.headers = opts.headers || {};
-    opts.method = (opts.method) ? opts.method.toUpperCase() : 'GET';
+    opts.method = opts.method ? opts.method.toUpperCase() : 'GET';
     //normalize header case
     var headers = {};
     for (var n in opts.headers) {
@@ -58,7 +62,7 @@ adapter.define('http', function(require, exports) {
       }
     }
 
-    var http = (opts.protocol == 'https:') ? _https : _http;
+    var http = opts.protocol == 'https:' ? _https : _http;
 
     var req = http.request(opts, function(res) {
       var body = [];
@@ -70,7 +74,11 @@ adapter.define('http', function(require, exports) {
         if (opts.enc) {
           res.body = res.body.toString(opts.enc);
         }
-        var data = {statusCode: res.statusCode, headers: res.headers, body: res.body};
+        var data = {
+          statusCode: res.statusCode,
+          headers: res.headers,
+          body: res.body,
+        };
         callback(null, data);
       });
     });
@@ -87,11 +95,11 @@ adapter.define('http', function(require, exports) {
     } else {
       req.end();
     }
-  };
+  });
 
   exports.get_ = function(opts, callback) {
     if (typeof opts == 'string') {
-      opts = {url: opts};
+      opts = { url: opts };
     }
     if (opts.url) {
       Object.assign(opts, parseUrl(opts.url));
@@ -107,6 +115,4 @@ adapter.define('http', function(require, exports) {
     opts.method = 'POST';
     request(opts, callback);
   };
-
-
 });
