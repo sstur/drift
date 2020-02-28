@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^6.1.2",
-    "eslint": "^3.0.1",
+    "eslint": "^4.18.2",
     "eslint-plugin-babel": "^3.3.0",
     "eslint-plugin-flow-vars": "^0.4.0",
     "expect.js": "^0.3.1",
