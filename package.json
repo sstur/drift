@@ -9,6 +9,8 @@
     "server/"
   ],
   "scripts": {
+    "check-format": "prettier --check \"**/*.js\"",
+    "format": "prettier --write \"**/*.js\"",
     "lint": "eslint . --max-warnings 0",
     "test-src": "mocha test",
     "test": "npm run lint && npm run test-src"
@@ -33,7 +35,13 @@
     "eslint-plugin-flow-vars": "^0.4.0",
     "expect.js": "^0.3.1",
     "mocha": "^2.5.3",
+    "prettier": "^1.19.1",
     "request": "~2.10.0"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all",
+    "arrowParens": "always"
   },
   "repository": {
     "type": "git",

@@ -18,13 +18,7 @@
   },
   "rules": {
     "no-cond-assign": 1,                  // disallow assignment in conditional expressions
-    // TEMP DISABLE
-    "no-console": 0,                      // disallow use of console: should use nuclide-logging instead
     "no-constant-condition": 1,           // disallow use of constant expressions in conditions
-    // TEMP INVERT
-    "comma-dangle": [                     // disallow trailing commas in object and array literals
-      1, "never"
-    ],
     "no-control-regex": 1,                // disallow control characters in regular expressions
     "no-debugger": 1,                     // disallow use of debugger
     "no-dupe-keys": 1,                    // disallow duplicate keys when creating object literals
@@ -94,7 +88,6 @@
     "radix": 1,                           // require use of the second argument for parseInt()
     "vars-on-top": 0,                     // requires to declare all vars on top of their containing scope
     "wrap-iife": 0,                       // require immediate function invocation to be wrapped in parentheses
-    "yoda": 1,                            // require or disallow Yoda conditions
     "strict": 0,                          // this rule conflicts with 'use-babel' so we'll just disable it
 
     // Variables
@@ -128,63 +121,26 @@
 
     // Stylistic (these rules are purely matters of style and are quite subjective)
 
-    "key-spacing": 1,                     // require space after colon `{a: 1}`
-    "comma-spacing": 1,                   // require space after comma `var a, b;`
-    "no-multi-spaces": 1,                 // don't allow more spaces than necessary
-    "brace-style": [                      // enforce one true brace style
-      1, "1tbs", {
-        "allowSingleLine": false
-      }
-    ],
     "camelcase": [                        // require camel case names
       1, {"properties": "never"}
     ],
     "consistent-this": [1, "self"],       // enforces consistent naming when capturing the current execution context
-    "eol-last": 1,                        // enforce newline at the end of file, with no multiple empty lines
     "func-names": 0,                      // require function expressions to have a name
     "func-style": 0,                      // enforces use of function declarations or expressions
     "new-cap": 0,                         // require a capital letter for constructors
-    "new-parens": 1,                      // disallow the omission of parentheses when invoking a constructor with no arguments
     "no-nested-ternary": 0,               // disallow nested ternary expressions
     "no-array-constructor": 1,            // disallow use of the Array constructor
     "no-lonely-if": 0,                    // disallow if as the only statement in an else block
     "no-new-object": 1,                   // disallow use of the Object constructor
-    "no-spaced-func": 1,                  // disallow space between function identifier and application
-    "semi-spacing": 1,                    // disallow space before semicolon
     "no-ternary": 0,                      // disallow the use of ternary operators
-    "no-trailing-spaces": 1,              // disallow trailing whitespace at the end of lines
     "no-underscore-dangle": 0,            // disallow dangling underscores in identifiers
-    "no-extra-parens": [1, "functions"],  // disallow wrapping of non-IIFE statements in parens
-    "no-mixed-spaces-and-tabs": 1,        // disallow mixed spaces and tabs for indentation
-    "indent": [1, 2, {"SwitchCase": 1}],  // indentation should be two spaces
-    "quotes": [                           // enforce single quotes, allow double to avoid escaping ("don't escape" instead of 'don\'t escape')
-      1, "single", "avoid-escape"
-    ],
-    "quote-props": [1, "as-needed"],      // require quotes around object literal property names
-    "semi": 1,                            // require or disallow use of semicolons instead of ASI
     "sort-vars": 0,                       // sort variables within the same declaration block
-    "keyword-spacing": 1,                 // require a space around certain keywords
-    "space-before-blocks": 1,             // require a space before blocks
-    "space-before-function-paren": [      // disallow a space before function parenthesis
-      1, "never"
-    ],
-    "object-curly-spacing": [             // disallow spaces inside of curly braces in object literals
-      1, "never"
-    ],
-    "array-bracket-spacing": [            // disallow spaces inside of curly braces in array literals
-      1, "never"
-    ],
-    "space-in-parens": 1,                 // require or disallow spaces inside parentheses
-    "space-infix-ops": 1,                 // require spaces around operators
-    "space-unary-ops": 1,                 // require a space around word operators such as typeof
     "max-nested-callbacks": 0,            // specify the maximum depth callbacks can be nested
     "one-var": [1, "never"],              // allow just one var statement per function
     "wrap-regex": 0,                      // require regex literals to be wrapped in parentheses
 
     // ECMAScript 6/7 (2015 and above)
 
-    "arrow-parens": 1,                    // require parens in arrow function arguments
-    "arrow-spacing": 1,                   // require space before/after arrow function's arrow (fixable)
     "constructor-super": 1,               // verify calls of super() in constructors
     "generator-star-spacing": 0,          // enforce spacing around the * in generator functions (fixable)
     "no-class-assign": 1,                 // disallow modifying variables of class declarations
