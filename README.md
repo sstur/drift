@@ -1,49 +1,10 @@
-# Drift: Cross-platform Server JS
+# Drift: Synchronous-style Server-side JS
 
-This is a small framework for writing synchronous-style server-side JavaScript and deploying to any of several supported platforms. There is a dev-server written for Node and a build script that will produce files for the various platforms.
+This is a small framework for writing synchronous-style server-side JavaScript and deploying to any of several supported platforms.
 
 ## Status: UNMAINTAINED
 
 This project is long outdated and is no longer maintained.
-
-## Goals
-
-The goal of this project is not to compete with full-blown frameworks, but to provide a minimal layer of request routing, view templating and data modelling with a normalized synchronous-style API using Fibers.
-
-In order to work across various platforms, this project uses its own module loader and abstraction layers for request/response, filesystem, etc. It closely follows conventions from Node and CommonJS.
-
-JSON and ES5 are available across all supported platforms via simple polyfills. Basic eventing is provided similar to EventEmitter, and the define()/require() system of module loading is sort of a hybrid between Node/CommonJS and AMD.
-
-## Modules / Interface Abstractions
-
-So far Drift provides
-
- * Normalized Request/Response interface
- * Relational Database Abstraction
- * Basic Object-Relational Models
- * View Templating
- * Request Body parsing (form-urlencoded, application/json, non-buffering multipart)
- * Buffer class (just like Node except without subscript byte access)
- * Cookies and Session support
- * Sending files in a non-buffering way
- * HTTP client
- * Email client (SMTP)
- * Filesystem
- * Utils like Logging, Crypto, Date formatting, etc
-
-## View Layer
-
-Jinja templates!
-
-## Data Persistence
-
-Database interfaces are particularly hard to abstract in a truly agnostic way. SQLite and MySQL are the first adapters to be implemented.
-
-ORM support is limited and supports CRUD and basic joins but not schema creation/migration. Data modeling can get tricky when we attempt to support relational and NoSQL with the same interface and we have not yet crossed that bridge.
-
-## Controllers/Routing
-
-Provides a simple routing implementation, similar to Express, and we have basic resourceful routing.
 
 ## License (MIT)
 

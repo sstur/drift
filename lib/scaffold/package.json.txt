@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "drift": "~0.1.x"
-  }
-}

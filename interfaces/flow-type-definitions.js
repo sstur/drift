@@ -24,42 +24,11 @@ type CryptoHash = {
   digest: ((enc: string) => string) & (() => Buffer);
 };
 
-type ImageDetails = {
-  size: number;
-  type: 'bmp' | 'gif' | 'jpg' | 'png' | 'tif';
-  mimeType: string;
-  fileExt: string; // ex: '.jpg'
-  width: ?number;
-  height: ?number;
-  md5: ?string;
-};
-
-type ImageDimensions = {
-  width: number;
-  height: number;
-};
-
-type ImageDimensionsMax = {
-  maxWidth: number;
-  maxHeight: number;
-};
-
-type ImageCropSpec = [number, number, number, number];
-
-type ImageSizeSpec = {
-  width: number;
-  height: number;
-  crop: ?ImageCropSpec;
-  finalWidth: number;
-  finalHeight: number;
-};
-
 type App = {
   define: () => void;
   require: () => void;
   platforms: {[key: string]: number};
   mappath: (path: string) => string;
-  debug: (...args: Array<any>) => void;
   data: ((n: string, val: any) => void) & ((n: string) => string);
   eventify: (obj: Object) => Object;
   route:
@@ -70,10 +39,6 @@ type App = {
     ((path: string, value: string | number | boolean) => void) &
     ((data: Object) => void) &
     ((platform: string, data: Object) => void);
-  addController: (name: string, config: AnyMap) => void;
-  getController: (name: string) => Controller;
-  addModel: (name: string, config: AnyMap) => void;
-  getModel: (name: string) => Model;
   on: () => void;
   emit: () => void;
 };
@@ -87,26 +52,6 @@ type ParsedURL = {
   port: string;
   host: string;
   path: string;
-};
-
-type Model = {
-  // todo
-  create: () => void;
-  insert: () => void;
-  updateWhere: () => void;
-  destroyWhere: () => void;
-  find: () => void;
-  findAll: () => void;
-  count: () => void;
-  join: () => void;
-  createTable: () => void;
-  dropTable: () => void;
-};
-
-type Controller = {
-  request: ServerRequest;
-  response: ServerResponse;
-  params: AnyMap;
 };
 
 type FSFileInfo = {
@@ -176,7 +121,6 @@ declare class ServerResponse {
     ((name: string, value: any) => ServerResponse);
   end: (...args: Array<any>) => void;
   die: (...args: Array<any>) => void;
-  debug: (data: any) => void;
   getWriteStream: () => WriteStream;
   sendFile: (opts: AnyMap) => void;
   redirect: (url: string, type: ?string) => void;
@@ -242,15 +186,6 @@ declare module 'crypto' {
   ) => string | Buffer;
 }
 
-declare module 'debug' {
-  declare var stackTrace: (fn: ?Function) => string;
-}
-
-declare module 'email' {
-  declare var isEmail: (str: string) => boolean;
-  declare var sendEmail: (opts: StringMap) => void;
-}
-
 declare module 'fs' {
   declare var isFile: (path: string) => boolean;
   declare var isDir: (path: string) => boolean;
@@ -296,26 +231,6 @@ declare module 'http' {
   declare var post: (opts: AnyMap) => ClientResponse;
 }
 
-declare module 'image-tools' {
-  declare var getImageInfo: (
-    path: string,
-    calculateHash: ?boolean
-  ) => ImageDetails;
-  declare var resizeImageFile: (path: string, opts: AnyMap) => boolean | string;
-  declare var getSizing: (code: ?string) => string;
-  declare var calculateSize: (src: string, opts: ?AnyMap) => ?ImageSizeSpec;
-  declare var sizeToFit: (
-    src: ImageDimensions,
-    opts: ImageDimensionsMax
-  ) => ImageDimensions;
-  declare var sizeToFitOuter: (
-    src: ImageDimensions,
-    opts: ImageDimensionsMax
-  ) => ImageDimensions;
-  declare var cropToSize: (src: ImageDimensions, opts: ImageDimensions) => ImageCropSpec;
-  declare var getOutputType: (type: string) => string;
-}
-
 declare module 'path' {
   declare var join: (...args: Array<string>) => string;
   declare var normalize: (path: string) => string;
@@ -340,7 +255,6 @@ declare module 'url' {
 }
 
 declare module 'util' {
-  declare var inspect: (...args: Array<any>) => string;
   declare var extend: (...objects: Array<Object>) => Object;
   declare var clone: <T>(obj: T) => T;
   declare var inherits: (ctor: Function, parent: Function) => void;

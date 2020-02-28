@@ -1,6 +1,0 @@
-{
-  "action:after": {
-    "type": "exec",
-    "command": "if [ -d ./deploy/dev/build ]; then cp build/* deploy/dev/build/; fi"
-  }
-}

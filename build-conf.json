@@ -1,9 +1,0 @@
-{
-  "target": "build/app",
-  "errorHandler": "build/err",
-  "compileViews": false,
-  "action:after": {
-    "type": "exec",
-    "command": "if [ -d ./deploy/build ]; then cp build/*.* deploy/build/; fi"
-  }
-}

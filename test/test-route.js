@@ -4,19 +4,16 @@
 
   var expect = require('expect.js');
 
-  require('../app/system/core');
+  require('../server/core');
 
-  require('../modules/drift-server/adapters/buffer');
-  require('../modules/drift-server/adapters/inspector');
+  require('../server/adapters/buffer');
 
-  require('../app/system/config/defaults');
-  require('../app/config/config');
-  require('../app/config/config');
+  require('../server/config/defaults');
 
-  require('../app/system/lib/globals');
-  require('../app/system/lib/router');
-  require('../app/system/lib/qs');
-  require('../app/system/lib/util');
+  require('../server/system/globals');
+  require('../server/system/router');
+  require('../server/system/qs');
+  require('../server/system/util');
 
   describe('router', function() {
     var require = app.require;

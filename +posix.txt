@@ -1,8 +1,0 @@
-{ [Error: EXDEV, rename './file.txt'] errno: 52, code: 'EXDEV', path: './file.txt' }
-{ [Error: EISDIR, rename './file.txt'] errno: 28, code: 'EISDIR', path: './file.txt' }
-{ [Error: EEXIST, mkdir './data/test'] errno: 47, code: 'EEXIST', path: './data/test' }
-{ [Error: ENOTEMPTY, directory not empty './data/test']
-  errno: 53,
-  code: 'ENOTEMPTY',
-  path: './data/test',
-  syscall: 'rmdir' }
