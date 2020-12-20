@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var babel = require('babel-core');
+var babel = require('@babel/core');
 
 var dirname = path.dirname;
 
@@ -45,19 +45,17 @@ var utils = {
   },
 
   transformES6: function(source) {
-    var plugin = function(name) {
-      return require.resolve('babel-plugin-' + name);
-    };
-    var preset = function(name) {
-      return require.resolve('babel-preset-' + name);
-    };
     var result = babel.transform(source, {
       retainLines: true,
       plugins: [
-        // part of stage-1
-        plugin('transform-class-properties'),
+        'transform-flow-strip-types',
+        'transform-react-jsx',
+        '@babel/plugin-proposal-class-properties',
       ],
-      presets: [preset('es2015-loose'), preset('react'), preset('stage-2')],
+      presets: [
+        // Target Node 10.x
+        ['latest-node', { target: '10.13' }],
+      ],
     });
     //var {code, map, ast} = result;
     return result.code;
