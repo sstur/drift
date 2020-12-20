@@ -1,6 +1,6 @@
 {
   "name": "drift",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Synchronous-style Server-side JS",
   "main": "index.js",
   "files": [
