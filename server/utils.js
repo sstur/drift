@@ -14,7 +14,9 @@ var utils = {
     }
     options = options || {};
     var directives = parseDirectives(source);
-    source = utils.transformJS(source);
+    source = filename.match(/\.ts$/)
+      ? utils.transformTS(source)
+      : utils.transformJS(source);
     //wrap source based on directive
     if (directives.providesModule) {
       source = wrapDefine(directives.providesModule, source);
@@ -46,6 +48,23 @@ var utils = {
       retainLines: true,
       plugins: [
         'transform-flow-strip-types',
+        'transform-react-jsx',
+        '@babel/plugin-proposal-class-properties',
+      ],
+      presets: [
+        // Target Node 10.x
+        ['latest-node', { target: '10.13' }],
+      ],
+    });
+    //var {code, map, ast} = result;
+    return result.code;
+  },
+
+  transformTS: function(source) {
+    var result = babel.transform(source, {
+      retainLines: true,
+      plugins: [
+        '@babel/plugin-transform-typescript',
         'transform-react-jsx',
         '@babel/plugin-proposal-class-properties',
       ],

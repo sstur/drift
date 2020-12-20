@@ -42,6 +42,11 @@
       pkgConfig: pkgConfig,
     });
   });
+  hook.hook('.ts', function(source, filename) {
+    return utils.transformSourceFile(source, filename, {
+      pkgConfig: pkgConfig,
+    });
+  });
 
   //load framework core (instantiates `app`)
   require(join(fxPath, 'server/core.js'));
@@ -154,7 +159,7 @@
       var stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
         loadPathSync(join(dir, file));
-      } else if (stat.isFile() && file.match(/\.js$/i)) {
+      } else if (stat.isFile() && file.match(/\.(js|ts)$/i)) {
         console.log('load file', join(dir, file));
         require(join(srcPath, dir, file));
       }
