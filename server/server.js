@@ -90,7 +90,6 @@
 
   //load framework modules
   loadPathSync('server/system');
-  loadPathSync('app/helpers');
   loadPathSync('app/models');
   loadPathSync('app/init');
   loadPathSync('app/lib');
