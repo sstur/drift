@@ -49,6 +49,7 @@ var app, define;
   require = app.require = function(namespace, name) {
     //account for more than two arguments (use last two)
     name = arguments[arguments.length - 1];
+    name = name.replace(/^_/, '');
     namespace = arguments[arguments.length - 2] || '';
     var module,
       fullname = require.resolve(namespace, name);
