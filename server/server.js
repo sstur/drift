@@ -36,7 +36,7 @@
   //this is used in core.js
   global.platform = 'node';
 
-  //patch `require()` to handle some opt-in source transforms (based on docblock @directives)
+  //patch `require()` to handle source transformation based on babel.
   hook.hook('.js', function(source, filename) {
     return utils.transformSourceFile(source, filename, {
       pkgConfig: pkgConfig,

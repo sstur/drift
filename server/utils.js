@@ -14,10 +14,7 @@ var utils = {
     }
     options = options || {};
     var directives = parseDirectives(source);
-    //transform JSX and ES6
-    if (directives.jsx || directives.es6) {
-      source = utils.transformES6(source);
-    }
+    source = utils.transformJS(source);
     //wrap source based on directive
     if (directives.providesModule) {
       source = wrapDefine(directives.providesModule, source);
@@ -44,7 +41,7 @@ var utils = {
     return JSON.parse(result || '{}');
   },
 
-  transformES6: function(source) {
+  transformJS: function(source) {
     var result = babel.transform(source, {
       retainLines: true,
       plugins: [
