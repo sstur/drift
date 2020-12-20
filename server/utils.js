@@ -47,8 +47,8 @@ var utils = {
     var result = babel.transform(source, {
       retainLines: true,
       plugins: [
-        'transform-flow-strip-types',
-        'transform-react-jsx',
+        '@babel/plugin-transform-flow-strip-types',
+        '@babel/plugin-transform-react-jsx',
         '@babel/plugin-proposal-class-properties',
       ],
       presets: [
@@ -65,7 +65,7 @@ var utils = {
       retainLines: true,
       plugins: [
         '@babel/plugin-transform-typescript',
-        'transform-react-jsx',
+        '@babel/plugin-transform-react-jsx',
         '@babel/plugin-proposal-class-properties',
       ],
       presets: [
