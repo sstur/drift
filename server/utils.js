@@ -8,15 +8,12 @@ var REG_NL = /\r\n|\r|\n/g;
 var REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
 
 var utils = {
-  transformSourceFile: function(source, filename, options, outputOptions) {
+  transformSourceFile: function(source, filename, options) {
     if (~filename.indexOf('/node_modules/')) {
       return source;
     }
     options = options || {};
     var directives = parseDirectives(source);
-    if (directives.es6 && outputOptions != null) {
-      outputOptions.includeES6Polyfills = true;
-    }
     //transform JSX and ES6
     if (directives.jsx || directives.es6) {
       source = utils.transformES6(source);
