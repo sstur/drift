@@ -4,8 +4,6 @@
   "description": "Synchronous-style Server-side JS",
   "main": "index.js",
   "files": [
-    "interfaces/",
-    "interfaces/",
     "server/"
   ],
   "scripts": {
