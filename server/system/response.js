@@ -375,7 +375,7 @@ define('response', function(require, exports, module) {
     }
     out.push('Path=' + (cookie.path || '/'));
     if (cookie.expires) {
-      out.push('Expires=' + cookie.expires.toGMTString());
+      out.push('Expires=' + toGMTString(cookie.expires));
     }
     if (cookie.httpOnly) {
       out.push('HttpOnly');
@@ -405,6 +405,12 @@ define('response', function(require, exports, module) {
 
   function isPrimitive(obj) {
     return obj !== Object(obj);
+  }
+
+  function toGMTString() {
+    var a = this.toUTCString().split(' ');
+    if (a[1].length == 1) a[1] = '0' + a[1];
+    return a.join(' ').replace(/UTC$/i, 'GMT');
   }
 
   module.exports = Response;
