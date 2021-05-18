@@ -9,20 +9,8 @@ var join = path.join;
 //framework files beginning with these chars are excluded
 var EXCLUDE_FILES = { _: 1, '.': 1, '!': 1 }; // eslint-disable-line quote-props
 
-//the parsed cli arguments from optimist
-var opts = global.opts;
-if (!opts) {
-  throw new Error('Global options (opts) not set.');
-}
-
 //this is the project path; used in patch and app.mappath
-var basePath = (global.basePath = opts.path || process.cwd());
-
-//this is the framework path
-var fxPath = opts.fxPath;
-if (!fxPath) {
-  throw new Error('Path to framework (fxPath) not set.');
-}
+var basePath = (global.basePath = process.cwd());
 
 var pkgConfig = require('./package-config.js');
 
@@ -50,13 +38,6 @@ hook.hook('.ts', function(source, filename) {
 require('./core.js');
 
 app.mappath = join.bind(null, basePath);
-
-//set config from CLI options
-Object.keys(opts).forEach(function(key) {
-  if (!key.match(/^[_$]/)) {
-    app.cfg(key, opts[key]);
-  }
-});
 
 //in-memory application data
 var data = {};

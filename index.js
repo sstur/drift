@@ -1,8 +1,5 @@
 var http = require('http');
 
-var opts = global.opts || (global.opts = {});
-opts.fxPath = __dirname;
-
 function startServer(opts, callback) {
   var port = opts.port || 8080;
   var address = opts.address || '127.0.0.1';
