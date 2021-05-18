@@ -9,7 +9,6 @@
 
   require('../server/config/defaults');
 
-  require('../server/system/globals');
   require('../server/system/router');
   require('../server/system/qs');
   require('../server/system/util');
