@@ -1,4 +1,3 @@
-/*global global, require, app */
 app.define('adapter-request', function(require, exports, module) {
   'use strict';
 

@@ -5,11 +5,14 @@
     "flow-vars"
   ],
   "globals": {
+    "adapter": false,
     "app": false,
     "define": false,
+    "describe": false,
     "forEach": false,
     "global": false,
     "isPrimitive": false,
+    "it": false,
     "toArray": false,
     "vartype": false
   },

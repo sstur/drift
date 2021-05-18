@@ -1,4 +1,3 @@
-/*global global, require, app, adapter */
 /* eslint-disable one-var */
 var _fs = require('fs');
 var path = require('path');

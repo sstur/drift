@@ -1,4 +1,3 @@
-/*global app, define */
 define('request', function(require, exports, module) {
   'use strict';
 

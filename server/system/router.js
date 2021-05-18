@@ -4,7 +4,6 @@
  * new Route(): route.method, route.url/regex, route.handler
  * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params, opts
  */
-/*global app, define */
 /* eslint-disable consistent-this, one-var */
 define('router', function(require, exports, module) {
   'use strict';

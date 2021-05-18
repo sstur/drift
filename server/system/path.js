@@ -1,4 +1,3 @@
-/*global app, define */
 /* eslint-disable one-var */
 define('path', function(require, exports) {
   'use strict';

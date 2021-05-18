@@ -1,4 +1,3 @@
-/*global app, define */
 /* eslint-disable consistent-this */
 define('response', function(require, exports, module) {
   'use strict';

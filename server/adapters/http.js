@@ -1,4 +1,3 @@
-/*global global, require, app, adapter */
 /* eslint-disable one-var */
 var _http = require('http');
 var _https = require('https');

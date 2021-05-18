@@ -1,4 +1,3 @@
-/*global app, require, describe, it */
 /* eslint-disable one-var */
 (function() {
   'use strict';

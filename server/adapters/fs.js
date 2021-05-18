@@ -1,4 +1,3 @@
-/*global adapter, app, require */
 var _fs = require('fs');
 var mkdirp = require('mkdirp');
 var rimraf = require('rimraf'); //recursive rmdir

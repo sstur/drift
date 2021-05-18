@@ -1,4 +1,3 @@
-/*global global, process, require, __filename, app */
 (function() {
   'use strict';
   var fs = require('fs');

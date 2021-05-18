@@ -1,4 +1,3 @@
-/*global app */
 app.cfg({
   auto_save_uploads: false,
   virtual_url: false,

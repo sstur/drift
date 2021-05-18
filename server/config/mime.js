@@ -13,7 +13,6 @@
  * this work, a couple of these are out of alphabetical order.
  *
  */
-/*global app */
 /* eslint-disable quote-props */
 app.cfg({
   mime_types: {

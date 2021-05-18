@@ -1,7 +1,6 @@
 /**
  * todo: alt flatten function to rename keys a=1&a=2 => {a[0]: 1, a[1]: 2)
  */
-/*global app, define */
 /* eslint-disable one-var */
 define('qs', function(require, exports, module) {
   'use strict';

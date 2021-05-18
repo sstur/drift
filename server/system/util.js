@@ -1,4 +1,3 @@
-/*global app, define, Buffer */
 /* eslint-disable one-var */
 define('util', function(require, util) {
   'use strict';

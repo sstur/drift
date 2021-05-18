@@ -1,4 +1,3 @@
-/*global app, define, global */
 /*jshint -W054 */
 define('views', function(require, exports, module) {
   'use strict';
