@@ -12,11 +12,6 @@ var app = function() {
   }
 };
 
-var platforms = (app.platforms = {});
-(global.platform || '').split('/').forEach(function(platform) {
-  platforms[platform] = 1;
-});
-
 var require,
   definitions = {},
   loading = {},
@@ -163,12 +158,6 @@ app.cfg = function() {
       return;
     }
     throw new Error('Invalid arguments to app.cfg');
-  }
-  if (args.length) {
-    var platform = args[0];
-    if (!(platform in platforms)) {
-      return;
-    }
   }
   mergeCfg(data);
 };
