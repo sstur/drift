@@ -1,4 +1,3 @@
-/*global global, process, require, module, exports */
 (function() {
   'use strict';
 

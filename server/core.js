@@ -1,4 +1,3 @@
-/*global global */
 /* eslint-disable one-var */
 var app, define;
 (function() {

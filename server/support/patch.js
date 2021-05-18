@@ -1,4 +1,3 @@
-/*global global, require */
 /* eslint-disable one-var, consistent-this */
 (function() {
   'use strict';
