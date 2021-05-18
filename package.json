@@ -40,7 +40,8 @@
   "prettier": {
     "singleQuote": true,
     "trailingComma": "all",
-    "arrowParens": "always"
+    "arrowParens": "always",
+    "endOfLine": "lf"
   },
   "repository": {
     "type": "git",
