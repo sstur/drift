@@ -4,7 +4,7 @@
 
   var expect = require('expect.js');
 
-  require('../server/core');
+  require('../src/core');
 
   describe('app', function() {
     it('should be a function', function() {

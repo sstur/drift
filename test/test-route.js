@@ -3,15 +3,15 @@
 
   var expect = require('expect.js');
 
-  require('../server/core');
+  require('../src/core');
 
-  require('../server/adapters/buffer');
+  require('../src/adapters/buffer');
 
-  require('../server/config/defaults');
+  require('../src/config/defaults');
 
-  require('../server/system/router');
-  require('../server/system/qs');
-  require('../server/system/util');
+  require('../src/system/router');
+  require('../src/system/qs');
+  require('../src/system/util');
 
   describe('router', function() {
     var require = app.require;
