@@ -4,7 +4,6 @@
   "globals": {
     "adapter": false,
     "app": false,
-    "define": false,
     "describe": false,
     "global": false,
     "it": false

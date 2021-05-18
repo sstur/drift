@@ -1,5 +1,5 @@
 /* eslint-disable one-var */
-define('path', function(require, exports) {
+app.define('path', function(require, exports) {
   'use strict';
 
   var RE_SLASHES = /\/+/g;

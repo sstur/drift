@@ -1,5 +1,5 @@
 /* eslint-disable consistent-this */
-define('response', function(require, exports, module) {
+app.define('response', function(require, exports, module) {
   'use strict';
 
   var fs = require('fs');

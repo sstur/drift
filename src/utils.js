@@ -83,7 +83,9 @@ var utils = {
 
 function wrapDefine(name, source) {
   return [
-    'define(' + JSON.stringify(name) + ', function(require, exports, module) {',
+    'app.define(' +
+      JSON.stringify(name) +
+      ', function(require, exports, module) {',
     source,
     '});',
   ].join('');

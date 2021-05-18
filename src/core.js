@@ -314,4 +314,3 @@ function joinPath() {
 
 //export to global for CommonJS environments
 global.app = app;
-global.define = define;

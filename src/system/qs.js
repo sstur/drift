@@ -2,7 +2,7 @@
  * todo: alt flatten function to rename keys a=1&a=2 => {a[0]: 1, a[1]: 2)
  */
 /* eslint-disable one-var */
-define('qs', function(require, exports, module) {
+app.define('qs', function(require, exports, module) {
   'use strict';
 
   var CHARS = /[^\w!$'()*,-.\/:;@[\\\]^{|}~]+/g;

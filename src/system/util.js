@@ -1,5 +1,5 @@
 /* eslint-disable one-var */
-define('util', function(require, util) {
+app.define('util', function(require, util) {
   'use strict';
 
   //regex for decoding percent-encoded strings

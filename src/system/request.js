@@ -1,4 +1,4 @@
-define('request', function(require, exports, module) {
+app.define('request', function(require, exports, module) {
   'use strict';
 
   var qs = require('qs');

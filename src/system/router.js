@@ -5,7 +5,7 @@
  * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params, opts
  */
 /* eslint-disable consistent-this, one-var */
-define('router', function(require, exports, module) {
+app.define('router', function(require, exports, module) {
   'use strict';
 
   var qs = require('qs');

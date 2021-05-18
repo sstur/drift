@@ -1,5 +1,5 @@
 /* eslint-disable one-var */
-define('url', function(require, exports) {
+app.define('url', function(require, exports) {
   'use strict';
 
   exports.parse = function(url) {
