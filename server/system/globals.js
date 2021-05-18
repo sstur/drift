@@ -7,44 +7,13 @@
  */
 /* eslint-disable one-var, no-extend-native */
 
-var forEach, vartype, isPrimitive, toArray;
+var vartype, isPrimitive, toArray;
 
 (function() {
   'use strict';
 
   var toString = Object.prototype.toString;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-  /**
-   * Iterate over an array or object
-   *   similar to jQuery.each()
-   *   return false will abort the loop
-   */
-  forEach = function(obj, fn, context) {
-    var i, len, keys, key;
-    if (arguments.length == 3) {
-      fn = fn.bind(context);
-    }
-    if (Array.isArray(obj)) {
-      len = obj.length;
-      for (i = 0; i < len; i++) {
-        if (fn.call(obj, i, obj[i], i) === false) break;
-      }
-      return obj;
-    }
-    var type = obj === null ? 'null' : typeof obj;
-    if (type == 'object' || type == 'function') {
-      keys = Object.keys(obj);
-      len = keys.length;
-      for (i = 0; i < len; i++) {
-        key = keys[i];
-        if (fn.call(obj, key, obj[key], i) === false) break;
-      }
-      return obj;
-    } else {
-      throw new Error('forEach called on a non-object');
-    }
-  };
 
   // eslint-disable-next-line no-unused-vars
   Object.assign = function(target, source) {
@@ -132,20 +101,6 @@ var forEach, vartype, isPrimitive, toArray;
 
   Number.random = function(lower, upper) {
     return Math.floor(Math.random() * (upper - lower + 1)) + lower;
-  };
-
-  String.prototype.replaceAll = function replaceAll(a, b) {
-    if (arguments.length == 1) {
-      var self = this;
-      forEach(a, function() {
-        self = replaceAll.apply(self, arguments); // eslint-disable-line consistent-this
-      });
-      return self;
-    }
-    return this.replace(
-      new RegExp(RegExp.escape(a), 'ig'),
-      b.replace(/\$/g, '$$'),
-    );
   };
 
   String.prototype.trimLeft = function() {
@@ -255,7 +210,6 @@ var forEach, vartype, isPrimitive, toArray;
   toArray = Array.toArray;
 
   //export to global for CommonJS environments
-  global.forEach = forEach;
   global.vartype = vartype;
   global.isPrimitive = isPrimitive;
   global.toArray = toArray;

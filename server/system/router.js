@@ -47,9 +47,9 @@ define('router', function(require, exports, module) {
       stopRouting = true;
     };
     this.emit('pre-route', routeData);
-    forEach(this._routes, function(i, item) {
+    for (let item of this._routes) {
       if (item.method && item.method !== method) {
-        return true; //continue
+        continue;
       }
       if (typeof item.route === 'string') {
         var matches = item.route === url ? [] : null;
@@ -59,16 +59,16 @@ define('router', function(require, exports, module) {
       if (matches) {
         var matchData = Object.create(routeData);
         matchData.opts = item.opts || {};
-        var values = matches.slice(1).map(function(value) {
-          return value || '';
-        });
+        var values = matches.slice(1).map((value) => value || '');
         matchData.values = values;
         matchData.params = assignNames(item.paramNames, values);
         router.emit('match-route', matchData);
         item.handler(matchData, routeArgs);
       }
-      return !stopRouting;
-    });
+      if (stopRouting) {
+        break;
+      }
+    }
     this.emit('no-route', routeData);
   };
 
