@@ -3,7 +3,7 @@
   "version": "0.10.3",
   "main": "index.js",
   "files": [
-    "server/"
+    "src/"
   ],
   "scripts": {
     "check-format": "prettier --check \"**/*.js\"",

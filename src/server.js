@@ -48,7 +48,7 @@
   });
 
   //load framework core (instantiates `app`)
-  require(join(fxPath, 'server/core.js'));
+  require('./core.js');
 
   app.mappath = join.bind(null, basePath);
 
@@ -86,15 +86,14 @@
   };
 
   //load config
-  loadPathSync('server/config');
+  loadPathSync('./config');
   loadPathSync('app/config');
   loadPathSync('src/config');
   //load node adapter modules
-  //todo: use serverPath
-  loadPathSync('server/adapters');
+  loadPathSync('./adapters');
 
   //load framework modules
-  loadPathSync('server/system');
+  loadPathSync('./system');
   loadPathSync('app/models');
   loadPathSync('src/models');
   loadPathSync('app/init');
@@ -148,8 +147,8 @@
   //helper for loading framework files
   function loadPathSync(dir) {
     //note: kinda hacky
-    var isSystem = dir.indexOf('server/') === 0;
-    var srcPath = isSystem ? fxPath : basePath;
+    var isSystem = dir.charAt(0) === '.';
+    var srcPath = isSystem ? __dirname : basePath;
     var path = join(srcPath, dir);
     try {
       var files = fs.readdirSync(path);

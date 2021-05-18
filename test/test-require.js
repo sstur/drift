@@ -3,7 +3,7 @@
 
   var expect = require('expect.js');
 
-  require('../server/core');
+  require('../src/core');
 
   var define = app.define;
 

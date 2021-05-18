@@ -30,7 +30,7 @@
   }
 
   function getRequestHandler() {
-    var SyncServer = require('./server/server.js');
+    var SyncServer = require('./src/server.js');
     return SyncServer.requestHandler;
   }
 
