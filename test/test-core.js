@@ -6,15 +6,8 @@ var expect = require('expect.js');
 require('../src/core');
 
 describe('app', function() {
-  it('should be a function', function() {
-    expect(app).to.be.a('function');
-  });
-
-  it('should call .fn', function() {
-    app.fn = function() {
-      return Array.prototype.slice.call(arguments).concat(this);
-    };
-    expect(app(1, 's')).to.eql([1, 's', app]);
+  it('should be an object', function() {
+    expect(app).to.be.an('object');
   });
 
   it('should handle events', function() {

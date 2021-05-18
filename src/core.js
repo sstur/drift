@@ -5,12 +5,7 @@ var join = Array.prototype.join;
 var slice = Array.prototype.slice;
 var toString = Object.prototype.toString;
 
-var app = function() {
-  //allow to be used as a function
-  if (typeof app.fn === 'function') {
-    return app.fn.apply(app, arguments);
-  }
-};
+var app = {};
 
 var require,
   definitions = {},
@@ -312,5 +307,5 @@ function joinPath() {
   return resolved.replace(/^\/|\/$/g, '');
 }
 
-//export to global for CommonJS environments
+//export to global
 global.app = app;
