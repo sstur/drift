@@ -1,4 +1,3 @@
-/*global global, process, require, exports, module */
 (function() {
   var http = require('http');
 

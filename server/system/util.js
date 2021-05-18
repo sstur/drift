@@ -96,6 +96,7 @@ define('util', function(require, util) {
       safe = safe.split(ch).join(map[ch]);
     });
     //control characters
+    // eslint-disable-next-line no-control-regex
     safe = safe.replace(/[\x00-\x1F]+/g, ch);
     //these are generally unsafe at the OS level
     safe = safe.replace(/[\\\/:*?<>|&]+/g, ch);
