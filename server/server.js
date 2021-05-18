@@ -88,6 +88,7 @@
   //load config
   loadPathSync('server/config');
   loadPathSync('app/config');
+  loadPathSync('src/config');
   //load node adapter modules
   //todo: use serverPath
   loadPathSync('server/adapters');
@@ -95,9 +96,13 @@
   //load framework modules
   loadPathSync('server/system');
   loadPathSync('app/models');
+  loadPathSync('src/models');
   loadPathSync('app/init');
+  loadPathSync('src/init');
   loadPathSync('app/lib');
+  loadPathSync('src/lib');
   loadPathSync('app/controllers');
+  loadPathSync('src/controllers');
 
   //all modules loaded
   app.emit('init', app.require);
@@ -149,7 +154,7 @@
     try {
       var files = fs.readdirSync(path);
     } catch (e) {
-      console.log('not found', path);
+      // console.log('not found', path);
       return;
     }
     files.forEach(function(file) {

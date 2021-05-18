@@ -7,6 +7,14 @@ var dirname = path.dirname;
 var REG_NL = /\r\n|\r|\n/g;
 var REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
 
+function isConfigDir(dir) {
+  let relativePath = dir
+    .split('/')
+    .slice(-2)
+    .join('/');
+  return relativePath === 'app/config' || relativePath === 'src/config';
+}
+
 var utils = {
   transformSourceFile: function(source, filename, options) {
     if (~filename.indexOf('/node_modules/')) {
@@ -25,12 +33,7 @@ var utils = {
     }
     var dir = dirname(filename);
     //hacky: some special logic for files in `app/config`
-    var isConfig =
-      dir
-        .split('/')
-        .slice(-2)
-        .join('/') === 'app/config';
-    if (isConfig && options.pkgConfig) {
+    if (isConfigDir(dir) && options.pkgConfig) {
       source = transformConfigValues(source, options.pkgConfig);
     }
     return source;
