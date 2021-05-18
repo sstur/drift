@@ -7,7 +7,6 @@
     "define": false,
     "describe": false,
     "global": false,
-    "isPrimitive": false,
     "it": false,
     "toArray": false,
     "vartype": false

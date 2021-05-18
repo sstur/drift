@@ -403,5 +403,9 @@ define('response', function(require, exports, module) {
       : contentType;
   }
 
+  function isPrimitive(obj) {
+    return obj !== Object(obj);
+  }
+
   module.exports = Response;
 });

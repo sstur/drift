@@ -3,11 +3,11 @@
  *   platforms not supporting ECMAScript 5 need ES5 shim loaded before this
  *
  * todo: Basic Date formatting
- * todo: remove global.isPrimitive, Array.prototype.exists, String.parse, Date.today
+ * todo: remove Array.prototype.exists, String.parse, Date.today
  */
 /* eslint-disable one-var, no-extend-native */
 
-var vartype, isPrimitive, toArray;
+var vartype, toArray;
 
 (function() {
   'use strict';
@@ -31,10 +31,6 @@ var vartype, isPrimitive, toArray;
 
   Object.exists = function(obj, key) {
     return hasOwnProperty.call(obj, key);
-  };
-
-  Object.isPrimitive = function(obj) {
-    return obj !== Object(obj);
   };
 
   Object.remove = function(obj, key) {
@@ -206,11 +202,9 @@ var vartype, isPrimitive, toArray;
 
   //Shorthand
   vartype = Object.vartype;
-  isPrimitive = Object.isPrimitive;
   toArray = Array.toArray;
 
   //export to global for CommonJS environments
   global.vartype = vartype;
-  global.isPrimitive = isPrimitive;
   global.toArray = toArray;
 })();
