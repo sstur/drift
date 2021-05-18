@@ -19,9 +19,6 @@ require('./support/patch');
 
 var Fiber = require('./lib/fiber');
 
-//this is used in core.js
-global.platform = 'node';
-
 //patch `require()` to handle source transformation based on babel.
 hook.hook('.js', function(source, filename) {
   return utils.transformSourceFile(source, filename, {
