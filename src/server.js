@@ -36,11 +36,8 @@ require('./core.js');
 
 app.mappath = join.bind(null, basePath);
 
-//global object to hold some adapter stuff
-var adapter = (global.adapter = {});
-
 //like app.define but fiberizes async methods upon instantiation
-adapter.define = function(name, definition) {
+app.defineAsync = function(name, definition) {
   app.define(name, function() {
     definition.apply(this, arguments);
     Fiber.fiberizeModule(this.exports);

@@ -2,7 +2,7 @@ var _fs = require('fs');
 var mkdirp = require('mkdirp');
 var rimraf = require('rimraf'); //recursive rmdir
 
-adapter.define('fs', function(require, fs) {
+app.defineAsync('fs', function(require, fs) {
   'use strict';
 
   var path = require('path');

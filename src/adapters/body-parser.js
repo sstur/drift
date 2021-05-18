@@ -4,7 +4,7 @@ var path = require('path');
 var crypto = require('crypto');
 var formidable = require('formidable');
 var EventEmitter = require('events').EventEmitter;
-adapter.define('body-parser', function(require, exports, module) {
+app.defineAsync('body-parser', function(require, exports, module) {
   'use strict';
 
   var fs = require('fs');

@@ -2,7 +2,6 @@
   "parser": "babel-eslint",
   "plugins": ["babel"],
   "globals": {
-    "adapter": false,
     "app": false,
     "describe": false,
     "global": false,

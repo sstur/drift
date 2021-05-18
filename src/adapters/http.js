@@ -1,7 +1,7 @@
 /* eslint-disable one-var */
 var _http = require('http');
 var _https = require('https');
-adapter.define('http', function(require, exports) {
+app.defineAsync('http', function(require, exports) {
   'use strict';
 
   var qs = require('qs');
