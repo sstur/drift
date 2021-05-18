@@ -7,8 +7,6 @@
  */
 /* eslint-disable one-var, no-extend-native */
 
-var toArray;
-
 (function() {
   'use strict';
 
@@ -42,15 +40,6 @@ var toArray;
 
   Array.prototype.exists = function(el) {
     return this.indexOf(el) !== -1;
-  };
-
-  Array.toArray = function(obj) {
-    var len = obj.length,
-      arr = new Array(len);
-    for (var i = 0; i < len; i++) {
-      arr[i] = obj[i];
-    }
-    return arr;
   };
 
   Function.noop = function() {};
@@ -171,10 +160,4 @@ var toArray;
     var flags = 'g' + (reg.ignoreCase ? 'i' : '') + (reg.multiline ? 'm' : '');
     return new RegExp(reg.source, flags);
   };
-
-  //Shorthand
-  toArray = Array.toArray;
-
-  //export to global for CommonJS environments
-  global.toArray = toArray;
 })();
