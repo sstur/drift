@@ -8,8 +8,7 @@
     "describe": false,
     "global": false,
     "it": false,
-    "toArray": false,
-    "vartype": false
+    "toArray": false
   },
   "env": {
     "node": true

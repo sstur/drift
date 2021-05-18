@@ -7,12 +7,11 @@
  */
 /* eslint-disable one-var, no-extend-native */
 
-var vartype, toArray;
+var toArray;
 
 (function() {
   'use strict';
 
-  var toString = Object.prototype.toString;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   // eslint-disable-next-line no-unused-vars
@@ -33,39 +32,12 @@ var vartype, toArray;
     return hasOwnProperty.call(obj, key);
   };
 
-  Object.remove = function(obj, key) {
-    var type = Object.vartype(key);
-    if (type == 'array') {
-      var keys = key;
-      for (var i = 0, len = keys.length; i < len; i++) {
-        delete obj[keys[i]];
-      }
-    } else if (type == 'string') {
-      delete obj[key];
-    }
-    return obj;
-  };
-
   Object.values = function(obj) {
     var arr = [];
     Object.keys(obj).forEach(function(key) {
       arr.push(obj[key]);
     });
     return arr;
-  };
-
-  Object.vartype = function(obj, /**String|Array=*/ list) {
-    if (list) {
-      list = Array.isArray(list) ? list : String(list).w();
-      return list.exists(Object.vartype(obj));
-    }
-    var type = obj === null ? 'null' : typeof obj;
-    return type == 'object'
-      ? toString
-          .call(obj)
-          .slice(8, -1)
-          .toLowerCase()
-      : type;
   };
 
   Array.prototype.exists = function(el) {
@@ -201,10 +173,8 @@ var vartype, toArray;
   };
 
   //Shorthand
-  vartype = Object.vartype;
   toArray = Array.toArray;
 
   //export to global for CommonJS environments
-  global.vartype = vartype;
   global.toArray = toArray;
 })();
