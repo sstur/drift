@@ -36,21 +36,6 @@ require('./core.js');
 
 app.mappath = join.bind(null, basePath);
 
-//in-memory application data
-var data = {};
-app.data = function(n, val) {
-  if (arguments.length == 2) {
-    if (val == null) {
-      delete data[n];
-    } else {
-      data[n] = val;
-    }
-  } else {
-    val = data[n];
-  }
-  return val;
-};
-
 //global object to hold some adapter stuff
 var adapter = (global.adapter = {});
 
