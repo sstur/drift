@@ -141,9 +141,9 @@ define('response', function(require, exports, module) {
       //set multiple from name/value pairs
       if (name && typeof name == 'object') {
         var res = this;
-        forEach(name, function(name, value) {
-          res.headers(name, value);
-        });
+        for (let [n, val] of Object.entries(name)) {
+          res.headers(n, val);
+        }
         return this;
       }
       name = String(name);
@@ -197,9 +197,9 @@ define('response', function(require, exports, module) {
       //set multiple from name/value pairs
       if (name && typeof name == 'object') {
         var res = this;
-        forEach(name, function(name, value) {
-          res.cookies(name, value);
-        });
+        for (let [n, val] of Object.entries(name)) {
+          res.cookies(n, val);
+        }
         return this;
       }
       name = String(name);
@@ -221,9 +221,9 @@ define('response', function(require, exports, module) {
     _prepHeaders: function() {
       var res = this;
       var cookies = this.buffer.cookies;
-      forEach(cookies, function(name, cookie) {
+      for (let [name, cookie] of Object.entries(cookies)) {
         res.headers('Set-Cookie', serializeCookie(name, cookie));
-      });
+      }
       var contentType = buildContentType(
         this.buffer.charset,
         res.headers('Content-Type'),

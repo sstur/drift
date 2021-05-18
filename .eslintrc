@@ -6,7 +6,6 @@
     "app": false,
     "define": false,
     "describe": false,
-    "forEach": false,
     "global": false,
     "isPrimitive": false,
     "it": false,
