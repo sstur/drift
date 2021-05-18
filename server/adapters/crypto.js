@@ -1,9 +1,6 @@
 var crypto = require('crypto');
-var Buffer = require('buffer').Buffer; // eslint-disable-line no-unused-vars
 app.define('crypto', function(require, exports, module) {
   module.exports = {
-    //indicates this is just a wrapper around native code, so no need to test
-    nativeImplementation: true,
     createHash: crypto.createHash.bind(crypto),
     hash: function(type, data, enc) {
       var hasher = crypto.createHash(type);
