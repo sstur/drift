@@ -164,7 +164,7 @@ adapter.define('body-parser', function(require, exports, module) {
     parser.hash = this.hashType;
     parser.maxFieldsSize = MAX_BUFFER_SIZE;
     if (opts.autoSavePath) {
-      parser.uploadDir = global.mappath(opts.autoSavePath);
+      parser.uploadDir = app.mappath(opts.autoSavePath);
     }
     parser.on('field', function(name, val) {
       var parsed = self.parsed;
