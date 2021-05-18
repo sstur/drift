@@ -268,7 +268,7 @@ define('response', function(require, exports, module) {
       }
     },
     end: function() {
-      var args = toArray(arguments);
+      var args = Array.from(arguments);
       if (args.length > 1 && RE_STATUS.test(args[0])) {
         this.status(args.shift());
       }
