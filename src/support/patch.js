@@ -50,37 +50,13 @@ res.httpError = function(code) {
 //log/report exception (http 50x)
 //todo: don't send full file paths in response
 res.sendError = function(err) {
-  var req = this.req,
-    res = this;
+  var res = this;
   console.log(err.stack || err.toString());
-  var TRACE = /\s*(.*?)\s*(?:\((.*?):(\d+):(\d+)\))?$/;
   if (!res.headerSent) {
     var status = 500,
       headers = { 'Content-Type': 'text/plain' },
       body;
-    if (isAjax(req)) {
-      //status = 200;
-      var stack = err.stack ? err.stack.split('\n').slice(1) : [];
-      stack = stack.map(function(line) {
-        var match = line.match(TRACE);
-        return {
-          call: match[1].replace('at ', ''),
-          file: match[2] || '',
-          line: match[3] || '',
-          pos: match[4] || '',
-        };
-      });
-      var details = {
-        _status: '500',
-        error: err.message || '',
-        details: stack.shift(),
-      };
-      details.details.stack = stack;
-      //todo: jsonp should wrap JSON and send 200
-      body = JSON.stringify(details, null, 2);
-    } else {
-      body = err.stack;
-    }
+    body = err.stack;
     res.writeHead(status, 'Internal Error', headers);
     res.write(body + '\n');
   }
@@ -301,13 +277,6 @@ res.sendFile = function(opts, fallback) {
 function urlJoin() {
   var path = join.apply(null, arguments);
   return path.replace(/\\/g, '/');
-}
-
-// eslint-disable-next-line no-unused-vars
-function isAjax(req) {
-  //todo: check accepts, x-requested-with, and qs (jsonp/callback)
-  return false;
-  //return (req.headers['x-requested-with'] || '').toLowerCase() == 'xmlhttprequest';
 }
 
 //simplified version of util.stripFilename()

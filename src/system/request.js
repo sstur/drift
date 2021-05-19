@@ -112,10 +112,6 @@ app.define('request', function(require, exports, module) {
     isUpload: function(item) {
       return BodyParser.isUpload(item);
     },
-    isAjax: function() {
-      //todo: check accepts, x-requested-with, and qs (jsonp/callback)
-      return this.headers('X-Requested-With').toLowerCase() == 'xmlhttprequest';
-    },
   });
 
   //Helpers
