@@ -8,8 +8,6 @@ app.define('request', function(require, exports, module) {
   var HTTP_METHODS = { GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1 };
   var BODY_ALLOWED = { POST: 1, PUT: 1 };
 
-  var remoteAddrHeaders = (app.cfg('remote_addr_header') || '').split('|');
-
   function Request(req) {
     this._super = req;
     util.propagateEvents(req, this, 'end');
@@ -43,20 +41,7 @@ app.define('request', function(require, exports, module) {
         : this._method;
     },
     getRemoteIP: function() {
-      var remoteAddress;
-      //allow for multiple headers that may contain the remote address
-      for (var i = 0, len = remoteAddrHeaders.length; i < len; i++) {
-        remoteAddress = remoteAddress || this.headers(remoteAddrHeaders[i]);
-      }
-      if (remoteAddress) {
-        remoteAddress = remoteAddress
-          .split(',')
-          .pop()
-          .trim();
-      } else {
-        remoteAddress = this._super.getRemoteAddress();
-      }
-      return remoteAddress;
+      return this._super.getRemoteAddress();
     },
     headers: function(n) {
       var headers =
