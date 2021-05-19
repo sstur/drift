@@ -7,6 +7,13 @@ var toString = Object.prototype.toString;
 
 var app = {};
 
+// Moved here from config.
+// TODO: Move somewhere else?
+var defaultNotFoundResponse = {
+  type: 'text/plain',
+  body: '{"error":"404 Not Found"}',
+};
+
 var require,
   definitions = {},
   loading = {},
@@ -222,7 +229,7 @@ function routeRequest(adapterRequest, adapterResponse) {
   });
   //todo: move to request lib?
   req.on('no-route', function(routeData) {
-    var response = routeData.response || app.cfg('response_404');
+    var response = routeData.response || defaultNotFoundResponse;
     if (response) {
       res.end(response.status || '404', response.type, response.body);
     } else {
