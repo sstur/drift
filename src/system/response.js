@@ -1,4 +1,6 @@
 /* eslint-disable consistent-this */
+const mimeTypes = require('../support/mime-types');
+
 app.define('response', function(require, exports, module) {
   'use strict';
 
@@ -82,9 +84,6 @@ app.define('response', function(require, exports, module) {
 
   //headers that allow multiple
   var allowMulti = { 'Set-Cookie': 1 };
-
-  //short list of common mime-types
-  var mimeTypes = app.cfg('mime_types');
 
   var htmlRedirect = [
     '<html>',
