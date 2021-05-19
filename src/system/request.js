@@ -169,8 +169,7 @@ app.define('request', function(require, exports, module) {
     var _super = req._super;
     var opts = {
       //this allows us to turn on auto save at runtime before calling req.body()
-      autoSavePath:
-        'autoSavePath' in req ? req.autoSavePath : app.cfg('auto_save_uploads'),
+      autoSavePath: 'autoSavePath' in req ? req.autoSavePath : null,
     };
     //allow adapter request to instantiate its own parser
     if (_super.getBodyParser) {
