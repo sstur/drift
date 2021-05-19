@@ -9,8 +9,8 @@ var join = path.join;
 //framework files beginning with these chars are excluded
 var EXCLUDE_FILES = { _: 1, '.': 1, '!': 1 }; // eslint-disable-line quote-props
 
-//this is the project path; used in patch and app.mappath
-var basePath = (global.basePath = process.cwd());
+//this is the project path; used in tryStaticPath, app.mappath and loadPathSync
+var basePath = process.cwd();
 
 //patch some built-in methods
 require('./support/patch');
@@ -85,8 +85,8 @@ exports.requestHandler = function(req, res) {
   req.res = res;
   res.req = req;
   //attempt to serve static file
-  var staticPaths = '/assets/';
-  res.tryStaticPath(staticPaths, function() {
+  var staticPaths = ['/assets/'];
+  res.tryStaticPath(basePath, staticPaths, function() {
     var fiber = new Fiber(syncHandler);
     fiber.onError = res.sendError.bind(res);
     fiber.run({ req: req, res: res });

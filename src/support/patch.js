@@ -43,17 +43,16 @@ ServerResponse.prototype.sendError = function(err) {
   res.end();
 };
 
-ServerResponse.prototype.tryStaticPath = function(paths, callback) {
+ServerResponse.prototype.tryStaticPath = function(basePath, paths, callback) {
   var req = this.req;
   var res = this;
   var url = req.url.split('?')[0];
   var tryStatic = [];
-  paths = Array.isArray(paths) ? paths : [paths];
   paths.forEach(function(path) {
-    var assetPrefix = urlJoin('/', path, '/').toLowerCase();
+    var assetPrefix = join('/', path, '/').toLowerCase();
     if (url.toLowerCase().indexOf(assetPrefix) === 0) {
       //root here is filesystem path
-      tryStatic.push({ root: global.basePath, path: url });
+      tryStatic.push({ root: basePath, path: url });
     }
   });
   if (!tryStatic.length) {
@@ -253,11 +252,6 @@ ServerResponse.prototype.sendFile = function(opts, fallback) {
  * Helpers
  *
  */
-
-function urlJoin() {
-  var path = join.apply(null, arguments);
-  return path.replace(/\\/g, '/');
-}
 
 //simplified version of util.stripFilename()
 function stripFilename(filename) {
