@@ -210,7 +210,6 @@ function routeRequest(adapterRequest, adapterResponse) {
   //cross-reference request and response
   req.res = res;
   res.req = req;
-  req.__init = Date.now();
   app.emit('request', req, res);
   var router = new Router(routes);
   util.propagateEvents(router, req, 'pre-route match-route no-route');

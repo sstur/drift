@@ -232,10 +232,6 @@ app.define('response', function(require, exports, module) {
       if (res.headers('Cache-Control') == null) {
         res.headers('Cache-Control', 'Private');
       }
-      if (app.cfg('logging/response_time') && this.req.__init) {
-        var responseTime = Date.now() - this.req.__init.valueOf();
-        res.headers('X-Response-Time', responseTime);
-      }
     },
 
     //these methods interface with the adapter (_super)
