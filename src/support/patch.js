@@ -2,8 +2,7 @@
 'use strict';
 
 var http = require('http');
-var req = http.IncomingMessage.prototype;
-var res = http.ServerResponse.prototype;
+var ServerResponse = http.ServerResponse;
 var fs = require('fs');
 var qs = require('querystring');
 var path = require('path');
@@ -17,29 +16,10 @@ var normalize = path.normalize;
 //var INVALID_CHARS = /[\x00-\x1F\\\/:*?<>|&%",\u007E-\uFFFF]/g;
 var INVALID_CHARS = /[^\w\d!#$'()+,\-;=@\[\]^`{}~]/g;
 
-//Patch ServerRequest to save unmodified copy of headers
-var _addHeaderLine = req._addHeaderLine;
-req._addHeaderLine = function(field, value) {
-  var list = this.complete
-    ? this.allTrailers || (this.allTrailers = {})
-    : this.allHeaders || (this.allHeaders = {});
-  if (field in list) {
-    list[field].push(value);
-  } else {
-    list[field] = [value];
-  }
-  return _addHeaderLine.apply(this, arguments);
-};
-
-//Provide a public "header sent" flag until node does.
-res.__defineGetter__('headerSent', function() {
-  return this._header;
-});
-
 //Send an http error (40x, except 404)
-res.httpError = function(code) {
+ServerResponse.prototype.httpError = function(code) {
   var res = this;
-  if (!res.headerSent) {
+  if (!res.headersSent) {
     var headers = { 'Content-Type': 'text/plain' };
     res.writeHead(code, null, headers);
     res.write(code + ' ' + http.STATUS_CODES[code]);
@@ -49,10 +29,10 @@ res.httpError = function(code) {
 
 //log/report exception (http 50x)
 //todo: don't send full file paths in response
-res.sendError = function(err) {
+ServerResponse.prototype.sendError = function(err) {
   var res = this;
   console.log(err.stack || err.toString());
-  if (!res.headerSent) {
+  if (!res.headersSent) {
     var status = 500,
       headers = { 'Content-Type': 'text/plain' },
       body;
@@ -63,7 +43,7 @@ res.sendError = function(err) {
   res.end();
 };
 
-res.tryStaticPath = function(paths, callback) {
+ServerResponse.prototype.tryStaticPath = function(paths, callback) {
   var req = this.req;
   var res = this;
   var url = req.url.split('?')[0];
@@ -89,7 +69,7 @@ res.tryStaticPath = function(paths, callback) {
   })();
 };
 
-res.serveAsset = function(opts, fallback) {
+ServerResponse.prototype.serveAsset = function(opts, fallback) {
   var req = this.req;
   var res = this;
 
@@ -139,7 +119,7 @@ res.serveAsset = function(opts, fallback) {
   res.sendFile(opts, fallback);
 };
 
-res.sendFile = function(opts, fallback) {
+ServerResponse.prototype.sendFile = function(opts, fallback) {
   var req = this.req,
     res = this;
   fs.stat(opts.path, function(err, stat) {
@@ -259,7 +239,7 @@ res.sendFile = function(opts, fallback) {
     stream.pipe(res);
 
     stream.on('error', function(err) {
-      if (res.headerSent) {
+      if (res.headersSent) {
         console.error(err.stack);
         req.destroy();
       } else {
