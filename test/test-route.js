@@ -6,8 +6,6 @@ require('../src/core');
 
 require('../src/adapters/buffer');
 
-require('../src/config/defaults');
-
 require('../src/system/router');
 require('../src/system/qs');
 require('../src/system/util');
