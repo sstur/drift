@@ -12,8 +12,6 @@ var EXCLUDE_FILES = { _: 1, '.': 1, '!': 1 }; // eslint-disable-line quote-props
 //this is the project path; used in patch and app.mappath
 var basePath = (global.basePath = process.cwd());
 
-var pkgConfig = require('./package-config.js');
-
 //patch some built-in methods
 require('./support/patch');
 
@@ -21,14 +19,10 @@ var Fiber = require('./lib/fiber');
 
 //patch `require()` to handle source transformation based on babel.
 hook.hook('.js', function(source, filename) {
-  return utils.transformSourceFile(source, filename, {
-    pkgConfig: pkgConfig,
-  });
+  return utils.transformSourceFile(source, filename);
 });
 hook.hook('.ts', function(source, filename) {
-  return utils.transformSourceFile(source, filename, {
-    pkgConfig: pkgConfig,
-  });
+  return utils.transformSourceFile(source, filename);
 });
 
 //load framework core (instantiates `app`)
@@ -44,10 +38,6 @@ app.defineAsync = function(name, definition) {
   });
 };
 
-//load config
-loadPathSync('./config');
-loadPathSync('app/config');
-loadPathSync('src/config');
 //load node adapter modules
 loadPathSync('./adapters');
 
@@ -95,7 +85,7 @@ exports.requestHandler = function(req, res) {
   req.res = res;
   res.req = req;
   //attempt to serve static file
-  var staticPaths = pkgConfig.static_assets || '/assets/';
+  var staticPaths = '/assets/';
   res.tryStaticPath(staticPaths, function() {
     var fiber = new Fiber(syncHandler);
     fiber.onError = res.sendError.bind(res);

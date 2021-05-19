@@ -3,7 +3,6 @@
 
 var join = Array.prototype.join;
 var slice = Array.prototype.slice;
-var toString = Object.prototype.toString;
 
 var app = {};
 
@@ -142,62 +141,6 @@ app.route = function(route) {
     return routeRequest.apply(null, arguments);
   }
 };
-
-/*!
- * Configuration
- */
-var config = (app._cfg = {});
-app.cfg = function() {
-  var args = Array.from(arguments);
-  if (args.length === 1 && typeof args[0] === 'string') {
-    //get config
-    return getCfg(args[0].split('/'));
-  }
-  var data = args.pop();
-  if (data !== Object(data)) {
-    if (typeof args[0] === 'string') {
-      setCfg(args[0].split('/'), data);
-      return;
-    }
-    throw new Error('Invalid arguments to app.cfg');
-  }
-  mergeCfg(data);
-};
-
-function mergeCfg(data, stack) {
-  stack = stack || [];
-  Object.keys(data).forEach(function(key) {
-    var value = data[key];
-    //in some JS engines toString of null|undefined === '[object Object]'
-    var type = value == null ? 'empty' : toString.call(value);
-    var path = stack.concat(key.split('/'));
-    if (type === '[object Object]') {
-      mergeCfg(value, path);
-    } else if (type === '[object Array]') {
-      setCfg(path, value.slice(0));
-    } else {
-      setCfg(path, value);
-    }
-  });
-}
-
-function setCfg(path, value) {
-  var obj = config;
-  for (var i = 0; i < path.length - 1; i++) {
-    var key = path[i];
-    obj = obj[key] || (obj[key] = {});
-  }
-  obj[path[i]] = value;
-}
-
-function getCfg(path) {
-  var obj = config;
-  for (var i = 0; i < path.length - 1; i++) {
-    var key = path[i];
-    obj = obj[key] || {};
-  }
-  return obj[path[i]];
-}
 
 /*!
  * Helpers

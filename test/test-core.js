@@ -44,14 +44,4 @@ describe('app', function() {
     obj.emit('foo', 1);
     expect(count).to.equal(4);
   });
-
-  it('should get and set config options', function() {
-    app.cfg('test1', { a: { a: 1, b: false } });
-    app.cfg('test1', { a: { a: 1, b: false } });
-    app.cfg({ a: { d: 'test' } });
-    expect(app.cfg('a/a')).to.be(1);
-    expect(app.cfg('a/b')).to.be(false);
-    expect(app.cfg('a/c')).to.be(undefined);
-    expect(app.cfg('a')).to.eql({ a: 1, b: false, d: 'test' });
-  });
 });

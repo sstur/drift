@@ -1,26 +1,13 @@
-var fs = require('fs');
-var path = require('path');
 var babel = require('@babel/core');
-
-var dirname = path.dirname;
 
 var REG_NL = /\r\n|\r|\n/g;
 var REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
 
-function isConfigDir(dir) {
-  let relativePath = dir
-    .split('/')
-    .slice(-2)
-    .join('/');
-  return relativePath === 'app/config' || relativePath === 'src/config';
-}
-
 var utils = {
-  transformSourceFile: function(source, filename, options) {
+  transformSourceFile: function(source, filename) {
     if (~filename.indexOf('/node_modules/')) {
       return source;
     }
-    options = options || {};
     var directives = parseDirectives(source);
     source = filename.match(/\.ts$/)
       ? utils.transformTS(source)
@@ -31,19 +18,7 @@ var utils = {
     } else if (directives.onAppState) {
       source = wrapOnAppState(directives.onAppState, source);
     }
-    var dir = dirname(filename);
-    //hacky: some special logic for files in `app/config`
-    if (isConfigDir(dir) && options.pkgConfig) {
-      source = transformConfigValues(source, options.pkgConfig);
-    }
     return source;
-  },
-
-  readJSON: function(path) {
-    try {
-      var result = fs.readFileSync(path, 'utf8');
-    } catch (e) {}
-    return JSON.parse(result || '{}');
   },
 
   transformJS: function(source) {
@@ -116,14 +91,6 @@ function parseDirectives(source) {
     });
   }
   return directives;
-}
-
-function transformConfigValues(source, pkgConfig) {
-  //allow references to package.json
-  return source.replace(/('|")\{\{package:(.*?)\}\}\1/g, function(str, _, key) {
-    var value = pkgConfig[key] == null ? '' : pkgConfig[key];
-    return JSON.stringify(value);
-  });
 }
 
 module.exports = utils;
