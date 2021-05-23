@@ -1,28 +1,26 @@
 'use strict';
-var fs = require('fs');
-var path = require('path');
-var hook = require('node-hook');
-var utils = require('./utils');
-
-var join = path.join;
+const fs = require('fs');
+const { join } = require('path');
+const hook = require('node-hook');
+const { transformSourceFile } = require('./utils');
 
 //framework files beginning with these chars are excluded
-var EXCLUDE_FILES = { _: 1, '.': 1, '!': 1 }; // eslint-disable-line quote-props
+const EXCLUDE_FILES = { _: 1, '.': 1, '!': 1 }; // eslint-disable-line quote-props
 
 //this is the project path; used in tryStaticPath, app.mappath and loadPathSync
-var basePath = process.cwd();
+const basePath = process.cwd();
 
 //patch some built-in methods
 require('./support/patch');
 
-var Fiber = require('./lib/fiber');
+const Fiber = require('./lib/fiber');
 
 //patch `require()` to handle source transformation based on babel.
-hook.hook('.js', function(source, filename) {
-  return utils.transformSourceFile(source, filename);
+hook.hook('.js', (source, filename) => {
+  return transformSourceFile(source, filename);
 });
-hook.hook('.ts', function(source, filename) {
-  return utils.transformSourceFile(source, filename);
+hook.hook('.ts', (source, filename) => {
+  return transformSourceFile(source, filename);
 });
 
 //load framework core (instantiates `app`)
@@ -31,7 +29,7 @@ require('./core.js');
 app.mappath = join.bind(null, basePath);
 
 //like app.define but fiberizes async methods upon instantiation
-app.defineAsync = function(name, definition) {
+app.defineAsync = (name, definition) => {
   app.define(name, function() {
     definition.apply(this, arguments);
     Fiber.fiberizeModule(this.exports);
@@ -56,20 +54,20 @@ loadPathSync('src/controllers');
 app.emit('init', app.require);
 app.emit('ready', app.require);
 
-var AdapterRequest = app.require('adapter-request');
-var AdapterResponse = app.require('adapter-response');
+const AdapterRequest = app.require('adapter-request');
+const AdapterResponse = app.require('adapter-response');
 
 //this function only runs within a fiber
-var syncHandler = function(http) {
-  var req = new AdapterRequest(http.req);
-  var res = new AdapterResponse(http.res);
+function syncHandler(http) {
+  let req = new AdapterRequest(http.req);
+  let res = new AdapterResponse(http.res);
   //cross-reference adapter-request and adapter-response
   req.res = res;
   res.req = req;
   // sleep(1); //for debugging
   app.route(req, res);
   throw new Error('Router returned without handling request.');
-};
+}
 
 //for debugging
 // var sleep = function(ms) {
@@ -80,14 +78,14 @@ var syncHandler = function(http) {
 //   Fiber.yield();
 // };
 
-exports.requestHandler = function(req, res) {
+exports.requestHandler = (req, res) => {
   //cross-reference request and response
   req.res = res;
   res.req = req;
   //attempt to serve static file
-  var staticPaths = ['/assets/'];
-  res.tryStaticPath(basePath, staticPaths, function() {
-    var fiber = new Fiber(syncHandler);
+  let staticPaths = ['/assets/'];
+  res.tryStaticPath(basePath, staticPaths, () => {
+    let fiber = new Fiber(syncHandler);
     fiber.onError = res.sendError.bind(res);
     fiber.run({ req: req, res: res });
   });

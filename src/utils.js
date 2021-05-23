@@ -1,60 +1,56 @@
-var babel = require('@babel/core');
+const babel = require('@babel/core');
 
-var REG_NL = /\r\n|\r|\n/g;
-var REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
+const REG_NL = /\r\n|\r|\n/g;
+const REG_DOC_BLOCK = /^\s*\/\*\*([\s\S]*?)\*\//;
 
-var utils = {
-  transformSourceFile: function(source, filename) {
-    if (~filename.indexOf('/node_modules/')) {
-      return source;
-    }
-    var directives = parseDirectives(source);
-    source = filename.match(/\.ts$/)
-      ? utils.transformTS(source)
-      : utils.transformJS(source);
-    //wrap source based on directive
-    if (directives.providesModule) {
-      source = wrapDefine(directives.providesModule, source);
-    } else if (directives.onAppState) {
-      source = wrapOnAppState(directives.onAppState, source);
-    }
+exports.transformSourceFile = (source, filename) => {
+  if (~filename.indexOf('/node_modules/')) {
     return source;
-  },
-
-  transformJS: function(source) {
-    var result = babel.transform(source, {
-      retainLines: true,
-      plugins: [
-        '@babel/plugin-transform-flow-strip-types',
-        '@babel/plugin-transform-react-jsx',
-        '@babel/plugin-proposal-class-properties',
-      ],
-      presets: [
-        // Target Node 10.x
-        ['latest-node', { target: '10.13' }],
-      ],
-    });
-    //var {code, map, ast} = result;
-    return result.code;
-  },
-
-  transformTS: function(source) {
-    var result = babel.transform(source, {
-      retainLines: true,
-      plugins: [
-        '@babel/plugin-transform-typescript',
-        '@babel/plugin-transform-react-jsx',
-        '@babel/plugin-proposal-class-properties',
-      ],
-      presets: [
-        // Target Node 10.x
-        ['latest-node', { target: '10.13' }],
-      ],
-    });
-    //var {code, map, ast} = result;
-    return result.code;
-  },
+  }
+  var directives = parseDirectives(source);
+  source = filename.match(/\.ts$/) ? transformTS(source) : transformJS(source);
+  //wrap source based on directive
+  if (directives.providesModule) {
+    source = wrapDefine(directives.providesModule, source);
+  } else if (directives.onAppState) {
+    source = wrapOnAppState(directives.onAppState, source);
+  }
+  return source;
 };
+
+function transformJS(source) {
+  var result = babel.transform(source, {
+    retainLines: true,
+    plugins: [
+      '@babel/plugin-transform-flow-strip-types',
+      '@babel/plugin-transform-react-jsx',
+      '@babel/plugin-proposal-class-properties',
+    ],
+    presets: [
+      // Target Node 10.x
+      ['latest-node', { target: '10.13' }],
+    ],
+  });
+  //var {code, map, ast} = result;
+  return result.code;
+}
+
+function transformTS(source) {
+  var result = babel.transform(source, {
+    retainLines: true,
+    plugins: [
+      '@babel/plugin-transform-typescript',
+      '@babel/plugin-transform-react-jsx',
+      '@babel/plugin-proposal-class-properties',
+    ],
+    presets: [
+      // Target Node 10.x
+      ['latest-node', { target: '10.13' }],
+    ],
+  });
+  //var {code, map, ast} = result;
+  return result.code;
+}
 
 function wrapDefine(name, source) {
   return [
@@ -92,5 +88,3 @@ function parseDirectives(source) {
   }
   return directives;
 }
-
-module.exports = utils;
