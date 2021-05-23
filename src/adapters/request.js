@@ -1,3 +1,5 @@
+const { eventify } = require('../eventify');
+
 app.define('adapter-request', function(require, exports, module) {
   'use strict';
 
@@ -9,7 +11,7 @@ app.define('adapter-request', function(require, exports, module) {
     //pause so that we can use the body parser later
     req.pause();
   }
-  app.eventify(Request.prototype);
+  eventify(Request.prototype);
 
   Object.assign(Request.prototype, {
     getMethod: function() {

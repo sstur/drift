@@ -1,3 +1,5 @@
+const { eventify } = require('../eventify');
+
 app.define('request', function(require, exports, module) {
   'use strict';
 
@@ -13,7 +15,7 @@ app.define('request', function(require, exports, module) {
     util.propagateEvents(req, this, 'end');
   }
 
-  app.eventify(Request.prototype);
+  eventify(Request.prototype);
 
   Object.assign(Request.prototype, {
     url: function(part) {

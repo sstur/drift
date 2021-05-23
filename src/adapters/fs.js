@@ -1,6 +1,7 @@
-var _fs = require('fs');
-var mkdirp = require('mkdirp');
-var rimraf = require('rimraf'); //recursive rmdir
+const _fs = require('fs');
+const mkdirp = require('mkdirp');
+const rimraf = require('rimraf'); //recursive rmdir
+const { eventify } = require('../eventify');
 
 app.defineAsync('fs', function(require, fs) {
   'use strict';
@@ -200,7 +201,7 @@ app.defineAsync('fs', function(require, fs) {
     this.init();
   }
   fs.FileReadStream = FileReadStream;
-  app.eventify(FileReadStream.prototype);
+  eventify(FileReadStream.prototype);
 
   Object.assign(FileReadStream.prototype, {
     setEncoding: function(enc) {
@@ -486,7 +487,7 @@ app.defineAsync('fs', function(require, fs) {
   function AsyncList(list) {
     this.list = list;
   }
-  app.eventify(AsyncList.prototype);
+  eventify(AsyncList.prototype);
   AsyncList.prototype.forEach = function(fn) {
     var list = this.list;
     var doneCount = 0;

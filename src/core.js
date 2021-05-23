@@ -1,8 +1,9 @@
 /* eslint-disable one-var */
 'use strict';
 
-var join = Array.prototype.join;
-var slice = Array.prototype.slice;
+const { eventify } = require('./eventify');
+
+const join = Array.prototype.join;
 
 var app = {};
 
@@ -95,35 +96,8 @@ require.resolve = function(namespace, name) {
 //expose module cache
 require.cache = cache;
 
-/*!
- * Basic Event Emitter
- */
-
-var emitter = {
-  on: function(name, fn) {
-    var events = this._events || (this._events = {});
-    var list = events[name] || (events[name] = []);
-    list.push(fn);
-  },
-  emit: function(name) {
-    var args = slice.call(arguments, 1);
-    var events = this._events || {},
-      list = events[name] || [];
-    for (var i = 0; i < list.length; i++) {
-      list[i].apply(this, args);
-    }
-  },
-};
-
-//Make an object into a basic Event Emitter
-app.eventify = function(obj) {
-  obj.on = emitter.on;
-  obj.emit = emitter.emit;
-  return obj;
-};
-
 //Global `app` should be able to emit events
-app.eventify(app);
+eventify(app);
 
 /*!
  * Routing

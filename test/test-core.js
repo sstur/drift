@@ -1,7 +1,8 @@
 /* eslint-disable one-var */
 'use strict';
+const expect = require('expect.js');
 
-var expect = require('expect.js');
+const { eventify } = require('../src/eventify');
 
 require('../src/core');
 
@@ -27,7 +28,7 @@ describe('app', function() {
     var fn = function(i) {
       count += i;
     };
-    app.eventify(obj);
+    eventify(obj);
     expect(obj)
       .to.have.property('on')
       .and.have.property('emit');

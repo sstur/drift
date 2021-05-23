@@ -4,6 +4,9 @@
  * new Route(): route.method, route.url/regex, route.handler
  * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params, opts
  */
+
+const { eventify } = require('../eventify');
+
 /* eslint-disable consistent-this, one-var */
 app.define('router', function(require, exports, module) {
   'use strict';
@@ -24,7 +27,7 @@ app.define('router', function(require, exports, module) {
       this.addRoutes(routes);
     }
   }
-  app.eventify(Router.prototype);
+  eventify(Router.prototype);
 
   Router.prototype.addRoute = function(route, handler, opts) {
     this._routes.push(parseRoute(route, handler, opts));
