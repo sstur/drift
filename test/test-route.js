@@ -1,20 +1,10 @@
 'use strict';
 
-var expect = require('expect.js');
+const expect = require('expect.js');
 
-require('../src/core');
-
-require('../src/adapters/buffer');
-
-require('../src/system/router');
-require('../src/system/qs');
-require('../src/system/util');
+const Router = require('../src/system/router');
 
 describe('router', function() {
-  var require = app.require;
-
-  var Router = require('router');
-
   var router = new Router();
   var complete = false;
   router.on('no-route', function() {

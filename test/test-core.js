@@ -3,10 +3,11 @@
 const expect = require('expect.js');
 
 const { eventify } = require('../src/eventify');
-
-require('../src/core');
+const { createApp } = require('../src/server');
 
 describe('app', function() {
+  const app = createApp();
+
   it('should be an object', function() {
     expect(app).to.be.an('object');
   });

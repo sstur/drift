@@ -27,15 +27,9 @@ Fiber.prototype.abort = function(callback) {
   Fiber.yield();
 };
 
-/**
- * Fiber.fiberize() turns an asynchronous function to a fiberized one
- * It receives function, context object and then arguments.
- *
- */
-Fiber.fiberize = function(fn, obj /* arguments */) {
-  var dynamicBinding = arguments.length === 1;
+/** Fiber.fiberize() turns an asynchronous function to a fiberized one */
+Fiber.fiberize = function(fn) {
   var arity = fn.length;
-  var bindArgs = slice.call(arguments, 2);
 
   return function() {
     var fiber = Fiber.current;
@@ -44,7 +38,6 @@ Fiber.fiberize = function(fn, obj /* arguments */) {
     var yielded = false;
 
     var args = slice.call(arguments);
-    args = bindArgs.concat(args);
 
     // virtual callback
     function syncCallback(callbackError, callbackResult) {
@@ -76,7 +69,7 @@ Fiber.fiberize = function(fn, obj /* arguments */) {
     }
 
     // call async function
-    fn.apply(dynamicBinding ? this : obj, args);
+    fn.apply(this, args);
 
     // wait for result
     if (!syncCallback.called) {
@@ -89,41 +82,6 @@ Fiber.fiberize = function(fn, obj /* arguments */) {
 
     return result;
   };
-};
-
-/**
- * Fiber.fiberizeModule() turns a specially written asynchronous module into
- * a fiberized one. Methods with names ending in _ are considered to be async.
- *
- */
-Fiber.fiberizeModule = function fiberizeModule(module, methodNames) {
-  methodNames =
-    typeof methodNames == 'string'
-      ? methodNames.split(' ')
-      : Object.keys(module);
-  methodNames.forEach(function(methodName) {
-    //exclude "private" methods
-    if (methodName.charAt(0) == '_') return;
-    //exclude "super_" created by util.inherits
-    if (methodName == 'super_') return;
-    var method = module[methodName];
-    if (typeof method == 'function') {
-      if (methodName.slice(-1) == '_') {
-        delete module[methodName];
-        methodName = methodName.slice(0, -1);
-        module[methodName] = Fiber.fiberize(method);
-      }
-      //constructors that are exported like `exports.ClassName = ClassName`
-      else if (method.name && method.prototype) {
-        fiberizeModule(method.prototype);
-      }
-    }
-  });
-  //constructors that are exported like `module.exports = ClassName`
-  if (typeof module == 'function' && module.name && module.prototype) {
-    fiberizeModule(module.prototype);
-  }
-  return module;
 };
 
 module.exports = Fiber;

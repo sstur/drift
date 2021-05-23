@@ -1,72 +1,106 @@
 'use strict';
-const fs = require('fs');
-const { join } = require('path');
-const hook = require('node-hook');
-const { transformSourceFile } = require('./utils');
 
-//framework files beginning with these chars are excluded
-const EXCLUDE_FILES = { _: 1, '.': 1, '!': 1 }; // eslint-disable-line quote-props
+const { BASE_PATH } = require('./constants');
+const { eventify } = require('./eventify');
+const util = require('./system/util');
+const Router = require('./system/router');
+const Request = require('./system/request');
+const Response = require('./system/response');
 
-//this is the project path; used in tryStaticPath, app.mappath and loadPathSync
-const basePath = process.cwd();
+const AdapterRequest = require('./adapters/request');
+const AdapterResponse = require('./adapters/response');
 
 //patch some built-in methods
 require('./support/patch');
 
 const Fiber = require('./lib/fiber');
 
-//patch `require()` to handle source transformation based on babel.
-hook.hook('.js', (source, filename) => {
-  return transformSourceFile(source, filename);
-});
-hook.hook('.ts', (source, filename) => {
-  return transformSourceFile(source, filename);
-});
-
-//load framework core (instantiates `app`)
-require('./core.js');
-
-app.mappath = join.bind(null, basePath);
-
-//like app.define but fiberizes async methods upon instantiation
-app.defineAsync = (name, definition) => {
-  app.define(name, function() {
-    definition.apply(this, arguments);
-    Fiber.fiberizeModule(this.exports);
-  });
+// Moved here from config.
+// TODO: Move somewhere else?
+const defaultNotFoundResponse = {
+  type: 'text/plain',
+  body: '{"error":"404 Not Found"}',
 };
 
-//load node adapter modules
-loadPathSync('./adapters');
+exports.createApp = () => {
+  var app = {};
 
-//load framework modules
-loadPathSync('./system');
-loadPathSync('app/models');
-loadPathSync('src/models');
-loadPathSync('app/init');
-loadPathSync('src/init');
-loadPathSync('app/lib');
-loadPathSync('src/lib');
-loadPathSync('app/controllers');
-loadPathSync('src/controllers');
+  //Make it able to emit events
+  eventify(app);
 
-//all modules loaded
-app.emit('init', app.require);
-app.emit('ready', app.require);
+  const { addRoute, routeRequest } = createRouteHelpers(app);
 
-const AdapterRequest = app.require('adapter-request');
-const AdapterResponse = app.require('adapter-response');
+  //shortcut method for addRoute
+  app.route = (...args) => addRoute(...args);
 
-//this function only runs within a fiber
-function syncHandler(http) {
-  let req = new AdapterRequest(http.req);
-  let res = new AdapterResponse(http.res);
-  //cross-reference adapter-request and adapter-response
-  req.res = res;
-  res.req = req;
-  // sleep(1); //for debugging
-  app.route(req, res);
-  throw new Error('Router returned without handling request.');
+  app.getRequestHandler = () => {
+    //this function only runs within a fiber
+    const fiberWorker = (http) => {
+      let req = new AdapterRequest(http.req);
+      let res = new AdapterResponse(http.res);
+      //cross-reference adapter-request and adapter-response
+      req.res = res;
+      res.req = req;
+      // sleep(1); //for debugging
+      routeRequest(req, res);
+      throw new Error('Router returned without handling request.');
+    };
+
+    return (req, res) => {
+      //cross-reference request and response
+      req.res = res;
+      res.req = req;
+      //attempt to serve static file
+      let staticPaths = ['/assets/'];
+      res.tryStaticPath(BASE_PATH, staticPaths, () => {
+        let fiber = new Fiber(fiberWorker);
+        fiber.onError = res.sendError.bind(res);
+        fiber.run({ req, res });
+      });
+    };
+  };
+
+  return app;
+};
+
+function createRouteHelpers(app) {
+  const routes = [];
+
+  const addRoute = (route, handler, opts) => {
+    routes.push({ route: route, handler: handler, opts: opts });
+  };
+
+  const routeRequest = (adapterRequest, adapterResponse) => {
+    var req = new Request(adapterRequest);
+    var res = new Response(adapterResponse);
+    //cross-reference request and response
+    req.res = res;
+    res.req = req;
+    app.emit('request', req, res);
+    var router = new Router(routes);
+    util.propagateEvents(router, req, 'pre-route match-route no-route');
+    //so routes can access `this.params` with combined request params
+    req.on('match-route', function(route) {
+      //we use Object.create so we don't actually mutate the query params object
+      var queryParams = Object.create(req.query());
+      var routeParams = route.params;
+      route.params = Object.assign(queryParams, routeParams);
+    });
+    //todo: move to request lib?
+    req.on('no-route', function(routeData) {
+      var response = routeData.response || defaultNotFoundResponse;
+      if (response) {
+        res.end(response.status || '404', response.type, response.body);
+      } else {
+        res.end('404', 'Not Found');
+      }
+    });
+    //get raw (encoded) path
+    var path = req.url('rawPath');
+    return router.route(req.method(), path, req, res);
+  };
+
+  return { addRoute, routeRequest };
 }
 
 //for debugging
@@ -77,41 +111,3 @@ function syncHandler(http) {
 //   }, ms);
 //   Fiber.yield();
 // };
-
-exports.requestHandler = (req, res) => {
-  //cross-reference request and response
-  req.res = res;
-  res.req = req;
-  //attempt to serve static file
-  let staticPaths = ['/assets/'];
-  res.tryStaticPath(basePath, staticPaths, () => {
-    let fiber = new Fiber(syncHandler);
-    fiber.onError = res.sendError.bind(res);
-    fiber.run({ req: req, res: res });
-  });
-};
-
-//helper for loading framework files
-function loadPathSync(dir) {
-  //note: kinda hacky
-  var isSystem = dir.charAt(0) === '.';
-  var srcPath = isSystem ? __dirname : basePath;
-  var path = join(srcPath, dir);
-  try {
-    var files = fs.readdirSync(path);
-  } catch (e) {
-    // console.log('not found', path);
-    return;
-  }
-  files.forEach(function(file) {
-    if (file.charAt(0) in EXCLUDE_FILES) return;
-    var fullpath = join(path, file);
-    var stat = fs.statSync(fullpath);
-    if (stat.isDirectory()) {
-      loadPathSync(join(dir, file));
-    } else if (stat.isFile() && file.match(/\.(js|ts)$/i)) {
-      console.log('load file', join(dir, file));
-      require(join(srcPath, dir, file));
-    }
-  });
-}
