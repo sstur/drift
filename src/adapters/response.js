@@ -1,9 +1,9 @@
 var _fs = require('fs');
 var Fiber = require('../lib/fiber');
-app.define('adapter-response', function(require, exports, module) {
+app.define('adapter-response', function(appRequire, exports, module) {
   'use strict';
 
-  var fs = require('fs');
+  var fs = appRequire('fs');
 
   function Response(httpRes) {
     this._super = httpRes;

@@ -3,10 +3,10 @@ const mkdirp = require('mkdirp');
 const rimraf = require('rimraf'); //recursive rmdir
 const { eventify } = require('../eventify');
 
-app.defineAsync('fs', function(require, fs) {
+app.defineAsync('fs', function(appRequire, fs) {
   'use strict';
 
-  var path = require('path');
+  var path = appRequire('path');
 
   var join = path.join;
   var basename = path.basename;

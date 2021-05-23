@@ -1,11 +1,11 @@
 const { eventify } = require('../eventify');
 
-app.define('request', function(require, exports, module) {
+app.define('request', function(appRequire, exports, module) {
   'use strict';
 
-  var qs = require('qs');
-  var util = require('util');
-  var BodyParser = require('body-parser');
+  var qs = appRequire('qs');
+  var util = appRequire('util');
+  var BodyParser = appRequire('body-parser');
 
   var HTTP_METHODS = { GET: 1, HEAD: 1, POST: 1, PUT: 1, DELETE: 1 };
   var BODY_ALLOWED = { POST: 1, PUT: 1 };

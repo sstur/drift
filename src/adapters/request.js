@@ -1,9 +1,9 @@
 const { eventify } = require('../eventify');
 
-app.define('adapter-request', function(require, exports, module) {
+app.define('adapter-request', function(appRequire, exports, module) {
   'use strict';
 
-  var BodyParser = require('body-parser');
+  var BodyParser = appRequire('body-parser');
 
   function Request(req) {
     //node's incoming http request

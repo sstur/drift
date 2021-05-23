@@ -8,10 +8,10 @@
 const { eventify } = require('../eventify');
 
 /* eslint-disable consistent-this, one-var */
-app.define('router', function(require, exports, module) {
+app.define('router', function(appRequire, exports, module) {
   'use strict';
 
-  var qs = require('qs');
+  var qs = appRequire('qs');
 
   var slice = Array.prototype.slice;
 

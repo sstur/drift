@@ -1,5 +1,5 @@
 var crypto = require('crypto');
-app.define('crypto', function(require, exports, module) {
+app.define('crypto', function(_appRequire, exports, module) {
   module.exports = {
     createHash: crypto.createHash.bind(crypto),
     hash: function(type, data, enc) {

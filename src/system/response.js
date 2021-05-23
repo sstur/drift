@@ -1,11 +1,11 @@
 /* eslint-disable consistent-this */
 const mimeTypes = require('../support/mime-types');
 
-app.define('response', function(require, exports, module) {
+app.define('response', function(appRequire, exports, module) {
   'use strict';
 
-  var fs = require('fs');
-  var util = require('util');
+  var fs = appRequire('fs');
+  var util = appRequire('util');
 
   var RE_CTYPE = /^[\w-]+\/[\w-]+$/;
   var RE_STATUS = /^\d{3}\b/;

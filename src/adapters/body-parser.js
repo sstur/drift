@@ -4,12 +4,12 @@ var path = require('path');
 var crypto = require('crypto');
 var formidable = require('formidable');
 var EventEmitter = require('events').EventEmitter;
-app.defineAsync('body-parser', function(require, exports, module) {
+app.defineAsync('body-parser', function(appRequire, exports, module) {
   'use strict';
 
-  var fs = require('fs');
-  var qs = require('qs');
-  var util = require('util');
+  var fs = appRequire('fs');
+  var qs = appRequire('qs');
+  var util = appRequire('util');
 
   var MAX_BUFFER_SIZE = 1048576;
 

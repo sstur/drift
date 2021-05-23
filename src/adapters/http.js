@@ -1,12 +1,12 @@
 /* eslint-disable one-var */
 var _http = require('http');
 var _https = require('https');
-app.defineAsync('http', function(require, exports) {
+app.defineAsync('http', function(appRequire, exports) {
   'use strict';
 
-  var qs = require('qs');
-  var url = require('url');
-  var Buffer = require('buffer').Buffer;
+  var qs = appRequire('qs');
+  var url = appRequire('url');
+  var Buffer = appRequire('buffer').Buffer;
 
   //url helpers
   var parseUrl = url.parse;
