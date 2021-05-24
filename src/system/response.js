@@ -2,7 +2,6 @@
 'use strict';
 const mimeTypes = require('../support/mime-types');
 
-const fs = require('../adapters/fs');
 const util = require('./util');
 
 const RE_CTYPE = /^[\w-]+\/[\w-]+$/;
@@ -239,21 +238,11 @@ Object.assign(Response.prototype, {
   },
   _streamFile: function(path, headers) {
     var _super = this._super;
-    if (_super.streamFile) {
-      //allow the adapter to do things like X-Sendfile or X-Accel-Redirect
-      //todo: check file exists
-      this.headers(headers);
-      this._prepHeaders();
-      var status = parseStatus(this.buffer.status);
-      _super.streamFile(status.code, status.reason, this.buffer.headers, path);
-    } else {
-      var readStream = fs.createReadStream(path);
-      //todo: we can only set content-length if the server is smart enough to turn off chunked (cfg option?)
-      //headers['Content-Length'] = readStream.size();
-      this.headers(headers);
-      util.pipe(readStream, this.getWriteStream());
-      readStream.read();
-    }
+    //todo: check file exists
+    this.headers(headers);
+    this._prepHeaders();
+    var status = parseStatus(this.buffer.status);
+    _super.streamFile(status.code, status.reason, this.buffer.headers, path);
   },
   end: function() {
     var args = Array.from(arguments);
