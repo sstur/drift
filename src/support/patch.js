@@ -16,17 +16,6 @@ var normalize = path.normalize;
 //var INVALID_CHARS = /[\x00-\x1F\\\/:*?<>|&%",\u007E-\uFFFF]/g;
 var INVALID_CHARS = /[^\w\d!#$'()+,\-;=@\[\]^`{}~]/g;
 
-//Send an http error (40x, except 404)
-ServerResponse.prototype.httpError = function(code) {
-  var res = this;
-  if (!res.headersSent) {
-    var headers = { 'Content-Type': 'text/plain' };
-    res.writeHead(code, null, headers);
-    res.write(code + ' ' + http.STATUS_CODES[code]);
-  }
-  res.end();
-};
-
 //log/report exception (http 50x)
 //todo: don't send full file paths in response
 ServerResponse.prototype.sendError = function(err) {
@@ -87,13 +76,13 @@ ServerResponse.prototype.serveAsset = function(opts, fallback) {
 
   // null byte(s)
   if (~path.indexOf('\0')) {
-    return res.httpError(400);
+    return sendHttpError(res, 400);
   }
 
   var root = opts.root ? normalize(opts.root) : null;
   // when root is not given, consider .. malicious
   if (!root && ~path.indexOf('..')) {
-    return res.httpError(403);
+    return sendHttpError(res, 403);
   }
 
   // join / normalize from optional root dir
@@ -101,7 +90,7 @@ ServerResponse.prototype.serveAsset = function(opts, fallback) {
 
   // malicious path
   if (root && path.indexOf(root) !== 0) {
-    return res.httpError(403);
+    return sendHttpError(res, 403);
   }
 
   var hidden = opts.hidden;
@@ -210,7 +199,7 @@ ServerResponse.prototype.sendFile = function(opts, fallback) {
       // unsatisfiable range
       if (streamOpts.start > len - 1) {
         res.setHeader('Content-Range', 'bytes */' + stat.size);
-        return res.httpError(416);
+        return sendHttpError(res, 416);
       }
 
       // limit last-byte-pos to current length
@@ -252,6 +241,16 @@ ServerResponse.prototype.sendFile = function(opts, fallback) {
  * Helpers
  *
  */
+
+/** Send an http error (40x, except 404) */
+function sendHttpError(res, code) {
+  if (!res.headersSent) {
+    var headers = { 'Content-Type': 'text/plain' };
+    res.writeHead(code, null, headers);
+    res.write(code + ' ' + http.STATUS_CODES[code]);
+  }
+  res.end();
+}
 
 //simplified version of util.stripFilename()
 function stripFilename(filename) {
