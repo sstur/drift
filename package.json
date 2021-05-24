@@ -10,7 +10,7 @@
     "format": "prettier --write \"**/*.js\"",
     "lint": "eslint . --max-warnings 0",
     "test-src": "mocha test",
-    "test": "npm run lint && npm run test-src"
+    "test": "yarn lint && yarn test-src"
   },
   "dependencies": {
     "fibers": "^4.0.2",
