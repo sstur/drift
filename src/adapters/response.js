@@ -14,7 +14,7 @@ Object.assign(Response.prototype, {
     this._super.writeHead(statusCode, statusReason || '', headers);
   },
   write: function(data) {
-    this._super.write(Buffer.isBuffer(data) ? data : new Buffer(data));
+    this._super.write(Buffer.isBuffer(data) ? data : Buffer.from(data));
   },
   end: function() {
     this._super.end();

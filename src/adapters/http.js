@@ -65,10 +65,10 @@ var request = (exports.request = toFiber(function(opts, callback) {
   var req = http.request(opts, function(res) {
     var body = [];
     res.on('data', function(data) {
-      body.push(data.toString('binary'));
+      body.push(data);
     });
     res.on('end', function() {
-      res.body = new Buffer(body.join(''), 'binary');
+      res.body = Buffer.concat(body);
       if (opts.enc) {
         res.body = res.body.toString(opts.enc);
       }

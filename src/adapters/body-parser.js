@@ -108,14 +108,14 @@ BodyParser.prototype.bufferReqBody = function(callback) {
       callback('413 Request Entity Too Large');
       return;
     }
-    buffer.push(data.toString('binary'));
+    buffer.push(data);
     size += data.length;
   });
   readStream.on('error', function(err) {
     callback(err);
   });
   readStream.on('end', function() {
-    var data = new Buffer(buffer.join(''), 'binary');
+    var data = Buffer.concat(buffer);
     callback(null, data.toString(opts.encoding || 'utf8'));
   });
 };
