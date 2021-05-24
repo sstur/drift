@@ -75,15 +75,6 @@ exports.parseHeaders = function(input) {
   return headers;
 };
 
-exports.pipe = function(src, dest) {
-  src.on('data', function(data) {
-    dest.write(data);
-  });
-  src.on('end', function() {
-    dest.end();
-  });
-};
-
 //strip a filename to be ascii-safe
 // used in Content-Disposition header
 // will not encode space or: !#$'()+-.;=@[]^_`{}
