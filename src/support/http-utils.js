@@ -9,8 +9,8 @@
  * @return {Boolean}
  * @api private
  */
-exports.modified = function(req, res, headers) {
-  headers = headers || res._headers || {};
+exports.modified = function(req, res) {
+  var headers = res.getHeaders() || {};
   var modifiedSince = req.headers['if-modified-since'],
     lastModified = headers['last-modified'],
     noneMatch = req.headers['if-none-match'],
@@ -43,7 +43,7 @@ exports.modified = function(req, res, headers) {
  * @api private
  */
 exports.removeContentHeaders = function(res) {
-  Object.keys(res._headers).forEach(function(field) {
+  res.getHeaderNames().forEach(function(field) {
     if (field.indexOf('content') === 0) {
       res.removeHeader(field);
     }
