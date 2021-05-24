@@ -6,6 +6,7 @@ const util = require('./system/util');
 const Router = require('./system/router');
 const Request = require('./system/request');
 const Response = require('./system/response');
+const { tryStaticPath } = require('./support/tryStaticPath');
 
 const AdapterRequest = require('./adapters/request');
 const AdapterResponse = require('./adapters/response');
@@ -52,7 +53,7 @@ exports.createApp = () => {
       res.req = req;
       //attempt to serve static file
       let staticPaths = ['/assets/'];
-      res.tryStaticPath(BASE_PATH, staticPaths, () => {
+      tryStaticPath(req, res, BASE_PATH, staticPaths, () => {
         let fiber = new Fiber(fiberWorker);
         fiber.onError = res.sendError.bind(res);
         fiber.run({ req, res });
