@@ -44,7 +44,6 @@ Router.prototype.route = function(method, url, ...routeArgs) {
   routeData.stop = function() {
     stopRouting = true;
   };
-  this.emit('pre-route', routeData);
   for (let item of this._routes) {
     if (item.method && item.method !== method) {
       continue;
