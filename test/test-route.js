@@ -68,18 +68,4 @@ describe('router', function() {
     expect(count).to.equal(2);
     expect(complete).to.be(true);
   });
-
-  it('should match regex', function() {
-    var count = 0;
-    var fn = function(p1, p2) {
-      count++;
-      expect(p1).to.equal('1');
-      expect(p2).to.equal('a');
-    };
-    router.addRoute(/\/five\/(\d+)\/([a-z]+)/, fn);
-    complete = false;
-    router.route('GET', '/five/1/a');
-    expect(count).to.equal(1);
-    expect(complete).to.be(true);
-  });
 });

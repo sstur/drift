@@ -50,16 +50,12 @@ Router.prototype.route = function(method, url, ...routeArgs) {
 //Parse the given route, returning http-method, regular expression and handler
 function parseRoute(route, fn) {
   let parsed = {};
-  let type = typeof route;
   let m;
-  if (type == 'string' && (m = RE_VERB.exec(route))) {
+  if ((m = RE_VERB.exec(route))) {
     parsed.method = m[1];
     route = m[2];
   }
-  parsed.route =
-    type == 'string' && !route.match(RE_PLAIN_ROUTE)
-      ? buildRegExp(route)
-      : route;
+  parsed.route = route.match(RE_PLAIN_ROUTE) ? route : buildRegExp(route);
   parsed.handler = (matchData, routeArgs, values) => {
     return fn.call(matchData, ...routeArgs, ...values);
   };
