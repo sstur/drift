@@ -72,14 +72,7 @@ function createRouteHelpers(app) {
     res.req = req;
     app.emit('request', req, res);
     let router = new Router(routes);
-    util.propagateEvents(router, req, 'match-route no-route');
-    //so routes can access `this.params` with combined request params
-    req.on('match-route', (matchData) => {
-      //we use Object.create so we don't actually mutate the query params object
-      let queryParams = Object.create(req.query());
-      let routeParams = matchData.params;
-      matchData.params = Object.assign(queryParams, routeParams);
-    });
+    util.propagateEvents(router, req, 'no-route');
     req.on('no-route', () => {
       res.end('404', 'text/plain', JSON.stringify({ error: '404 Not Found' }));
     });

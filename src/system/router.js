@@ -8,10 +8,6 @@
 'use strict';
 const { eventify } = require('../eventify');
 
-const qs = require('./qs');
-
-var slice = Array.prototype.slice;
-
 var RE_VERB = /^([A-Z]+):(.*)/;
 var RE_PLAIN_ROUTE = /^[^:*]+$/;
 
@@ -38,7 +34,6 @@ Router.prototype.addRoutes = function(arr) {
 };
 
 Router.prototype.route = function(method, url, ...routeArgs) {
-  var router = this;
   var routeData = {};
   var stopRouting = false;
   routeData.stop = function() {
@@ -58,8 +53,6 @@ Router.prototype.route = function(method, url, ...routeArgs) {
       matchData.opts = item.opts || {};
       var values = matches.slice(1).map((value) => value || '');
       matchData.values = values;
-      matchData.params = assignNames(item.paramNames, values);
-      router.emit('match-route', matchData);
       item.handler(matchData, routeArgs);
     }
     if (stopRouting) {
@@ -89,15 +82,6 @@ function parseRoute(route, fn, opts) {
   };
   parsed.opts = opts;
   return parsed;
-}
-
-function assignNames(names, values) {
-  var params = {};
-  for (var i = 0; i < values.length; i++) {
-    var name = names[i] || '$' + (i + 1);
-    params[name] = qs.unescape(values[i]);
-  }
-  return params;
 }
 
 //Build a regular expression object from a route string, storing param names in the array provided
