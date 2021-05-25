@@ -37,11 +37,9 @@ Router.prototype.addRoutes = function(arr) {
   });
 };
 
-Router.prototype.route = function(method, url) {
+Router.prototype.route = function(method, url, ...routeArgs) {
   var router = this;
   var routeData = {};
-  //rest-args to be passed on to each route handler (usually req, res)
-  var routeArgs = slice.call(arguments, 2);
   var stopRouting = false;
   routeData.stop = function() {
     stopRouting = true;

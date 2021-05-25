@@ -16,13 +16,6 @@ require('./support/patch');
 
 const Fiber = require('./lib/fiber');
 
-// Moved here from config.
-// TODO: Move somewhere else?
-const defaultNotFoundResponse = {
-  type: 'text/plain',
-  body: '{"error":"404 Not Found"}',
-};
-
 exports.createApp = () => {
   var app = {};
 
@@ -72,33 +65,27 @@ function createRouteHelpers(app) {
   };
 
   const routeRequest = (adapterRequest, adapterResponse) => {
-    var req = new Request(adapterRequest);
-    var res = new Response(adapterResponse);
+    let req = new Request(adapterRequest);
+    let res = new Response(adapterResponse);
     //cross-reference request and response
     req.res = res;
     res.req = req;
     app.emit('request', req, res);
-    var router = new Router(routes);
+    let router = new Router(routes);
     util.propagateEvents(router, req, 'pre-route match-route no-route');
     //so routes can access `this.params` with combined request params
-    req.on('match-route', function(route) {
+    req.on('match-route', (matchData) => {
       //we use Object.create so we don't actually mutate the query params object
-      var queryParams = Object.create(req.query());
-      var routeParams = route.params;
-      route.params = Object.assign(queryParams, routeParams);
+      let queryParams = Object.create(req.query());
+      let routeParams = matchData.params;
+      matchData.params = Object.assign(queryParams, routeParams);
     });
-    //todo: move to request lib?
-    req.on('no-route', function(routeData) {
-      var response = routeData.response || defaultNotFoundResponse;
-      if (response) {
-        res.end(response.status || '404', response.type, response.body);
-      } else {
-        res.end('404', 'Not Found');
-      }
+    req.on('no-route', () => {
+      res.end('404', 'text/plain', JSON.stringify({ error: '404 Not Found' }));
     });
     //get raw (encoded) path
-    var path = req.url('rawPath');
-    return router.route(req.method(), path, req, res);
+    let path = req.url('rawPath');
+    router.route(req.method(), path, req, res);
   };
 
   return { addRoute, routeRequest };
