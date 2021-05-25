@@ -60,8 +60,8 @@ exports.createApp = () => {
 function createRouteHelpers(app) {
   const routes = [];
 
-  const addRoute = (route, handler, opts) => {
-    routes.push({ route: route, handler: handler, opts: opts });
+  const addRoute = (route, handler) => {
+    routes.push({ route, handler });
   };
 
   const routeRequest = (adapterRequest, adapterResponse) => {

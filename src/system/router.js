@@ -2,7 +2,7 @@
  * Todo:
  * new Router()
  * new Route(): route.method, route.url/regex, route.handler
- * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params, opts
+ * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params
  */
 /* eslint-disable consistent-this, one-var */
 'use strict';
@@ -17,20 +17,15 @@ function Router(routes) {
   }
   this._routes = [];
   if (routes) {
-    this.addRoutes(routes);
+    for (let { route, handler } of routes) {
+      this.addRoute(route, handler);
+    }
   }
 }
 eventify(Router.prototype);
 
-Router.prototype.addRoute = function(route, handler, opts) {
-  this._routes.push(parseRoute(route, handler, opts));
-};
-
-Router.prototype.addRoutes = function(arr) {
-  var router = this;
-  arr.forEach(function(definition) {
-    router.addRoute(definition.route, definition.handler, definition.opts);
-  });
+Router.prototype.addRoute = function(route, handler) {
+  this._routes.push(parseRoute(route, handler));
 };
 
 Router.prototype.route = function(method, url, ...routeArgs) {
@@ -50,7 +45,6 @@ Router.prototype.route = function(method, url, ...routeArgs) {
     }
     if (matches) {
       var matchData = Object.create(routeData);
-      matchData.opts = item.opts || {};
       var values = matches.slice(1).map((value) => value || '');
       item.handler(matchData, routeArgs, values);
     }
@@ -62,7 +56,7 @@ Router.prototype.route = function(method, url, ...routeArgs) {
 };
 
 //Parse the given route, returning http-method, regular expression and handler
-function parseRoute(route, fn, opts) {
+function parseRoute(route, fn) {
   let parsed = {};
   let names = [];
   let type = typeof route;
@@ -79,7 +73,6 @@ function parseRoute(route, fn, opts) {
   parsed.handler = (matchData, routeArgs, values) => {
     return fn.call(matchData, ...routeArgs, ...values);
   };
-  parsed.opts = opts;
   return parsed;
 }
 
