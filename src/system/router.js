@@ -50,7 +50,6 @@ Router.prototype.route = function(method, url, ...routeArgs) {
 //Parse the given route, returning http-method, regular expression and handler
 function parseRoute(route, fn) {
   let parsed = {};
-  let names = [];
   let type = typeof route;
   let m;
   if (type == 'string' && (m = RE_VERB.exec(route))) {
@@ -59,7 +58,7 @@ function parseRoute(route, fn) {
   }
   parsed.route =
     type == 'string' && !route.match(RE_PLAIN_ROUTE)
-      ? buildRegExp(route, names)
+      ? buildRegExp(route)
       : route;
   parsed.handler = (matchData, routeArgs, values) => {
     return fn.call(matchData, ...routeArgs, ...values);
@@ -67,29 +66,24 @@ function parseRoute(route, fn) {
   return parsed;
 }
 
-//Build a regular expression object from a route string, storing param names in the array provided
-function buildRegExp(route, names) {
-  var str = route.concat('/?').replace(/\/\(/g, '(?:/'),
-    index = 0;
-  str = str.replace(/(\/)?(\.)?:([\w-]+)(\?)?/g, function(
-    _,
-    slash,
-    format,
-    key,
-    optional,
-  ) {
-    names[index++] = key;
-    slash = slash || '';
-    return (
-      '' +
-      (optional ? '' : slash) +
-      '(?:' +
-      (optional ? slash : '') +
-      (format || '') +
-      '([^/]+))' +
-      (optional || '')
-    );
-  });
+//Build a regular expression object from a route string
+function buildRegExp(route) {
+  var str = route.concat('/?').replace(/\/\(/g, '(?:/');
+  str = str.replace(
+    /(\/)?(\.)?:([\w-]+)(\?)?/g,
+    (_, slash, format, _key, optional) => {
+      slash = slash || '';
+      return (
+        '' +
+        (optional ? '' : slash) +
+        '(?:' +
+        (optional ? slash : '') +
+        (format || '') +
+        '([^/]+))' +
+        (optional || '')
+      );
+    },
+  );
   str = str.replace(/([\/.-])/g, '\\$1').replace(/\*/g, '(.+)');
   return new RegExp('^' + str + '$', 'i');
 }
