@@ -52,8 +52,7 @@ Router.prototype.route = function(method, url, ...routeArgs) {
       var matchData = Object.create(routeData);
       matchData.opts = item.opts || {};
       var values = matches.slice(1).map((value) => value || '');
-      matchData.values = values;
-      item.handler(matchData, routeArgs);
+      item.handler(matchData, routeArgs, values);
     }
     if (stopRouting) {
       break;
@@ -64,10 +63,10 @@ Router.prototype.route = function(method, url, ...routeArgs) {
 
 //Parse the given route, returning http-method, regular expression and handler
 function parseRoute(route, fn, opts) {
-  var parsed = {},
-    names = [],
-    type = typeof route,
-    m;
+  let parsed = {};
+  let names = [];
+  let type = typeof route;
+  let m;
   if (type == 'string' && (m = RE_VERB.exec(route))) {
     parsed.method = m[1];
     route = m[2];
@@ -77,8 +76,8 @@ function parseRoute(route, fn, opts) {
       ? buildRegExp(route, names)
       : route;
   parsed.paramNames = names;
-  parsed.handler = function(matchData, routeArgs) {
-    return fn.apply(matchData, routeArgs.concat(matchData.values));
+  parsed.handler = (matchData, routeArgs, values) => {
+    return fn.call(matchData, ...routeArgs, ...values);
   };
   parsed.opts = opts;
   return parsed;
