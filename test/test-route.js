@@ -55,23 +55,6 @@ describe('router', function() {
     expect(complete).to.be(true);
   });
 
-  it('should stop routing', function() {
-    var count = 0;
-    var fn1 = function() {
-      count++;
-      this.stop();
-    };
-    var fn2 = function() {
-      count++;
-    };
-    router.addRoute('/four', fn1);
-    router.addRoute('/four', fn2);
-    complete = false;
-    router.route('GET', '/four');
-    expect(count).to.equal(1);
-    expect(complete).to.be(true);
-  });
-
   it('should match named params', function() {
     var count = 0;
     var fn = function(n) {

@@ -2,7 +2,6 @@
  * Todo:
  * new Router()
  * new Route(): route.method, route.url/regex, route.handler
- * new RouteMatch(): inherits from routeData (gets .stop); adds req, res, values, namedValues/params
  */
 /* eslint-disable consistent-this, one-var */
 'use strict';
@@ -30,10 +29,6 @@ Router.prototype.addRoute = function(route, handler) {
 
 Router.prototype.route = function(method, url, ...routeArgs) {
   var routeData = {};
-  var stopRouting = false;
-  routeData.stop = function() {
-    stopRouting = true;
-  };
   for (let item of this._routes) {
     if (item.method && item.method !== method) {
       continue;
@@ -47,9 +42,6 @@ Router.prototype.route = function(method, url, ...routeArgs) {
       var matchData = Object.create(routeData);
       var values = matches.slice(1).map((value) => value || '');
       item.handler(matchData, routeArgs, values);
-    }
-    if (stopRouting) {
-      break;
     }
   }
   this.emit('no-route', routeData);
