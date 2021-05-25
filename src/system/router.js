@@ -47,19 +47,17 @@ Router.prototype.route = function(method, url, ...routeArgs) {
   this.emit('no-route', routeData);
 };
 
-//Parse the given route, returning http-method, regular expression and handler
-function parseRoute(route, fn) {
-  let parsed = {};
-  let m;
-  if ((m = RE_VERB.exec(route))) {
-    parsed.method = m[1];
-    route = m[2];
-  }
-  parsed.route = route.match(RE_PLAIN_ROUTE) ? route : buildRegExp(route);
-  parsed.handler = (matchData, routeArgs, values) => {
-    return fn.call(matchData, ...routeArgs, ...values);
+//Parse the given route, returning http method, regular expression and handler
+function parseRoute(rawRoute, fn) {
+  let match = RE_VERB.exec(rawRoute);
+  let route = match ? match[2] : rawRoute;
+  return {
+    method: match ? match[1] : undefined,
+    route: route.match(RE_PLAIN_ROUTE) ? route : buildRegExp(route),
+    handler: (matchData, routeArgs, values) => {
+      return fn.call(matchData, ...routeArgs, ...values);
+    },
   };
-  return parsed;
 }
 
 //Build a regular expression object from a route string
