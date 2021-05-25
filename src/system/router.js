@@ -16,53 +16,54 @@ function Router(routes) {
   }
   this._routes = [];
   if (routes) {
-    for (let { route, handler } of routes) {
-      this.addRoute(route, handler);
+    for (let [pattern, handler] of routes) {
+      this.addRoute(pattern, handler);
     }
   }
 }
 eventify(Router.prototype);
 
-Router.prototype.addRoute = function(route, handler) {
-  this._routes.push(parseRoute(route, handler));
+Router.prototype.addRoute = function(pattern, handler) {
+  this._routes.push(parseRoute(pattern, handler));
 };
 
 Router.prototype.route = function(method, url, ...routeArgs) {
   var routeData = {};
-  for (let item of this._routes) {
-    if (item.method && item.method !== method) {
+  for (let route of this._routes) {
+    if (route.method && route.method !== method) {
       continue;
     }
-    if (typeof item.route === 'string') {
-      var matches = item.route === url ? [] : null;
+    let matches;
+    if (typeof route.pattern === 'string') {
+      matches = route.pattern === url ? [] : null;
     } else {
-      matches = item.route.exec(url);
+      matches = route.pattern.exec(url);
     }
     if (matches) {
-      var matchData = Object.create(routeData);
-      var values = matches.slice(1).map((value) => value || '');
-      item.handler(matchData, routeArgs, values);
+      let matchData = Object.create(routeData);
+      let values = matches.slice(1).map((value) => value || '');
+      route.handler(matchData, routeArgs, values);
     }
   }
   this.emit('no-route', routeData);
 };
 
-//Parse the given route, returning http method, regular expression and handler
-function parseRoute(rawRoute, fn) {
-  let match = RE_VERB.exec(rawRoute);
-  let route = match ? match[2] : rawRoute;
+//Parse the given route pattern, returning http method, regex and handler
+function parseRoute(rawPattern, fn) {
+  let match = RE_VERB.exec(rawPattern);
+  let pattern = match ? match[2] : rawPattern;
   return {
     method: match ? match[1] : undefined,
-    route: route.match(RE_PLAIN_ROUTE) ? route : buildRegExp(route),
+    pattern: pattern.match(RE_PLAIN_ROUTE) ? pattern : buildRegExp(pattern),
     handler: (matchData, routeArgs, values) => {
       return fn.call(matchData, ...routeArgs, ...values);
     },
   };
 }
 
-//Build a regular expression object from a route string
-function buildRegExp(route) {
-  var str = route.concat('/?').replace(/\/\(/g, '(?:/');
+//Build a regular expression object from a route pattern
+function buildRegExp(pattern) {
+  let str = pattern.concat('/?').replace(/\/\(/g, '(?:/');
   str = str.replace(
     /(\/)?(\.)?:([\w-]+)(\?)?/g,
     (_, slash, format, _key, optional) => {
