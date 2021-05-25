@@ -1,6 +1,4 @@
 'use strict';
-const { eventify } = require('../eventify');
-
 const RE_VERB = /^([A-Z]+):(.*)/;
 
 function Router(routes) {
@@ -14,7 +12,6 @@ function Router(routes) {
     }
   }
 }
-eventify(Router.prototype);
 
 Router.prototype.addRoute = function(pattern, handler) {
   this._routes.push(parseRoute(pattern, handler));
@@ -30,7 +27,6 @@ Router.prototype.route = function(method, url, ...routeArgs) {
       route.handler(routeArgs, captures);
     }
   }
-  this.emit('no-route');
 };
 
 function parseRoute(rawPattern, fn) {

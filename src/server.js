@@ -2,7 +2,6 @@
 
 const { BASE_PATH } = require('./constants');
 const { eventify } = require('./eventify');
-const util = require('./system/util');
 const Router = require('./system/router');
 const Request = require('./system/request');
 const Response = require('./system/response');
@@ -17,15 +16,30 @@ require('./support/patch');
 const Fiber = require('./lib/fiber');
 
 exports.createApp = () => {
-  var app = {};
+  const app = {};
 
-  //Make it able to emit events
   eventify(app);
 
-  const { addRoute, routeRequest } = createRouteHelpers(app);
+  const router = new Router();
 
-  //shortcut method for addRoute
-  app.route = (...args) => addRoute(...args);
+  app.route = (pattern, handler) => {
+    router.addRoute(pattern, handler);
+  };
+
+  const routeRequest = (adapterRequest, adapterResponse) => {
+    let req = new Request(adapterRequest);
+    let res = new Response(adapterResponse);
+    //cross-reference request and response
+    req.res = res;
+    res.req = req;
+    app.emit('request', req, res);
+    let path = req.url('rawPath');
+    router.route(req.method(), path, req, res);
+    // If we get to this point and the fiber has not aborted then there was no
+    // route that handled this request.
+    req.emit('no-route');
+    res.end('404', 'text/plain', JSON.stringify({ error: '404 Not Found' }));
+  };
 
   app.getRequestHandler = () => {
     //this function only runs within a fiber
@@ -35,7 +49,6 @@ exports.createApp = () => {
       //cross-reference adapter-request and adapter-response
       req.res = res;
       res.req = req;
-      // sleep(1); //for debugging
       routeRequest(req, res);
       throw new Error('Router returned without handling request.');
     };
@@ -56,33 +69,6 @@ exports.createApp = () => {
 
   return app;
 };
-
-function createRouteHelpers(app) {
-  const routes = [];
-
-  const addRoute = (pattern, handler) => {
-    routes.push([pattern, handler]);
-  };
-
-  const routeRequest = (adapterRequest, adapterResponse) => {
-    let req = new Request(adapterRequest);
-    let res = new Response(adapterResponse);
-    //cross-reference request and response
-    req.res = res;
-    res.req = req;
-    app.emit('request', req, res);
-    let router = new Router(routes);
-    util.propagateEvents(router, req, 'no-route');
-    req.on('no-route', () => {
-      res.end('404', 'text/plain', JSON.stringify({ error: '404 Not Found' }));
-    });
-    //get raw (encoded) path
-    let path = req.url('rawPath');
-    router.route(req.method(), path, req, res);
-  };
-
-  return { addRoute, routeRequest };
-}
 
 //for debugging
 // var sleep = function(ms) {
