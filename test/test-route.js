@@ -14,9 +14,11 @@ describe('router', function() {
   it('should add a route', function() {
     var fn = function() {};
     router.addRoute('/one', fn);
-    expect(JSON.stringify(router._routes)).to.eql(
-      JSON.stringify([{ method: '*', pattern: '/one' }]),
-    );
+    expect(router._routes.length).to.be(1);
+    var first = router._routes[0];
+    expect(JSON.stringify(first)).to.eql(JSON.stringify({ method: '*' }));
+    expect(typeof first.matcher).to.be('function');
+    expect(typeof first.handler).to.be('function');
   });
 
   it('should execute route', function() {
@@ -49,25 +51,25 @@ describe('router', function() {
     var fn = function() {
       count++;
     };
-    router.addRoute('/three', fn);
-    router.addRoute('/three/:opt?', fn);
+    router.addRoute('/three/foo', fn);
+    router.addRoute('/three/:opt', fn);
     complete = false;
-    router.route('GET', '/three');
+    router.route('GET', '/three/foo');
     expect(count).to.equal(2);
     expect(complete).to.be(true);
   });
 
   it('should match named params', function() {
     var count = 0;
-    var fn = function(n) {
-      count += parseInt(n, 10);
-      //expect(n).to.equal(req._params.n);
+    var fn = function(n, m) {
+      count += 1;
       expect(n).to.equal('2');
+      expect(m).to.equal('a');
     };
-    router.addRoute('/four/:n/:m?', fn);
+    router.addRoute('/four/:n/:m', fn);
     complete = false;
     router.route('GET', '/four/2/a');
-    expect(count).to.equal(2);
+    expect(count).to.equal(1);
     expect(complete).to.be(true);
   });
 });

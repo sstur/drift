@@ -2,7 +2,6 @@
 const { eventify } = require('../eventify');
 
 const RE_VERB = /^([A-Z]+):(.*)/;
-const RE_PLAIN_ROUTE = /^[^:*]+$/;
 
 function Router(routes) {
   if (!(this instanceof Router)) {
@@ -26,53 +25,46 @@ Router.prototype.route = function(method, url, ...routeArgs) {
     if (route.method !== '*' && route.method !== method) {
       continue;
     }
-    let matches;
-    if (typeof route.pattern === 'string') {
-      matches = route.pattern === url ? [] : null;
-    } else {
-      matches = route.pattern.exec(url);
-    }
-    if (matches) {
-      let values = matches.slice(1).map((value) => value || '');
-      route.handler(routeArgs, values);
+    let captures = route.matcher(url);
+    if (captures) {
+      route.handler(routeArgs, captures);
     }
   }
   this.emit('no-route');
 };
 
-//Parse the given route pattern, returning http method, regex and handler
 function parseRoute(rawPattern, fn) {
   let match = RE_VERB.exec(rawPattern);
+  let method = match ? match[1] : '*';
   let pattern = match ? match[2] : rawPattern;
   return {
-    method: match ? match[1] : '*',
-    pattern: pattern.match(RE_PLAIN_ROUTE) ? pattern : buildRegExp(pattern),
-    handler: (routeArgs, values) => {
-      return fn(...routeArgs, ...values);
+    method,
+    matcher: getMatcher(pattern),
+    handler: (routeArgs, captures) => {
+      return fn(...routeArgs, ...captures);
     },
   };
 }
 
-//Build a regular expression object from a route pattern
-function buildRegExp(pattern) {
-  let str = pattern.concat('/?').replace(/\/\(/g, '(?:/');
-  str = str.replace(
-    /(\/)?(\.)?:([\w-]+)(\?)?/g,
-    (_, slash, format, _key, optional) => {
-      slash = slash || '';
-      return (
-        '' +
-        (optional ? '' : slash) +
-        '(?:' +
-        (optional ? slash : '') +
-        (format || '') +
-        '([^/]+))' +
-        (optional || '')
-      );
-    },
-  );
-  str = str.replace(/([\/.-])/g, '\\$1').replace(/\*/g, '(.+)');
-  return new RegExp('^' + str + '$', 'i');
+function getMatcher(pattern) {
+  let patternSegments = pattern.slice(1).split('/');
+  return (url) => {
+    let urlSegments = url.slice(1).split('/');
+    if (patternSegments.length !== urlSegments.length) {
+      return null;
+    }
+    let captures = [];
+    for (let i = 0; i < urlSegments.length; i++) {
+      let patternSegment = patternSegments[i];
+      let urlSegment = urlSegments[i];
+      if (patternSegment.charAt(0) === ':') {
+        captures.push(urlSegment);
+      } else if (patternSegment !== urlSegment) {
+        return null;
+      }
+    }
+    return captures;
+  };
 }
 
 module.exports = Router;
