@@ -69,7 +69,6 @@ function parseRoute(route, fn) {
     type == 'string' && !route.match(RE_PLAIN_ROUTE)
       ? buildRegExp(route, names)
       : route;
-  parsed.paramNames = names;
   parsed.handler = (matchData, routeArgs, values) => {
     return fn.call(matchData, ...routeArgs, ...values);
   };
