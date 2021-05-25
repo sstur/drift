@@ -1,14 +1,8 @@
-/*!
- * Todo:
- * new Router()
- * new Route(): route.method, route.url/regex, route.handler
- */
-/* eslint-disable consistent-this, one-var */
 'use strict';
 const { eventify } = require('../eventify');
 
-var RE_VERB = /^([A-Z]+):(.*)/;
-var RE_PLAIN_ROUTE = /^[^:*]+$/;
+const RE_VERB = /^([A-Z]+):(.*)/;
+const RE_PLAIN_ROUTE = /^[^:*]+$/;
 
 function Router(routes) {
   if (!(this instanceof Router)) {
