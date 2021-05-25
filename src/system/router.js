@@ -29,7 +29,7 @@ Router.prototype.addRoute = function(pattern, handler) {
 
 Router.prototype.route = function(method, url, ...routeArgs) {
   for (let route of this._routes) {
-    if (route.method && route.method !== method) {
+    if (route.method !== '*' && route.method !== method) {
       continue;
     }
     let matches;
@@ -51,7 +51,7 @@ function parseRoute(rawPattern, fn) {
   let match = RE_VERB.exec(rawPattern);
   let pattern = match ? match[2] : rawPattern;
   return {
-    method: match ? match[1] : undefined,
+    method: match ? match[1] : '*',
     pattern: pattern.match(RE_PLAIN_ROUTE) ? pattern : buildRegExp(pattern),
     handler: (routeArgs, values) => {
       return fn(...routeArgs, ...values);

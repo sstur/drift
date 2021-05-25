@@ -14,7 +14,9 @@ describe('router', function() {
   it('should add a route', function() {
     var fn = function() {};
     router.addRoute('/one', fn);
-    expect(JSON.stringify(router._routes)).to.eql('[{"pattern":"/one"}]');
+    expect(JSON.stringify(router._routes)).to.eql(
+      JSON.stringify([{ method: '*', pattern: '/one' }]),
+    );
   });
 
   it('should execute route', function() {
