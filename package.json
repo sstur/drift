@@ -3,7 +3,10 @@
   "version": "13.0.0",
   "main": "index.js",
   "files": [
-    "src/"
+    "src/",
+    "crypto.js",
+    "fs.js",
+    "http.js"
   ],
   "scripts": {
     "check-format": "prettier --check \"**/*.js\"",
