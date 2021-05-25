@@ -28,7 +28,6 @@ Router.prototype.addRoute = function(pattern, handler) {
 };
 
 Router.prototype.route = function(method, url, ...routeArgs) {
-  var routeData = {};
   for (let route of this._routes) {
     if (route.method && route.method !== method) {
       continue;
@@ -40,12 +39,11 @@ Router.prototype.route = function(method, url, ...routeArgs) {
       matches = route.pattern.exec(url);
     }
     if (matches) {
-      let matchData = Object.create(routeData);
       let values = matches.slice(1).map((value) => value || '');
-      route.handler(matchData, routeArgs, values);
+      route.handler(routeArgs, values);
     }
   }
-  this.emit('no-route', routeData);
+  this.emit('no-route');
 };
 
 //Parse the given route pattern, returning http method, regex and handler
@@ -55,8 +53,8 @@ function parseRoute(rawPattern, fn) {
   return {
     method: match ? match[1] : undefined,
     pattern: pattern.match(RE_PLAIN_ROUTE) ? pattern : buildRegExp(pattern),
-    handler: (matchData, routeArgs, values) => {
-      return fn.call(matchData, ...routeArgs, ...values);
+    handler: (routeArgs, values) => {
+      return fn(...routeArgs, ...values);
     },
   };
 }
