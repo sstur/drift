@@ -12,7 +12,7 @@ adapter.define('body-parser', function(require, exports, module) {
   var qs = require('qs');
   var util = require('util');
 
-  var MAX_BUFFER_SIZE = 1048576;
+  var MAX_BUFFER_SIZE = 4194304;
 
   var join = path.join;
   var hasOwnProperty = Object.hasOwnProperty;
