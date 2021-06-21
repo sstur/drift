@@ -11,7 +11,7 @@ const qs = require('../system/qs');
 const util = require('../system/util');
 const fs = require('./fs');
 
-const MAX_BUFFER_SIZE = 1048576;
+const MAX_BUFFER_SIZE = 4194304;
 
 const join = path.join;
 const hasOwnProperty = Object.hasOwnProperty;
