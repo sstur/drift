@@ -1,6 +1,7 @@
 {
   "name": "drift",
   "version": "14.0.0",
+  "repository": "github:marketwurks/drift",
   "main": "index.js",
   "files": [
     "src/",
